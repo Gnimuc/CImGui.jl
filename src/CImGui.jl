@@ -1,5 +1,6 @@
 module CImGui
 
-greet() = print("Hello World!")
+include("LibCImGui.jl")
+using .LibCImGui
 
 end # module

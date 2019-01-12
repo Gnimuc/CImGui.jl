@@ -3,3 +3,5 @@
 *.jl.cov
 *.jl.*.cov
 *.jl.mem
+deps/usr
+deps/deps.jl

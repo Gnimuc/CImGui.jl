@@ -2,6 +2,11 @@ module CEnum
 
 abstract type Cenum{T} end
 
+Base.:+(a::T, b::S) where {T<:Cenum{UInt32},S<:Integer} = S(a) + b
+Base.:+(a::S, b::T) where {T<:Cenum{UInt32},S<:Integer} = a + S(b)
+Base.:+(a::T, b::S) where {T<:Cenum{Int32},S<:Integer} = S(a) + b
+Base.:+(a::S, b::T) where {T<:Cenum{Int32},S<:Integer} = a + S(b)
+
 Base.:|(a::T, b::T) where {T<:Cenum{UInt32}} = UInt32(a) | UInt32(b)
 Base.:|(a::T, b::UInt32) where {T<:Cenum{UInt32}} = UInt32(a) | b
 Base.:|(a::UInt32, b::T) where {T<:Cenum{UInt32}} = b | a

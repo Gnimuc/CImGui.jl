@@ -79,16 +79,16 @@ end
 const ImFontAtlasFlags = Cint
 const ImTextureID = Ptr{Cvoid}
 
-struct ImVector_ImFontPtr{_ImFont}
+struct ImVector_ImFontPtr
     Size::Cint
     Capacity::Cint
-    Data::Ptr{Ptr{_ImFont}}
+    Data::Ptr{Ptr{Cvoid}}
 end
 
-struct ImVector_CustomRect{_CustomRect}
+struct ImVector_CustomRect
     Size::Cint
     Capacity::Cint
-    Data::Ptr{_CustomRect}
+    Data::Ptr{Cvoid}
 end
 
 struct ImVector_ImFontConfig

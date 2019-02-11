@@ -286,8 +286,8 @@ function igSetScrollHereY(center_y_ratio)
     ccall((:igSetScrollHereY, libcimgui), Cvoid, (Cfloat,), center_y_ratio)
 end
 
-function igSetScrollFromPosY(pos_y, center_y_ratio)
-    ccall((:igSetScrollFromPosY, libcimgui), Cvoid, (Cfloat, Cfloat), pos_y, center_y_ratio)
+function igSetScrollFromPosY(local_y, center_y_ratio)
+    ccall((:igSetScrollFromPosY, libcimgui), Cvoid, (Cfloat, Cfloat), local_y, center_y_ratio)
 end
 
 function igPushFont(font)
@@ -362,8 +362,8 @@ function igCalcItemWidth()
     ccall((:igCalcItemWidth, libcimgui), Cfloat, ())
 end
 
-function igPushTextWrapPos(wrap_pos_x)
-    ccall((:igPushTextWrapPos, libcimgui), Cvoid, (Cfloat,), wrap_pos_x)
+function igPushTextWrapPos(wrap_local_pos_x)
+    ccall((:igPushTextWrapPos, libcimgui), Cvoid, (Cfloat,), wrap_local_pos_x)
 end
 
 function igPopTextWrapPos()
@@ -390,8 +390,8 @@ function igSeparator()
     ccall((:igSeparator, libcimgui), Cvoid, ())
 end
 
-function igSameLine(pos_x, spacing_w)
-    ccall((:igSameLine, libcimgui), Cvoid, (Cfloat, Cfloat), pos_x, spacing_w)
+function igSameLine(local_pos_x, spacing_w)
+    ccall((:igSameLine, libcimgui), Cvoid, (Cfloat, Cfloat), local_pos_x, spacing_w)
 end
 
 function igNewLine()
@@ -438,12 +438,12 @@ function igSetCursorPos(local_pos)
     ccall((:igSetCursorPos, libcimgui), Cvoid, (ImVec2,), local_pos)
 end
 
-function igSetCursorPosX(x)
-    ccall((:igSetCursorPosX, libcimgui), Cvoid, (Cfloat,), x)
+function igSetCursorPosX(local_x)
+    ccall((:igSetCursorPosX, libcimgui), Cvoid, (Cfloat,), local_x)
 end
 
-function igSetCursorPosY(y)
-    ccall((:igSetCursorPosY, libcimgui), Cvoid, (Cfloat,), y)
+function igSetCursorPosY(local_y)
+    ccall((:igSetCursorPosY, libcimgui), Cvoid, (Cfloat,), local_y)
 end
 
 function igGetCursorStartPos()
@@ -454,8 +454,8 @@ function igGetCursorScreenPos()
     ccall((:igGetCursorScreenPos, libcimgui), ImVec2, ())
 end
 
-function igSetCursorScreenPos(screen_pos)
-    ccall((:igSetCursorScreenPos, libcimgui), Cvoid, (ImVec2,), screen_pos)
+function igSetCursorScreenPos(pos)
+    ccall((:igSetCursorScreenPos, libcimgui), Cvoid, (ImVec2,), pos)
 end
 
 function igAlignTextToFramePadding()
@@ -694,48 +694,48 @@ function igInputTextMultiline(label, buf, buf_size, size, flags, callback, user_
     ccall((:igInputTextMultiline, libcimgui), Bool, (Cstring, Cstring, Csize_t, ImVec2, ImGuiInputTextFlags, ImGuiInputTextCallback, Ptr{Cvoid}), label, buf, buf_size, size, flags, callback, user_data)
 end
 
-function igInputFloat(label, v, step, step_fast, format, extra_flags)
-    ccall((:igInputFloat, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cstring, ImGuiInputTextFlags), label, v, step, step_fast, format, extra_flags)
+function igInputFloat(label, v, step, step_fast, format, flags)
+    ccall((:igInputFloat, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cstring, ImGuiInputTextFlags), label, v, step, step_fast, format, flags)
 end
 
-function igInputFloat2(label, v, format, extra_flags)
-    ccall((:igInputFloat2, libcimgui), Bool, (Cstring, NTuple{2, Cfloat}, Cstring, ImGuiInputTextFlags), label, v, format, extra_flags)
+function igInputFloat2(label, v, format, flags)
+    ccall((:igInputFloat2, libcimgui), Bool, (Cstring, NTuple{2, Cfloat}, Cstring, ImGuiInputTextFlags), label, v, format, flags)
 end
 
-function igInputFloat3(label, v, format, extra_flags)
-    ccall((:igInputFloat3, libcimgui), Bool, (Cstring, NTuple{3, Cfloat}, Cstring, ImGuiInputTextFlags), label, v, format, extra_flags)
+function igInputFloat3(label, v, format, flags)
+    ccall((:igInputFloat3, libcimgui), Bool, (Cstring, NTuple{3, Cfloat}, Cstring, ImGuiInputTextFlags), label, v, format, flags)
 end
 
-function igInputFloat4(label, v, format, extra_flags)
-    ccall((:igInputFloat4, libcimgui), Bool, (Cstring, NTuple{4, Cfloat}, Cstring, ImGuiInputTextFlags), label, v, format, extra_flags)
+function igInputFloat4(label, v, format, flags)
+    ccall((:igInputFloat4, libcimgui), Bool, (Cstring, NTuple{4, Cfloat}, Cstring, ImGuiInputTextFlags), label, v, format, flags)
 end
 
-function igInputInt(label, v, step, step_fast, extra_flags)
-    ccall((:igInputInt, libcimgui), Bool, (Cstring, Ptr{Cint}, Cint, Cint, ImGuiInputTextFlags), label, v, step, step_fast, extra_flags)
+function igInputInt(label, v, step, step_fast, flags)
+    ccall((:igInputInt, libcimgui), Bool, (Cstring, Ptr{Cint}, Cint, Cint, ImGuiInputTextFlags), label, v, step, step_fast, flags)
 end
 
-function igInputInt2(label, v, extra_flags)
-    ccall((:igInputInt2, libcimgui), Bool, (Cstring, NTuple{2, Cint}, ImGuiInputTextFlags), label, v, extra_flags)
+function igInputInt2(label, v, flags)
+    ccall((:igInputInt2, libcimgui), Bool, (Cstring, NTuple{2, Cint}, ImGuiInputTextFlags), label, v, flags)
 end
 
-function igInputInt3(label, v, extra_flags)
-    ccall((:igInputInt3, libcimgui), Bool, (Cstring, NTuple{3, Cint}, ImGuiInputTextFlags), label, v, extra_flags)
+function igInputInt3(label, v, flags)
+    ccall((:igInputInt3, libcimgui), Bool, (Cstring, NTuple{3, Cint}, ImGuiInputTextFlags), label, v, flags)
 end
 
-function igInputInt4(label, v, extra_flags)
-    ccall((:igInputInt4, libcimgui), Bool, (Cstring, NTuple{4, Cint}, ImGuiInputTextFlags), label, v, extra_flags)
+function igInputInt4(label, v, flags)
+    ccall((:igInputInt4, libcimgui), Bool, (Cstring, NTuple{4, Cint}, ImGuiInputTextFlags), label, v, flags)
 end
 
-function igInputDouble(label, v, step, step_fast, format, extra_flags)
-    ccall((:igInputDouble, libcimgui), Bool, (Cstring, Ptr{Cdouble}, Cdouble, Cdouble, Cstring, ImGuiInputTextFlags), label, v, step, step_fast, format, extra_flags)
+function igInputDouble(label, v, step, step_fast, format, flags)
+    ccall((:igInputDouble, libcimgui), Bool, (Cstring, Ptr{Cdouble}, Cdouble, Cdouble, Cstring, ImGuiInputTextFlags), label, v, step, step_fast, format, flags)
 end
 
-function igInputScalar(label, data_type, v, step, step_fast, format, extra_flags)
-    ccall((:igInputScalar, libcimgui), Bool, (Cstring, ImGuiDataType, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, ImGuiInputTextFlags), label, data_type, v, step, step_fast, format, extra_flags)
+function igInputScalar(label, data_type, v, step, step_fast, format, flags)
+    ccall((:igInputScalar, libcimgui), Bool, (Cstring, ImGuiDataType, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, ImGuiInputTextFlags), label, data_type, v, step, step_fast, format, flags)
 end
 
-function igInputScalarN(label, data_type, v, components, step, step_fast, format, extra_flags)
-    ccall((:igInputScalarN, libcimgui), Bool, (Cstring, ImGuiDataType, Ptr{Cvoid}, Cint, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, ImGuiInputTextFlags), label, data_type, v, components, step, step_fast, format, extra_flags)
+function igInputScalarN(label, data_type, v, components, step, step_fast, format, flags)
+    ccall((:igInputScalarN, libcimgui), Bool, (Cstring, ImGuiDataType, Ptr{Cvoid}, Cint, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, ImGuiInputTextFlags), label, data_type, v, components, step, step_fast, format, flags)
 end
 
 function igColorEdit3(label, col, flags)
@@ -972,6 +972,26 @@ end
 
 function igGetColumnsCount()
     ccall((:igGetColumnsCount, libcimgui), Cint, ())
+end
+
+function igBeginTabBar(str_id, flags)
+    ccall((:igBeginTabBar, libcimgui), Bool, (Cstring, ImGuiTabBarFlags), str_id, flags)
+end
+
+function igEndTabBar()
+    ccall((:igEndTabBar, libcimgui), Cvoid, ())
+end
+
+function igBeginTabItem(label, p_open, flags)
+    ccall((:igBeginTabItem, libcimgui), Bool, (Cstring, Ptr{Bool}, ImGuiTabItemFlags), label, p_open, flags)
+end
+
+function igEndTabItem()
+    ccall((:igEndTabItem, libcimgui), Cvoid, ())
+end
+
+function igSetTabItemClosed(tab_or_docked_window_label)
+    ccall((:igSetTabItemClosed, libcimgui), Cvoid, (Cstring,), tab_or_docked_window_label)
 end
 
 function igLogToTTY(max_depth)
@@ -1234,12 +1254,12 @@ function igSetMouseCursor(type)
     ccall((:igSetMouseCursor, libcimgui), Cvoid, (ImGuiMouseCursor,), type)
 end
 
-function igCaptureKeyboardFromApp(capture)
-    ccall((:igCaptureKeyboardFromApp, libcimgui), Cvoid, (Bool,), capture)
+function igCaptureKeyboardFromApp(want_capture_keyboard_value)
+    ccall((:igCaptureKeyboardFromApp, libcimgui), Cvoid, (Bool,), want_capture_keyboard_value)
 end
 
-function igCaptureMouseFromApp(capture)
-    ccall((:igCaptureMouseFromApp, libcimgui), Cvoid, (Bool,), capture)
+function igCaptureMouseFromApp(want_capture_mouse_value)
+    ccall((:igCaptureMouseFromApp, libcimgui), Cvoid, (Bool,), want_capture_mouse_value)
 end
 
 function igGetClipboardText()
@@ -1294,8 +1314,8 @@ function ImGuiIO_AddInputCharacter(self, c)
     ccall((:ImGuiIO_AddInputCharacter, libcimgui), Cvoid, (Ptr{ImGuiIO}, ImWchar), self, c)
 end
 
-function ImGuiIO_AddInputCharactersUTF8(self, utf8_chars)
-    ccall((:ImGuiIO_AddInputCharactersUTF8, libcimgui), Cvoid, (Ptr{ImGuiIO}, Cstring), self, utf8_chars)
+function ImGuiIO_AddInputCharactersUTF8(self, str)
+    ccall((:ImGuiIO_AddInputCharactersUTF8, libcimgui), Cvoid, (Ptr{ImGuiIO}, Cstring), self, str)
 end
 
 function ImGuiIO_ClearInputCharacters(self)
@@ -1830,6 +1850,38 @@ function ImFontConfig_destroy(self)
     ccall((:ImFontConfig_destroy, libcimgui), Cvoid, (Ptr{ImFontConfig},), self)
 end
 
+function ImFontGlyphRangesBuilder_ImFontGlyphRangesBuilder()
+    ccall((:ImFontGlyphRangesBuilder_ImFontGlyphRangesBuilder, libcimgui), Ptr{ImFontGlyphRangesBuilder}, ())
+end
+
+function ImFontGlyphRangesBuilder_destroy(self)
+    ccall((:ImFontGlyphRangesBuilder_destroy, libcimgui), Cvoid, (Ptr{ImFontGlyphRangesBuilder},), self)
+end
+
+function ImFontGlyphRangesBuilder_GetBit(self, n)
+    ccall((:ImFontGlyphRangesBuilder_GetBit, libcimgui), Bool, (Ptr{ImFontGlyphRangesBuilder}, Cint), self, n)
+end
+
+function ImFontGlyphRangesBuilder_SetBit(self, n)
+    ccall((:ImFontGlyphRangesBuilder_SetBit, libcimgui), Cvoid, (Ptr{ImFontGlyphRangesBuilder}, Cint), self, n)
+end
+
+function ImFontGlyphRangesBuilder_AddChar(self, c)
+    ccall((:ImFontGlyphRangesBuilder_AddChar, libcimgui), Cvoid, (Ptr{ImFontGlyphRangesBuilder}, ImWchar), self, c)
+end
+
+function ImFontGlyphRangesBuilder_AddText(self, text, text_end)
+    ccall((:ImFontGlyphRangesBuilder_AddText, libcimgui), Cvoid, (Ptr{ImFontGlyphRangesBuilder}, Cstring, Cstring), self, text, text_end)
+end
+
+function ImFontGlyphRangesBuilder_AddRanges(self, ranges)
+    ccall((:ImFontGlyphRangesBuilder_AddRanges, libcimgui), Cvoid, (Ptr{ImFontGlyphRangesBuilder}, Ptr{ImWchar}), self, ranges)
+end
+
+function ImFontGlyphRangesBuilder_BuildRanges(self, out_ranges)
+    ccall((:ImFontGlyphRangesBuilder_BuildRanges, libcimgui), Cvoid, (Ptr{ImFontGlyphRangesBuilder}, Ptr{ImVector_ImWchar}), self, out_ranges)
+end
+
 function ImFontAtlas_ImFontAtlas()
     ccall((:ImFontAtlas_ImFontAtlas, libcimgui), Ptr{ImFontAtlas}, ())
 end
@@ -1882,16 +1934,16 @@ function ImFontAtlas_Build(self)
     ccall((:ImFontAtlas_Build, libcimgui), Bool, (Ptr{ImFontAtlas},), self)
 end
 
-function ImFontAtlas_IsBuilt(self)
-    ccall((:ImFontAtlas_IsBuilt, libcimgui), Bool, (Ptr{ImFontAtlas},), self)
-end
-
 function ImFontAtlas_GetTexDataAsAlpha8(self, out_pixels, out_width, out_height, out_bytes_per_pixel)
     ccall((:ImFontAtlas_GetTexDataAsAlpha8, libcimgui), Cvoid, (Ptr{ImFontAtlas}, Ptr{Ptr{Cuchar}}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), self, out_pixels, out_width, out_height, out_bytes_per_pixel)
 end
 
 function ImFontAtlas_GetTexDataAsRGBA32(self, out_pixels, out_width, out_height, out_bytes_per_pixel)
     ccall((:ImFontAtlas_GetTexDataAsRGBA32, libcimgui), Cvoid, (Ptr{ImFontAtlas}, Ptr{Ptr{Cuchar}}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), self, out_pixels, out_width, out_height, out_bytes_per_pixel)
+end
+
+function ImFontAtlas_IsBuilt(self)
+    ccall((:ImFontAtlas_IsBuilt, libcimgui), Bool, (Ptr{ImFontAtlas},), self)
 end
 
 function ImFontAtlas_SetTexID(self, id)
@@ -1924,38 +1976,6 @@ end
 
 function ImFontAtlas_GetGlyphRangesThai(self)
     ccall((:ImFontAtlas_GetGlyphRangesThai, libcimgui), Ptr{ImWchar}, (Ptr{ImFontAtlas},), self)
-end
-
-function GlyphRangesBuilder_GlyphRangesBuilder()
-    ccall((:GlyphRangesBuilder_GlyphRangesBuilder, libcimgui), Ptr{GlyphRangesBuilder}, ())
-end
-
-function GlyphRangesBuilder_destroy(self)
-    ccall((:GlyphRangesBuilder_destroy, libcimgui), Cvoid, (Ptr{GlyphRangesBuilder},), self)
-end
-
-function GlyphRangesBuilder_GetBit(self, n)
-    ccall((:GlyphRangesBuilder_GetBit, libcimgui), Bool, (Ptr{GlyphRangesBuilder}, Cint), self, n)
-end
-
-function GlyphRangesBuilder_SetBit(self, n)
-    ccall((:GlyphRangesBuilder_SetBit, libcimgui), Cvoid, (Ptr{GlyphRangesBuilder}, Cint), self, n)
-end
-
-function GlyphRangesBuilder_AddChar(self, c)
-    ccall((:GlyphRangesBuilder_AddChar, libcimgui), Cvoid, (Ptr{GlyphRangesBuilder}, ImWchar), self, c)
-end
-
-function GlyphRangesBuilder_AddText(self, text, text_end)
-    ccall((:GlyphRangesBuilder_AddText, libcimgui), Cvoid, (Ptr{GlyphRangesBuilder}, Cstring, Cstring), self, text, text_end)
-end
-
-function GlyphRangesBuilder_AddRanges(self, ranges)
-    ccall((:GlyphRangesBuilder_AddRanges, libcimgui), Cvoid, (Ptr{GlyphRangesBuilder}, Ptr{ImWchar}), self, ranges)
-end
-
-function GlyphRangesBuilder_BuildRanges(self, out_ranges)
-    ccall((:GlyphRangesBuilder_BuildRanges, libcimgui), Cvoid, (Ptr{GlyphRangesBuilder}, Ptr{ImVector_ImWchar}), self, out_ranges)
 end
 
 function CustomRect_CustomRect()

@@ -1,6 +1,6 @@
 function igImplOpenGL3_Init()
     io = igGetIO()
-    ImGuiIO_Set_BackendPlatformName(io, "imgui_impl_opengl3")
+    # ImGuiIO_Set_BackendPlatformName(io, "imgui_impl_opengl3")
     return true
 end
 
@@ -13,8 +13,11 @@ end
 
 function igImplOpenGL3_RenderDrawData(draw_data)
     # avoid rendering when minimized, scale coordinates for retina displays
+    io = igGetIO()
+    disp_size = ImDrawData_Get_DisplaySize(draw_data)
+    fb_scale = ImGuiIO_Get_DisplayFramebufferScale(io)
     fb_width = trunc(Cint, disp_size.x * fb_scale.x)
-    fb_height = trunc(disp_size.y * fb_scale.y)
+    fb_height = trunc(Cint, disp_size.y * fb_scale.y)
     (fb_width ≤ 0 || fb_height ≤ 0) && return nothing
 
     # backup GL state
@@ -58,6 +61,7 @@ function igImplOpenGL3_RenderDrawData(draw_data)
 
     # setup viewport, orthographic projection matrix
     glViewport(0, 0, GLsizei(fb_width), GLsizei(fb_height))
+    disp_pos = ImDrawData_Get_DisplayPos(draw_data)
     L = disp_pos.x
     R = disp_pos.x + disp_size.x
     T = disp_pos.y
@@ -86,31 +90,33 @@ function igImplOpenGL3_RenderDrawData(draw_data)
     pos_offset = fieldoffset(ImDrawVert, 1)
     uv_offset = fieldoffset(ImDrawVert, 2)
     col_offset = fieldoffset(ImDrawVert, 3)
-    glVertexAttribPointer(g_AttribLocationPosition, 2, GL_FLOAT, GL_FALSE, idv_size, Ptr{GLvoid}(pos_offset))
-    glVertexAttribPointer(g_AttribLocationUV, 2, GL_FLOAT, GL_FALSE, idv_size, Ptr{GLvoid}(uv_offset))
-    glVertexAttribPointer(g_AttribLocationColor, 4, GL_UNSIGNED_BYTE, GL_TRUE, idv_size, Ptr{GLvoid}(col_offset))
+    glVertexAttribPointer(g_AttribLocationPosition, 2, GL_FLOAT, GL_FALSE, idv_size, Ptr{GLCvoid}(pos_offset))
+    glVertexAttribPointer(g_AttribLocationUV, 2, GL_FLOAT, GL_FALSE, idv_size, Ptr{GLCvoid}(uv_offset))
+    glVertexAttribPointer(g_AttribLocationColor, 4, GL_UNSIGNED_BYTE, GL_TRUE, idv_size, Ptr{GLCvoid}(col_offset))
 
     # will project scissor/clipping rectangles into framebuffer space
     clip_off = ImDrawData_Get_DisplayPos(draw_data)  # (0,0) unless using multi-viewports
-    clip_scale = ImDrawData_Get_FramebufferScale(draw_data) # (1,1) unless using retina display which are often (2,2)
+    # clip_scale = ImDrawData_Get_FramebufferScale(draw_data) # (1,1) unless using retina display which are often (2,2)
+    clip_scale = disp_pos
 
     # draw
     cmd_lists_count = ImDrawData_Get_CmdListsCount(draw_data)
     for n = 0:cmd_lists_count-1
-        idx_buffer_offset = Csize_t(0)
+        idx_buffer_offset = Ptr{ImDrawIdx}(0)
         cmd_list = ImDrawData_Get_CmdLists(draw_data, n)
-        vtx_buffer = ImDrawList_Get_VtxBuffer()
-        idx_buffer = ImDrawList_Get_IdxBuffer()
+        vtx_buffer = ImDrawList_Get_VtxBuffer(cmd_list)
+        idx_buffer = ImDrawList_Get_IdxBuffer(cmd_list)
 
         glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle)
-        glBufferData(GL_ARRAY_BUFFER, GLsizeiptr(vtx_buffer.Size) * sizeof(ImDrawVert), Ptr{GLvoid}(vtx_buffer.Data), GL_STREAM_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, GLsizeiptr(vtx_buffer.Size) * sizeof(ImDrawVert), Ptr{GLCvoid}(vtx_buffer.Data), GL_STREAM_DRAW)
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ElementsHandle)
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, GLsizeiptr(idx_buffer.Size) * sizeof(ImDrawIdx), Ptr{GLvoid}(idx_buffer.Data), GL_STREAM_DRAW)
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, GLsizeiptr(idx_buffer.Size) * sizeof(ImDrawIdx), Ptr{GLCvoid}(idx_buffer.Data), GL_STREAM_DRAW)
 
-        cmd_buffer = ImDrawList_Get_CmdBuffer()
-        for cmd_i = 0:cmdbuffer.Size-1
+        cmd_buffer = ImDrawList_Get_CmdBuffer(cmd_list)
+        for cmd_i = 0:cmd_buffer.Size-1
             pcmd = cmd_buffer.Data + cmd_i * Core.sizeof(ImDrawCmd)
+            elem_count = ImDrawCmd_Get_ElemCount(pcmd)
             if ImDrawCmd_Get_UserCallback(pcmd) != C_NULL
                 @error "not implenmented yet"
                 # user callback (registered via ImDrawList_AddCallback)
@@ -137,11 +143,12 @@ function igImplOpenGL3_RenderDrawData(draw_data)
                     end
                     glScissor(ix, iy, iw, iw)
                     # bind texture, draw
-                    glBindTexture(GL_TEXTURE_2D, GLuint(ImDrawCmd_Get_TextureId(pcmd)))
+                    # glBindTexture(GL_TEXTURE_2D, GLuint(ImDrawCmd_Get_TextureID(pcmd)))
+                    glBindTexture(GL_TEXTURE_2D, GLuint(0))
                     format = sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT
-                    glDrawElements(GL_TRIANGLES, ImDrawCmd_Get_ElemCount(pcmd), format, idx_buffer_offset)
+                    glDrawElements(GL_TRIANGLES, elem_count, format, idx_buffer_offset)
                 end
-            # end
+            end
             idx_buffer_offset += elem_count * Core.sizeof(ImDrawIdx)
         end
     end
@@ -178,8 +185,8 @@ function igImplOpenGL3_CreateFontsTexture()
     # upload texture to graphics system
     last_texture = GLint(0)
     @c glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture)
-    glGenTextures(1, &g_FontTexture)
-    @c glBindTexture(GL_TEXTURE_2D, &g_FontTexture)
+    @c glGenTextures(1, &g_FontTexture)
+    glBindTexture(GL_TEXTURE_2D, g_FontTexture)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0)
@@ -260,7 +267,7 @@ function igImplOpenGL3_CreateDeviceObjects()
     @c glGenBuffers(1, &g_VboHandle)
     @c glGenBuffers(1, &g_ElementsHandle)
 
-    ImGui_ImplOpenGL3_CreateFontsTexture()
+    igImplOpenGL3_CreateFontsTexture()
 
     # restore modified GL state
     glBindTexture(GL_TEXTURE_2D, last_texture)

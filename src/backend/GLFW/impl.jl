@@ -8,7 +8,7 @@ function igImplGlfw_Init(window::GLFW.Window, install_callbacks, client_api::Glf
 
     # setup back-end capabilities flags
     io = igGetIO()
-    backend_flags = ImGuiIO_Get_BackendFlags(io)
+    backend_flags::UInt32 = ImGuiIO_Get_BackendFlags(io)
     backend_flags |= ImGuiBackendFlags_HasMouseCursors
     backend_flags |= ImGuiBackendFlags_HasSetMousePos
     ImGuiIO_Set_BackendFlags(io, backend_flags)
@@ -75,7 +75,7 @@ end
 
 function igImplGlfw_Shutdown()
     global g_MouseCursors
-    for cursor_n = 1:ImGuiMouseCursor_COUNT
+    for cursor_n = 1:Int(ImGuiMouseCursor_COUNT)
         GLFW.DestroyCursor(g_MouseCursors[cursor_n])
         g_MouseCursors[cursor_n] = GLFW.Cursor(C_NULL)
     end
@@ -83,7 +83,7 @@ function igImplGlfw_Shutdown()
 end
 
 function igImplGlfw_UpdateMousePosAndButtons()
-    global g_MouseJustPressed
+    # global g_MouseJustPressed
     # # update buttons
     # io = igGetIO()
     # mouse_down =
@@ -117,13 +117,13 @@ function igImplGlfw_UpdateMouseCursor()
     global g_MouseCursors
 
     io = igGetIO()
-    if ImGuiIO_Get_ConfigFlags(io) & ImGuiConfigFlags_NoMouseCursorChange ||
+    if Bool(UInt32(ImGuiIO_Get_ConfigFlags(io)) & ImGuiConfigFlags_NoMouseCursorChange) ||
         GLFW.GetInputMode(g_Window, GLFW.CURSOR) == GLFW.CURSOR_DISABLED
         return nothing
     end
 
     imgui_cursor = igGetMouseCursor()
-    if imgui_cursor == ImGuiMouseCursor_None || mouse_draw_cursor
+    if imgui_cursor == ImGuiMouseCursor_None || ImGuiIO_Get_MouseDrawCursor(io)
         # hide OS mouse cursor if imgui is drawing it or if it wants no cursor
         GLFW.SetInputMode(g_Window, GLFW.CURSOR, GLFW_CURSOR_HIDDEN)
     else

@@ -537,3 +537,63 @@ end
 function ImGuiIO_Set_NavInputsDownDurationPrev(io, i, x)
     ccall((:ImGuiIO_Set_NavInputsDownDurationPrev, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Cint, Cfloat), io, i, x)
 end
+
+function ImDrawData_Get_Valid(data)
+    ccall((:ImDrawData_Get_Valid, libcimgui_helper), Bool, (Ptr{ImDrawData},), data)
+end
+
+function ImDrawData_Get_CmdLists(data, i)
+    ccall((:ImDrawData_Get_CmdLists, libcimgui_helper), Ptr{ImDrawList}, (Ptr{ImDrawData}, Cint), data, i)
+end
+
+function ImDrawData_Get_CmdListsCount(data)
+    ccall((:ImDrawData_Get_CmdListsCount, libcimgui_helper), Cint, (Ptr{ImDrawData},), data)
+end
+
+function ImDrawData_Get_TotalIdxCount(data)
+    ccall((:ImDrawData_Get_TotalIdxCount, libcimgui_helper), Cint, (Ptr{ImDrawData},), data)
+end
+
+function ImDrawData_Get_TotalVtxCount(data)
+    ccall((:ImDrawData_Get_TotalVtxCount, libcimgui_helper), Cint, (Ptr{ImDrawData},), data)
+end
+
+function ImDrawData_Get_DisplayPos(data)
+    ccall((:ImDrawData_Get_DisplayPos, libcimgui_helper), ImVec2, (Ptr{ImDrawData},), data)
+end
+
+function ImDrawData_Get_DisplaySize(data)
+    ccall((:ImDrawData_Get_DisplaySize, libcimgui_helper), ImVec2, (Ptr{ImDrawData},), data)
+end
+
+function ImDrawList_Get_CmdBuffer(list)
+    ccall((:ImDrawList_Get_CmdBuffer, libcimgui_helper), ImVector_ImDrawCmd, (Ptr{ImDrawList},), list)
+end
+
+function ImDrawList_Get_IdxBuffer(list)
+    ccall((:ImDrawList_Get_IdxBuffer, libcimgui_helper), ImVector_ImDrawIdx, (Ptr{ImDrawList},), list)
+end
+
+function ImDrawList_Get_VtxBuffer(list)
+    ccall((:ImDrawList_Get_VtxBuffer, libcimgui_helper), ImVector_ImDrawVert, (Ptr{ImDrawList},), list)
+end
+
+function ImDrawCmd_Get_ElemCount(cmd)
+    ccall((:ImDrawCmd_Get_ElemCount, libcimgui_helper), UInt32, (Ptr{ImDrawCmd},), cmd)
+end
+
+function ImDrawCmd_Get_ClipRect(cmd)
+    ccall((:ImDrawCmd_Get_ClipRect, libcimgui_helper), ImVec4, (Ptr{ImDrawCmd},), cmd)
+end
+
+function ImDrawCmd_Get_TextureId(cmd)
+    ccall((:ImDrawCmd_Get_TextureId, libcimgui_helper), ImTextureID, (Ptr{ImDrawCmd},), cmd)
+end
+
+function ImDrawCmd_Get_UserCallback(cmd)
+    ccall((:ImDrawCmd_Get_UserCallback, libcimgui_helper), ImDrawCallback, (Ptr{ImDrawCmd},), cmd)
+end
+
+function ImDrawCmd_Get_UserCallbackData(cmd)
+    ccall((:ImDrawCmd_Get_UserCallbackData, libcimgui_helper), Ptr{Cvoid}, (Ptr{ImDrawCmd},), cmd)
+end

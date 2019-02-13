@@ -5,3 +5,4 @@
 *.jl.mem
 deps/usr
 deps/deps.jl
+*.ini

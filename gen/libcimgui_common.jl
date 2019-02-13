@@ -1,7 +1,7 @@
 # Automatically generated using Clang.jl
 
 
-const CIMGUI_API = EXTERN
+# const CIMGUI_API = EXTERN
 
 struct ImVec2_Simple
     x::Cfloat
@@ -57,7 +57,7 @@ struct ImVector_ImWchar
     Data::Ptr{ImWchar}
 end
 
-struct ImFontConfig
+struct ImFontConfig{_ImFont}
     FontData::Ptr{Cvoid}
     FontDataSize::Cint
     FontDataOwnedByAtlas::Bool
@@ -75,22 +75,22 @@ struct ImFontConfig
     RasterizerFlags::UInt32
     RasterizerMultiply::Cfloat
     Name::NTuple{40, UInt8}
-    DstFont::Ptr{ImFont}
+    DstFont::Ptr{_ImFont}
 end
 
 const ImFontAtlasFlags = Cint
 const ImTextureID = Ptr{Cvoid}
 
-struct ImVector_ImFontPtr
+struct ImVector_ImFontPtr{_ImFont}
     Size::Cint
     Capacity::Cint
-    Data::Ptr{Ptr{ImFont}}
+    Data::Ptr{Ptr{_ImFont}}
 end
 
-struct ImVector_CustomRect
+struct ImVector_CustomRect{_CustomRect}
     Size::Cint
     Capacity::Cint
-    Data::Ptr{CustomRect}
+    Data::Ptr{_CustomRect}
 end
 
 struct ImVector_ImFontConfig

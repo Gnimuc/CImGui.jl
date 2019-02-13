@@ -8,26 +8,24 @@ end
 
 function igImplGlfw_ScrollCallback(window::GLFW.Window, xoffset, yoffset)
     io = igGetIO()
-    io_blob = Blob{ImGuiIO}(Ptr{Cvoid}(io), 0, sizeof(ImGuiIO))
-    io_blob.MouseWheelH[] += Cfloat(xoffset)
-    io_blob.MouseWheel[] += Cfloat(yoffset)
+    mouse_wheel_h = ImGuiIO_Get_MouseWheelH(io)
+    mouse_wheel = ImGuiIO_Get_MouseWheel(io)
+    mouse_wheel_h += Cfloat(xoffset)
+    mouse_wheel += Cfloat(yoffset)
+    ImGuiIO_Set_MouseWheelH(io, mouse_wheel_h)
+    ImGuiIO_Set_MouseWheel(io, mouse_wheel)
 end
 
 function igImplGlfw_KeyCallback(window::GLFW.Window, key, scancode, action, mods)
     io = igGetIO()
-
-    io_blob = Blob{ImGuiIO}(Ptr{Cvoid}(io), 0, sizeof(ImGuiIO))
-    keysdown = collect(Bool, io_blob.KeysDown[])
-    action == GLFW.PRESS && (keysdown[key+1] = true;)
-    action == GLFW.RELEASE && (keysdown[key+1] = false;)
+    action == GLFW.PRESS && ImGuiIO_Set_KeysDown(io, key, true)
+    action == GLFW.RELEASE && ImGuiIO_Set_KeysDown(io, key, false)
 
     # modifiers are not reliable across systems
-    io_blob.KeyCtrl[] = keysdown[GLFW.KEY_LEFT_CONTROL+1] || keysdown[GLFW.KEY_RIGHT_CONTROL+1]
-    io_blob.KeyShift[] = keysdown[GLFW.KEY_LEFT_SHIFT+1] || keysdown[GLFW.KEY_RIGHT_SHIFT+1]
-    io_blob.KeyAlt[] = keysdown[GLFW.KEY_LEFT_ALT+1] || keysdown[GLFW.KEY_RIGHT_ALT+1]
-    io_blob.KeySuper[] = keysdown[GLFW.KEY_LEFT_SUPER+1] || keysdown[GLFW.KEY_RIGHT_SUPER+1]
-
-    io_blob.KeysDown[] = tuple(keysdown...)
+    ImGuiIO_Set_KeyCtrl(io, ImGuiIO_Get_KeysDown[GLFW.KEY_LEFT_CONTROL] || ImGuiIO_Get_KeysDown[GLFW.KEY_RIGHT_CONTROL])
+    ImGuiIO_Set_KeyShift(io, ImGuiIO_Get_KeysDown[GLFW.KEY_LEFT_SHIFT] || ImGuiIO_Get_KeysDown[GLFW.KEY_RIGHT_SHIFT])
+    ImGuiIO_Set_KeyAlt(io, ImGuiIO_Get_KeysDown[GLFW.KEY_LEFT_ALT] || ImGuiIO_Get_KeysDown[GLFW.KEY_RIGHT_ALT])
+    ImGuiIO_Set_KeySuper(io, ImGuiIO_Get_KeysDown[GLFW.KEY_LEFT_SUPER] || ImGuiIO_Get_KeysDown[GLFW.KEY_RIGHT_SUPER])
 end
 
 function igImplGlfw_CharCallback(window::GLFW.Window, c)

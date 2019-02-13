@@ -2,7 +2,7 @@ module GLFWBackend
 
 using Libdl
 using GLFW
-using Blobs
+using CSyntax
 using ..LibCImGui
 
 include("callbacks.jl")

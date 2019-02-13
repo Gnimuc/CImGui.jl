@@ -1,7 +1,7 @@
 module OpenGLBackend
 
 using ModernGL
-using Blobs
+using CSyntax
 using ..LibCImGui
 
 include("impl.jl")

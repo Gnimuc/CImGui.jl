@@ -2,7 +2,7 @@ Base.convert(::Type{Cint}, x::GLFW.Key) = Cint(x)
 
 @enum GlfwClientApi GlfwClientApi_Unknown GlfwClientApi_OpenGL GlfwClientApi_Vulkan
 
-function igImplGlfw_Init(window::GLFW.Window, install_callbacks, client_api::GlfwClientApi)
+function igImplGlfw_Init(window::GLFW.Window, install_callbacks::Bool, client_api::GlfwClientApi)
     global g_Window = window
     global g_Time = 0.0
 
@@ -12,7 +12,8 @@ function igImplGlfw_Init(window::GLFW.Window, install_callbacks, client_api::Glf
     backend_flags |= ImGuiBackendFlags_HasMouseCursors
     backend_flags |= ImGuiBackendFlags_HasSetMousePos
     ImGuiIO_Set_BackendFlags(io, backend_flags)
-    # ImGuiIO_Set_BackendPlatformName(io, "imgui_impl_glfw")
+    ImGuiIO_Set_BackendPlatformName(io, "imgui_impl_glfw")
+
     # keyboard mapping
     ImGuiIO_Set_KeyMap(io, ImGuiKey_Tab, GLFW.KEY_TAB)
     ImGuiIO_Set_KeyMap(io, ImGuiKey_LeftArrow, GLFW.KEY_LEFT)
@@ -83,33 +84,29 @@ function igImplGlfw_Shutdown()
 end
 
 function igImplGlfw_UpdateMousePosAndButtons()
-    # global g_MouseJustPressed
-    # # update buttons
-    # io = igGetIO()
-    # mouse_down =
-    #
-    # GC.@preserve io begin
-    #     io_blob = Blob{ImGuiIO}(Ptr{Cvoid}(io), 0, sizeof(ImGuiIO))
-    #     mouse = collect(Bool, io_blob.MouseDown[])
-    #     for i = 1:length(mouse)
-    #         mouse[i] = g_MouseJustPressed[i] || GLFW.GetMouseButton(g_Window, GLFW.MouseButton(i-1))
-    #         g_MouseJustPressed[i] = false
-    #     end
-    #     io_blob.MouseDown[] = tuple(mouse...)
-    #
-    #     # update mouse position
-    #     mouse_pos_backup = io_blob.MousePos[]
-    #     io_blob.MousePos[] = ImVec2(-1, -1)
-    #     focused = GLFW.GetWindowAttrib(g_Window, GLFW.FOCUSED)
-    #     if Bool(focused)
-    #         if io_blob.WantSetMousePos[]
-    #             GLFW.SetCursorPos(g_Window, Cdouble(mouse_pos_backup.x), Cdouble(mouse_pos_backup.y))
-    #         else
-    #             mouse_x, mouse_y = GLFW.GetCursorPos(g_Window)
-    #             io_blob.MousePos[] = ImVec2(Cfloat(mouse_x), Cfloat(mouse_y))
-    #         end
-    #     end
-    # end
+    global g_Window
+    global g_MouseJustPressed
+    # update buttons
+    io = igGetIO()
+    for i = 1:length(g_MouseJustPressed)
+        # if a mouse press event came, always pass it as "mouse held this frame",
+        # so we don't miss click-release events that are shorter than 1 frame.
+        mousedown = g_MouseJustPressed[i] || GLFW.GetMouseButton(g_Window, GLFW.MouseButton(i-1))
+        ImGuiIO_Set_MouseDown(io, i-1, mousedown)
+        g_MouseJustPressed[i] = false
+    end
+
+    # update mouse position
+    mouse_pos_backup = ImGuiIO_Get_MousePos(io)
+    ImGuiIO_Set_MousePos(io, ImVec2(-floatmax(), -floatmax()))
+    if GLFW.GetWindowAttrib(g_Window, GLFW.FOCUSED) != 0
+        if ImGuiIO_Get_WantSetMousePos(io)
+            GLFW.SetCursorPos(g_Window, Cdouble(mouse_pos_backup.x), Cdouble(mouse_pos_backup.y))
+        else
+            mouse_x, mouse_y = GLFW.GetCursorPos(g_Window)
+            ImGuiIO_Set_MousePos(io, ImVec2(Cfloat(mouse_x), Cfloat(mouse_y)))
+        end
+    end
 end
 
 function igImplGlfw_UpdateMouseCursor()

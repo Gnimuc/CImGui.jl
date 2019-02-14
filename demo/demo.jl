@@ -27,7 +27,7 @@ GLFW.SetErrorCallback(error_callback)
 window = GLFW.CreateWindow(1280, 720, "Demo")
 @assert window != C_NULL
 GLFW.MakeContextCurrent(window)
-# GLFW.SwapInterval(1)
+GLFW.SwapInterval(1)
 
 # setup Dear ImGui context
 ctx = igCreateContext(C_NULL)
@@ -39,7 +39,6 @@ igStyleColorsDark(C_NULL)
 # setup Platform/Renderer bindings
 igImplGlfw_InitForOpenGL(window, true)
 igImplOpenGL3_Init()
-@show "after init"
 
 show_demo_window = true
 show_another_window = false
@@ -56,7 +55,7 @@ while !GLFW.WindowShouldClose(window)
     igShowDemoWindow(x)
 
     igBegin("Hello, world!", Ref{Bool}(true), ImGuiWindowFlags_None)
-    igButton("Demo Window", ImVec2(30,30))
+    igButton("Demo Window", ImVec2(10,10))
     igEnd()
 
     # rendering

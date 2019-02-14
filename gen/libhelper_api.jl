@@ -298,6 +298,14 @@ function ImGuiIO_Set_IniSavingRate(io, x)
     ccall((:ImGuiIO_Set_IniSavingRate, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Cfloat), io, x)
 end
 
+function ImGuiIO_Set_IniFilename(io, x)
+    ccall((:ImGuiIO_Set_IniFilename, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Cstring), io, x)
+end
+
+function ImGuiIO_Set_LogFilename(io, x)
+    ccall((:ImGuiIO_Set_LogFilename, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Cstring), io, x)
+end
+
 function ImGuiIO_Set_MouseDoubleClickTime(io, x)
     ccall((:ImGuiIO_Set_MouseDoubleClickTime, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Cfloat), io, x)
 end
@@ -368,6 +376,14 @@ end
 
 function ImGuiIO_Set_ConfigResizeWindowsFromEdges(io, x)
     ccall((:ImGuiIO_Set_ConfigResizeWindowsFromEdges, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Bool), io, x)
+end
+
+function ImGuiIO_Set_BackendPlatformName(io, x)
+    ccall((:ImGuiIO_Set_BackendPlatformName, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Cstring), io, x)
+end
+
+function ImGuiIO_Set_BackendRendererName(io, x)
+    ccall((:ImGuiIO_Set_BackendRendererName, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Cstring), io, x)
 end
 
 function ImGuiIO_Set_ImeWindowHandle(io, x)

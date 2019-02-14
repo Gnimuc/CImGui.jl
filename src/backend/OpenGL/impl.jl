@@ -1,6 +1,6 @@
 function igImplOpenGL3_Init()
     io = igGetIO()
-    # ImGuiIO_Set_BackendPlatformName(io, "imgui_impl_opengl3")
+    ImGuiIO_Set_BackendRendererName(io, "imgui_impl_opengl3")
     return true
 end
 
@@ -19,6 +19,7 @@ function igImplOpenGL3_RenderDrawData(draw_data)
     fb_width = trunc(Cint, disp_size.x * fb_scale.x)
     fb_height = trunc(Cint, disp_size.y * fb_scale.y)
     (fb_width ≤ 0 || fb_height ≤ 0) && return nothing
+    ImDrawData_ScaleClipRects(draw_data, fb_scale)
 
     # backup GL state
     last_active_texture = GLint(0); @c glGetIntegerv(GL_ACTIVE_TEXTURE, &last_active_texture)
@@ -42,7 +43,7 @@ function igImplOpenGL3_RenderDrawData(draw_data)
     last_enable_depth_test = glIsEnabled(GL_DEPTH_TEST)
     last_enable_scissor_test = glIsEnabled(GL_SCISSOR_TEST)
     clip_origin_lower_left = true
-    # last_clip_origin = Ref{GLint}(0); glGetIntegerv(GL_CLIP_ORIGIN, last_clip_origin)
+    # last_clip_origin = GLint(0); glGetIntegerv(GL_CLIP_ORIGIN, &last_clip_origin)
     # last_clip_origin == GL_UPPER_LEFT && (clip_origin_lower_left = false;)
 
     # setup render state:
@@ -94,24 +95,19 @@ function igImplOpenGL3_RenderDrawData(draw_data)
     glVertexAttribPointer(g_AttribLocationUV, 2, GL_FLOAT, GL_FALSE, idv_size, Ptr{GLCvoid}(uv_offset))
     glVertexAttribPointer(g_AttribLocationColor, 4, GL_UNSIGNED_BYTE, GL_TRUE, idv_size, Ptr{GLCvoid}(col_offset))
 
-    # will project scissor/clipping rectangles into framebuffer space
-    clip_off = ImDrawData_Get_DisplayPos(draw_data)  # (0,0) unless using multi-viewports
-    # clip_scale = ImDrawData_Get_FramebufferScale(draw_data) # (1,1) unless using retina display which are often (2,2)
-    clip_scale = disp_pos
-
     # draw
+    pos = ImDrawData_Get_DisplayPos(draw_data)
     cmd_lists_count = ImDrawData_Get_CmdListsCount(draw_data)
     for n = 0:cmd_lists_count-1
         idx_buffer_offset = Ptr{ImDrawIdx}(0)
         cmd_list = ImDrawData_Get_CmdLists(draw_data, n)
         vtx_buffer = ImDrawList_Get_VtxBuffer(cmd_list)
         idx_buffer = ImDrawList_Get_IdxBuffer(cmd_list)
-
         glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle)
-        glBufferData(GL_ARRAY_BUFFER, GLsizeiptr(vtx_buffer.Size) * sizeof(ImDrawVert), Ptr{GLCvoid}(vtx_buffer.Data), GL_STREAM_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, vtx_buffer.Size * sizeof(ImDrawVert), Ptr{GLCvoid}(vtx_buffer.Data), GL_STREAM_DRAW)
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ElementsHandle)
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, GLsizeiptr(idx_buffer.Size) * sizeof(ImDrawIdx), Ptr{GLCvoid}(idx_buffer.Data), GL_STREAM_DRAW)
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, idx_buffer.Size * sizeof(ImDrawIdx), Ptr{GLCvoid}(idx_buffer.Data), GL_STREAM_DRAW)
 
         cmd_buffer = ImDrawList_Get_CmdBuffer(cmd_list)
         for cmd_i = 0:cmd_buffer.Size-1
@@ -124,10 +120,10 @@ function igImplOpenGL3_RenderDrawData(draw_data)
             else
                 # project scissor/clipping rectangles into framebuffer space
                 rect = ImDrawCmd_Get_ClipRect(pcmd)
-                clip_rect_x = (rect.x - clip_off.x) * clip_scale.x;
-                clip_rect_y = (rect.y - clip_off.y) * clip_scale.y;
-                clip_rect_z = (rect.z - clip_off.x) * clip_scale.x;
-                clip_rect_w = (rect.w - clip_off.y) * clip_scale.y;
+                clip_rect_x = (rect.x - pos.x);
+                clip_rect_y = (rect.y - pos.y);
+                clip_rect_z = (rect.z - pos.x);
+                clip_rect_w = (rect.w - pos.y);
                 if clip_rect_x < fb_width && clip_rect_y < fb_height && clip_rect_z ≥ 0 && clip_rect_w ≥ 0
                     # Apply scissor/clipping rectangle
                     if (clip_origin_lower_left)
@@ -141,12 +137,11 @@ function igImplOpenGL3_RenderDrawData(draw_data)
                         iz = trunc(Cint, clip_rect_z)
                         iw = trunc(Cint, clip_rect_w)
                     end
-                    glScissor(ix, iy, iw, iw)
+                    glScissor(ix, iy, iz, iw)
                     # bind texture, draw
-                    # glBindTexture(GL_TEXTURE_2D, GLuint(ImDrawCmd_Get_TextureID(pcmd)))
-                    glBindTexture(GL_TEXTURE_2D, GLuint(0))
+                    glBindTexture(GL_TEXTURE_2D, UInt((ImDrawCmd_Get_TextureId(pcmd))))
                     format = sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT
-                    glDrawElements(GL_TRIANGLES, elem_count, format, idx_buffer_offset)
+                    glDrawElements(GL_TRIANGLES, GLsizei(elem_count), format, idx_buffer_offset)
                 end
             end
             idx_buffer_offset += elem_count * Core.sizeof(ImDrawIdx)

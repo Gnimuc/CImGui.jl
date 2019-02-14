@@ -54,12 +54,12 @@ function igImplGlfw_Init(window::GLFW.Window, install_callbacks, client_api::Glf
     g_MouseCursors[ImGuiMouseCursor_ResizeNWSE+1] = GLFW.CreateStandardCursor(GLFW.ARROW_CURSOR)
     g_MouseCursors[ImGuiMouseCursor_Hand+1] = GLFW.CreateStandardCursor(GLFW.HAND_CURSOR)
 
-    # if install_callbacks
-    #     GLFW.SetMouseButtonCallback(window, igImplGlfw_MouseButtonCallback)
-    #     GLFW.SetScrollCallback(window, igImplGlfw_ScrollCallback)
-    #     GLFW.SetKeyCallback(window, igImplGlfw_KeyCallback)
-    #     GLFW.SetCharCallback(window, igImplGlfw_CharCallback)
-    # end
+    if install_callbacks
+        GLFW.SetMouseButtonCallback(window, igImplGlfw_MouseButtonCallback)
+        GLFW.SetScrollCallback(window, igImplGlfw_ScrollCallback)
+        GLFW.SetKeyCallback(window, igImplGlfw_KeyCallback)
+        GLFW.SetCharCallback(window, igImplGlfw_CharCallback)
+    end
 
     global g_ClientApi = client_api
     return true;

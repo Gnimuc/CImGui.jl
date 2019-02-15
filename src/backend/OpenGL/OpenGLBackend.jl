@@ -2,15 +2,15 @@ module OpenGLBackend
 
 using ModernGL
 using CSyntax
+using CSyntax.CEnum
 using ..LibCImGui
-using ..LibCImGui.CEnum
 
 include("impl.jl")
-export igImplOpenGL3_Init, igImplOpenGL3_Shutdown
-export igImplOpenGL3_NewFrame
-export igImplOpenGL3_RenderDrawData
-export igImplOpenGL3_CreateFontsTexture, igImplOpenGL3_DestroyFontsTexture
-export igImplOpenGL3_CreateDeviceObjects, igImplOpenGL3_DestroyDeviceObjects
+export ImGui_ImplOpenGL3_Init, ImGui_ImplOpenGL3_Shutdown
+export ImGui_ImplOpenGL3_NewFrame
+export ImGui_ImplOpenGL3_RenderDrawData
+export ImGui_ImplOpenGL3_CreateFontsTexture, ImGui_ImplOpenGL3_DestroyFontsTexture
+export ImGui_ImplOpenGL3_CreateDeviceObjects, ImGui_ImplOpenGL3_DestroyDeviceObjects
 
 function __init__()
     global g_FontTexture = GLuint(0)

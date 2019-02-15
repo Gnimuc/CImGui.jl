@@ -15,7 +15,9 @@ end
 
 using CSyntax.CEnum
 
-include("ctypes.jl")
+const Ctm = Base.Libc.TmStruct
+const Ctime_t = UInt
+const Cclock_t = UInt
 export Ctm, Ctime_t, Cclock_t
 
 include(joinpath(@__DIR__, "..", "gen", "libcimgui_common.jl"))

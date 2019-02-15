@@ -1,17 +1,17 @@
-function igImplOpenGL3_Init()
+function ImGui_ImplOpenGL3_Init()
     io = igGetIO()
     ImGuiIO_Set_BackendRendererName(io, "imgui_impl_opengl3")
     return true
 end
 
-igImplOpenGL3_Shutdown() = igImplOpenGL3_DestroyDeviceObjects()
+ImGui_ImplOpenGL3_Shutdown() = ImGui_ImplOpenGL3_DestroyDeviceObjects()
 
-function igImplOpenGL3_NewFrame()
+function ImGui_ImplOpenGL3_NewFrame()
     global g_FontTexture
-    g_FontTexture == 0 && igImplOpenGL3_CreateDeviceObjects()
+    g_FontTexture == 0 && ImGui_ImplOpenGL3_CreateDeviceObjects()
 end
 
-function igImplOpenGL3_RenderDrawData(draw_data)
+function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
     # avoid rendering when minimized, scale coordinates for retina displays
     io = igGetIO()
     disp_size = ImDrawData_Get_DisplaySize(draw_data)
@@ -167,7 +167,7 @@ function igImplOpenGL3_RenderDrawData(draw_data)
     glScissor(last_scissor_box[1], last_scissor_box[2], GLsizei(last_scissor_box[3]), GLsizei(last_scissor_box[4]))
 end
 
-function igImplOpenGL3_CreateFontsTexture()
+function ImGui_ImplOpenGL3_CreateFontsTexture()
     global g_FontTexture
 
     # build texture atlas
@@ -195,7 +195,7 @@ function igImplOpenGL3_CreateFontsTexture()
     return true
 end
 
-function igImplOpenGL3_DestroyFontsTexture()
+function ImGui_ImplOpenGL3_DestroyFontsTexture()
     global g_FontTexture
     if g_FontTexture != 0
         io = igGetIO()
@@ -206,7 +206,7 @@ function igImplOpenGL3_DestroyFontsTexture()
     end
 end
 
-function igImplOpenGL3_CreateDeviceObjects()
+function ImGui_ImplOpenGL3_CreateDeviceObjects()
     # backup GL state
     last_texture, last_array_buffer, last_vertex_array = GLint(0), GLint(0), GLint(0)
     @c glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture)
@@ -262,7 +262,7 @@ function igImplOpenGL3_CreateDeviceObjects()
     @c glGenBuffers(1, &g_VboHandle)
     @c glGenBuffers(1, &g_ElementsHandle)
 
-    igImplOpenGL3_CreateFontsTexture()
+    ImGui_ImplOpenGL3_CreateFontsTexture()
 
     # restore modified GL state
     glBindTexture(GL_TEXTURE_2D, last_texture)
@@ -272,7 +272,7 @@ function igImplOpenGL3_CreateDeviceObjects()
     return true;
 end
 
-function igImplOpenGL3_DestroyDeviceObjects()
+function ImGui_ImplOpenGL3_DestroyDeviceObjects()
     global g_VboHandle
     global g_ElementsHandle
     global g_ShaderHandle
@@ -294,5 +294,5 @@ function igImplOpenGL3_DestroyDeviceObjects()
     g_ShaderHandle != 0 && glDeleteProgram(g_ShaderHandle)
     g_ShaderHandle = 0
 
-    igImplOpenGL3_DestroyFontsTexture()
+    ImGui_ImplOpenGL3_DestroyFontsTexture()
 end

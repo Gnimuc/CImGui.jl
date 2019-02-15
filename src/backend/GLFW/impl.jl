@@ -2,7 +2,7 @@ Base.convert(::Type{Cint}, x::GLFW.Key) = Cint(x)
 
 @enum GlfwClientApi GlfwClientApi_Unknown GlfwClientApi_OpenGL GlfwClientApi_Vulkan
 
-function igImplGlfw_Init(window::GLFW.Window, install_callbacks::Bool, client_api::GlfwClientApi)
+function ImGui_ImplGlfw_Init(window::GLFW.Window, install_callbacks::Bool, client_api::GlfwClientApi)
     global g_Window = window
     global g_Time = 0.0
 
@@ -55,25 +55,25 @@ function igImplGlfw_Init(window::GLFW.Window, install_callbacks::Bool, client_ap
     g_MouseCursors[ImGuiMouseCursor_Hand+1] = GLFW.CreateStandardCursor(GLFW.HAND_CURSOR)
 
     if install_callbacks
-        GLFW.SetMouseButtonCallback(window, igImplGlfw_MouseButtonCallback)
-        GLFW.SetScrollCallback(window, igImplGlfw_ScrollCallback)
-        GLFW.SetKeyCallback(window, igImplGlfw_KeyCallback)
-        GLFW.SetCharCallback(window, igImplGlfw_CharCallback)
+        GLFW.SetMouseButtonCallback(window, ImGui_ImplGlfw_MouseButtonCallback)
+        GLFW.SetScrollCallback(window, ImGui_ImplGlfw_ScrollCallback)
+        GLFW.SetKeyCallback(window, ImGui_ImplGlfw_KeyCallback)
+        GLFW.SetCharCallback(window, ImGui_ImplGlfw_CharCallback)
     end
 
     global g_ClientApi = client_api
     return true;
 end
 
-function igImplGlfw_InitForOpenGL(window::GLFW.Window, install_callbacks::Bool)
-    igImplGlfw_Init(window, install_callbacks, GlfwClientApi_OpenGL)
+function ImGui_ImplGlfw_InitForOpenGL(window::GLFW.Window, install_callbacks::Bool)
+    ImGui_ImplGlfw_Init(window, install_callbacks, GlfwClientApi_OpenGL)
 end
 
-function igImplGlfw_InitForVulkan(window::GLFW.Window, install_callbacks::Bool)
-    igImplGlfw_Init(window, install_callbacks, GlfwClientApi_Vulkan)
+function ImGui_ImplGlfw_InitForVulkan(window::GLFW.Window, install_callbacks::Bool)
+    ImGui_ImplGlfw_Init(window, install_callbacks, GlfwClientApi_Vulkan)
 end
 
-function igImplGlfw_Shutdown()
+function ImGui_ImplGlfw_Shutdown()
     global g_MouseCursors
     for cursor_n = 1:Int(ImGuiMouseCursor_COUNT)
         GLFW.DestroyCursor(g_MouseCursors[cursor_n])
@@ -82,7 +82,7 @@ function igImplGlfw_Shutdown()
     global g_ClientApi = GlfwClientApi_Unknown
 end
 
-function igImplGlfw_UpdateMousePosAndButtons()
+function ImGui_ImplGlfw_UpdateMousePosAndButtons()
     global g_Window
     global g_MouseJustPressed
     # update buttons
@@ -108,7 +108,7 @@ function igImplGlfw_UpdateMousePosAndButtons()
     end
 end
 
-function igImplGlfw_UpdateMouseCursor()
+function ImGui_ImplGlfw_UpdateMouseCursor()
     global g_Window
     global g_MouseCursors
 
@@ -132,7 +132,7 @@ function igImplGlfw_UpdateMouseCursor()
     return nothing
 end
 
-function igImplGlfw_NewFrame()
+function ImGui_ImplGlfw_NewFrame()
     global g_Time
     io = igGetIO()
     fonts = ImGuiIO_Get_Fonts(io)
@@ -151,6 +151,6 @@ function igImplGlfw_NewFrame()
     ImGuiIO_Set_DeltaTime(io, g_Time > 0.0 ? Cfloat(current_time - g_Time) : Cfloat(1.0/60.0))
     g_Time = current_time
 
-    igImplGlfw_UpdateMousePosAndButtons()
-    igImplGlfw_UpdateMouseCursor()
+    ImGui_ImplGlfw_UpdateMousePosAndButtons()
+    ImGui_ImplGlfw_UpdateMouseCursor()
 end

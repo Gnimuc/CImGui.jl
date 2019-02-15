@@ -9,10 +9,10 @@ include("callbacks.jl")
 
 include("impl.jl")
 export GlfwClientApi, GlfwClientApi_Unknown, GlfwClientApi_OpenGL, GlfwClientApi_Vulkan
-export igImplGlfw_Init
-export igImplGlfw_InitForOpenGL, igImplGlfw_InitForVulkan
-export igImplGlfw_Shutdown
-export igImplGlfw_NewFrame
+export ImGui_ImplGlfw_Init
+export ImGui_ImplGlfw_InitForOpenGL, ImGui_ImplGlfw_InitForVulkan
+export ImGui_ImplGlfw_Shutdown
+export ImGui_ImplGlfw_NewFrame
 
 function __init__()
     global g_Window = C_NULL

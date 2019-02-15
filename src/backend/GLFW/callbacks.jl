@@ -1,4 +1,4 @@
-function igImplGlfw_MouseButtonCallback(window::GLFW.Window, button::GLFW.MouseButton, action::GLFW.Action, mods::Cint)
+function ImGui_ImplGlfw_MouseButtonCallback(window::GLFW.Window, button::GLFW.MouseButton, action::GLFW.Action, mods::Cint)
     global g_MouseJustPressed
     b = Int(button)
     if action == GLFW.PRESS && b ≥ 0 && b < length(g_MouseJustPressed)
@@ -6,7 +6,7 @@ function igImplGlfw_MouseButtonCallback(window::GLFW.Window, button::GLFW.MouseB
     end
 end
 
-function igImplGlfw_ScrollCallback(window::GLFW.Window, xoffset, yoffset)
+function ImGui_ImplGlfw_ScrollCallback(window::GLFW.Window, xoffset, yoffset)
     io = igGetIO()
     mouse_wheel_h = ImGuiIO_Get_MouseWheelH(io)
     mouse_wheel = ImGuiIO_Get_MouseWheel(io)
@@ -16,7 +16,7 @@ function igImplGlfw_ScrollCallback(window::GLFW.Window, xoffset, yoffset)
     ImGuiIO_Set_MouseWheel(io, mouse_wheel)
 end
 
-function igImplGlfw_KeyCallback(window::GLFW.Window, key, scancode, action, mods)
+function ImGui_ImplGlfw_KeyCallback(window::GLFW.Window, key, scancode, action, mods)
     io = igGetIO()
     action == GLFW.PRESS && ImGuiIO_Set_KeysDown(io, key, true)
     action == GLFW.RELEASE && ImGuiIO_Set_KeysDown(io, key, false)
@@ -27,7 +27,7 @@ function igImplGlfw_KeyCallback(window::GLFW.Window, key, scancode, action, mods
     ImGuiIO_Set_KeySuper(io, ImGuiIO_Get_KeysDown(io, GLFW.KEY_LEFT_SUPER) || ImGuiIO_Get_KeysDown(io, GLFW.KEY_RIGHT_SUPER))
 end
 
-function igImplGlfw_CharCallback(window::GLFW.Window, c)
+function ImGui_ImplGlfw_CharCallback(window::GLFW.Window, c)
     io = igGetIO()
     0 < Int(c) < 0x10000 && ImGuiIO_AddInputCharacter(io, c)
 end

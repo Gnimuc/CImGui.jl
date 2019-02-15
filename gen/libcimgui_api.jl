@@ -739,7 +739,7 @@ function igInputScalarN(label, data_type, v, components, step, step_fast, format
 end
 
 function igColorEdit3(label, col, flags)
-    ccall((:igColorEdit3, libcimgui), Bool, (Cstring, NTuple{3, Cfloat}, ImGuiColorEditFlags), label, col, flags)
+    ccall((:igColorEdit3, libcimgui), Bool, (Cstring, Ptr{Cfloat}, ImGuiColorEditFlags), label, col, flags)
 end
 
 function igColorEdit4(label, col, flags)

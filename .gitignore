@@ -5,5 +5,5 @@
 *.jl.mem
 deps/usr
 deps/deps.jl
-*.ini
 deps/build.log
+*.ini

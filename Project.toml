@@ -5,7 +5,6 @@ version = "0.1.0"
 
 [deps]
 BinaryProvider = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
-CEnum = "fa961155-64e5-5f13-b03f-caf6b980ea82"
 CSyntax = "ea656a56-6ca6-5dda-bba5-7b6963a5f74c"
 GLFW = "f7f18e0c-5ee9-5ccd-a5bf-e8befd85ed98"
 Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"

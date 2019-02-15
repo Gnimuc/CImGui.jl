@@ -114,7 +114,7 @@ function igImplGlfw_UpdateMouseCursor()
     global g_MouseCursors
 
     io = igGetIO()
-    if Bool(UInt32(ImGuiIO_Get_ConfigFlags(io)) & ImGuiConfigFlags_NoMouseCursorChange) ||
+    if (UInt32(ImGuiIO_Get_ConfigFlags(io)) & ImGuiConfigFlags_NoMouseCursorChange) != 0 ||
         GLFW.GetInputMode(g_Window, GLFW.CURSOR) == GLFW.CURSOR_DISABLED
         return nothing
     end

@@ -1,5 +1,4 @@
 Base.convert(::Type{Cint}, x::GLFW.Key) = Cint(x)
-# Base.+()
 
 @enum GlfwClientApi GlfwClientApi_Unknown GlfwClientApi_OpenGL GlfwClientApi_Vulkan
 

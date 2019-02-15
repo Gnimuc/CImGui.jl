@@ -12,3 +12,6 @@ ModernGL = "66fc600b-dfda-50eb-8b99-91cfa97b1301"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

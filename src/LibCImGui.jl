@@ -13,8 +13,7 @@ function __init__()
     check_deps()
 end
 
-include("CEnum.jl")
-using .CEnum
+using CEnum
 
 include("ctypes.jl")
 export Ctm, Ctime_t, Cclock_t

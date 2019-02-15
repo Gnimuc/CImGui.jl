@@ -20,7 +20,6 @@ function __init__()
     global g_Time = 0.0
     global g_MouseJustPressed = [false, false, false, false, false]
     global g_MouseCursors = [GLFW.Cursor(C_NULL) for i = 1:Int(ImGuiMouseCursor_COUNT)]
-
     global g_ImplGlfw_GetClipboardText = dlsym(dlopen(GLFW.lib), :glfwGetClipboardString)
     global g_ImplGlfw_SetClipboardText = dlsym(dlopen(GLFW.lib), :glfwSetClipboardString)
 end

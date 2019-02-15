@@ -3,6 +3,7 @@ module OpenGLBackend
 using ModernGL
 using CSyntax
 using ..LibCImGui
+using ..LibCImGui.CEnum
 
 include("impl.jl")
 export igImplOpenGL3_Init, igImplOpenGL3_Shutdown

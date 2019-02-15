@@ -54,6 +54,10 @@ while !GLFW.WindowShouldClose(window)
     x = Ref{Bool}(show_demo_window)
     igShowDemoWindow(x)
 
+    igBegin("Hello, world!", Ref{Bool}(true), ImGuiWindowFlags_None)
+    igButton("Demo Window", ImVec2(10,10))
+    igEnd()
+
     # rendering
     igRender()
     GLFW.MakeContextCurrent(window)

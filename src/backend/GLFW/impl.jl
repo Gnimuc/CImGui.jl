@@ -1,4 +1,5 @@
 Base.convert(::Type{Cint}, x::GLFW.Key) = Cint(x)
+# Base.+()
 
 @enum GlfwClientApi GlfwClientApi_Unknown GlfwClientApi_OpenGL GlfwClientApi_Vulkan
 
@@ -45,7 +46,6 @@ function igImplGlfw_Init(window::GLFW.Window, install_callbacks::Bool, client_ap
     #     io_blob.GetClipboardTextFn[] = g_ImplGlfw_GetClipboardText
     #     io_blob.ClipboardUserData[] = Ptr{Cvoid}(g_Window.handle)
     # end
-
     g_MouseCursors[ImGuiMouseCursor_Arrow+1] = GLFW.CreateStandardCursor(GLFW.ARROW_CURSOR)
     g_MouseCursors[ImGuiMouseCursor_TextInput+1] = GLFW.CreateStandardCursor(GLFW.IBEAM_CURSOR)
     g_MouseCursors[ImGuiMouseCursor_ResizeAll+1] = GLFW.CreateStandardCursor(GLFW.ARROW_CURSOR)

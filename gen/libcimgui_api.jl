@@ -611,15 +611,15 @@ function igDragFloat(label, v, v_speed, v_min, v_max, format, power)
 end
 
 function igDragFloat2(label, v, v_speed, v_min, v_max, format, power)
-    ccall((:igDragFloat2, libcimgui), Bool, (Cstring, NTuple{2, Cfloat}, Cfloat, Cfloat, Cfloat, Cstring, Cfloat), label, v, v_speed, v_min, v_max, format, power)
+    ccall((:igDragFloat2, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cfloat, Cstring, Cfloat), label, v, v_speed, v_min, v_max, format, power)
 end
 
 function igDragFloat3(label, v, v_speed, v_min, v_max, format, power)
-    ccall((:igDragFloat3, libcimgui), Bool, (Cstring, NTuple{3, Cfloat}, Cfloat, Cfloat, Cfloat, Cstring, Cfloat), label, v, v_speed, v_min, v_max, format, power)
+    ccall((:igDragFloat3, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cfloat, Cstring, Cfloat), label, v, v_speed, v_min, v_max, format, power)
 end
 
 function igDragFloat4(label, v, v_speed, v_min, v_max, format, power)
-    ccall((:igDragFloat4, libcimgui), Bool, (Cstring, NTuple{4, Cfloat}, Cfloat, Cfloat, Cfloat, Cstring, Cfloat), label, v, v_speed, v_min, v_max, format, power)
+    ccall((:igDragFloat4, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cfloat, Cstring, Cfloat), label, v, v_speed, v_min, v_max, format, power)
 end
 
 function igDragFloatRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, power)
@@ -767,15 +767,15 @@ function igColorEdit3(label, col, flags)
 end
 
 function igColorEdit4(label, col, flags)
-    ccall((:igColorEdit4, libcimgui), Bool, (Cstring, NTuple{4, Cfloat}, ImGuiColorEditFlags), label, col, flags)
+    ccall((:igColorEdit4, libcimgui), Bool, (Cstring, Ptr{Cfloat}, ImGuiColorEditFlags), label, col, flags)
 end
 
 function igColorPicker3(label, col, flags)
-    ccall((:igColorPicker3, libcimgui), Bool, (Cstring, NTuple{3, Cfloat}, ImGuiColorEditFlags), label, col, flags)
+    ccall((:igColorPicker3, libcimgui), Bool, (Cstring, Ptr{Cfloat}, ImGuiColorEditFlags), label, col, flags)
 end
 
 function igColorPicker4(label, col, flags, ref_col)
-    ccall((:igColorPicker4, libcimgui), Bool, (Cstring, NTuple{4, Cfloat}, ImGuiColorEditFlags, Ptr{Cfloat}), label, col, flags, ref_col)
+    ccall((:igColorPicker4, libcimgui), Bool, (Cstring, Ptr{Cfloat}, ImGuiColorEditFlags, Ptr{Cfloat}), label, col, flags, ref_col)
 end
 
 function igColorButton(desc_id, col, flags, size)
@@ -790,8 +790,24 @@ function igTreeNodeStr(label)
     ccall((:igTreeNodeStr, libcimgui), Bool, (Cstring,), label)
 end
 
+function igTreeNodeStrStr(str_id, text)
+    ccall((:igTreeNodeStrStr, libcimgui), Bool, (Cstring, Cstring), str_id, text)
+end
+
+function igTreeNodePtr(ptr_id, text)
+    ccall((:igTreeNodePtr, libcimgui), Bool, (Ptr{Cvoid}, Cstring), ptr_id, text)
+end
+
 function igTreeNodeExStr(label, flags)
     ccall((:igTreeNodeExStr, libcimgui), Bool, (Cstring, ImGuiTreeNodeFlags), label, flags)
+end
+
+function igTreeNodeExStrStr(str_id, flags, text)
+    ccall((:igTreeNodeExStrStr, libcimgui), Bool, (Cstring, ImGuiTreeNodeFlags, Cstring), str_id, flags, text)
+end
+
+function igTreeNodeExPtr(ptr_id, flags, text)
+    ccall((:igTreeNodeExPtr, libcimgui), Bool, (Ptr{Cvoid}, ImGuiTreeNodeFlags, Cstring), ptr_id, flags, text)
 end
 
 function igTreePushStr(str_id)

@@ -1,4 +1,4 @@
-# context
+########################################## context #########################################
 """
     CreateContext() -> Ptr{ImGuiContext}
     CreateContext(shared_font_atlas::Ptr{ImFontAtlas}) -> Ptr{ImGuiContext}
@@ -27,7 +27,7 @@ Set the current context to the input.
 """
 SetCurrentContext(ctx::Ptr{ImGuiContext}) = igSetCurrentContext(ctx)
 
-# Main
+########################################### Main ###########################################
 """
     GetIO() -> Ptr{ImGuiIO}
 Return a handle of `ImGuiIO` which is for accessing the IO structure:
@@ -82,7 +82,7 @@ to [`NewFrame`](@ref). This is what you have to render.
 """
 GetDrawData() = igGetDrawData()
 
-# Styles
+########################################## Styles ##########################################
 """
     StyleColorsDark()
 Use the new, recommended style. This is also the default style.
@@ -101,7 +101,7 @@ This style is best used with borders and a custom, thicker font.
 """
 StyleColorsLight() = igStyleColorsLight(C_NULL)
 
-# Windows
+########################################## Windows #########################################
 """
     Begin(name, p_open::=C_NULL, flags=0) -> Bool
 Push window to the stack and start appending to it.
@@ -123,7 +123,7 @@ Pop window from the stack. See also [`Begin`](@ref).
 """
 End() = igEnd()
 
-# Child Windows
+####################################### Child Windows ######################################
 """
     BeginChild(id::Integer, size=(0,0), border=false, flags=0) -> Bool
     BeginChild(str_id, size=(0,0), border=false, flags=0) -> Bool
@@ -155,7 +155,7 @@ See also [`BeginChild`](@ref).
 """
 EndChild() = igEndChild()
 
-# Windows Utilities
+##################################### Windows Utilities ####################################
 """
     IsWindowAppearing() -> Bool
 """
@@ -362,29 +362,123 @@ Set named window to be focused / front-most. Use `C_NULL` to remove focus.
 """
 SetWindowFocus(name::AbstractString) = igSetWindowFocusStr(name)
 
-# Windows Scrolling
-# igGetScrollX()
-# igGetScrollY()
-# igGetScrollMaxX()
-# igGetScrollMaxY()
-# igSetScrollX(scroll_x)
-# igSetScrollY(scroll_y)
-# igSetScrollHereY(center_y_ratio)
-# igSetScrollFromPosY(pos_y, center_y_ratio)
+##################################### Windows Scrolling ####################################
+"""
+    GetScrollX() -> Cfloat
+Get scrolling amount [0..GetScrollMaxX()].
+"""
+GetScrollX() = igGetScrollX()
 
-# Parameters stacks (shared)
-# igPushFont(font)
-# igPopFont()
-# igPushStyleColorU32(idx, col)
-# igPushStyleColor(idx, col)
-# igPopStyleColor(count)
-# igPushStyleVarFloat(idx, val)
-# igPushStyleVarVec2(idx, val)
-# igPopStyleVar(count)
-# igGetStyleColorVec4(idx)
-# igGetFont()
-# igGetFontSize()
-# igGetFontTexUvWhitePixel()
+"""
+    GetScrollY() -> Cfloat
+Get scrolling amount [0..GetScrollMaxY()].
+"""
+GetScrollY() = igGetScrollY()
+
+"""
+    GetScrollMaxX() -> Cfloat
+Get maximum scrolling amount ~~ ContentSize.X - WindowSize.X
+"""
+GetScrollMaxX() = igGetScrollMaxX()
+
+"""
+    GetScrollMaxY() -> Cfloat
+Get maximum scrolling amount ~~ ContentSize.Y - WindowSize.Y
+"""
+GetScrollMaxY() = igGetScrollMaxY()
+
+"""
+    SetScrollX(scroll_x)
+Set scrolling amount [0..GetScrollMaxX()].
+"""
+SetScrollX(scroll_x) = igSetScrollX(scroll_x)
+
+"""
+    SetScrollY(scroll_y)
+Set scrolling amount [0..GetScrollMaxY()].
+"""
+SetScrollY(scroll_y) = igSetScrollY(scroll_y)
+
+"""
+    SetScrollHereY(center_y_ratio=0.5)
+Adjust scrolling amount to make current cursor position visible.
+- `center_y_ratio = 0.0`: top
+- `center_y_ratio = 0.5`: center
+- `center_y_ratio = 1.0`: bottom
+
+When using to make a "default/current item" visible, consider using [`SetItemDefaultFocus`](@ref) instead.
+"""
+SetScrollHereY(center_y_ratio=0.5) = igSetScrollHereY(center_y_ratio)
+
+"""
+    SetScrollFromPosY(pos_y, center_y_ratio=0.5)
+Adjust scrolling amount to make given position valid. Use [`GetCursorPos`](@ref) or
+[`GetCursorStartPos`](@ref)+offset to get valid positions.
+"""
+SetScrollFromPosY(pos_y, center_y_ratio=0.5) = igSetScrollFromPosY(pos_y, center_y_ratio)
+
+################################ Parameters stacks (shared) ################################
+"""
+    PushFont(font)
+Use C_NULL as a shortcut to push default font.
+"""
+PushFont(font) = igPushFont(font)
+
+"""
+    PopFont()
+"""
+PopFont() = igPopFont()
+
+"""
+    PushStyleColor(idx, col)
+    PushStyleColor(idx, col::Integer)
+"""
+PushStyleColor(idx, col) = igPushStyleColor(idx, col)
+PushStyleColor(idx, col::Integer) = igPushStyleColorU32(idx, col)
+
+"""
+    PopStyleColor(count=1)
+"""
+PopStyleColor(count=1) = igPopStyleColor(count)
+
+"""
+    PushStyleVar(idx, val)
+    PushStyleVar(idx, val::AbstractFloat)
+"""
+PushStyleVar(idx, val) = igPushStyleVarVec2(idx, val)
+PushStyleVar(idx, val::AbstractFloat) = igPushStyleVarFloat(idx, val)
+
+
+"""
+    PopStyleVar(count=1)
+"""
+PopStyleVar(count=1) = igPopStyleVar(count)
+
+"""
+    GetStyleColorVec4(idx) -> ImVec4
+Retrieve style color as stored in ImGuiStyle structure. use to feed back into [`PushStyleColor`](@ref),
+otherwise use [`GetColorU32`](@ref) to get style color with style alpha baked in.
+"""
+GetStyleColorVec4(idx) = igGetStyleColorVec4(idx)
+
+"""
+    GetFont() -> Ptr{ImFont}
+Get current font.
+"""
+GetFont() = igGetFont()
+
+"""
+    GetFontSize() -> Cfloat
+Get current font size (= height in pixels) of current font with current scale applied.
+"""
+GetFontSize() = igGetFontSize()
+
+"""
+    GetFontTexUvWhitePixel() -> ImVec2
+Get UV coordinate for a while pixel, useful to draw custom shapes via the `ImDrawList` API.
+"""
+GetFontTexUvWhitePixel() = igGetFontTexUvWhitePixel()
+
 """
     GetColorU32(r, g, b, a) -> ImU32
     GetColorU32(col::ImVec4) -> ImU32
@@ -397,18 +491,66 @@ GetColorU32(col::ImVec4) = igGetColorU32Vec4(col)
 GetColorU32(r, g, b, a) = GetColorU32(ImVec4(r,g,b,a))
 GetColorU32(col::ImU32) = igGetColorU32U32(col)
 
-# Parameters stacks (current window)
-# igPushItemWidth(item_width)
-# igPopItemWidth()
-# igCalcItemWidth()
-# igPushTextWrapPos(wrap_pos_x)
-# igPopTextWrapPos()
-# igPushAllowKeyboardFocus(allow_keyboard_focus)
-# igPopAllowKeyboardFocus()
-# igPushButtonRepeat(repeat)
-# igPopButtonRepeat()
+############################ Parameters stacks (current window) ############################
+"""
+    PushItemWidth(item_width)
+Push width of items for the common item+label case, pixels:
+- `item_width == 0`: default to ~2/3 of windows width
+- `item_width > 0`: width in pixels
+- `item_width < 0`: align xx pixels to the right of window (so -1.0 always align width to the right side)
+"""
+PushItemWidth(item_width) = igPushItemWidth(item_width)
 
-# Cursor / Layout
+"""
+    PopItemWidth()
+"""
+PopItemWidth() = igPopItemWidth()
+
+"""
+    CalcItemWidth() -> Cfloat
+Return width of item given pushed settings and current cursor position.
+"""
+CalcItemWidth() = igCalcItemWidth()
+
+"""
+    PushTextWrapPos(wrap_pos_x=0.0)
+Word-wrapping for `Text*()` commands:
+- `wrap_pos_x < 0`: no wrapping
+- `wrap_pos_x == 0`: wrap to end of window (or column)
+- `wrap_pos_x > 0`: wrap at `wrap_pos_x` position in window local space
+"""
+PushTextWrapPos(wrap_pos_x=0.0) = igPushTextWrapPos(wrap_pos_x)
+
+"""
+    PopTextWrapPos()
+"""
+PopTextWrapPos() = igPopTextWrapPos()
+
+"""
+    PushAllowKeyboardFocus(allow_keyboard_focus)
+Allow focusing using TAB/Shift-TAB, enabled by default but you can disable it for certain widgets.
+"""
+PushAllowKeyboardFocus(allow_keyboard_focus) = igPushAllowKeyboardFocus(allow_keyboard_focus)
+
+"""
+    PopAllowKeyboardFocus()
+"""
+PopAllowKeyboardFocus() = igPopAllowKeyboardFocus()
+
+"""
+    PushButtonRepeat(repeat)
+In 'repeat' mode, `Button*()` functions return repeated true in a typematic manner (using
+`io.KeyRepeatDelay/io.KeyRepeatRate setting`). Note that you can call [`IsItemActive`](@ref)
+after any `Button()` to tell if the button is held in the current frame.
+"""
+PushButtonRepeat(repeat) = igPushButtonRepeat(repeat)
+
+"""
+    PopButtonRepeat()
+"""
+PopButtonRepeat() = igPopButtonRepeat()
+
+###################################### Cursor / Layout #####################################
 """
     Separator()
 Separator, generally horizontal. But inside a menu bar or in horizontal layout mode,
@@ -554,17 +696,44 @@ Return `FontSize + style.FramePadding.y * 2 + style.ItemSpacing.y` (distance in 
 GetFrameHeightWithSpacing() = igGetFrameHeightWithSpacing()
 
 
-# ID stack/scopes
-# igPushIDStr(str_id)
-# igPushIDRange(str_id_begin, str_id_end)
-# igPushIDPtr(ptr_id)
-# igPushIDInt(int_id)
-# igPopID()
-# igGetIDStr(str_id)
-# igGetIDRange(str_id_begin, str_id_end)
-# igGetIDPtr(ptr_id)
+###################################### ID stack/scopes #####################################
+"""
+    PushID(ptr_id::Ptr)
+    PushID(int_id::Integer)
+    PushID(str_id::AbstractString)
+    PushID(str_id_begin::AbstractString, str_id_end::AbstractString)
+Push identifier into the ID stack. IDs are hash of the entire stack!
 
-# Widgets: Text
+!!! info
+    Read the [FAQ](https://github.com/ocornut/imgui/blob/801645d35092c8da0eeabe71d7c1997c47aa3648/imgui.cpp#L521)
+    for more details about how ID are handled in dear imgui. If you are creating widgets in
+    a loop you most likely want to push a unique identifier (e.g. object pointer, loop index)
+    to uniquely differentiate them. You can also use the "##foobar" syntax within widget label
+    to distinguish them from each others.
+"""
+PushID(str_id::AbstractString) = igPushIDStr(str_id)
+PushID(str_id_begin::AbstractString, str_id_end::AbstractString) = igPushIDRange(str_id_begin, str_id_end)
+PushID(ptr_id::Ptr) = igPushIDPtr(ptr_id)
+PushID(int_id::Integer) = igPushIDInt(int_id)
+
+"""
+    PopID()
+See also [`PushID`](@ref).
+"""
+PopID() = igPopID()
+
+"""
+    GetID(str_id::AbstractString) -> ImGuiID
+    GetID(str_id_begin::AbstractString, str_id_end::AbstractString) -> ImGuiID
+    GetID(ptr_id::Ptr) -> ImGuiID
+Calculate unique ID (hash of whole ID stack + given parameter). e.g. if you want to query
+into `ImGuiStorage` yourself.
+"""
+GetID(str_id::AbstractString) = igGetIDStr(str_id)
+GetID(str_id_begin::AbstractString, str_id_end::AbstractString) = igGetIDRange(str_id_begin, str_id_end)
+GetID(ptr_id::Ptr) = igGetIDPtr(ptr_id)
+
+####################################### Widgets: Text ######################################
 # formatting is not fully supported due to https://github.com/JuliaLang/julia/issues/1315
 # please use `using Printf` as a workaround
 """
@@ -579,7 +748,7 @@ TextUnformatted(text, text_end) = igTextUnformatted(text, text_end)
     Text(formatted_text)
 Create a text widget.
 
-!!! warning
+!!! warning "limited support"
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
@@ -589,7 +758,7 @@ Text(formatted_text) = igText(formatted_text)
     TextColored(col, formatted_text)
 Shortcut for `PushStyleColor(ImGuiCol_Text, col); Text(text); PopStyleColor();`.
 
-!!! warning
+!!! warning "limited support"
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
@@ -598,7 +767,7 @@ TextColored(col, formatted_text) = igTextColored(col, formatted_text)
 """
     TextDisabled(formatted_text)
 Shortcut for `PushStyleColor(ImGuiCol_Text, style.Colors[ImGuiCol_TextDisabled]); Text(text); PopStyleColor();`.
-!!! warning
+!!! warning "limited support"
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
@@ -610,7 +779,7 @@ Shortcut for `PushTextWrapPos(0.0f); Text(text); PopTextWrapPos();`.
 Note that this won't work on an auto-resizing window if there's no other widgets to extend
 the window width, yoy may need to set a size using [`SetNextWindowSize`](@ref).
 
-!!! warning
+!!! warning "limited support"
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
@@ -620,7 +789,7 @@ TextWrapped(formatted_text) = igTextWrapped(formatted_text)
     LabelText(label, formatted_text)
 Display text+label aligned the same way as value+label widgets.
 
-!!! warning
+!!! warning "limited support"
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
@@ -630,13 +799,13 @@ LabelText(label, formatted_text) = igLabelText(label, formatted_text)
     BulletText(formatted_text)
 Shortcut for `Bullet()+Text()`.
 
-!!! warning
+!!! warning "limited support"
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
 BulletText(formatted_text) = igBulletText(formatted_text)
 
-# Widgets: Main
+####################################### Widgets: Main ######################################
 """
     Button(label) -> Bool
     Button(label, size) -> Bool
@@ -708,7 +877,7 @@ advance cursor x position by GetTreeNodeToLabelSpacing(), same distance that Tre
 """
 Bullet() = igBullet()
 
-# Widgets: Combo Box
+#################################### Widgets: Combo Box ####################################
 """
     BeginCombo(label, preview_value, flags=0) -> Bool
 The new [`BeginCombo`](@ref)/[`EndCombo`](@ref) api allows you to manage your contents and
@@ -743,22 +912,69 @@ Combo(label, current_item, items_separated_by_zeros, popup_max_height_in_items=-
 """
 Combo(label, current_item, items_getter::Ptr, data::Ptr, items_count, popup_max_height_in_items=-1) = igComboFnPtr(label, current_item, items_getter, data, items_count, popup_max_height_in_items)
 
-# Widgets: Drags
-# igDragFloat(label, v, v_speed, v_min, v_max, format, power)
-# igDragFloat2(label, v, v_speed, v_min, v_max, format, power)
-# igDragFloat3(label, v, v_speed, v_min, v_max, format, power)
-# igDragFloat4(label, v, v_speed, v_min, v_max, format, power)
-# igDragFloatRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, power)
-# igDragInt(label, v, v_speed, v_min, v_max, format)
-# igDragInt2(label, v, v_speed, v_min, v_max, format)
-# igDragInt3(label, v, v_speed, v_min, v_max, format)
-# igDragInt4(label, v, v_speed, v_min, v_max, format)
-# igDragIntRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max)
-# igDragScalar(label, data_type, v, v_speed, v_min, v_max, format, power)
-# igDragScalarN(label, data_type, v, components, v_speed, v_min, v_max, format, power)
+###################################### Widgets: Drags ######################################
+"""
+    DragFloat(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) -> Bool
+If `v_min >= v_max` we have no bound.
+"""
+DragFloat(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) = igDragFloat(label, v, v_speed, v_min, v_max, format, power)
 
+"""
+    DragFloat2(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) -> Bool
+"""
+DragFloat2(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) = igDragFloat2(label, v, v_speed, v_min, v_max, format, power)
 
-# Widgets: Sliders
+"""
+    DragFloat3(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) -> Bool
+"""
+DragFloat3(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) = igDragFloat3(label, v, v_speed, v_min, v_max, format, power)
+
+"""
+    DragFloat4(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) -> Bool
+"""
+DragFloat4(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) = igDragFloat4(label, v, v_speed, v_min, v_max, format, power)
+
+"""
+    DragFloatRange2(label, v_current_min, v_current_max, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", format_max=C_NULL, power=1.0) -> Bool
+"""
+DragFloatRange2(label, v_current_min, v_current_max, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", format_max=C_NULL, power=1.0) = igDragFloatRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, power)
+
+"""
+    DragInt(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d")
+"""
+DragInt(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d") = igDragInt(label, v, v_speed, v_min, v_max, format)
+
+"""
+    DragInt2(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d")
+"""
+DragInt2(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d") = igDragInt2(label, v, v_speed, v_min, v_max, format)
+
+"""
+    DragInt3(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d")
+"""
+DragInt3(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d") = igDragInt3(label, v, v_speed, v_min, v_max, format)
+
+"""
+    DragInt4(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d")
+"""
+DragInt4(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d") = igDragInt4(label, v, v_speed, v_min, v_max, format)
+
+"""
+    DragIntRange2(label, v_current_min, v_current_max, v_speed=1.0, v_min=0, v_max=0, format="%d", format_max=C_NULL)
+"""
+DragIntRange2(label, v_current_min, v_current_max, v_speed=1.0, v_min=0, v_max=0, format="%d", format_max=C_NULL) = igDragIntRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max)
+
+"""
+    DragScalar(label, data_type, v, v_speed, v_min=C_NULL, v_max=C_NULL, format=C_NULL, power=1.0)
+"""
+DragScalar(label, data_type, v, v_speed, v_min=C_NULL, v_max=C_NULL, format=C_NULL, power=1.0) = igDragScalar(label, data_type, v, v_speed, v_min, v_max, format, power)
+
+"""
+    DragScalarN(label, data_type, v, components, v_speed, v_min=C_NULL, v_max=C_NULL, format=C_NULL, power=1.0)
+"""
+DragScalarN(label, data_type, v, components, v_speed, v_min=C_NULL, v_max=C_NULL, format=C_NULL, power=1.0) = igDragScalarN(label, data_type, v, components, v_speed, v_min, v_max, format, power)
+
+##################################### Widgets: Sliders #####################################
 """
     SliderFloat(label, v, v_min, v_max, format="%.3f", power=1.0) -> Bool
 Create a slider widget.
@@ -775,7 +991,7 @@ Create a slider widget.
 """
 SliderFloat(label, v, v_min, v_max, format="%.3f", power=1.0) = igSliderFloat(label, v, v_min, v_max, format, power)
 
-# Widgets: Input with Keyboard
+############################### Widgets: Input with Keyboard ###############################
 """
     InputText(label, buf, buf_size, flags=0, callback=C_NULL, user_data=C_NULL) -> Bool
 """
@@ -841,7 +1057,7 @@ InputScalar(label, data_type, v, step=C_NULL, step_fast=C_NULL, format=C_NULL, f
 """
 InputScalarN(label, data_type, v, components, step=C_NULL, step_fast=C_NULL, format=C_NULL, flags=0) = igInputScalarN(label, data_type, v, components, step, step_fast, format, flags)
 
-# Widgets: Color Editor/Picker
+############################### Widgets: Color Editor/Picker ###############################
 """
     ColorEdit3(label, col, flags=0) -> Bool
 !!! tip
@@ -849,25 +1065,146 @@ InputScalarN(label, data_type, v, components, step=C_NULL, step_fast=C_NULL, for
     and right-clicked to open an option menu.
 """
 ColorEdit3(label, col, flags=0) = igColorEdit3(label, col, flags)
-# igColorEdit4(label, col, flags)
-# igColorPicker3(label, col, flags)
-# igColorPicker4(label, col, flags, ref_col)
-# igColorButton(desc_id, col, flags, size)
-# igSetColorEditOptions(flags)
 
-# Widgets: Trees
-# igTreeNodeStr(label)
-# igTreeNodeExStr(label, flags)
-# igTreePushStr(str_id)
-# igTreePushPtr(ptr_id)
-# igTreePop()
-# igTreeAdvanceToLabelPos()
-# igGetTreeNodeToLabelSpacing()
-# igSetNextTreeNodeOpen(is_open, cond)
-# igCollapsingHeader(label, flags)
-# igCollapsingHeaderBoolPtr(label, p_open, flags)
+"""
+    ColorEdit4(label, col, flags=0) -> Bool
+!!! tip
+    this function has a little colored preview square that can be left-clicked to open a picker,
+    and right-clicked to open an option menu.
+"""
+ColorEdit4(label, col, flags=0) = igColorEdit4(label, col, flags)
 
-# Widgets: Selectables
+"""
+    ColorPicker3(label, col, flags=0)
+"""
+ColorPicker3(label, col, flags=0) = igColorPicker3(label, col, flags)
+
+"""
+    ColorPicker4(label, col, flags=0, ref_col=C_NULL)
+"""
+ColorPicker4(label, col, flags=0, ref_col=C_NULL) = igColorPicker4(label, col, flags, ref_col)
+
+"""
+    ColorButton(desc_id, col, flags=0, size=(0,0))
+Display a colored square/button, hover for details, return true when pressed.
+"""
+ColorButton(desc_id, col, flags=0, size=ImVec2(0,0)) = igColorButton(desc_id, col, flags, size)
+
+"""
+    SetColorEditOptions(flags)
+Initialize current options (generally on application startup) if you want to select a default
+format, picker type, etc. User will be able to change many settings, unless you pass the
+_NoOptions flag to your calls.
+"""
+SetColorEditOptions(flags) = igSetColorEditOptions(flags)
+
+###################################### Widgets: Trees ######################################
+"""
+    TreeNode(label::AbstractString) -> Bool
+TreeNode functions return true when the node is open, in which case you need to also call
+[`TreePop`](@ref) when you are finished displaying the tree node contents.
+"""
+TreeNode(label::AbstractString) = igTreeNodeStr(label)
+
+"""
+    TreeNode(str_id, formatted_text) -> Bool
+Helper variation to completely decorelate the id from the displayed string.
+Read the [FAQ](https://github.com/ocornut/imgui/blob/801645d35092c8da0eeabe71d7c1997c47aa3648/imgui.cpp#L521)
+about why and how to use ID. To align arbitrary text at the same level as a [`TreeNode`](@ref)
+you can use [`Bullet`](@ref).
+
+!!! warning "limited support"
+    Formatting is not supported which means you need to pass a formatted string to this function.
+    It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
+"""
+TreeNode(str_id, formatted_text) = igTreeNodeStrStr(str_id, formatted_text)
+
+"""
+    TreeNodePtr(ptr_id::Ptr, formatted_text) -> Bool
+Helper variation to completely decorelate the id from the displayed string.
+Read the [FAQ](https://github.com/ocornut/imgui/blob/801645d35092c8da0eeabe71d7c1997c47aa3648/imgui.cpp#L521)
+about why and how to use ID. To align arbitrary text at the same level as a [`TreeNode`](@ref)
+you can use [`Bullet`](@ref).
+
+!!! warning "limited support"
+    Formatting is not supported which means you need to pass a formatted string to this function.
+    It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
+"""
+TreeNode(ptr_id::Ptr, formatted_text) = igTreeNodePtr(ptr_id, formatted_text)
+
+"""
+    TreeNodeEx(label, flags=0) -> Bool
+"""
+TreeNodeEx(label, flags=0) = igTreeNodeExStr(label, flags)
+
+"""
+    TreeNodeEx(str_id, flags, formatted_text) -> Bool
+!!! warning "limited support"
+    Formatting is not supported which means you need to pass a formatted string to this function.
+    It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
+"""
+TreeNodeEx(str_id, flags, formatted_text) = igTreeNodeExStrStr(str_id, flags, formatted_text)
+
+"""
+    TreeNodeEx(ptr_id::Ptr, flags, formatted_text) -> Bool
+!!! warning "limited support"
+    Formatting is not supported which means you need to pass a formatted string to this function.
+    It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
+"""
+TreeNodeEx(ptr_id::Ptr, flags, formatted_text) = igTreeNodeExPtr(ptr_id, flags, formatted_text)
+
+"""
+    TreePush(str_id)
+`Indent()+PushId()`. Already called by [`TreeNode`](@ref) when returning true, but you can
+call [`TreePush`](@ref)/[`TreePop`](@ref) yourself if desired.
+"""
+TreePush(str_id) = igTreePushStr(str_id)
+
+"""
+    TreePush(ptr_id::Ptr=C_NULL)
+`Indent()+PushId()`. Already called by [`TreeNode`](@ref) when returning true, but you can
+call [`TreePush`](@ref)/[`TreePop`](@ref) yourself if desired.
+"""
+TreePush(ptr_id::Ptr=C_NULL) = igTreePushPtr(ptr_id)
+
+"""
+    TreePop()
+Unindent()+PopId()
+"""
+TreePop() = igTreePop()
+
+"""
+    TreeAdvanceToLabelPos()
+Advance cursor x position by [`GetTreeNodeToLabelSpacing`](@ref).
+"""
+TreeAdvanceToLabelPos() = igTreeAdvanceToLabelPos()
+
+"""
+    GetTreeNodeToLabelSpacing()
+Horizontal distance preceding label when using `TreeNode*()` or `Bullet() == (g.FontSize + style.FramePadding.x*2)` for a regular unframed TreeNode.
+"""
+GetTreeNodeToLabelSpacing() = igGetTreeNodeToLabelSpacing()
+
+"""
+    SetNextTreeNodeOpen(is_open, cond=0)
+Set next TreeNode/CollapsingHeader open state.
+"""
+SetNextTreeNodeOpen(is_open, cond=0) = igSetNextTreeNodeOpen(is_open, cond)
+
+"""
+    CollapsingHeader(label, flags=0)
+If returning 'true' the header is open. Doesn't indent nor push on ID stack.
+User doesn't have to call [`TreePop`](@ref).
+"""
+CollapsingHeader(label, flags=0) = igCollapsingHeader(label, flags)
+
+"""
+    CollapsingHeaderBoolPtr(label, p_open, flags=0)
+When `p_open` isn't C_NULL, display an additional small close button on upper right of the header.
+"""
+CollapsingHeaderBoolPtr(label, p_open, flags=0) = igCollapsingHeaderBoolPtr(label, p_open, flags)
+
+################################### Widgets: Selectables ###################################
 """
     Selectable(label, selected::Bool=false, flags=0, size=(0,0)) -> Bool
     Selectable(label, p_selected::Ref, flags=0, sizeImVec2(0,0)) -> Bool
@@ -880,7 +1217,7 @@ Return true if is clicked, so you can modify your selection state:
 Selectable(label, selected::Bool=false, flags=0, size=ImVec2(0,0)) = igSelectable(label, selected, flags, size)
 Selectable(label, p_selected::Ref, flags=0, size=ImVec2(0,0)) = igSelectableBoolPtr(label, p_selected, flags, size)
 
-# Widgets: List Boxes
+#################################### Widgets: List Boxes ###################################
 # igListBoxStr_arr(label, current_item, items, items_count, height_in_items)
 # igListBoxFnPtr(label, current_item, items_getter, data, items_count, height_in_items)
 # igListBoxHeaderVec2(label, size)
@@ -891,13 +1228,13 @@ Selectable(label, p_selected::Ref, flags=0, size=ImVec2(0,0)) = igSelectableBool
 # igPlotHistogramFloatPtr(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
 # igPlotHistogramFnPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
 
-# Widgets: Value() Helpers
+################################# Widgets: Value() Helpers #################################
 # igValueBool(prefix, b)
 # igValueInt(prefix, v)
 # igValueUint(prefix, v)
 # igValueFloat(prefix, v, float_format)
 
-# Widgets: Menus
+###################################### Widgets: Menus ######################################
 """
     BeginMainMenuBar() -> Bool
 Create and append to a full screen menu-bar.
@@ -948,11 +1285,11 @@ MenuItem(label, shortcut=C_NULL, selected::Bool=false, enabled::Bool=true) = igM
 MenuItem(label, shortcut, selected::Ref, enabled::Bool=true) = igMenuItemBoolPtr(label, shortcut, selected, enabled)
 
 
-# Tooltips
+######################################### Tooltips #########################################
 # igBeginTooltip()
 # igEndTooltip()
 
-# Popups
+########################################## Popups ##########################################
 # igOpenPopup(str_id)
 # igBeginPopup(str_id, flags)
 # igBeginPopupContextItem(str_id, mouse_button)
@@ -964,24 +1301,67 @@ MenuItem(label, shortcut, selected::Ref, enabled::Bool=true) = igMenuItemBoolPtr
 # igIsPopupOpen(str_id)
 # igCloseCurrentPopup()
 
-# Columns
-# igColumns(count, id, border)
-# igNextColumn()
-# igGetColumnIndex()
-# igGetColumnWidth(column_index)
-# igSetColumnWidth(column_index, width)
-# igGetColumnOffset(column_index)
-# igSetColumnOffset(column_index, offset_x)
-# igGetColumnsCount()
+########################################## Columns #########################################
+"""
+    Columns(count=1, id=C_NULL, border=true)
 
-# Logging/Capture
+!!! warning "Work in progress!"
+    You can also use `SameLine(pos_x)` for simplified columns. The columns API is work-in-progress
+    and rather lacking (columns are arguably the worst part of dear imgui at the moment!)
+"""
+Columns(count=1, id=C_NULL, border=true) = igColumns(count, id, border)
+
+"""
+    NextColumn()
+Next column, defaults to current row or next row if the current row is finished.
+"""
+NextColumn() = igNextColumn()
+
+"""
+    GetColumnIndex() -> Cint
+Return current column index.
+"""
+GetColumnIndex() = igGetColumnIndex()
+
+"""
+    GetColumnWidth(column_index=-1) -> Cfloat
+Return column width (in pixels). Pass -1 to use current column.
+"""
+GetColumnWidth(column_index) = igGetColumnWidth(column_index)
+
+"""
+    SetColumnWidth(column_index, width)
+Set column width (in pixels). Pass -1 to use current column.
+"""
+SetColumnWidth(column_index, width) = igSetColumnWidth(column_index, width)
+
+"""
+    GetColumnOffset(column_index=-1) -> Cfloat
+Get position of column line (in pixels, from the left side of the contents region).
+Pass -1 to use current column, otherwise 0..GetColumnsCount() inclusive. Column 0 is typically 0.0.
+"""
+GetColumnOffset(column_index=-1) = igGetColumnOffset(column_index)
+
+"""
+    SetColumnOffset(column_index, offset_x)
+Set position of column line (in pixels, from the left side of the contents region).
+Pass -1 to use current column.
+"""
+SetColumnOffset(column_index, offset_x) = igSetColumnOffset(column_index, offset_x)
+
+"""
+    GetColumnsCount() -> Cint
+"""
+GetColumnsCount() = igGetColumnsCount()
+
+##################################### Logging/Capture ######################################
 # igLogToTTY(max_depth)
 # igLogToFile(max_depth, filename)
 # igLogToClipboard(max_depth)
 # igLogFinish()
 # igLogButtons()
 
-# Drag and Drop
+###################################### Drag and Drop #######################################
 # igBeginDragDropSource(flags)
 # igSetDragDropPayload(type, data, size, cond)
 # igEndDragDropSource()
@@ -990,15 +1370,15 @@ MenuItem(label, shortcut, selected::Ref, enabled::Bool=true) = igMenuItemBoolPtr
 # igEndDragDropTarget()
 # igGetDragDropPayload()
 
-# Clipping
+######################################### Clipping #########################################
 # igPushClipRect(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect)
 # igPopClipRect()
 
-# Focus, Activation
+#################################### Focus, Activation #####################################
 # igSetItemDefaultFocus()
 # igSetKeyboardFocusHere(offset)
 
-# Item/Widgets Utilities
+################################## Item/Widgets Utilities ##################################
 # igIsItemHovered(flags)
 # igIsItemActive()
 # igIsItemFocused()
@@ -1015,7 +1395,7 @@ MenuItem(label, shortcut, selected::Ref, enabled::Bool=true) = igMenuItemBoolPtr
 # igGetItemRectSize()
 # igSetItemAllowOverlap()
 
-# Miscellaneous Utilities
+################################## Miscellaneous Utilities #################################
 """
     RectVisible(size) -> Bool
     RectVisible(x, y) -> Bool
@@ -1096,11 +1476,11 @@ BeginChildFrame(id, size, flags=0) = igBeginChildFrame(id, size, flags)
 EndChildFrame() = igEndChildFrame()
 
 
-# Color Utilities
+###################################### Color Utilities #####################################
 # igColorConvertU32ToFloat4(in)
 # igColorConvertFloat4ToU32(in)
 
-# Inputs Utilities
+##################################### Inputs Utilities #####################################
 # igGetKeyIndex(imgui_key)
 # igIsKeyDown(user_key_index)
 # igIsKeyPressed(user_key_index, repeat)
@@ -1123,17 +1503,17 @@ EndChildFrame() = igEndChildFrame()
 # igCaptureKeyboardFromApp(capture)
 # igCaptureMouseFromApp(capture)
 
-# Clipboard Utilities
+#################################### Clipboard Utilities ###################################
 # igGetClipboardText()
 # igSetClipboardText(text)
 
-# Settings/.Ini Utilities
+################################## Settings/.Ini Utilities #################################
 # igLoadIniSettingsFromDisk(ini_filename)
 # igLoadIniSettingsFromMemory(ini_data, ini_size)
 # igSaveIniSettingsToDisk(ini_filename)
 # igSaveIniSettingsToMemory(out_ini_size)
 
-# Memory Utilities
+##################################### Memory Utilities #####################################
 # igSetAllocatorFunctions(alloc_func, free_func, user_data)
 # igMemAlloc(size)
 # igMemFree(ptr)

@@ -1,7 +1,10 @@
-# this example demonstrates creating a fullscreen menu bar and populating it.
 using CImGui
 using CSyntax
 
+"""
+    show_app_main_menubar()
+Create a fullscreen menu bar and populating it.
+"""
 function show_app_main_menubar()
     if CImGui.BeginMainMenuBar()
         if CImGui.BeginMenu("File")
@@ -10,20 +13,20 @@ function show_app_main_menubar()
         end
         if CImGui.BeginMenu("Edit")
             if CImGui.MenuItem("Undo", "CTRL+Z")
-                @info "Undo | find me here: $(@__FILE__) at line $(@__LINE__)"
+                @info "Trigger Undo | find me here: $(@__FILE__) at line $(@__LINE__)"
             end
             if CImGui.MenuItem("Redo", "CTRL+Y", false, false)  # disabled
-                @info "Redo | find me here: $(@__FILE__) at line $(@__LINE__)"
+                @info "Trigger Redo | find me here: $(@__FILE__) at line $(@__LINE__)"
             end
             CImGui.Separator()
             if CImGui.MenuItem("Cut", "CTRL+X")
-                @info "Cut | find me here: $(@__FILE__) at line $(@__LINE__)"
+                @info "Trigger Cut | find me here: $(@__FILE__) at line $(@__LINE__)"
             end
             if CImGui.MenuItem("Copy", "CTRL+C")
-                @info "Copy | find me here: $(@__FILE__) at line $(@__LINE__)"
+                @info "Trigger Copy | find me here: $(@__FILE__) at line $(@__LINE__)"
             end
             if CImGui.MenuItem("Paste", "CTRL+V")
-                @info "Paste | find me here: $(@__FILE__) at line $(@__LINE__)"
+                @info "Trigger Paste | find me here: $(@__FILE__) at line $(@__LINE__)"
             end
             CImGui.EndMenu()
         end
@@ -39,10 +42,10 @@ b = true
 global function show_menu_file()
     CImGui.MenuItem("(dummy menu)", C_NULL, false, false)
     if CImGui.MenuItem("New")
-        @info "New | find me here: $(@__FILE__) at line $(@__LINE__)"
+        @info "Trigger New | find me here: $(@__FILE__) at line $(@__LINE__)"
     end
     if CImGui.MenuItem("Open", "Ctrl+O")
-        @info "Open | find me here: $(@__FILE__) at line $(@__LINE__)"
+        @info "Trigger Open | find me here: $(@__FILE__) at line $(@__LINE__)"
     end
     if CImGui.BeginMenu("Open Recent")
         CImGui.MenuItem("fish_hat.c")
@@ -60,10 +63,10 @@ global function show_menu_file()
         CImGui.EndMenu()
     end
     if CImGui.MenuItem("Save", "Ctrl+S")
-        @info "Save | find me here: $(@__FILE__) at line $(@__LINE__)"
+        @info "Trigger Save | find me here: $(@__FILE__) at line $(@__LINE__)"
     end
     if CImGui.MenuItem("Save As..")
-        @info "Save As.. | find me here: $(@__FILE__) at line $(@__LINE__)"
+        @info "Trigger Save As.. | find me here: $(@__FILE__) at line $(@__LINE__)"
     end
     CImGui.Separator()
     if CImGui.BeginMenu("Options")
@@ -92,8 +95,8 @@ global function show_menu_file()
     if CImGui.BeginMenu("Disabled", false)  # disabled
         throw(AssertionError("unreachable reached."))
     end
-    CImGui.MenuItem("Checked", "", true) && @info "Checked | find me here: $(@__FILE__) at line $(@__LINE__)"
-    CImGui.MenuItem("Quit", "Alt+F4") && @info "Quit | find me here: $(@__FILE__) at line $(@__LINE__)"
+    CImGui.MenuItem("Checked", "", true) && @info "Trigger Checked | find me here: $(@__FILE__) at line $(@__LINE__)"
+    CImGui.MenuItem("Quit", "Alt+F4") && @info "Trigger Quit | find me here: $(@__FILE__) at line $(@__LINE__)"
 end
 
 end # let

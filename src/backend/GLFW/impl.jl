@@ -97,7 +97,7 @@ function ImGui_ImplGlfw_UpdateMousePosAndButtons()
 
     # update mouse position
     mouse_pos_backup = ImGuiIO_Get_MousePos(io)
-    ImGuiIO_Set_MousePos(io, ImVec2(-floatmax(), -floatmax()))
+    ImGuiIO_Set_MousePos(io, ImVec2(-FLT_MAX, -FLT_MAX))
     if GLFW.GetWindowAttrib(g_Window, GLFW.FOCUSED) != 0
         if ImGuiIO_Get_WantSetMousePos(io)
             GLFW.SetCursorPos(g_Window, Cdouble(mouse_pos_backup.x), Cdouble(mouse_pos_backup.y))

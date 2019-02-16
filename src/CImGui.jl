@@ -3,6 +3,8 @@ module CImGui
 include("LibCImGui.jl")
 using .LibCImGui
 
+const FLT_MAX = igGET_FLT_MAX()
+
 include("convert.jl")
 include("wrapper.jl")
 

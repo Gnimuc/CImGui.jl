@@ -42,12 +42,11 @@ CImGui.StyleColorsDark()
 # CImGui.StyleColorsLight()
 
 # load Fonts
-# - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
-# - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
-# - If the file cannot be loaded, the function will return NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
-# - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
-# - Read 'misc/fonts/README.txt' for more instructions and details.
-# - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
+# - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use `CImGui.PushFont/PopFont` to select them.
+# - `CImGui.AddFontFromFileTTF` will return the `Ptr{ImFont}` so you can store it if you need to select the font among multiple.
+# - If the file cannot be loaded, the function will return C_NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
+# - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which `ImGui_ImplXXXX_NewFrame` below will call.
+# - Read 'fonts/README.txt' for more instructions and details.
 fonts_dir = joinpath(@__DIR__, "..", "fonts")
 fonts = ImGuiIO_Get_Fonts(io)
 default_font = ImFontAtlas_AddFontDefault(fonts, C_NULL)
@@ -101,7 +100,7 @@ while !GLFW.WindowShouldClose(window)
     # show another simple window.
     if show_another_window
         @c CImGui.Begin("Another Window", &show_another_window)  # pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        # CImGui.Text("Hello from another window!")
+        CImGui.Text("Hello from another window!")
         CImGui.Button("Close Me") && (show_another_window = false;)
         CImGui.End()
     end

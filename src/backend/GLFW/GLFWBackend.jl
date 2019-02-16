@@ -4,6 +4,7 @@ using Libdl
 using GLFW
 using CSyntax
 using ..LibCImGui
+using ..CImGui: FLT_MAX
 
 include("callbacks.jl")
 

@@ -4,6 +4,7 @@ using CImGui.GLFWBackend
 using CImGui.OpenGLBackend
 using GLFW, ModernGL
 using CSyntax
+using Printf
 
 @static if Sys.isapple()
     const VERSION_MAJOR = 3
@@ -64,7 +65,7 @@ while !GLFW.WindowShouldClose(window)
     # show a simple window that we create ourselves.
     # we use a Begin/End pair to created a named window.
     CImGui.Begin("Hello, world!")  # create a window called "Hello, world!" and append into it.
-    # CImGui.Text("This is some useful text.")  # display some text
+    CImGui.Text("This is some useful text.")  # display some text
     @c CImGui.Checkbox("Demo Window", &show_demo_window)  # edit bools storing our window open/close state
     @c CImGui.Checkbox("Another Window", &show_another_window)
 
@@ -73,8 +74,8 @@ while !GLFW.WindowShouldClose(window)
     CImGui.Button("Button") && (counter += 1)
 
     CImGui.SameLine()
-    # CImGui.Text("counter = %d", counter)
-    # CImGui.Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    CImGui.Text("counter = $counter")
+    CImGui.Text(@sprintf("Application average %.3f ms/frame (%.1f FPS)", 1000 / ImGuiIO_Get_Framerate(CImGui.GetIO()), ImGuiIO_Get_Framerate(CImGui.GetIO())))
 
     CImGui.End()
 

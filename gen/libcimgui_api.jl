@@ -514,6 +514,10 @@ function igTextUnformatted(text, text_end)
     ccall((:igTextUnformatted, libcimgui), Cvoid, (Cstring, Cstring), text, text_end)
 end
 
+function igText(text)
+    ccall((:igText, libcimgui), Cvoid, (Cstring,), text)
+end
+
 function igButton(label, size)
     ccall((:igButton, libcimgui), Bool, (Cstring, ImVec2), label, size)
 end

@@ -204,12 +204,32 @@ SameLine(local_pos_x=0.0f0, spacing_w=-1.0f0) = igSameLine(local_pos_x, spacing_
 
 
 # Widgets: Text
-# pending https://github.com/JuliaLang/julia/issues/1315
+# formatting is not fully supported due to https://github.com/JuliaLang/julia/issues/1315
+# please use `using Printf` as a workaround
+"""
+    TextUnformatted(text::AbstractString, text_end::AbstractString)
+Raw text without formatting. Roughly equivalent to `Text("%s", text)` but:
+1. doesn't require null terminated string if 'text_end' is specified;
+2. it's faster, no memory copy is done, no buffer size limits, recommended for long chunks of text.
+"""
+TextUnformatted(text::AbstractString, text_end::AbstractString) = igTextUnformatted(text, text_end)
+
+"""
+    Text(formatted_text::AbstractString)
+Create a text widget.
+
+!!! warn
+    Formatting is not supported which means you need to pass a formatted string to this function.
+    It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
+"""
+Text(formatted_text::AbstractString) = igText(formatted_text)
 
 
 # Widgets: Sliders
 """
     SliderFloat(label::AbstractString, v, v_min, v_max, format="%.3f", power=1.0) -> Bool
+Create a slider widget.
+
 !!! tip
     ctrl+click on a slider to input with keyboard. manually input values aren't clamped, can go off-bounds.
 

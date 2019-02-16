@@ -156,12 +156,131 @@ See also [`BeginChild`](@ref).
 EndChild() = igEndChild()
 
 # Windows Utilities
+"""
+    IsWindowAppearing() -> Bool
+"""
+IsWindowAppearing() = igIsWindowAppearing()
+
+"""
+    IsWindowCollapsed() -> Bool
+"""
+IsWindowCollapsed() = igIsWindowCollapsed()
+
+"""
+    IsWindowFocused(flags=0) -> Bool
+Is current window focused? or its root/child, depending on flags. see flags for options.
+"""
+IsWindowFocused(flags=0) = igIsWindowFocused(flags)
+
+"""
+    IsWindowHovered(flags=0) -> Bool
+Is current window hovered (and typically: not blocked by a popup/modal)? see flags for options.
+
+!!! note
+    If you are trying to check whether your mouse should be dispatched to imgui or to your app,
+    you should use the `io.WantCaptureMouse` boolean for that! Please read the FAQ!
+"""
+IsWindowHovered(flags=0) = igIsWindowHovered(flags)
+
+"""
+    GetWindowDrawList() -> Ptr{ImDrawList}
+Return draw list associated to the window, to append your own drawing primitives.
+"""
+GetWindowDrawList() = igGetWindowDrawList()
+
+"""
+    GetWindowPos() -> ImVec2
+Return current window position in screen space (useful if you want to do your own drawing via the DrawList API)
+"""
+GetWindowPos() = igGetWindowPos()
+
+"""
+    GetWindowSize() -> ImVec2
+Return current window size.
+"""
+GetWindowSize() = igGetWindowSize()
+
+"""
+    GetWindowWidth() -> Cfloat
+Get current window width (shortcut for GetWindowSize().x)
+"""
+GetWindowWidth() = igGetWindowWidth()
+
+"""
+    GetWindowHeight() -> Cfloat
+Get current window height (shortcut for GetWindowSize().y)
+"""
+GetWindowHeight() = igGetWindowHeight()
+
+
+# igGetContentRegionMax()
+# igGetContentRegionAvail()
+# igGetContentRegionAvailWidth()
+# igGetWindowContentRegionMin()
+# igGetWindowContentRegionMax()
+# igGetWindowContentRegionWidth()
+# igSetNextWindowPos(pos, cond, pivot)
+# igSetNextWindowSize(size, cond)
+# igSetNextWindowSizeConstraints(size_min, size_max, custom_callback, custom_callback_data)
+# igSetNextWindowContentSize(size)
+# igSetNextWindowCollapsed(collapsed, cond)
+# igSetNextWindowFocus()
+# igSetNextWindowBgAlpha(alpha)
+# igSetWindowPosVec2(pos, cond)
+# igSetWindowSizeVec2(size, cond)
+# igSetWindowCollapsedBool(collapsed, cond)
+# igSetWindowFocus()
+# igSetWindowFontScale(scale)
+# igSetWindowPosStr(name, pos, cond)
+# igSetWindowSizeStr(name, size, cond)
+# igSetWindowCollapsedStr(name, collapsed, cond)
+# igSetWindowFocusStr(name)
 
 # Windows Scrolling
+# igGetScrollX()
+# igGetScrollY()
+# igGetScrollMaxX()
+# igGetScrollMaxY()
+# igSetScrollX(scroll_x)
+# igSetScrollY(scroll_y)
+# igSetScrollHereY(center_y_ratio)
+# igSetScrollFromPosY(pos_y, center_y_ratio)
 
 # Parameters stacks (shared)
+# igPushFont(font)
+# igPopFont()
+# igPushStyleColorU32(idx, col)
+# igPushStyleColor(idx, col)
+# igPopStyleColor(count)
+# igPushStyleVarFloat(idx, val)
+# igPushStyleVarVec2(idx, val)
+# igPopStyleVar(count)
+# igGetStyleColorVec4(idx)
+# igGetFont()
+# igGetFontSize()
+# igGetFontTexUvWhitePixel()
+"""
+    GetColorU32(r, g, b, a) -> ImU32
+    GetColorU32(col::ImVec4) -> ImU32
+    GetColorU32(col::ImU32) -> ImU32
+    GetColorU32(idx::Integer, alpha_mul=1.0) -> ImU32
+Retrieve given style color with style alpha applied and optional extra alpha multiplier.
+"""
+GetColorU32(idx::Integer, alpha_mul=1.0) = igGetColorU32(idx, alpha_mul)
+GetColorU32(col::ImVec4) = igGetColorU32Vec4(col)
+GetColorU32(r, g, b, a) = GetColorU32(ImVec4(r,g,b,a))
+GetColorU32(col::ImU32) = igGetColorU32U32(col)
 
 # Parameters stacks (current window)
+# igPushItemWidth(item_width)
+# igPopItemWidth()
+# igCalcItemWidth()
+# igPushTextWrapPos(wrap_pos_x)
+# igPopTextWrapPos()
+# igPushAllowKeyboardFocus(allow_keyboard_focus)
+# igPopAllowKeyboardFocus()
+# igPushButtonRepeat(repeat)
+# igPopButtonRepeat()
 
 # Cursor / Layout
 """
@@ -310,6 +429,14 @@ GetFrameHeightWithSpacing() = igGetFrameHeightWithSpacing()
 
 
 # ID stack/scopes
+# igPushIDStr(str_id)
+# igPushIDRange(str_id_begin, str_id_end)
+# igPushIDPtr(ptr_id)
+# igPushIDInt(int_id)
+# igPopID()
+# igGetIDStr(str_id)
+# igGetIDRange(str_id_begin, str_id_end)
+# igGetIDPtr(ptr_id)
 
 # Widgets: Text
 # formatting is not fully supported due to https://github.com/JuliaLang/julia/issues/1315
@@ -405,8 +532,54 @@ advance cursor x position by GetTreeNodeToLabelSpacing(), same distance that Tre
 Bullet() = igBullet()
 
 # Widgets: Combo Box
+"""
+    BeginCombo(label, preview_value, flags=0) -> Bool
+The new [`BeginCombo`](@ref)/[`EndCombo`](@ref) api allows you to manage your contents and
+selection state however you want it, by creating e.g. [`Selectable`](@ref) items.
+"""
+BeginCombo(label, preview_value, flags=0) = igBeginCombo(label, preview_value, flags)
+
+"""
+    EndCombo()
+!!! note
+    only call `EndCombo` if [`BeginCombo`](@ref) returns true!
+
+See also [`BeginCombo`](@ref).
+"""
+EndCombo() = igEndCombo()
+
+"""
+    Combo(label, current_item, items, items_count, popup_max_height_in_items=-1) -> Bool
+The old [`Combo`](@ref) api are helpers over [`BeginCombo`](@ref)/[`EndCombo`](@ref) which
+are kept available for convenience purpose.
+"""
+Combo(label, current_item, items::Ptr, items_count, popup_max_height_in_items=-1) = igCombo(label, current_item, items, items_count, popup_max_height_in_items)
+
+"""
+    Combo(label, current_item, items_separated_by_zeros, popup_max_height_in_items=-1) -> Bool
+Separate items with `\0` within a string, end item-list with `\0\0`. e.g. `One\0Two\0Three\0`
+"""
+Combo(label, current_item, items_separated_by_zeros, popup_max_height_in_items=-1) = igComboStr(label, current_item, items_separated_by_zeros, popup_max_height_in_items)
+
+"""
+    Combo(label, current_item, items_getter::Ptr, data::Ptr, items_count, popup_max_height_in_items=-1) -> Bool
+"""
+Combo(label, current_item, items_getter::Ptr, data::Ptr, items_count, popup_max_height_in_items=-1) = igComboFnPtr(label, current_item, items_getter, data, items_count, popup_max_height_in_items)
 
 # Widgets: Drags
+# igDragFloat(label, v, v_speed, v_min, v_max, format, power)
+# igDragFloat2(label, v, v_speed, v_min, v_max, format, power)
+# igDragFloat3(label, v, v_speed, v_min, v_max, format, power)
+# igDragFloat4(label, v, v_speed, v_min, v_max, format, power)
+# igDragFloatRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, power)
+# igDragInt(label, v, v_speed, v_min, v_max, format)
+# igDragInt2(label, v, v_speed, v_min, v_max, format)
+# igDragInt3(label, v, v_speed, v_min, v_max, format)
+# igDragInt4(label, v, v_speed, v_min, v_max, format)
+# igDragIntRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max)
+# igDragScalar(label, data_type, v, v_speed, v_min, v_max, format, power)
+# igDragScalarN(label, data_type, v, components, v_speed, v_min, v_max, format, power)
+
 
 # Widgets: Sliders
 """
@@ -499,17 +672,44 @@ InputScalarN(label, data_type, v, components, step=C_NULL, step_fast=C_NULL, for
     and right-clicked to open an option menu.
 """
 ColorEdit3(label, col, flags=0) = igColorEdit3(label, col, flags)
+# igColorEdit4(label, col, flags)
+# igColorPicker3(label, col, flags)
+# igColorPicker4(label, col, flags, ref_col)
+# igColorButton(desc_id, col, flags, size)
+# igSetColorEditOptions(flags)
 
 # Widgets: Trees
+# igTreeNodeStr(label)
+# igTreeNodeExStr(label, flags)
+# igTreePushStr(str_id)
+# igTreePushPtr(ptr_id)
+# igTreePop()
+# igTreeAdvanceToLabelPos()
+# igGetTreeNodeToLabelSpacing()
+# igSetNextTreeNodeOpen(is_open, cond)
+# igCollapsingHeader(label, flags)
+# igCollapsingHeaderBoolPtr(label, p_open, flags)
 
 # Widgets: Selectables
+# igSelectable(label, selected, flags, size)
+# igSelectableBoolPtr(label, p_selected, flags, size)
 
 # Widgets: List Boxes
-
-# Widgets: Data Plotting
+# igListBoxStr_arr(label, current_item, items, items_count, height_in_items)
+# igListBoxFnPtr(label, current_item, items_getter, data, items_count, height_in_items)
+# igListBoxHeaderVec2(label, size)
+# igListBoxHeaderInt(label, items_count, height_in_items)
+# igListBoxFooter()
+# igPlotLines(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
+# igPlotLinesFnPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
+# igPlotHistogramFloatPtr(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
+# igPlotHistogramFnPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
 
 # Widgets: Value() Helpers
-
+# igValueBool(prefix, b)
+# igValueInt(prefix, v)
+# igValueUint(prefix, v)
+# igValueFloat(prefix, v, float_format)
 
 # Widgets: Menus
 """
@@ -563,28 +763,71 @@ MenuItem(label, shortcut, selected::Ref, enabled::Bool=true) = igMenuItemBoolPtr
 
 
 # Tooltips
-
+# igBeginTooltip()
+# igEndTooltip()
 
 # Popups
-
+# igOpenPopup(str_id)
+# igBeginPopup(str_id, flags)
+# igBeginPopupContextItem(str_id, mouse_button)
+# igBeginPopupContextWindow(str_id, mouse_button, also_over_items)
+# igBeginPopupContextVoid(str_id, mouse_button)
+# igBeginPopupModal(name, p_open, flags)
+# igEndPopup()
+# igOpenPopupOnItemClick(str_id, mouse_button)
+# igIsPopupOpen(str_id)
+# igCloseCurrentPopup()
 
 # Columns
-
+# igColumns(count, id, border)
+# igNextColumn()
+# igGetColumnIndex()
+# igGetColumnWidth(column_index)
+# igSetColumnWidth(column_index, width)
+# igGetColumnOffset(column_index)
+# igSetColumnOffset(column_index, offset_x)
+# igGetColumnsCount()
 
 # Logging/Capture
-
+# igLogToTTY(max_depth)
+# igLogToFile(max_depth, filename)
+# igLogToClipboard(max_depth)
+# igLogFinish()
+# igLogButtons()
 
 # Drag and Drop
-
+# igBeginDragDropSource(flags)
+# igSetDragDropPayload(type, data, size, cond)
+# igEndDragDropSource()
+# igBeginDragDropTarget()
+# igAcceptDragDropPayload(type, flags)
+# igEndDragDropTarget()
+# igGetDragDropPayload()
 
 # Clipping
-
+# igPushClipRect(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect)
+# igPopClipRect()
 
 # Focus, Activation
-
+# igSetItemDefaultFocus()
+# igSetKeyboardFocusHere(offset)
 
 # Item/Widgets Utilities
-
+# igIsItemHovered(flags)
+# igIsItemActive()
+# igIsItemFocused()
+# igIsItemClicked(mouse_button)
+# igIsItemVisible()
+# igIsItemEdited()
+# igIsItemDeactivated()
+# igIsItemDeactivatedAfterEdit()
+# igIsAnyItemHovered()
+# igIsAnyItemActive()
+# igIsAnyItemFocused()
+# igGetItemRectMin()
+# igGetItemRectMax()
+# igGetItemRectSize()
+# igSetItemAllowOverlap()
 
 # Miscellaneous Utilities
 """
@@ -668,15 +911,49 @@ EndChildFrame() = igEndChildFrame()
 
 
 # Color Utilities
-
+# igColorConvertU32ToFloat4(in)
+# igColorConvertFloat4ToU32(in)
 
 # Inputs Utilities
-
+# igGetKeyIndex(imgui_key)
+# igIsKeyDown(user_key_index)
+# igIsKeyPressed(user_key_index, repeat)
+# igIsKeyReleased(user_key_index)
+# igGetKeyPressedAmount(key_index, repeat_delay, rate)
+# igIsMouseDown(button)
+# igIsAnyMouseDown()
+# igIsMouseClicked(button, repeat)
+# igIsMouseDoubleClicked(button)
+# igIsMouseReleased(button)
+# igIsMouseDragging(button, lock_threshold)
+# igIsMouseHoveringRect(r_min, r_max, clip)
+# igIsMousePosValid(mouse_pos)
+# igGetMousePos()
+# igGetMousePosOnOpeningCurrentPopup()
+# igGetMouseDragDelta(button, lock_threshold)
+# igResetMouseDragDelta(button)
+# igGetMouseCursor()
+# igSetMouseCursor(type)
+# igCaptureKeyboardFromApp(capture)
+# igCaptureMouseFromApp(capture)
 
 # Clipboard Utilities
-
+# igGetClipboardText()
+# igSetClipboardText(text)
 
 # Settings/.Ini Utilities
-
+# igLoadIniSettingsFromDisk(ini_filename)
+# igLoadIniSettingsFromMemory(ini_data, ini_size)
+# igSaveIniSettingsToDisk(ini_filename)
+# igSaveIniSettingsToMemory(out_ini_size)
 
 # Memory Utilities
+# igSetAllocatorFunctions(alloc_func, free_func, user_data)
+# igMemAlloc(size)
+# igMemFree(ptr)
+
+# ImDrawList
+"""
+    AddRectFilled(self::Ptr{ImDrawList}, a, b, col, rounding=0, rounding_corners_flags=ImDrawCornerFlags_All)
+"""
+AddRectFilled(self::Ptr{ImDrawList}, a, b, col, rounding=0, rounding_corners_flags=ImDrawCornerFlags_All) = ImDrawList_AddRectFilled(self, a, b, col, rounding, rounding_corners_flags)

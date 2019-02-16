@@ -1,5 +1,6 @@
 using Clang
 
+# do not forget to add #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS in the top of the header
 const CIMGUI_H = joinpath(@__DIR__, "..", "deps", "usr", "include", "cimgui.h") |> normpath
 
 # create a work context

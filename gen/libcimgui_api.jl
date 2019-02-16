@@ -703,15 +703,15 @@ function igInputFloat(label, v, step, step_fast, format, flags)
 end
 
 function igInputFloat2(label, v, format, flags)
-    ccall((:igInputFloat2, libcimgui), Bool, (Cstring, NTuple{2, Cfloat}, Cstring, ImGuiInputTextFlags), label, v, format, flags)
+    ccall((:igInputFloat2, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cstring, ImGuiInputTextFlags), label, v, format, flags)
 end
 
 function igInputFloat3(label, v, format, flags)
-    ccall((:igInputFloat3, libcimgui), Bool, (Cstring, NTuple{3, Cfloat}, Cstring, ImGuiInputTextFlags), label, v, format, flags)
+    ccall((:igInputFloat3, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cstring, ImGuiInputTextFlags), label, v, format, flags)
 end
 
 function igInputFloat4(label, v, format, flags)
-    ccall((:igInputFloat4, libcimgui), Bool, (Cstring, NTuple{4, Cfloat}, Cstring, ImGuiInputTextFlags), label, v, format, flags)
+    ccall((:igInputFloat4, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cstring, ImGuiInputTextFlags), label, v, format, flags)
 end
 
 function igInputInt(label, v, step, step_fast, flags)
@@ -719,15 +719,15 @@ function igInputInt(label, v, step, step_fast, flags)
 end
 
 function igInputInt2(label, v, flags)
-    ccall((:igInputInt2, libcimgui), Bool, (Cstring, NTuple{2, Cint}, ImGuiInputTextFlags), label, v, flags)
+    ccall((:igInputInt2, libcimgui), Bool, (Cstring, Ptr{Cint}, ImGuiInputTextFlags), label, v, flags)
 end
 
 function igInputInt3(label, v, flags)
-    ccall((:igInputInt3, libcimgui), Bool, (Cstring, NTuple{3, Cint}, ImGuiInputTextFlags), label, v, flags)
+    ccall((:igInputInt3, libcimgui), Bool, (Cstring, Ptr{Cint}, ImGuiInputTextFlags), label, v, flags)
 end
 
 function igInputInt4(label, v, flags)
-    ccall((:igInputInt4, libcimgui), Bool, (Cstring, NTuple{4, Cint}, ImGuiInputTextFlags), label, v, flags)
+    ccall((:igInputInt4, libcimgui), Bool, (Cstring, Ptr{Cint}, ImGuiInputTextFlags), label, v, flags)
 end
 
 function igInputDouble(label, v, step, step_fast, format, flags)

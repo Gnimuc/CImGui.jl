@@ -147,6 +147,16 @@ struct CustomRect
     Font::Ptr{ImFont}
 end
 
+struct ImVector_unsigned_char
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{Cuchar}
+end
+
+struct GlyphRangesBuilder
+    UsedChars::ImVector_unsigned_char
+end
+
 const ImDrawIdx = UInt16
 const ImGuiID = UInt32
 
@@ -166,6 +176,16 @@ struct ImVec4
     w::Cfloat
 end
 
+struct ImVector_char
+    Size::Cint
+    Capacity::Cint
+    Data::Cstring
+end
+
+struct ImGuiTextBuffer
+    Buf::ImVector_char
+end
+
 struct ImVector_TextRange
     Size::Cint
     Capacity::Cint
@@ -176,16 +196,6 @@ struct ImGuiTextFilter
     InputBuf::NTuple{256, UInt8}
     Filters::ImVector_TextRange
     CountGrep::Cint
-end
-
-struct ImVector_char
-    Size::Cint
-    Capacity::Cint
-    Data::Cstring
-end
-
-struct ImGuiTextBuffer
-    Buf::ImVector_char
 end
 
 struct ImGuiStyle
@@ -211,8 +221,6 @@ struct ImGuiStyle
     ScrollbarRounding::Cfloat
     GrabMinSize::Cfloat
     GrabRounding::Cfloat
-    TabRounding::Cfloat
-    TabBorderSize::Cfloat
     ButtonTextAlign::ImVec2
     DisplayWindowPadding::ImVec2
     DisplaySafeAreaPadding::ImVec2
@@ -220,7 +228,7 @@ struct ImGuiStyle
     AntiAliasedLines::Bool
     AntiAliasedFill::Bool
     CurveTessellationTol::Cfloat
-    Colors::NTuple{48, ImVec4}
+    Colors::NTuple{43, ImVec4}
 end
 
 struct ImVector_Pair
@@ -310,13 +318,9 @@ struct ImGuiIO
     MouseDrawCursor::Bool
     ConfigMacOSXBehaviors::Bool
     ConfigInputTextCursorBlink::Bool
-    ConfigWindowsResizeFromEdges::Bool
-    ConfigWindowsMoveFromTitleBarOnly::Bool
+    ConfigResizeWindowsFromEdges::Bool
     BackendPlatformName::Cstring
     BackendRendererName::Cstring
-    BackendPlatformUserData::Ptr{Cvoid}
-    BackendRendererUserData::Ptr{Cvoid}
-    BackendLanguageUserData::Ptr{Cvoid}
     GetClipboardTextFn::Ptr{Cvoid}
     SetClipboardTextFn::Ptr{Cvoid}
     ClipboardUserData::Ptr{Cvoid}
@@ -332,6 +336,7 @@ struct ImGuiIO
     KeyAlt::Bool
     KeySuper::Bool
     KeysDown::NTuple{512, Bool}
+    InputCharacters::NTuple{17, ImWchar}
     NavInputs::NTuple{21, Cfloat}
     WantCaptureMouse::Bool
     WantCaptureKeyboard::Bool
@@ -362,23 +367,12 @@ struct ImGuiIO
     KeysDownDurationPrev::NTuple{512, Cfloat}
     NavInputsDownDuration::NTuple{21, Cfloat}
     NavInputsDownDurationPrev::NTuple{21, Cfloat}
-    InputQueueCharacters::ImVector_ImWchar
 end
 
 const ImGuiContext = Cvoid
 
 struct ImColor
     Value::ImVec4
-end
-
-struct ImVector_int
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{Cint}
-end
-
-struct ImFontGlyphRangesBuilder
-    UsedChars::ImVector_int
 end
 
 const ImU32 = UInt32
@@ -492,8 +486,6 @@ const ImGuiDragDropFlags = Cint
 const ImGuiFocusedFlags = Cint
 const ImGuiHoveredFlags = Cint
 const ImGuiSelectableFlags = Cint
-const ImGuiTabBarFlags = Cint
-const ImGuiTabItemFlags = Cint
 const ImGuiTreeNodeFlags = Cint
 const ImGuiWindowFlags = Cint
 const ImGuiInputTextCallback = Ptr{Cvoid}
@@ -523,7 +515,6 @@ const ImU64 = UInt64
     ImGuiWindowFlags_AlwaysUseWindowPadding = 65536,
     ImGuiWindowFlags_NoNavInputs = 262144,
     ImGuiWindowFlags_NoNavFocus = 524288,
-    ImGuiWindowFlags_UnsavedDocument = 1048576,
     ImGuiWindowFlags_NoNav = 786432,
     ImGuiWindowFlags_NoDecoration = 43,
     ImGuiWindowFlags_NoInputs = 786944,
@@ -590,26 +581,6 @@ const ImU64 = UInt64
     ImGuiComboFlags_NoArrowButton = 32,
     ImGuiComboFlags_NoPreview = 64,
     ImGuiComboFlags_HeightMask_ = 30,
-)
-@cenum(ImGuiTabBarFlags_,
-    ImGuiTabBarFlags_None = 0,
-    ImGuiTabBarFlags_Reorderable = 1,
-    ImGuiTabBarFlags_AutoSelectNewTabs = 2,
-    ImGuiTabBarFlags_NoCloseWithMiddleMouseButton = 4,
-    ImGuiTabBarFlags_NoTabListPopupButton = 8,
-    ImGuiTabBarFlags_NoTabListScrollingButtons = 16,
-    ImGuiTabBarFlags_NoTooltip = 32,
-    ImGuiTabBarFlags_FittingPolicyResizeDown = 64,
-    ImGuiTabBarFlags_FittingPolicyScroll = 128,
-    ImGuiTabBarFlags_FittingPolicyMask_ = 192,
-    ImGuiTabBarFlags_FittingPolicyDefault_ = 64,
-)
-@cenum(ImGuiTabItemFlags_,
-    ImGuiTabItemFlags_None = 0,
-    ImGuiTabItemFlags_UnsavedDocument = 1,
-    ImGuiTabItemFlags_SetSelected = 2,
-    ImGuiTabItemFlags_NoCloseWithMiddleMouseButton = 4,
-    ImGuiTabItemFlags_NoPushId = 8,
 )
 @cenum(ImGuiFocusedFlags_,
     ImGuiFocusedFlags_None = 0,
@@ -760,22 +731,17 @@ const ImU64 = UInt64
     ImGuiCol_ResizeGrip = 30,
     ImGuiCol_ResizeGripHovered = 31,
     ImGuiCol_ResizeGripActive = 32,
-    ImGuiCol_Tab = 33,
-    ImGuiCol_TabHovered = 34,
-    ImGuiCol_TabActive = 35,
-    ImGuiCol_TabUnfocused = 36,
-    ImGuiCol_TabUnfocusedActive = 37,
-    ImGuiCol_PlotLines = 38,
-    ImGuiCol_PlotLinesHovered = 39,
-    ImGuiCol_PlotHistogram = 40,
-    ImGuiCol_PlotHistogramHovered = 41,
-    ImGuiCol_TextSelectedBg = 42,
-    ImGuiCol_DragDropTarget = 43,
-    ImGuiCol_NavHighlight = 44,
-    ImGuiCol_NavWindowingHighlight = 45,
-    ImGuiCol_NavWindowingDimBg = 46,
-    ImGuiCol_ModalWindowDimBg = 47,
-    ImGuiCol_COUNT = 48,
+    ImGuiCol_PlotLines = 33,
+    ImGuiCol_PlotLinesHovered = 34,
+    ImGuiCol_PlotHistogram = 35,
+    ImGuiCol_PlotHistogramHovered = 36,
+    ImGuiCol_TextSelectedBg = 37,
+    ImGuiCol_DragDropTarget = 38,
+    ImGuiCol_NavHighlight = 39,
+    ImGuiCol_NavWindowingHighlight = 40,
+    ImGuiCol_NavWindowingDimBg = 41,
+    ImGuiCol_ModalWindowDimBg = 42,
+    ImGuiCol_COUNT = 43,
 )
 @cenum(ImGuiStyleVar_,
     ImGuiStyleVar_Alpha = 0,
@@ -798,9 +764,8 @@ const ImU64 = UInt64
     ImGuiStyleVar_ScrollbarRounding = 17,
     ImGuiStyleVar_GrabMinSize = 18,
     ImGuiStyleVar_GrabRounding = 19,
-    ImGuiStyleVar_TabRounding = 20,
-    ImGuiStyleVar_ButtonTextAlign = 21,
-    ImGuiStyleVar_COUNT = 22,
+    ImGuiStyleVar_ButtonTextAlign = 20,
+    ImGuiStyleVar_COUNT = 21,
 )
 @cenum(ImGuiColorEditFlags_,
     ImGuiColorEditFlags_None = 0,

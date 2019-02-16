@@ -7,17 +7,19 @@ using CSyntax
 using Printf
 
 @static if Sys.isapple()
-    const VERSION_MAJOR = 3
-    const VERSION_MINOR = 3
-end
-
-@static if Sys.isapple()
-    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MAJOR, VERSION_MAJOR)
-    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MINOR, VERSION_MINOR)
-    GLFW.WindowHint(GLFW.OPENGL_PROFILE, GLFW.OPENGL_CORE_PROFILE)
-    GLFW.WindowHint(GLFW.OPENGL_FORWARD_COMPAT, GL_TRUE)
+    # OpenGL 3.2 + GLSL 150
+    const glsl_version = "#version 150"
+    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MAJOR, 3)
+    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MINOR, 2)
+    GLFW.WindowHint(GLFW.OPENGL_PROFILE, GLFW.OPENGL_CORE_PROFILE) # 3.2+ only
+    GLFW.WindowHint(GLFW.OPENGL_FORWARD_COMPAT, GL_TRUE) # required on Mac
 else
-    GLFW.DefaultWindowHints()
+    # OpenGL 3.0 + GLSL 130
+    const glsl_version = "#version 130"
+    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MAJOR, 3)
+    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MINOR, 0)
+    # GLFW.WindowHint(GLFW.OPENGL_PROFILE, GLFW.OPENGL_CORE_PROFILE) # 3.2+ only
+    # GLFW.WindowHint(GLFW.OPENGL_FORWARD_COMPAT, GL_TRUE) # 3.0+ only
 end
 
 # setup GLFW error callback
@@ -38,6 +40,23 @@ io = CImGui.GetIO()
 CImGui.StyleColorsDark()
 # CImGui.StyleColorsClassic()
 # CImGui.StyleColorsLight()
+
+# load Fonts
+# - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
+# - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
+# - If the file cannot be loaded, the function will return NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
+# - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
+# - Read 'misc/fonts/README.txt' for more instructions and details.
+# - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
+fonts_dir = joinpath(@__DIR__, "..", "fonts")
+fonts = ImGuiIO_Get_Fonts(io)
+default_font = ImFontAtlas_AddFontDefault(fonts, C_NULL)
+ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Cousine-Regular.ttf"), 15, C_NULL, C_NULL)
+ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "DroidSans.ttf"), 16, C_NULL, C_NULL)
+ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Karla-Regular.ttf"), 10, C_NULL, C_NULL)
+ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "ProggyTiny.ttf"), 10, C_NULL, C_NULL)
+ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Roboto-Medium.ttf"), 16, C_NULL, C_NULL)
+@assert default_font != C_NULL
 
 # setup Platform/Renderer bindings
 ImGui_ImplGlfw_InitForOpenGL(window, true)

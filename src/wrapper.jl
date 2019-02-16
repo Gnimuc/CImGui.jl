@@ -212,29 +212,155 @@ Get current window height (shortcut for GetWindowSize().y)
 """
 GetWindowHeight() = igGetWindowHeight()
 
+"""
+    GetContentRegionMax() -> ImVec2
+Current content boundaries (typically window boundaries including scrolling, or current column
+boundaries), in windows coordinates.
+"""
+GetContentRegionMax() = igGetContentRegionMax()
 
-# igGetContentRegionMax()
-# igGetContentRegionAvail()
-# igGetContentRegionAvailWidth()
-# igGetWindowContentRegionMin()
-# igGetWindowContentRegionMax()
-# igGetWindowContentRegionWidth()
-# igSetNextWindowPos(pos, cond, pivot)
-# igSetNextWindowSize(size, cond)
-# igSetNextWindowSizeConstraints(size_min, size_max, custom_callback, custom_callback_data)
-# igSetNextWindowContentSize(size)
-# igSetNextWindowCollapsed(collapsed, cond)
-# igSetNextWindowFocus()
-# igSetNextWindowBgAlpha(alpha)
-# igSetWindowPosVec2(pos, cond)
-# igSetWindowSizeVec2(size, cond)
-# igSetWindowCollapsedBool(collapsed, cond)
-# igSetWindowFocus()
-# igSetWindowFontScale(scale)
-# igSetWindowPosStr(name, pos, cond)
-# igSetWindowSizeStr(name, size, cond)
-# igSetWindowCollapsedStr(name, collapsed, cond)
-# igSetWindowFocusStr(name)
+"""
+    GetContentRegionAvail() -> ImVec2
+Return `GetContentRegionMax() - GetCursorPos()`.
+"""
+GetContentRegionAvail() = igGetContentRegionAvail()
+
+"""
+    GetContentRegionAvailWidth() -> Cfloat
+"""
+GetContentRegionAvailWidth() = igGetContentRegionAvailWidth()
+
+"""
+    GetWindowContentRegionMin() -> ImVec2
+Content boundaries min (roughly (0,0)-Scroll), in window coordinates.
+"""
+GetWindowContentRegionMin() = igGetWindowContentRegionMin()
+
+"""
+    GetWindowContentRegionMax() -> ImVec2
+"""
+GetWindowContentRegionMax() = igGetWindowContentRegionMax()
+
+"""
+    GetWindowContentRegionWidth() -> ImVec2
+"""
+GetWindowContentRegionWidth() = igGetWindowContentRegionWidth()
+
+"""
+    SetNextWindowPos(pos, cond=0, pivot=ImVec2(0,0))
+Set next window position. Call before [`Begin`](@ref). use `pivot=(0.5,0.5)` to center on given point, etc.
+"""
+SetNextWindowPos(pos, cond=0, pivot=ImVec2(0,0)) = igSetNextWindowPos(pos, cond, pivot)
+
+"""
+    SetNextWindowSize(size, cond=0)
+Set next window size. Set axis to 0.0 to force an auto-fit on this axis. Call before [`Begin`](@ref).
+"""
+SetNextWindowSize(size, cond=0) = igSetNextWindowSize(size, cond)
+
+"""
+    SetNextWindowSizeConstraints(size_min, size_max, custom_callback=C_NULL, custom_callback_data=C_NULL)
+Set next window size limits. use -1,-1 on either X/Y axis to preserve the current size.
+Use callback to apply non-trivial programmatic constraints.
+"""
+SetNextWindowSizeConstraints(size_min, size_max, custom_callback=C_NULL, custom_callback_data=C_NULL) = igSetNextWindowSizeConstraints(size_min, size_max, custom_callback, custom_callback_data)
+
+"""
+    SetNextWindowContentSize(size)
+    SetNextWindowContentSize(x, y)
+Set next window content size (~ enforce the range of scrollbars). Not including window decorations
+(title bar, menu bar, etc.). Set an axis to 0.0 to leave it automatic. Call before [`Begin`](@ref).
+"""
+SetNextWindowContentSize(size) = igSetNextWindowContentSize(size)
+SetNextWindowContentSize(x, y) = SetNextWindowContentSize(ImVec2(x,y))
+
+"""
+    SetNextWindowCollapsed(collapsed, cond=0)
+Set next window collapsed state. Call before [`Begin`](@ref).
+"""
+SetNextWindowCollapsed(collapsed, cond=0) = igSetNextWindowCollapsed(collapsed, cond)
+
+"""
+    SetNextWindowFocus()
+Set next window to be focused / front-most. Call before [`Begin`](@ref).
+"""
+SetNextWindowFocus() = igSetNextWindowFocus()
+
+"""
+    SetNextWindowBgAlpha(alpha)
+Set next window background color alpha. helper to easily modify `ImGuiCol_WindowBg/ChildBg/PopupBg`.
+You may also use `ImGuiWindowFlags_NoBackground`.
+"""
+SetNextWindowBgAlpha(alpha) = igSetNextWindowBgAlpha(alpha)
+
+"""
+    SetWindowPos(pos, cond=0)
+Set current window position - call within [`Begin`](@ref)/[`End`](@ref).
+
+!!! note
+    This function is not recommended! Prefer using [`SetNextWindowPos`](@ref), as this may
+    incur tearing and side-effects.
+"""
+SetWindowPos(pos, cond=0) = igSetWindowPosVec2(pos, cond)
+
+"""
+    SetWindowSize(size, cond=0)
+Set current window size - call within [`Begin`](@ref)/[`End`](@ref). Set to `(0,0)` to force
+an auto-fit.
+
+!!! note
+    This function is not recommended! Prefer using [`SetNextWindowSize`](@ref), as this may
+    incur tearing and minor side-effects.
+"""
+SetWindowSize(size, cond=0) = igSetWindowSizeVec2(size, cond)
+
+"""
+    SetWindowCollapsedBool(collapsed, cond=0)
+Set current window collapsed state.
+
+!!! note
+    This function is not recommended! Prefer using [`SetNextWindowCollapsed`](@ref).
+"""
+SetWindowCollapsed(collapsed, cond=0) = igSetWindowCollapsedBool(collapsed, cond)
+
+"""
+    SetWindowFocus()
+Set current window to be focused / front-most.
+
+!!! note
+    This function is not recommended! Prefer using [`SetNextWindowFocus`](@ref).
+"""
+SetWindowFocus() = igSetWindowFocus()
+
+"""
+    SetWindowFontScale(scale)
+Set font scale. Adjust `IO.FontGlobalScale` if you want to scale all windows.
+"""
+SetWindowFontScale(scale) = igSetWindowFontScale(scale)
+
+"""
+    SetWindowPosStr(name::AbstractString, pos, cond=0)
+Set named window position.
+"""
+SetWindowPos(name::AbstractString, pos, cond=0) = igSetWindowPosStr(name, pos, cond)
+
+"""
+    SetWindowSizeStr(name::AbstractString, size, cond=0)
+Set named window size. set axis to 0.0f to force an auto-fit on this axis.
+"""
+SetWindowSize(name::AbstractString, size, cond=0) = igSetWindowSizeStr(name, size, cond)
+
+"""
+    SetWindowCollapsed(name::AbstractString, collapsed, cond=0)
+Set named window collapsed state.
+"""
+SetWindowCollapsed(name::AbstractString, collapsed, cond=0) = igSetWindowCollapsedStr(name, collapsed, cond)
+
+"""
+    SetWindowFocus(name::AbstractString)
+Set named window to be focused / front-most. Use `C_NULL` to remove focus.
+"""
+SetWindowFocus(name::AbstractString) = igSetWindowFocusStr(name)
 
 # Windows Scrolling
 # igGetScrollX()
@@ -453,11 +579,62 @@ TextUnformatted(text, text_end) = igTextUnformatted(text, text_end)
     Text(formatted_text)
 Create a text widget.
 
-!!! warn
+!!! warning
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
 Text(formatted_text) = igText(formatted_text)
+
+"""
+    TextColored(col, formatted_text)
+Shortcut for `PushStyleColor(ImGuiCol_Text, col); Text(text); PopStyleColor();`.
+
+!!! warning
+    Formatting is not supported which means you need to pass a formatted string to this function.
+    It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
+"""
+TextColored(col, formatted_text) = igTextColored(col, formatted_text)
+
+"""
+    TextDisabled(formatted_text)
+Shortcut for `PushStyleColor(ImGuiCol_Text, style.Colors[ImGuiCol_TextDisabled]); Text(text); PopStyleColor();`.
+!!! warning
+    Formatting is not supported which means you need to pass a formatted string to this function.
+    It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
+"""
+TextDisabled(formatted_text) = igTextDisabled(formatted_text)
+
+"""
+    TextWrapped(formatted_text)
+Shortcut for `PushTextWrapPos(0.0f); Text(text); PopTextWrapPos();`.
+Note that this won't work on an auto-resizing window if there's no other widgets to extend
+the window width, yoy may need to set a size using [`SetNextWindowSize`](@ref).
+
+!!! warning
+    Formatting is not supported which means you need to pass a formatted string to this function.
+    It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
+"""
+TextWrapped(formatted_text) = igTextWrapped(formatted_text)
+
+"""
+    LabelText(label, formatted_text)
+Display text+label aligned the same way as value+label widgets.
+
+!!! warning
+    Formatting is not supported which means you need to pass a formatted string to this function.
+    It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
+"""
+LabelText(label, formatted_text) = igLabelText(label, formatted_text)
+
+"""
+    BulletText(formatted_text)
+Shortcut for `Bullet()+Text()`.
+
+!!! warning
+    Formatting is not supported which means you need to pass a formatted string to this function.
+    It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
+"""
+BulletText(formatted_text) = igBulletText(formatted_text)
 
 # Widgets: Main
 """
@@ -691,8 +868,17 @@ ColorEdit3(label, col, flags=0) = igColorEdit3(label, col, flags)
 # igCollapsingHeaderBoolPtr(label, p_open, flags)
 
 # Widgets: Selectables
-# igSelectable(label, selected, flags, size)
-# igSelectableBoolPtr(label, p_selected, flags, size)
+"""
+    Selectable(label, selected::Bool=false, flags=0, size=(0,0)) -> Bool
+    Selectable(label, p_selected::Ref, flags=0, sizeImVec2(0,0)) -> Bool
+Return true if is clicked, so you can modify your selection state:
+- `size.x == 0.0`: use remaining width
+- `size.x > 0.0`: specify width
+- `size.y == 0.0`: use label height
+- `size.y > 0.0`: specify height
+"""
+Selectable(label, selected::Bool=false, flags=0, size=ImVec2(0,0)) = igSelectable(label, selected, flags, size)
+Selectable(label, p_selected::Ref, flags=0, size=ImVec2(0,0)) = igSelectableBoolPtr(label, p_selected, flags, size)
 
 # Widgets: List Boxes
 # igListBoxStr_arr(label, current_item, items, items_count, height_in_items)

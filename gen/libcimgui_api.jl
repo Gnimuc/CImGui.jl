@@ -518,6 +518,26 @@ function igText(text)
     ccall((:igText, libcimgui), Cvoid, (Cstring,), text)
 end
 
+function igTextColored(col, text)
+    ccall((:igTextColored, libcimgui), Cvoid, (ImVec4, Cstring), col, text)
+end
+
+function igTextDisabled(text)
+    ccall((:igTextDisabled, libcimgui), Cvoid, (Cstring,), text)
+end
+
+function igTextWrapped(text)
+    ccall((:igTextWrapped, libcimgui), Cvoid, (Cstring,), text)
+end
+
+function igLabelText(label, text)
+    ccall((:igLabelText, libcimgui), Cvoid, (Cstring, Cstring), label, text)
+end
+
+function igBulletText(text)
+    ccall((:igBulletText, libcimgui), Cvoid, (Cstring,), text)
+end
+
 function igButton(label, size)
     ccall((:igButton, libcimgui), Bool, (Cstring, ImVec2), label, size)
 end

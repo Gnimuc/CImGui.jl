@@ -7,6 +7,7 @@ using CSyntax
 using Printf
 
 include(joinpath(@__DIR__, "main_menu_bar.jl"))
+include(joinpath(@__DIR__, "simple_layout.jl"))
 
 @static if Sys.isapple()
     # OpenGL 3.2 + GLSL 150
@@ -64,9 +65,11 @@ ImGui_ImplGlfw_InitForOpenGL(window, true)
 ImGui_ImplOpenGL3_Init()
 
 clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
+layout_open = true
 while !GLFW.WindowShouldClose(window)
     # oh my global scope
     global clear_color;
+    global layout_open;
 
     GLFW.PollEvents()
     # start the Dear ImGui frame
@@ -74,9 +77,9 @@ while !GLFW.WindowShouldClose(window)
     ImGui_ImplGlfw_NewFrame()
     CImGui.NewFrame()
 
-
+    # examples
     show_app_main_menubar()
-
+    layout_open && @c show_app_layout(&layout_open)
 
     # rendering
     CImGui.Render()

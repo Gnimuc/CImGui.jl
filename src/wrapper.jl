@@ -1518,8 +1518,163 @@ EndChildFrame() = igEndChildFrame()
 # igMemAlloc(size)
 # igMemFree(ptr)
 
-# ImDrawList
+######################################## ImDrawList ########################################
 """
     AddRectFilled(self::Ptr{ImDrawList}, a, b, col, rounding=0, rounding_corners_flags=ImDrawCornerFlags_All)
 """
 AddRectFilled(self::Ptr{ImDrawList}, a, b, col, rounding=0, rounding_corners_flags=ImDrawCornerFlags_All) = ImDrawList_AddRectFilled(self, a, b, col, rounding, rounding_corners_flags)
+
+
+###################################### ImGuiTextBuffer #####################################
+"""
+    TextBuffer() -> Ptr{ImGuiTextBuffer}
+Helper: Growable text buffer for logging/accumulating text
+"""
+TextBuffer() = ImGuiTextBuffer_ImGuiTextBuffer()
+
+"""
+    Destroy(handle::Ptr{ImGuiTextBuffer})
+"""
+Destroy(handle::Ptr{ImGuiTextBuffer}) = ImGuiTextBuffer_destroy(handle)
+
+"""
+    Begin(handle::Ptr{ImGuiTextBuffer}) -> Cstring
+"""
+Begin(handle::Ptr{ImGuiTextBuffer}) = ImGuiTextBuffer_begin(handle)
+
+"""
+    End(handle::Ptr{ImGuiTextBuffer}) -> Cstring
+"""
+End(handle::Ptr{ImGuiTextBuffer}) = ImGuiTextBuffer_end(handle)
+
+"""
+    Size(handle::Ptr{ImGuiTextBuffer}) -> Cint
+"""
+Size(handle::Ptr{ImGuiTextBuffer}) = ImGuiTextBuffer_size(handle)
+
+"""
+    Empty(handle::Ptr{ImGuiTextBuffer}) -> Bool
+"""
+Empty(handle::Ptr{ImGuiTextBuffer}) = ImGuiTextBuffer_empty(handle)
+
+"""
+    Clear(handle::Ptr{ImGuiTextBuffer})
+"""
+Clear(handle::Ptr{ImGuiTextBuffer}) = ImGuiTextBuffer_clear(handle)
+
+"""
+    Reserve(handle::Ptr{ImGuiTextBuffer})
+"""
+Reserve(handle::Ptr{ImGuiTextBuffer}) = ImGuiTextBuffer_reserve(handle)
+
+"""
+    C_str(handle::Ptr{ImGuiTextBuffer}) -> Cstring
+"""
+C_str(handle::Ptr{ImGuiTextBuffer}) = ImGuiTextBuffer_c_str(handle)
+
+"""
+    Appendf(handle::Ptr{ImGuiTextBuffer}, formatted_text)
+Helper: Text buffer for logging/accumulating text.
+
+!!! warning "limited support"
+    Formatting is not supported which means you need to pass a formatted string to this function.
+    It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
+"""
+Appendf(handle::Ptr{ImGuiTextBuffer}, formatted_text) = ImGuiTextBuffer_appendf(handle, formatted_text)
+
+##################################### ImGuiListClipper #####################################
+#
+#
+#
+#
+# Usage:
+#     ImGuiListClipper clipper(1000);  // we have 1000 elements, evenly spaced.
+#     while (clipper.Step())
+#         for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+#             ImGui::Text("line number %d", i);
+
+"""
+    Clipper(items_count=-1, items_height=-1.0) -> Ptr{ImGuiListClipper}
+Helper: Manually clip large list of items.
+
+If you are submitting lots of evenly spaced items and you have a random access to the list,
+you can perform coarse clipping based on visibility to save yourself from processing those items at all.
+
+If you are submitting lots of evenly spaced items and you have a random access to the list,
+you can perform coarse clipping based on visibility to save yourself from processing those items at all.
+
+The clipper calculates the range of visible items and advance the cursor to compensate for the
+non-visible items we have skipped. ImGui already clip items based on their bounds but it needs
+to measure text size to do so. Coarse clipping before submission makes this cost and your own data fetching/submission cost null.
+
+### Example
+```julia
+clipper = CImGui.Clipper(1000) # we have 1000 elements, evenly spaced.
+while CImGui.Step()
+
+end
+```
+- Step 0: the clipper let you process the first element, regardless of it being visible or not,
+    so we can measure the element height (step skipped if we passed a known height as second
+    arg to constructor).
+- Step 1: the clipper infer height from first element, calculate the actual range of elements
+    to display, and position the cursor before the first element.
+- (Step 2: dummy step only required if an explicit items_height was passed to constructor
+    or [`Begin`](@ref) and user call [`Step`](@ref). Does nothing and switch to Step 3.)
+- Step 3: the clipper validate that we have reached the expected Y position (corresponding
+    to element DisplayEnd), advance the cursor to the end of the list and then returns `false`
+    to end the loop.
+
+### Arguments:
+- `items_count`: use -1 to ignore (you can call Begin later).
+    use `INT_MAX` if you don't know how many items you have (in which case the cursor won't
+    be advanced in the final step).
+- `items_height`: use -1.0 to be calculated automatically on first step.
+    otherwise pass in the distance between your items, typically [`GetTextLineHeightWithSpacing`](@ref)
+    or [`GetFrameHeightWithSpacing`](@ref). If you don't specify an `items_height`, you NEED to call
+    [`Step`](@ref). If you specify `items_height` you may call the old [`Begin`](@ref)/[`End`](@ref)
+    api directly, but prefer calling [`Step`](@ref).
+"""
+Clipper(items_count=-1, items_height=-1.0) = ImGuiListClipper_ImGuiListClipper(items_count, items_height)
+
+"""
+    Destroy(handle::Ptr{ImGuiListClipper})
+"""
+Destroy(handle::Ptr{ImGuiListClipper}) = ImGuiListClipper_destroy(handle)
+
+"""
+    Step(handle::Ptr{ImGuiListClipper}) -> Bool
+Call until it returns false. The DisplayStart/DisplayEnd fields will be set and you can
+process/draw those items.
+"""
+Step(handle::Ptr{ImGuiListClipper}) = ImGuiListClipper_Step(handle)
+
+"""
+    Begin(handle::Ptr{ImGuiListClipper}, items_count, items_height=-1.0)
+Automatically called by constructor if you passed `items_count` or by [`Step`](@ref) in Step 1.
+"""
+Begin(handle::Ptr{ImGuiListClipper}, items_count, items_height=-1.0) = ImGuiListClipper_Begin(self, items_count, items_height)
+
+"""
+    End(handle::Ptr{ImGuiListClipper})
+Automatically called on the last call of [`Step`](@ref) that returns false.
+"""
+End(handle::Ptr{ImGuiListClipper}) = ImGuiListClipper_End(handle)
+
+
+########################################## Helper ##########################################
+function Get(x::Ptr{T}, name::Symbol) where {T}
+    offset = x
+    type = T
+    flag = false
+    for i = 1:fieldcount(T)
+        type = fieldtype(T, i)
+        name == fieldname(T, i) && (flag = true; break)
+        offset += Core.sizeof(type)
+    end
+    flag || throw(ArgumentError("$T has no field named $name."))
+    GC.@preserve x begin
+        value = unsafe_load(Ptr{type}(offset))
+    end
+    return value
+end

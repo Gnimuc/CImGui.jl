@@ -9,6 +9,7 @@ using Printf
 include(joinpath(@__DIR__, "main_menu_bar.jl"))
 include(joinpath(@__DIR__, "simple_layout.jl"))
 include(joinpath(@__DIR__, "property_editor.jl"))
+include(joinpath(@__DIR__, "long_text.jl"))
 
 @static if Sys.isapple()
     # OpenGL 3.2 + GLSL 150
@@ -65,15 +66,12 @@ ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Roboto-Medium.ttf"), 
 ImGui_ImplGlfw_InitForOpenGL(window, true)
 ImGui_ImplOpenGL3_Init()
 
+let
 clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
 layout_open = true
 property_editor_open = true
+long_text_open = true
 while !GLFW.WindowShouldClose(window)
-    # oh my global scope
-    global clear_color;
-    global layout_open;
-    global property_editor_open;
-
     GLFW.PollEvents()
     # start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame()
@@ -84,6 +82,7 @@ while !GLFW.WindowShouldClose(window)
     show_app_main_menubar()
     layout_open && @c show_app_layout(&layout_open)
     property_editor_open && @c show_app_property_editor(&property_editor_open)
+    long_text_open && @c show_app_long_text(&long_text_open)
 
     # rendering
     CImGui.Render()
@@ -97,6 +96,7 @@ while !GLFW.WindowShouldClose(window)
     GLFW.MakeContextCurrent(window)
     GLFW.SwapBuffers(window)
 end
+end # let
 
 # cleanup
 ImGui_ImplOpenGL3_Shutdown()

@@ -1494,6 +1494,10 @@ function ImGuiTextBuffer_c_str(self)
     ccall((:ImGuiTextBuffer_c_str, libcimgui), Cstring, (Ptr{ImGuiTextBuffer},), self)
 end
 
+function ImGuiTextBuffer_appendf(self, text)
+    ccall((:ImGuiTextBuffer_appendf, libcimgui), Cstring, (Ptr{ImGuiTextBuffer}, Cstring), self, text)
+end
+
 function Pair_PairInt(_key, _val_i)
     ccall((:Pair_PairInt, libcimgui), Ptr{Pair}, (ImGuiID, Cint), _key, _val_i)
 end

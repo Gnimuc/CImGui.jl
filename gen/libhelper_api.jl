@@ -613,3 +613,23 @@ end
 function ImDrawCmd_Get_UserCallbackData(cmd)
     ccall((:ImDrawCmd_Get_UserCallbackData, libcimgui_helper), Ptr{Cvoid}, (Ptr{ImDrawCmd},), cmd)
 end
+
+function ImGuiSizeCallbackData_Get_UserData(data)
+    ccall((:ImGuiSizeCallbackData_Get_UserData, libcimgui_helper), Ptr{Cvoid}, (Ptr{ImGuiSizeCallbackData},), data)
+end
+
+function ImGuiSizeCallbackData_Get_Pos(data)
+    ccall((:ImGuiSizeCallbackData_Get_Pos, libcimgui_helper), ImVec2, (Ptr{ImGuiSizeCallbackData},), data)
+end
+
+function ImGuiSizeCallbackData_Get_CurrentSize(data)
+    ccall((:ImGuiSizeCallbackData_Get_CurrentSize, libcimgui_helper), ImVec2, (Ptr{ImGuiSizeCallbackData},), data)
+end
+
+function ImGuiSizeCallbackData_Get_DesiredSize(data)
+    ccall((:ImGuiSizeCallbackData_Get_DesiredSize, libcimgui_helper), ImVec2, (Ptr{ImGuiSizeCallbackData},), data)
+end
+
+function ImGuiSizeCallbackData_Set_DesiredSize(data, x)
+    ccall((:ImGuiSizeCallbackData_Set_DesiredSize, libcimgui_helper), Cvoid, (Ptr{ImGuiSizeCallbackData}, ImVec2), data, x)
+end

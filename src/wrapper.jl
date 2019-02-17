@@ -895,11 +895,12 @@ See also [`BeginCombo`](@ref).
 EndCombo() = igEndCombo()
 
 """
-    Combo(label, current_item, items, items_count, popup_max_height_in_items=-1) -> Bool
+    Combo(label, current_item, items::Vector, items_count, popup_max_height_in_items=-1) -> Bool
 The old [`Combo`](@ref) api are helpers over [`BeginCombo`](@ref)/[`EndCombo`](@ref) which
 are kept available for convenience purpose.
 """
-Combo(label, current_item, items::Ptr, items_count, popup_max_height_in_items=-1) = igCombo(label, current_item, items, items_count, popup_max_height_in_items)
+Combo(label, current_item, items::Vector, items_count, popup_max_height_in_items=-1) = igCombo(label, current_item, items, items_count, popup_max_height_in_items)
+# Combo(label, current_item, items::Vector, items_count, popup_max_height_in_items=-1) = igCombo(label, current_item, Base.cconvert(Ptr{Cstring}, items), items_count, popup_max_height_in_items)
 
 """
     Combo(label, current_item, items_separated_by_zeros, popup_max_height_in_items=-1) -> Bool
@@ -908,9 +909,9 @@ Separate items with `\0` within a string, end item-list with `\0\0`. e.g. `One\0
 Combo(label, current_item, items_separated_by_zeros, popup_max_height_in_items=-1) = igComboStr(label, current_item, items_separated_by_zeros, popup_max_height_in_items)
 
 """
-    Combo(label, current_item, items_getter::Ptr, data::Ptr, items_count, popup_max_height_in_items=-1) -> Bool
+    Combo(label, current_item, items_getter::Ptr{Cvoid}, data::Ptr{Cvoid}, items_count, popup_max_height_in_items=-1) -> Bool
 """
-Combo(label, current_item, items_getter::Ptr, data::Ptr, items_count, popup_max_height_in_items=-1) = igComboFnPtr(label, current_item, items_getter, data, items_count, popup_max_height_in_items)
+Combo(label, current_item, items_getter::Ptr{Cvoid}, data::Ptr{Cvoid}, items_count, popup_max_height_in_items=-1) = igComboFnPtr(label, current_item, items_getter, data, items_count, popup_max_height_in_items)
 
 ###################################### Widgets: Drags ######################################
 """
@@ -1648,16 +1649,6 @@ Helper: Text buffer for logging/accumulating text.
 Appendf(handle::Ptr{ImGuiTextBuffer}, formatted_text) = ImGuiTextBuffer_appendf(handle, formatted_text)
 
 ##################################### ImGuiListClipper #####################################
-#
-#
-#
-#
-# Usage:
-#     ImGuiListClipper clipper(1000);  // we have 1000 elements, evenly spaced.
-#     while (clipper.Step())
-#         for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
-#             ImGui::Text("line number %d", i);
-
 """
     Clipper(items_count=-1, items_height=-1.0) -> Ptr{ImGuiListClipper}
 Helper: Manually clip large list of items.
@@ -1676,7 +1667,9 @@ to measure text size to do so. Coarse clipping before submission makes this cost
 ```julia
 clipper = CImGui.Clipper(1000) # we have 1000 elements, evenly spaced.
 while CImGui.Step()
-
+    s = CImGui.Get(clipper, :DisplayStart)
+    e = CImGui.Get(clipper, :DisplayEnd)-1
+    foreach(i->CImGui.Text("line number \$i"), s:e)
 end
 ```
 - Step 0: the clipper let you process the first element, regardless of it being visible or not,
@@ -1726,20 +1719,39 @@ Automatically called on the last call of [`Step`](@ref) that returns false.
 """
 End(handle::Ptr{ImGuiListClipper}) = ImGuiListClipper_End(handle)
 
+################################### ImGuiSizeCallbackData ##################################
+Get_UserData(handle::Ptr{ImGuiSizeCallbackData}) = ImGuiSizeCallbackData_Get_UserData(handle)
+Get_Pos(handle::Ptr{ImGuiSizeCallbackData}) = ImGuiSizeCallbackData_Get_Pos(handle)
+Get_CurrentSize(handle::Ptr{ImGuiSizeCallbackData}) = ImGuiSizeCallbackData_Get_CurrentSize(handle)
+Get_DesiredSize(handle::Ptr{ImGuiSizeCallbackData}) = ImGuiSizeCallbackData_Get_DesiredSize(handle)
+Set_DesiredSize(handle::Ptr{ImGuiSizeCallbackData}, x) = ImGuiSizeCallbackData_Set_DesiredSize(handle, x)
 
-########################################## Helper ##########################################
-function Get(x::Ptr{T}, name::Symbol) where {T}
+################################### Helper (maybe unsafe) ##################################
+function UnsafeGetPtr(x::Ptr{T}, name::Symbol) where {T}
     offset = x
     type = T
     flag = false
     for i = 1:fieldcount(T)
+        name == fieldname(T, i) || continue
+        flag = true
         type = fieldtype(T, i)
-        name == fieldname(T, i) && (flag = true; break)
-        offset += Core.sizeof(type)
+        offset += fieldoffset(T, i)
+        break
     end
     flag || throw(ArgumentError("$T has no field named $name."))
+    return Ptr{type}(offset)
+end
+
+function Get(x::Ptr{T}, name::Symbol) where {T}
     GC.@preserve x begin
-        value = unsafe_load(Ptr{type}(offset))
+        value = unsafe_load(UnsafeGetPtr(x, name))
+    end
+    return value
+end
+
+function Set(x::Ptr{T}, name::Symbol, value::S) where {T,S}
+    GC.@preserve x value begin
+        unsafe_store!(UnsafeGetPtr(x, name), value)
     end
     return value
 end

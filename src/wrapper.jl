@@ -1356,16 +1356,77 @@ MenuItem(label, shortcut, selected::Ref, enabled::Bool=true) = igMenuItemBoolPtr
 # igEndTooltip()
 
 ########################################## Popups ##########################################
-# igOpenPopup(str_id)
-# igBeginPopup(str_id, flags)
-# igBeginPopupContextItem(str_id, mouse_button)
-# igBeginPopupContextWindow(str_id, mouse_button, also_over_items)
-# igBeginPopupContextVoid(str_id, mouse_button)
-# igBeginPopupModal(name, p_open, flags)
-# igEndPopup()
-# igOpenPopupOnItemClick(str_id, mouse_button)
-# igIsPopupOpen(str_id)
-# igCloseCurrentPopup()
+"""
+    OpenPopup(str_id)
+Call to mark popup as open (don't call every frame!).
+Popups are closed when user click outside, or if [`CloseCurrentPopup`](@ref) is called within
+a [`BeginPopup`](@ref)/[`EndPopup`](@ref) block. By default, [`Selectable`](@ref)/[`MenuItem`](@ref)
+are calling [`CloseCurrentPopup`](@ref). Popup identifiers are relative to the current ID-stack
+(so OpenPopup and BeginPopup needs to be at the same level).
+"""
+OpenPopup(str_id) =  igOpenPopup(str_id)
+
+"""
+    BeginPopup(str_id, flags=0) -> Bool
+Return true if the popup is open, and you can start outputting to it.
+
+!!! note
+    only call [`EndPopup`](@ref) if [`BeginPopup`](@ref) returns true!
+"""
+BeginPopup(str_id, flags=0) = igBeginPopup(str_id, flags)
+
+"""
+    BeginPopupContextItem(str_id=C_NULL, mouse_button=1) -> Bool
+Helper to open and begin popup when clicked on last item. if you can pass a C_NULL str_id
+only if the previous item had an id. If you want to use that on a non-interactive item such
+as [`Text`](@ref) you need to pass in an explicit ID here.
+"""
+BeginPopupContextItem(str_id=C_NULL, mouse_button=1) = igBeginPopupContextItem(str_id, mouse_button)
+
+"""
+    BeginPopupContextWindow(str_id=C_NULL, mouse_button=1, also_over_items=true) -> Bool
+Helper to open and begin popup when clicked on current window.
+"""
+BeginPopupContextWindow(str_id=C_NULL, mouse_button=1, also_over_items=true) = igBeginPopupContextWindow(str_id, mouse_button, also_over_items)
+
+"""
+    BeginPopupContextVoid(str_id=C_NULL, mouse_button=1) -> Bool
+Helper to open and begin popup when clicked in void (where there are no imgui windows).
+"""
+BeginPopupContextVoid(str_id=C_NULL, mouse_button=1) = igBeginPopupContextVoid(str_id, mouse_button)
+
+"""
+    BeginPopupModal(name, p_open=C_NULL, flags=0) -> Bool
+Modal dialog (regular window with title bar, block interactions behind the modal window, can't close the modal window by clicking outside).
+"""
+BeginPopupModal(name, p_open=C_NULL, flags=0) = igBeginPopupModal(name, p_open, flags)
+
+"""
+    EndPopup()
+!!! note
+    only call [`EndPopup`](@ref) if `BeginPopupXXX()` returns true!
+"""
+EndPopup() = igEndPopup()
+
+"""
+    OpenPopupOnItemClick(str_id=C_NULL, mouse_button=1) -> Bool
+Helper to open popup when clicked on last item (note: actually triggers on the mouse
+_released_ event to be consistent with popup behaviors). return true when just opened.
+"""
+OpenPopupOnItemClick(str_id=C_NULL, mouse_button=1) = igOpenPopupOnItemClick(str_id, mouse_button)
+
+"""
+    IsPopupOpen(str_id) -> Bool
+Return true if the popup is open.
+"""
+IsPopupOpen(str_id) = igIsPopupOpen(str_id)
+
+"""
+    CloseCurrentPopup()
+Close the popup we have begin-ed into. clicking on a MenuItem or Selectable automatically
+close the current popup.
+"""
+CloseCurrentPopup() = igCloseCurrentPopup()
 
 ########################################## Columns #########################################
 """
@@ -1547,31 +1608,148 @@ EndChildFrame() = igEndChildFrame()
 # igColorConvertFloat4ToU32(in)
 
 ##################################### Inputs Utilities #####################################
-# igGetKeyIndex(imgui_key)
-# igIsKeyDown(user_key_index)
-# igIsKeyPressed(user_key_index, repeat)
-# igIsKeyReleased(user_key_index)
-# igGetKeyPressedAmount(key_index, repeat_delay, rate)
-# igIsMouseDown(button)
-# igIsAnyMouseDown()
-# igIsMouseClicked(button, repeat)
-# igIsMouseDoubleClicked(button)
-# igIsMouseReleased(button)
-# igIsMouseDragging(button, lock_threshold)
-# igIsMouseHoveringRect(r_min, r_max, clip)
-# igIsMousePosValid(mouse_pos)
-# igGetMousePos()
-# igGetMousePosOnOpeningCurrentPopup()
-# igGetMouseDragDelta(button, lock_threshold)
-# igResetMouseDragDelta(button)
-# igGetMouseCursor()
-# igSetMouseCursor(type)
-# igCaptureKeyboardFromApp(capture)
-# igCaptureMouseFromApp(capture)
+"""
+    GetKeyIndex(imgui_key) -> Cint
+Map ImGuiKey_* values into user's key index. == io.KeyMap[key]
+"""
+GetKeyIndex(imgui_key) = igGetKeyIndex(imgui_key)
+
+"""
+    IsKeyDown(user_key_index) -> Bool
+Is key being held. == io.KeysDown[user_key_index]. note that imgui doesn't know the semantic
+of each entry of io.KeysDown[]. Use your own indices/enums according to how your backend/engine
+stored them into io.KeysDown[]!
+"""
+IsKeyDown(user_key_index) = igIsKeyDown(user_key_index)
+
+"""
+    IsKeyPressed(user_key_index, repeat=true) -> Bool
+Was key pressed (went from !Down to Down). If repeat=true, uses io.KeyRepeatDelay / KeyRepeatRate.
+"""
+IsKeyPressed(user_key_index, repeat=true) = igIsKeyPressed(user_key_index, repeat)
+
+"""
+    IsKeyReleased(user_key_index) -> Bool
+Was key released (went from Down to !Down).
+"""
+IsKeyReleased(user_key_index) = igIsKeyReleased(user_key_index)
+
+"""
+    GetKeyPressedAmount(key_index, repeat_delay, rate) -> Cint
+Uses provided repeat rate/delay. Return a count, most often 0 or 1 but might be >1 if RepeatRate
+is small enough that DeltaTime > RepeatRate
+"""
+GetKeyPressedAmount(key_index, repeat_delay, rate) = igGetKeyPressedAmount(key_index, repeat_delay, rate)
+
+"""
+    IsMouseDown(button) -> Bool
+Is mouse button held (0=left, 1=right, 2=middle).
+"""
+IsMouseDown(button) = igIsMouseDown(button)
+
+"""
+    IsAnyMouseDown() -> Bool
+Is any mouse button held.
+"""
+IsAnyMouseDown() = igIsAnyMouseDown()
+
+"""
+    IsMouseClicked(button, repeat=false) -> Bool
+Did mouse button clicked (went from !Down to Down) (0=left, 1=right, 2=middle)
+"""
+IsMouseClicked(button, repeat=false) = igIsMouseClicked(button, repeat)
+
+"""
+    IsMouseDoubleClicked(button) -> Bool
+Did mouse button double-clicked. a double-click returns false in [`IsMouseClicked`](@ref).
+Uses io.MouseDoubleClickTime.
+"""
+IsMouseDoubleClicked(button) = igIsMouseDoubleClicked(button)
+
+"""
+    IsMouseReleased(button) -> Bool
+Did mouse button released (went from Down to !Down).
+"""
+IsMouseReleased(button) = igIsMouseReleased(button)
+
+"""
+    IsMouseDragging(button=0, lock_threshold=-1.0) -> Bool
+Is mouse dragging. If lock_threshold < -1.0f uses io.MouseDraggingThreshold.
+"""
+IsMouseDragging(button=0, lock_threshold=-1.0) = igIsMouseDragging(button, lock_threshold)
+
+"""
+    IsMouseHoveringRect(r_min, r_max, clip=true) -> Bool
+Is mouse hovering given bounding rect (in screen space). Clipped by current clipping settings,
+but disregarding of other consideration of focus/window ordering/popup-block.
+"""
+IsMouseHoveringRect(r_min, r_max, clip=true) = igIsMouseHoveringRect(r_min, r_max, clip)
+
+"""
+    IsMousePosValid(mouse_pos=C_NULL) -> Bool
+"""
+IsMousePosValid(mouse_pos=C_NULL) = igIsMousePosValid(mouse_pos)
+
+"""
+    GetMousePos() -> ImVec2
+Shortcut to ImGui::GetIO().MousePos provided by user, to be consistent with other calls.
+"""
+GetMousePos() = igGetMousePos()
+
+"""
+    GetMousePosOnOpeningCurrentPopup() -> ImVec2
+Retrieve backup of mouse position at the time of opening popup we have [`BeginPopup`](@ref) into.
+"""
+GetMousePosOnOpeningCurrentPopup() = igGetMousePosOnOpeningCurrentPopup()
+
+"""
+    GetMouseDragDelta(button=0, lock_threshold=-1.0) -> ImVec2
+Dragging amount since clicking. if lock_threshold < -1.0f uses io.MouseDraggingThreshold.
+"""
+GetMouseDragDelta(button=0, lock_threshold=-1.0) = igGetMouseDragDelta(button, lock_threshold)
+
+"""
+    ResetMouseDragDelta(button=0)
+"""
+ResetMouseDragDelta(button=0) = igResetMouseDragDelta(button)
+
+"""
+    GetMouseCursor() -> ImGuiMouseCursor
+Get desired cursor type, reset in ImGui::NewFrame(), this is updated during the frame.
+valid before [`Render`](@ref). If you use software rendering by setting io.MouseDrawCursor ImGui will render those for you.
+"""
+GetMouseCursor() = igGetMouseCursor()
+
+"""
+    SetMouseCursor(type)
+Set desired cursor type.
+"""
+SetMouseCursor(type) = igSetMouseCursor(type)
+
+"""
+    CaptureKeyboardFromApp(capture=true)
+Manually override io.WantCaptureKeyboard flag next frame (said flag is entirely left for
+your application to handle). e.g. force capture keyboard when your widget is being hovered.
+"""
+CaptureKeyboardFromApp(capture=true) = igCaptureKeyboardFromApp(capture)
+
+"""
+    CaptureMouseFromApp(capture=true)
+Manually override io.WantCaptureMouse flag next frame (said flag is entirely left for your
+application to handle).
+"""
+CaptureMouseFromApp(capture=true) = igCaptureMouseFromApp(capture)
 
 #################################### Clipboard Utilities ###################################
-# igGetClipboardText()
-# igSetClipboardText(text)
+"""
+    GetClipboardText() -> Cstring
+"""
+GetClipboardText() = igGetClipboardText()
+
+"""
+    SetClipboardText(text)
+"""
+SetClipboardText(text) = igSetClipboardText(text)
 
 ################################## Settings/.Ini Utilities #################################
 # igLoadIniSettingsFromDisk(ini_filename)
@@ -1718,6 +1896,78 @@ Begin(handle::Ptr{ImGuiListClipper}, items_count, items_height=-1.0) = ImGuiList
 Automatically called on the last call of [`Step`](@ref) that returns false.
 """
 End(handle::Ptr{ImGuiListClipper}) = ImGuiListClipper_End(handle)
+
+########################################## ImGuiIO #########################################
+Get_ConfigFlags(io::Ptr{ImGuiIO}) = ImGuiIO_Get_ConfigFlags(io)
+Get_BackendFlags(io::Ptr{ImGuiIO}) = ImGuiIO_Get_BackendFlags(io)
+Get_DisplaySize(io::Ptr{ImGuiIO}) = ImGuiIO_Get_DisplaySize(io)
+Get_DeltaTime(io::Ptr{ImGuiIO}) = ImGuiIO_Get_DeltaTime(io)
+Get_IniSavingRate(io::Ptr{ImGuiIO}) = ImGuiIO_Get_IniSavingRate(io)
+Get_IniFilename(io::Ptr{ImGuiIO}) = ImGuiIO_Get_IniFilename(io)
+Get_LogFilename(io::Ptr{ImGuiIO}) = ImGuiIO_Get_LogFilename(io)
+Get_MouseDoubleClickTime(io::Ptr{ImGuiIO}) = ImGuiIO_Get_MouseDoubleClickTime(io)
+Get_MouseDoubleClickMaxDist(io::Ptr{ImGuiIO}) = ImGuiIO_Get_MouseDoubleClickMaxDist(io)
+Get_MouseDragThreshold(io::Ptr{ImGuiIO}) = ImGuiIO_Get_MouseDragThreshold(io)
+Get_KeyMap(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_KeyMap(io, i)
+Get_KeyRepeatDelay(io::Ptr{ImGuiIO}) = ImGuiIO_Get_KeyRepeatDelay(io)
+Get_KeyRepeatRate(io::Ptr{ImGuiIO}) = ImGuiIO_Get_KeyRepeatRate(io)
+Get_UserData(io::Ptr{ImGuiIO}) = ImGuiIO_Get_UserData(io)
+Get_Fonts(io::Ptr{ImGuiIO}) = ImGuiIO_Get_Fonts(io)
+Get_FontGlobalScale(io::Ptr{ImGuiIO}) = ImGuiIO_Get_FontGlobalScale(io)
+Get_FontAllowUserScaling(io::Ptr{ImGuiIO}) = ImGuiIO_Get_FontAllowUserScaling(io)
+Get_FontDefault(io::Ptr{ImGuiIO}) = ImGuiIO_Get_FontDefault(io)
+Get_DisplayFramebufferScale(io::Ptr{ImGuiIO}) = ImGuiIO_Get_DisplayFramebufferScale(io)
+Get_DisplayVisibleMin(io::Ptr{ImGuiIO}) = ImGuiIO_Get_DisplayVisibleMin(io)
+Get_DisplayVisibleMax(io::Ptr{ImGuiIO}) = ImGuiIO_Get_DisplayVisibleMax(io)
+Get_MouseDrawCursor(io::Ptr{ImGuiIO}) = ImGuiIO_Get_MouseDrawCursor(io)
+Get_ConfigMacOSXBehaviors(io::Ptr{ImGuiIO}) = ImGuiIO_Get_ConfigMacOSXBehaviors(io)
+Get_ConfigInputTextCursorBlink(io::Ptr{ImGuiIO}) = ImGuiIO_Get_ConfigInputTextCursorBlink(io)
+Get_ConfigResizeWindowsFromEdges(io::Ptr{ImGuiIO}) = ImGuiIO_Get_ConfigResizeWindowsFromEdges(io)
+Get_BackendPlatformName(io::Ptr{ImGuiIO}) = ImGuiIO_Get_BackendPlatformName(io)
+Get_BackendRendererName(io::Ptr{ImGuiIO}) = ImGuiIO_Get_BackendRendererName(io)
+Get_ImeWindowHandle(io::Ptr{ImGuiIO}) = ImGuiIO_Get_ImeWindowHandle(io)
+Get_RenderDrawListsFnUnused(io::Ptr{ImGuiIO}) = ImGuiIO_Get_RenderDrawListsFnUnused(io)
+Get_MousePos(io::Ptr{ImGuiIO}) = ImGuiIO_Get_MousePos(io)
+Get_MouseDown(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseDown(io, i)
+Get_MouseWheel(io::Ptr{ImGuiIO}) = ImGuiIO_Get_MouseWheel(io)
+Get_MouseWheelH(io::Ptr{ImGuiIO}) = ImGuiIO_Get_MouseWheelH(io)
+Get_KeyCtrl(io::Ptr{ImGuiIO}) = ImGuiIO_Get_KeyCtrl(io)
+Get_KeyShift(io::Ptr{ImGuiIO}) = ImGuiIO_Get_KeyShift(io)
+Get_KeyAlt(io::Ptr{ImGuiIO}) = ImGuiIO_Get_KeyAlt(io)
+Get_KeySuper(io::Ptr{ImGuiIO}) = ImGuiIO_Get_KeySuper(io)
+Get_KeysDown(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_KeysDown(io, i)
+Get_InputCharacters(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_InputCharacters(io, i)
+Get_NavInputs(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_NavInputs(io, i)
+Get_WantCaptureMouse(io::Ptr{ImGuiIO}) = ImGuiIO_Get_WantCaptureMouse(io)
+Get_WantCaptureKeyboard(io::Ptr{ImGuiIO}) = ImGuiIO_Get_WantCaptureKeyboard(io)
+Get_MouseDown(io::Ptr{ImGuiIO}) = ImGuiIO_Get_MouseDown(io, i)
+Get_WantTextInput(io::Ptr{ImGuiIO}) = ImGuiIO_Get_WantTextInput(io)
+Get_WantSetMousePos(io::Ptr{ImGuiIO}) = ImGuiIO_Get_WantSetMousePos(io)
+Get_WantSaveIniSettings(io::Ptr{ImGuiIO}) = ImGuiIO_Get_WantSaveIniSettings(io)
+Get_NavActive(io::Ptr{ImGuiIO}) = ImGuiIO_Get_NavActive(io)
+Get_NavVisible(io::Ptr{ImGuiIO}) = ImGuiIO_Get_NavVisible(io)
+Get_Framerate(io::Ptr{ImGuiIO}) = ImGuiIO_Get_Framerate(io)
+Get_MetricsRenderVertices(io::Ptr{ImGuiIO}) = ImGuiIO_Get_MetricsRenderVertices(io)
+Get_MetricsRenderIndices(io::Ptr{ImGuiIO}) = ImGuiIO_Get_MetricsRenderIndices(io)
+Get_MetricsRenderWindows(io::Ptr{ImGuiIO}) = ImGuiIO_Get_MetricsRenderWindows(io)
+Get_MetricsActiveWindows(io::Ptr{ImGuiIO}) = ImGuiIO_Get_MetricsActiveWindows(io)
+Get_MetricsActiveAllocations(io::Ptr{ImGuiIO}) = ImGuiIO_Get_MetricsActiveAllocations(io)
+Get_MouseDelta(io::Ptr{ImGuiIO}) = ImGuiIO_Get_MouseDelta(io)
+Get_MousePosPrev(io::Ptr{ImGuiIO}) = ImGuiIO_Get_MousePosPrev(io)
+Get_MouseClickedPos(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseClickedPos(io, i)
+Get_MouseClickedTime(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseClickedTime(io, i)
+Get_MouseClicked(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseClicked(io, i)
+Get_MouseDoubleClicked(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseDoubleClicked(io, i)
+Get_MouseReleased(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseReleased(io, i)
+Get_MouseDownOwned(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseDownOwned(io, i)
+Get_MouseDownDuration(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseDownDuration(io, i)
+Get_MouseDownDurationPrev(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseDownDurationPrev(io, i)
+Get_MouseDragMaxDistanceAbs(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseDragMaxDistanceAbs(io, i)
+Get_MouseDragMaxDistanceSqr(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseDragMaxDistanceSqr(io, i)
+Get_KeysDownDuration(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_KeysDownDuration(io, i)
+Get_KeysDownDurationPrev(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_KeysDownDurationPrev(io, i)
+Get_NavInputsDownDuration(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_NavInputsDownDuration(io, i)
+Get_NavInputsDownDurationPrev(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_NavInputsDownDurationPrev(io, i)
 
 ################################### ImGuiSizeCallbackData ##################################
 Get_UserData(handle::Ptr{ImGuiSizeCallbackData}) = ImGuiSizeCallbackData_Get_UserData(handle)

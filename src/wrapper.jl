@@ -991,6 +991,71 @@ Create a slider widget.
 """
 SliderFloat(label, v, v_min, v_max, format="%.3f", power=1.0) = igSliderFloat(label, v, v_min, v_max, format, power)
 
+"""
+    SliderFloat2(label, v, v_min, v_max, format="%.3f", power=1.0) -> Bool
+"""
+SliderFloat2(label, v, v_min, v_max, format="%.3f", power=1.0) = igSliderFloat2(label, v, v_min, v_max, format, power)
+
+"""
+    SliderFloat3(label, v, v_min, v_max, format="%.3f", power=1.0) -> Bool
+"""
+SliderFloat3(label, v, v_min, v_max, format="%.3f", power=1.0) = igSliderFloat3(label, v, v_min, v_max, format, power)
+
+"""
+    SliderFloat4(label, v, v_min, v_max, format="%.3f", power=1.0) -> Bool
+"""
+SliderFloat4(label, v, v_min, v_max, format="%.3f", power=1.0) = igSliderFloat4(label, v, v_min, v_max, format, power)
+
+"""
+    SliderAngle(label, v_rad, v_degrees_min=-360.0, v_degrees_max=360.0, format="%.0f deg") -> Bool
+"""
+SliderAngle(label, v_rad, v_degrees_min=-360.0, v_degrees_max=360.0, format="%.0f deg") = igSliderAngle(label, v_rad, v_degrees_min, v_degrees_max, format)
+
+"""
+    SliderInt(label, v, v_min, v_max, format="%d") -> Bool
+"""
+SliderInt(label, v, v_min, v_max, format="%d") = igSliderInt(label, v, v_min, v_max, format)
+
+"""
+    SliderInt2(label, v, v_min, v_max, format="%d") -> Bool
+"""
+SliderInt2(label, v, v_min, v_max, format="%d") = igSliderInt2(label, v, v_min, v_max, format)
+
+"""
+    SliderInt3(label, v, v_min, v_max, format="%d") -> Bool
+"""
+SliderInt3(label, v, v_min, v_max, format="%d") = igSliderInt3(label, v, v_min, v_max, format)
+
+"""
+    SliderInt4(label, v, v_min, v_max, format="%d") -> Bool
+"""
+SliderInt4(label, v, v_min, v_max, format="%d") = igSliderInt4(label, v, v_min, v_max, format)
+
+"""
+    SliderScalar(label, data_type, v, v_min, v_max, format=C_NULL, power=1.0) -> Bool
+"""
+SliderScalar(label, data_type, v, v_min, v_max, format=C_NULL, power=1.0) = igSliderScalar(label, data_type, v, v_min, v_max, format, power)
+
+"""
+    SliderScalarN(label, data_type, v, components, v_min, v_max, format=C_NULL, power=1.0) -> Bool
+"""
+SliderScalarN(label, data_type, v, components, v_min, v_max, format=C_NULL, power=1.0) = igSliderScalarN(label, data_type, v, components, v_min, v_max, format, power)
+
+"""
+    VSliderFloat(label, size, v, v_min, v_max, format="%.3f", power=1.0) -> Bool
+"""
+VSliderFloat(label, size, v, v_min, v_max, format="%.3f", power=1.0) = igVSliderFloat(label, size, v, v_min, v_max, format, power)
+
+"""
+    VSliderInt(label, size, v, v_min, v_max, format="%d") -> Bool
+"""
+VSliderInt(label, size, v, v_min, v_max, format="%d") = igVSliderInt(label, size, v, v_min, v_max, format)
+
+"""
+    VSliderScalar(label, size, data_type, v, v_min, v_max, format=C_NULL, power=1.0) -> Bool
+"""
+VSliderScalar(label, size, data_type, v, v_min, v_max, format=C_NULL, power=1.0) = igVSliderScalar(label, size, data_type, v, v_min, v_max, format, power)
+
 ############################### Widgets: Input with Keyboard ###############################
 """
     InputText(label, buf, buf_size, flags=0, callback=C_NULL, user_data=C_NULL) -> Bool

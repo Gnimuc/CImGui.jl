@@ -659,15 +659,15 @@ function igSliderFloat(label, v, v_min, v_max, format, power)
 end
 
 function igSliderFloat2(label, v, v_min, v_max, format, power)
-    ccall((:igSliderFloat2, libcimgui), Bool, (Cstring, NTuple{2, Cfloat}, Cfloat, Cfloat, Cstring, Cfloat), label, v, v_min, v_max, format, power)
+    ccall((:igSliderFloat2, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cstring, Cfloat), label, v, v_min, v_max, format, power)
 end
 
 function igSliderFloat3(label, v, v_min, v_max, format, power)
-    ccall((:igSliderFloat3, libcimgui), Bool, (Cstring, NTuple{3, Cfloat}, Cfloat, Cfloat, Cstring, Cfloat), label, v, v_min, v_max, format, power)
+    ccall((:igSliderFloat3, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cstring, Cfloat), label, v, v_min, v_max, format, power)
 end
 
 function igSliderFloat4(label, v, v_min, v_max, format, power)
-    ccall((:igSliderFloat4, libcimgui), Bool, (Cstring, NTuple{4, Cfloat}, Cfloat, Cfloat, Cstring, Cfloat), label, v, v_min, v_max, format, power)
+    ccall((:igSliderFloat4, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cstring, Cfloat), label, v, v_min, v_max, format, power)
 end
 
 function igSliderAngle(label, v_rad, v_degrees_min, v_degrees_max, format)
@@ -679,15 +679,15 @@ function igSliderInt(label, v, v_min, v_max, format)
 end
 
 function igSliderInt2(label, v, v_min, v_max, format)
-    ccall((:igSliderInt2, libcimgui), Bool, (Cstring, NTuple{2, Cint}, Cint, Cint, Cstring), label, v, v_min, v_max, format)
+    ccall((:igSliderInt2, libcimgui), Bool, (Cstring, Ptr{Cint}, Cint, Cint, Cstring), label, v, v_min, v_max, format)
 end
 
 function igSliderInt3(label, v, v_min, v_max, format)
-    ccall((:igSliderInt3, libcimgui), Bool, (Cstring, NTuple{3, Cint}, Cint, Cint, Cstring), label, v, v_min, v_max, format)
+    ccall((:igSliderInt3, libcimgui), Bool, (Cstring, Ptr{Cint}, Cint, Cint, Cstring), label, v, v_min, v_max, format)
 end
 
 function igSliderInt4(label, v, v_min, v_max, format)
-    ccall((:igSliderInt4, libcimgui), Bool, (Cstring, NTuple{4, Cint}, Cint, Cint, Cstring), label, v, v_min, v_max, format)
+    ccall((:igSliderInt4, libcimgui), Bool, (Cstring, Ptr{Cint}, Cint, Cint, Cstring), label, v, v_min, v_max, format)
 end
 
 function igSliderScalar(label, data_type, v, v_min, v_max, format, power)

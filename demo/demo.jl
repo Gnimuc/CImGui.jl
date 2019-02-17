@@ -47,15 +47,15 @@ CImGui.StyleColorsDark()
 # - If the file cannot be loaded, the function will return C_NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
 # - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which `ImGui_ImplXXXX_NewFrame` below will call.
 # - Read 'fonts/README.txt' for more instructions and details.
-fonts_dir = joinpath(@__DIR__, "..", "fonts")
-fonts = ImGuiIO_Get_Fonts(io)
-default_font = ImFontAtlas_AddFontDefault(fonts, C_NULL)
-ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Cousine-Regular.ttf"), 15, C_NULL, C_NULL)
-ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "DroidSans.ttf"), 16, C_NULL, C_NULL)
-ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Karla-Regular.ttf"), 10, C_NULL, C_NULL)
-ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "ProggyTiny.ttf"), 10, C_NULL, C_NULL)
-ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Roboto-Medium.ttf"), 16, C_NULL, C_NULL)
-@assert default_font != C_NULL
+# fonts_dir = joinpath(@__DIR__, "..", "fonts")
+# fonts = ImGuiIO_Get_Fonts(io)
+# default_font = ImFontAtlas_AddFontDefault(fonts, C_NULL)
+# ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Cousine-Regular.ttf"), 15, C_NULL, C_NULL)
+# ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "DroidSans.ttf"), 16, C_NULL, C_NULL)
+# ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Karla-Regular.ttf"), 10, C_NULL, C_NULL)
+# ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "ProggyTiny.ttf"), 10, C_NULL, C_NULL)
+# ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Roboto-Medium.ttf"), 16, C_NULL, C_NULL)
+# @assert default_font != C_NULL
 
 # setup Platform/Renderer bindings
 ImGui_ImplGlfw_InitForOpenGL(window, true)

@@ -1,6 +1,6 @@
 using CImGui
 
-let selected = 0
+let selected = 1
 """
     show_app_layout(p_open::Ref{Bool})
 Create a window with multiple child windows.
@@ -18,9 +18,8 @@ global function show_app_layout(p_open::Ref{Bool})
 
         # left
         CImGui.BeginChild("left pane", (150, 0), true)
-        for i = 0:99
-            label = @sprintf "MyObject %d" i
-            CImGui.Selectable(label, selected == i) && (selected = i;)
+        for i = 1:100
+            CImGui.Selectable("MyObject $i", selected == i) && (selected = i;)
         end
         CImGui.EndChild()
         CImGui.SameLine()

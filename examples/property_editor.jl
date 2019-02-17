@@ -11,7 +11,7 @@ global function show_dummy_object(prefix, uid)
     CImGui.Text("my sailor is rich")
     CImGui.NextColumn()
     if node_open
-        for i = 0:7
+        for i = 0:8-1
             CImGui.PushID(i) # use field index as identifier
             if i < 2
                 show_dummy_object("Child", 424242)

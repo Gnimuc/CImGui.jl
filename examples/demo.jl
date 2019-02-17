@@ -10,6 +10,7 @@ include(joinpath(@__DIR__, "main_menu_bar.jl"))
 include(joinpath(@__DIR__, "simple_layout.jl"))
 include(joinpath(@__DIR__, "property_editor.jl"))
 include(joinpath(@__DIR__, "long_text.jl"))
+include(joinpath(@__DIR__, "auto_resize.jl"))
 
 @static if Sys.isapple()
     # OpenGL 3.2 + GLSL 150
@@ -52,15 +53,15 @@ CImGui.StyleColorsDark()
 # - If the file cannot be loaded, the function will return C_NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
 # - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which `ImGui_ImplXXXX_NewFrame` below will call.
 # - Read 'fonts/README.txt' for more instructions and details.
-fonts_dir = joinpath(@__DIR__, "..", "fonts")
-fonts = ImGuiIO_Get_Fonts(io)
-default_font = ImFontAtlas_AddFontDefault(fonts, C_NULL)
-ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Cousine-Regular.ttf"), 15, C_NULL, C_NULL)
-ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "DroidSans.ttf"), 16, C_NULL, C_NULL)
-ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Karla-Regular.ttf"), 10, C_NULL, C_NULL)
-ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "ProggyTiny.ttf"), 10, C_NULL, C_NULL)
-ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Roboto-Medium.ttf"), 16, C_NULL, C_NULL)
-@assert default_font != C_NULL
+# fonts_dir = joinpath(@__DIR__, "..", "fonts")
+# fonts = ImGuiIO_Get_Fonts(io)
+# default_font = ImFontAtlas_AddFontDefault(fonts, C_NULL)
+# ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Cousine-Regular.ttf"), 15, C_NULL, C_NULL)
+# ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "DroidSans.ttf"), 16, C_NULL, C_NULL)
+# ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Karla-Regular.ttf"), 10, C_NULL, C_NULL)
+# ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "ProggyTiny.ttf"), 10, C_NULL, C_NULL)
+# ImFontAtlas_AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Roboto-Medium.ttf"), 16, C_NULL, C_NULL)
+# @assert default_font != C_NULL
 
 # setup Platform/Renderer bindings
 ImGui_ImplGlfw_InitForOpenGL(window, true)
@@ -71,6 +72,7 @@ clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
 layout_open = true
 property_editor_open = true
 long_text_open = true
+auto_resize_open = true
 while !GLFW.WindowShouldClose(window)
     GLFW.PollEvents()
     # start the Dear ImGui frame
@@ -83,6 +85,7 @@ while !GLFW.WindowShouldClose(window)
     layout_open && @c show_app_layout(&layout_open)
     property_editor_open && @c show_app_property_editor(&property_editor_open)
     long_text_open && @c show_app_long_text(&long_text_open)
+    auto_resize_open && @c show_app_auto_resize(&auto_resize_open)
 
     # rendering
     CImGui.Render()

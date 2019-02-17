@@ -6,14 +6,7 @@ using GLFW, ModernGL
 using CSyntax
 using Printf
 
-include(joinpath(@__DIR__, "main_menu_bar.jl"))
-include(joinpath(@__DIR__, "simple_layout.jl"))
-include(joinpath(@__DIR__, "property_editor.jl"))
-include(joinpath(@__DIR__, "long_text.jl"))
-include(joinpath(@__DIR__, "auto_resize.jl"))
-include(joinpath(@__DIR__, "constrained_resize.jl"))
-include(joinpath(@__DIR__, "simple_overlay.jl"))
-include(joinpath(@__DIR__, "window_titles.jl"))
+include(joinpath(@__DIR__, "demo_window.jl"))
 
 @static if Sys.isapple()
     # OpenGL 3.2 + GLSL 150
@@ -70,31 +63,18 @@ CImGui.StyleColorsDark()
 ImGui_ImplGlfw_InitForOpenGL(window, true)
 ImGui_ImplOpenGL3_Init()
 
-let
+demo_open = true
 clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
-layout_open = true
-property_editor_open = true
-long_text_open = true
-auto_resize_open = true
-constrained_resize_open = true
-simple_overlay_open = true
-window_titles_open = true
 while !GLFW.WindowShouldClose(window)
+    global demo_open # oh my global scope
+
     GLFW.PollEvents()
     # start the Dear ImGui frame
     ImGui_ImplOpenGL3_NewFrame()
     ImGui_ImplGlfw_NewFrame()
     CImGui.NewFrame()
 
-    # examples
-    show_app_main_menubar()
-    layout_open && @c show_app_layout(&layout_open)
-    property_editor_open && @c show_app_property_editor(&property_editor_open)
-    long_text_open && @c show_app_long_text(&long_text_open)
-    auto_resize_open && @c show_app_auto_resize(&auto_resize_open)
-    constrained_resize_open && @c show_app_constrained_resize(&constrained_resize_open)
-    simple_overlay_open && @c show_app_simple_overlay(&simple_overlay_open)
-    window_titles_open && @c show_app_window_titles(&window_titles_open)
+    demo_open && @c demo(&demo_open)
 
     # rendering
     CImGui.Render()
@@ -108,7 +88,6 @@ while !GLFW.WindowShouldClose(window)
     GLFW.MakeContextCurrent(window)
     GLFW.SwapBuffers(window)
 end
-end # let
 
 # cleanup
 ImGui_ImplOpenGL3_Shutdown()

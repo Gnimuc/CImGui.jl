@@ -2,10 +2,10 @@ using CImGui
 using CSyntax
 
 """
-    show_app_main_menubar()
+    show_app_main_menubar(p_open::Ref{Bool})
 Create a fullscreen menu bar and populating it.
 """
-function show_app_main_menubar()
+function show_app_main_menubar(p_open::Ref{Bool})
     if CImGui.BeginMainMenuBar()
         if CImGui.BeginMenu("File")
             show_menu_file()

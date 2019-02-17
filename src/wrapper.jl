@@ -82,6 +82,58 @@ to [`NewFrame`](@ref). This is what you have to render.
 """
 GetDrawData() = igGetDrawData()
 
+################################# Demo, Debug, Information #################################
+"""
+    ShowDemoWindow(p_open=C_NULL)
+Create demo/test window (previously called ShowTestWindow). Demonstrate most ImGui features.
+Call this to learn about the library! Try to make it always available in your application!
+"""
+ShowDemoWindow(p_open=C_NULL) = igShowDemoWindow(p_open)
+
+"""
+    ShowAboutWindow(p_open=C_NULL)
+Create about window. Display Dear ImGui version, credits and build/system information.
+"""
+ShowAboutWindow(p_open=C_NULL) = igShowAboutWindow(p_open)
+
+"""
+    ShowMetricsWindow(p_open=C_NULL)
+Create metrics window. display Dear ImGui internals: draw commands (with individual draw calls
+and vertices), window list, basic internal state, etc.
+"""
+ShowMetricsWindow(p_open=C_NULL) = igShowMetricsWindow(p_open)
+
+"""
+    ShowStyleEditor(ref=C_NULL)
+Add style editor block (not a window). You can pass in a reference ImGuiStyle structure to
+compare to, revert to and save to (else it uses the default style)
+"""
+ShowStyleEditor(ref=C_NULL) = igShowStyleEditor(ref)
+
+"""
+    ShowStyleSelector(label)
+Add style selector block (not a window), essentially a combo listing the default styles.
+"""
+ShowStyleSelector(label) = igShowStyleSelector(label)
+
+"""
+    ShowFontSelector(label)
+Add font selector block (not a window), essentially a combo listing the loaded fonts.
+"""
+ShowFontSelector(label) = igShowFontSelector(label)
+
+"""
+    ShowUserGuide()
+Add basic help/info block (not a window): how to manipulate ImGui as a end-user (mouse/keyboard controls).
+"""
+ShowUserGuide() = igShowUserGuide()
+
+"""
+    GetVersion()
+Get the compiled version string e.g. "1.23"
+"""
+GetVersion() = igGetVersion()
+
 ########################################## Styles ##########################################
 """
     StyleColorsDark()

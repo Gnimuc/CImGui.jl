@@ -50,7 +50,7 @@ global function show_app_long_text(p_open::Ref{Bool})
         @case 2
             # multiple calls to Text(), not clipped (slow)
             CImGui.PushStyleVar(CImGui.ImGuiStyleVar_ItemSpacing, (0,0))
-            foreach(i->CImGui.Text("$i The quick brown fox jumps over the lazy dog"), 1:1000)
+            foreach(i->CImGui.Text("$i The quick brown fox jumps over the lazy dog"), 1:lines)
             CImGui.PopStyleVar()
             break
     end

@@ -178,7 +178,7 @@ Is current window hovered (and typically: not blocked by a popup/modal)? see fla
 
 !!! note
     If you are trying to check whether your mouse should be dispatched to imgui or to your app,
-    you should use the `io.WantCaptureMouse` boolean for that! Please read the FAQ!
+    you should use the `io.WantCaptureMouse` boolean for that! Please read the [FAQ](https://github.com/ocornut/imgui/blob/801645d35092c8da0eeabe71d7c1997c47aa3648/imgui.cpp#L521)!
 """
 IsWindowHovered(flags=0) = igIsWindowHovered(flags)
 

@@ -3,8 +3,7 @@ using Printf
 
 const DISTANCE = Cfloat(10.0)
 
-let
-corner::Cint = 0
+let corner::Cint = 0
 """
     show_app_simple_overlay(p_open::Ref{Bool})
 Create a simple static window with no decoration + a context-menu to choose which corner of
@@ -14,8 +13,8 @@ global function show_app_simple_overlay(p_open::Ref{Bool})
     display_size = CImGui.Get_DisplaySize(CImGui.GetIO())
     window_pos_x = corner & 1 != 0 ? display_size.x - DISTANCE : DISTANCE
     window_pos_y = corner & 2 != 0 ? display_size.y - DISTANCE : DISTANCE
-    window_pos = ImVec2(window_pos_x, window_pos_y)
-    window_pos_pivot = ImVec2(corner & 1 != 0 ? 1.0 : 0.0, corner & 2 != 0 ? 1.0 : 0.0)
+    window_pos = (window_pos_x, window_pos_y)
+    window_pos_pivot = (corner & 1 != 0 ? 1.0 : 0.0, corner & 2 != 0 ? 1.0 : 0.0)
     corner != -1 && CImGui.SetNextWindowPos(window_pos, CImGui.ImGuiCond_Always, window_pos_pivot)
     CImGui.SetNextWindowBgAlpha(0.3) # transparent background
     flag = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |

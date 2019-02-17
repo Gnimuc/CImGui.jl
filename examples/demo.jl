@@ -13,6 +13,7 @@ include(joinpath(@__DIR__, "long_text.jl"))
 include(joinpath(@__DIR__, "auto_resize.jl"))
 include(joinpath(@__DIR__, "constrained_resize.jl"))
 include(joinpath(@__DIR__, "simple_overlay.jl"))
+include(joinpath(@__DIR__, "window_titles.jl"))
 
 @static if Sys.isapple()
     # OpenGL 3.2 + GLSL 150
@@ -77,6 +78,7 @@ long_text_open = true
 auto_resize_open = true
 constrained_resize_open = true
 simple_overlay_open = true
+window_titles_open = true
 while !GLFW.WindowShouldClose(window)
     GLFW.PollEvents()
     # start the Dear ImGui frame
@@ -92,6 +94,8 @@ while !GLFW.WindowShouldClose(window)
     auto_resize_open && @c show_app_auto_resize(&auto_resize_open)
     constrained_resize_open && @c show_app_constrained_resize(&constrained_resize_open)
     simple_overlay_open && @c show_app_simple_overlay(&simple_overlay_open)
+    window_titles_open && @c show_app_window_titles(&window_titles_open)
+
     # rendering
     CImGui.Render()
     GLFW.MakeContextCurrent(window)

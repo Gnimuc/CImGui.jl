@@ -4,14 +4,16 @@
     CreateContext(shared_font_atlas::Ptr{ImFontAtlas}) -> Ptr{ImGuiContext}
 Return a handle of `ImGuiContext`.
 """
-CreateContext(shared_font_atlas::Ptr{ImFontAtlas}=C_NULL) = igCreateContext(shared_font_atlas)
+CreateContext() = igCreateContext(C_NULL)
+CreateContext(shared_font_atlas::Ptr{ImFontAtlas}) = igCreateContext(shared_font_atlas)
 
 """
     DestroyContext()
     DestroyContext(ctx::Ptr{ImGuiContext})
 Destroy `ImGuiContext`. `DestroyContext()` will destroy current context.
 """
-DestroyContext(ctx::Ptr{ImGuiContext}=C_NULL) = igDestroyContext(ctx)
+DestroyContext() = igDestroyContext(C_NULL)
+DestroyContext(ctx::Ptr{ImGuiContext}) = igDestroyContext(ctx)
 
 """
     GetCurrentContext() -> Ptr{ImGuiContext}
@@ -159,14 +161,18 @@ StyleColorsLight() = igStyleColorsLight(C_NULL)
 """
     Begin(name, p_open::=C_NULL, flags=0) -> Bool
 Push window to the stack and start appending to it.
-- you may append multiple times to the same window during the same frame.
-- passing `p_open != C_NULL` shows a window-closing widget in the upper-right corner of the window, which clicking will set the boolean to false when clicked.
-- [`Begin`](@ref) return false to indicate the window is collapsed or fully clipped, so you may early out and omit submitting anything to the window.
+
+### Usage
+- you may **append multiple times to the same window** during **the same frame**.
+- passing `p_open != C_NULL` shows a window-closing widget in the upper-right corner of the window,
+    which clicking will set the boolean to false when clicked.
+- [`Begin`](@ref) return false to indicate the window is collapsed or fully clipped, so you
+    may early out and omit submitting anything to the window.
 
 !!! note
     Always call a matching [`End`](@ref) for each [`Begin`](@ref) call, regardless of its return value.
-    This is due to legacy reason and is inconsistent with most other functions such as
-    [`BeginMenu`](@ref)/[`EndMenu`](@ref), [`BeginPopup`](@ref)/[`EndPopup`](@ref), etc.
+    This is due to legacy reason and is inconsistent with most other functions (such as
+    [`BeginMenu`](@ref)/[`EndMenu`](@ref), [`BeginPopup`](@ref)/[`EndPopup`](@ref), etc.)
     where the `EndXXX` call should only be called if the corresponding `BeginXXX` function returned true.
 """
 Begin(name, p_open=C_NULL, flags=0) = igBegin(name, p_open, flags)
@@ -179,8 +185,8 @@ End() = igEnd()
 
 ####################################### Child Windows ######################################
 """
-    BeginChild(id::Integer, size=(0,0), border=false, flags=0) -> Bool
     BeginChild(str_id, size=(0,0), border=false, flags=0) -> Bool
+    BeginChild(id::Integer, size=(0,0), border=false, flags=0) -> Bool
 Use child windows to begin into a self-contained independent scrolling/clipping regions within
 a host window. Child windows can embed their own child.
 
@@ -188,16 +194,16 @@ Return false to indicate the window is collapsed or fully clipped, so you may ea
 omit submitting anything to the window.
 
 For each independent axis of `size`:
-- == 0.0: use remaining host window size
-- > 0.0: fixed size
-- < 0.0: use remaining window size minus abs(size)
+- `x == 0.0`: use remaining host window size
+- `x > 0.0`: fixed size
+- `x < 0.0`: use remaining window size minus abs(size)
 
-Each axis can use a different mode, e.g. ImVec2(0,400).
+Each axis can use a different mode, e.g. `ImVec2(0,400)`.
 
 !!! note
     Always call a matching [`EndChild`](@ref) for each [`BeginChild`](@ref) call, regardless
     of its return value. This is due to legacy reason and is inconsistent with most other
-    functions such as [`BeginMenu`](@ref)/[`EndMenu`](@ref), [`BeginPopup`](@ref)/[`EndPopup`](@ref), etc.
+    functions (such as [`BeginMenu`](@ref)/[`EndMenu`](@ref), [`BeginPopup`](@ref)/[`EndPopup`](@ref), etc.)
     where the `EndXXX` call should only be called if the corresponding `BeginXXX` function returned true.
 """
 BeginChild(str_id, size=(0,0), border=false, flags=0) = igBeginChild(str_id, size, border, flags)
@@ -222,17 +228,64 @@ IsWindowCollapsed() = igIsWindowCollapsed()
 
 """
     IsWindowFocused(flags=0) -> Bool
-Is current window focused? or its root/child, depending on flags. see flags for options.
+Is current window focused? or its root/child, depending on flags.
+See the output of `CImGui.GetFlags(CImGui.ImGuiFocusedFlags_)` for options:
+
+```@eval
+using CImGui
+CImGui.ShowFlags(CImGui.ImGuiFocusedFlags_)
+```
 """
 IsWindowFocused(flags=0) = igIsWindowFocused(flags)
 
 """
     IsWindowHovered(flags=0) -> Bool
-Is current window hovered (and typically: not blocked by a popup/modal)? see flags for options.
+Is current window hovered (and typically: not blocked by a popup/modal)?
+See the output of `CImGui.GetFlags(CImGui.ImGuiHoveredFlags_)` for options:
+
+```@eval
+using CImGui
+CImGui.ShowFlags(CImGui.ImGuiHoveredFlags_)
+```
 
 !!! note
     If you are trying to check whether your mouse should be dispatched to imgui or to your app,
-    you should use the `io.WantCaptureMouse` boolean for that! Please read the [FAQ](https://github.com/ocornut/imgui/blob/801645d35092c8da0eeabe71d7c1997c47aa3648/imgui.cpp#L521)!
+    you should use the `ImGuiIO.WantCaptureMouse` boolean for that! Please read the FAQ!
+
+!!! tip "FAQ"
+    Q: How can I tell whether to dispatch mouse/keyboard to imgui or to my application?
+
+    A: You can read the `ImGuiIO.WantCaptureMouse`, `ImGuiIO.WantCaptureKeyboard` and
+    `ImGuiIO.WantTextInput` flags from the ImGuiIO structure, for example:
+    ```
+    if CImGui.Get_WantCaptureMouse(CImGui.GetIO())
+        # ...
+    end
+    ```
+
+    - When `ImGuiIO.WantCaptureMouse` is set, imgui wants to use your mouse state, and you
+        may want to discard/hide the inputs from the rest of your application.
+    - When `ImGuiIO.WantCaptureKeyboard` is set, imgui wants to use your keyboard state,
+        and you may want to discard/hide the inputs from the rest of your application.
+    - When `ImGuiIO.WantTextInput` is set to may want to notify your OS to popup an on-screen
+        keyboard, if available (e.g. on a mobile phone, or console OS).
+
+!!! note
+    1. You should always pass your mouse/keyboard inputs to imgui, even when the
+        `ImGuiIO.WantCaptureXXX` flag are set false. This is because imgui needs to detect that you
+        clicked in the void to unfocus its own windows.
+    2. The `ImGuiIO.WantCaptureMouse` is more accurate that any attempt to "check if the mouse
+        is hovering a window" (don't do that!). It handle mouse dragging correctly (both dragging
+        that started over your application or over an imgui window) and handle e.g. modal windows
+        blocking inputs. Those flags are updated by [`NewFrame`](@ref). Preferably read the flags
+        after calling [`NewFrame`](@ref) if you can afford it, but reading them before is also
+        perfectly fine, as the bool toggle fairly rarely. If you have on a touch device, you
+        might find use for an early call to `UpdateHoveredWindowAndCaptureFlags()`.
+    3. Text input widget releases focus on "Return KeyDown", so the subsequent "Return KeyUp"
+        event that your application receive will typically have `ImGuiIO.WantCaptureKeyboard=false`.
+        Depending on your application logic it may or not be inconvenient. You might want to
+        track which key-downs were targeted for Dear ImGui, e.g. with an array of bool, and
+        filter out the corresponding key-ups.)
 """
 IsWindowHovered(flags=0) = igIsWindowHovered(flags)
 
@@ -244,7 +297,8 @@ GetWindowDrawList() = igGetWindowDrawList()
 
 """
     GetWindowPos() -> ImVec2
-Return current window position in screen space (useful if you want to do your own drawing via the DrawList API)
+Return current window position in screen space (useful if you want to do your own drawing
+via the `ImDrawList` API.
 """
 GetWindowPos() = igGetWindowPos()
 
@@ -256,13 +310,13 @@ GetWindowSize() = igGetWindowSize()
 
 """
     GetWindowWidth() -> Cfloat
-Get current window width (shortcut for GetWindowSize().x)
+Return current window width (shortcut for GetWindowSize().x).
 """
 GetWindowWidth() = igGetWindowWidth()
 
 """
     GetWindowHeight() -> Cfloat
-Get current window height (shortcut for GetWindowSize().y)
+Return current window height (shortcut for GetWindowSize().y).
 """
 GetWindowHeight() = igGetWindowHeight()
 
@@ -286,7 +340,7 @@ GetContentRegionAvailWidth() = igGetContentRegionAvailWidth()
 
 """
     GetWindowContentRegionMin() -> ImVec2
-Content boundaries min (roughly (0,0)-Scroll), in window coordinates.
+Return content boundaries min (roughly (0,0)-Scroll), in window coordinates.
 """
 GetWindowContentRegionMin() = igGetWindowContentRegionMin()
 
@@ -301,7 +355,7 @@ GetWindowContentRegionMax() = igGetWindowContentRegionMax()
 GetWindowContentRegionWidth() = igGetWindowContentRegionWidth()
 
 """
-    SetNextWindowPos(pos, cond=0, pivot=ImVec2(0,0))
+    SetNextWindowPos(pos, cond=0, pivot=(0,0))
 Set next window position. Call before [`Begin`](@ref). use `pivot=(0.5,0.5)` to center on given point, etc.
 """
 SetNextWindowPos(pos, cond=0, pivot=ImVec2(0,0)) = igSetNextWindowPos(pos, cond, pivot)
@@ -314,7 +368,7 @@ SetNextWindowSize(size, cond=0) = igSetNextWindowSize(size, cond)
 
 """
     SetNextWindowSizeConstraints(size_min, size_max, custom_callback=C_NULL, custom_callback_data=C_NULL)
-Set next window size limits. use -1,-1 on either X/Y axis to preserve the current size.
+Set next window size limits. Use `-1,-1` on either X/Y axis to preserve the current size.
 Use callback to apply non-trivial programmatic constraints.
 """
 SetNextWindowSizeConstraints(size_min, size_max, custom_callback=C_NULL, custom_callback_data=C_NULL) = igSetNextWindowSizeConstraints(size_min, size_max, custom_callback, custom_callback_data)
@@ -323,7 +377,7 @@ SetNextWindowSizeConstraints(size_min, size_max, custom_callback=C_NULL, custom_
     SetNextWindowContentSize(size)
     SetNextWindowContentSize(x, y)
 Set next window content size (~ enforce the range of scrollbars). Not including window decorations
-(title bar, menu bar, etc.). Set an axis to 0.0 to leave it automatic. Call before [`Begin`](@ref).
+(title bar, menu bar, etc.). Set an axis to `0.0` to leave it automatic. Call before [`Begin`](@ref).
 """
 SetNextWindowContentSize(size) = igSetNextWindowContentSize(size)
 SetNextWindowContentSize(x, y) = SetNextWindowContentSize(ImVec2(x,y))
@@ -342,7 +396,7 @@ SetNextWindowFocus() = igSetNextWindowFocus()
 
 """
     SetNextWindowBgAlpha(alpha)
-Set next window background color alpha. helper to easily modify `ImGuiCol_WindowBg/ChildBg/PopupBg`.
+Set next window background color alpha. Helper to easily modify `ImGuiCol_WindowBg/ChildBg/PopupBg`.
 You may also use `ImGuiWindowFlags_NoBackground`.
 """
 SetNextWindowBgAlpha(alpha) = igSetNextWindowBgAlpha(alpha)
@@ -351,7 +405,7 @@ SetNextWindowBgAlpha(alpha) = igSetNextWindowBgAlpha(alpha)
     SetWindowPos(pos, cond=0)
 Set current window position - call within [`Begin`](@ref)/[`End`](@ref).
 
-!!! note
+!!! warning "Not recommended!"
     This function is not recommended! Prefer using [`SetNextWindowPos`](@ref), as this may
     incur tearing and side-effects.
 """
@@ -362,7 +416,7 @@ SetWindowPos(pos, cond=0) = igSetWindowPosVec2(pos, cond)
 Set current window size - call within [`Begin`](@ref)/[`End`](@ref). Set to `(0,0)` to force
 an auto-fit.
 
-!!! note
+!!! warning "Not recommended!"
     This function is not recommended! Prefer using [`SetNextWindowSize`](@ref), as this may
     incur tearing and minor side-effects.
 """
@@ -372,7 +426,7 @@ SetWindowSize(size, cond=0) = igSetWindowSizeVec2(size, cond)
     SetWindowCollapsedBool(collapsed, cond=0)
 Set current window collapsed state.
 
-!!! note
+!!! warning "Not recommended!"
     This function is not recommended! Prefer using [`SetNextWindowCollapsed`](@ref).
 """
 SetWindowCollapsed(collapsed, cond=0) = igSetWindowCollapsedBool(collapsed, cond)
@@ -381,14 +435,14 @@ SetWindowCollapsed(collapsed, cond=0) = igSetWindowCollapsedBool(collapsed, cond
     SetWindowFocus()
 Set current window to be focused / front-most.
 
-!!! note
+!!! warning "Not recommended!"
     This function is not recommended! Prefer using [`SetNextWindowFocus`](@ref).
 """
 SetWindowFocus() = igSetWindowFocus()
 
 """
     SetWindowFontScale(scale)
-Set font scale. Adjust `IO.FontGlobalScale` if you want to scale all windows.
+Set font scale. Adjust `ImGuiIO.FontGlobalScale` if you want to scale all windows.
 """
 SetWindowFontScale(scale) = igSetWindowFontScale(scale)
 
@@ -400,7 +454,7 @@ SetWindowPos(name::AbstractString, pos, cond=0) = igSetWindowPosStr(name, pos, c
 
 """
     SetWindowSizeStr(name::AbstractString, size, cond=0)
-Set named window size. set axis to 0.0f to force an auto-fit on this axis.
+Set named window size. Set axis to `0.0` to force an auto-fit on this axis.
 """
 SetWindowSize(name::AbstractString, size, cond=0) = igSetWindowSizeStr(name, size, cond)
 
@@ -411,33 +465,36 @@ Set named window collapsed state.
 SetWindowCollapsed(name::AbstractString, collapsed, cond=0) = igSetWindowCollapsedStr(name, collapsed, cond)
 
 """
+    SetWindowFocus(name::Ptr{Cvoid})
     SetWindowFocus(name::AbstractString)
 Set named window to be focused / front-most. Use `C_NULL` to remove focus.
 """
+SetWindowFocus(name::Ptr{Cvoid}) = igSetWindowFocusStr(name)
 SetWindowFocus(name::AbstractString) = igSetWindowFocusStr(name)
+
 
 ##################################### Windows Scrolling ####################################
 """
     GetScrollX() -> Cfloat
-Get scrolling amount [0..GetScrollMaxX()].
+Return scrolling amount [0..GetScrollMaxX()]. See also [`GetScrollMaxX`](@ref).
 """
 GetScrollX() = igGetScrollX()
 
 """
     GetScrollY() -> Cfloat
-Get scrolling amount [0..GetScrollMaxY()].
+Return scrolling amount [0..GetScrollMaxY()].
 """
 GetScrollY() = igGetScrollY()
 
 """
     GetScrollMaxX() -> Cfloat
-Get maximum scrolling amount ~~ ContentSize.X - WindowSize.X
+Return maximum scrolling amount ~~ ContentSize.X - WindowSize.X.
 """
 GetScrollMaxX() = igGetScrollMaxX()
 
 """
     GetScrollMaxY() -> Cfloat
-Get maximum scrolling amount ~~ ContentSize.Y - WindowSize.Y
+Return maximum scrolling amount ~~ ContentSize.Y - WindowSize.Y.
 """
 GetScrollMaxY() = igGetScrollMaxY()
 
@@ -456,9 +513,9 @@ SetScrollY(scroll_y) = igSetScrollY(scroll_y)
 """
     SetScrollHereY(center_y_ratio=0.5)
 Adjust scrolling amount to make current cursor position visible.
-- `center_y_ratio = 0.0`: top
-- `center_y_ratio = 0.5`: center
-- `center_y_ratio = 1.0`: bottom
+- `center_y_ratio == 0.0`: top
+- `center_y_ratio == 0.5`: center
+- `center_y_ratio == 1.0`: bottom
 
 When using to make a "default/current item" visible, consider using [`SetItemDefaultFocus`](@ref) instead.
 """
@@ -480,37 +537,41 @@ PushFont(font) = igPushFont(font)
 
 """
     PopFont()
+See [`PushFont`](@ref).
 """
 PopFont() = igPopFont()
 
 """
     PushStyleColor(idx, col)
     PushStyleColor(idx, col::Integer)
+See also [`GetStyleColorVec4`](@ref), [`TextColored`](@ref), [`TextDisabled`](@ref).
 """
 PushStyleColor(idx, col) = igPushStyleColor(idx, col)
 PushStyleColor(idx, col::Integer) = igPushStyleColorU32(idx, col)
 
 """
     PopStyleColor(count=1)
+See [`PushStyleColor`](@ref).
 """
 PopStyleColor(count=1) = igPopStyleColor(count)
 
 """
     PushStyleVar(idx, val)
     PushStyleVar(idx, val::AbstractFloat)
+See also [`GetStyle`](@ref).
 """
 PushStyleVar(idx, val) = igPushStyleVarVec2(idx, val)
 PushStyleVar(idx, val::AbstractFloat) = igPushStyleVarFloat(idx, val)
 
-
 """
     PopStyleVar(count=1)
+See [`PushStyleVar`](@ref).
 """
 PopStyleVar(count=1) = igPopStyleVar(count)
 
 """
     GetStyleColorVec4(idx) -> ImVec4
-Retrieve style color as stored in ImGuiStyle structure. use to feed back into [`PushStyleColor`](@ref),
+Retrieve style color as stored in [`ImGuiStyle`] structure. Use to feed back into [`PushStyleColor`](@ref),
 otherwise use [`GetColorU32`](@ref) to get style color with style alpha baked in.
 """
 GetStyleColorVec4(idx) = igGetStyleColorVec4(idx)
@@ -551,12 +612,13 @@ GetColorU32(col::ImU32) = igGetColorU32U32(col)
 Push width of items for the common item+label case, pixels:
 - `item_width == 0`: default to ~2/3 of windows width
 - `item_width > 0`: width in pixels
-- `item_width < 0`: align xx pixels to the right of window (so -1.0 always align width to the right side)
+- `item_width < 0`: align xx pixels to the right of window (so `-1.0` always align width to the right side)
 """
 PushItemWidth(item_width) = igPushItemWidth(item_width)
 
 """
     PopItemWidth()
+See [`PushItemWidth`](@ref).
 """
 PopItemWidth() = igPopItemWidth()
 
@@ -577,12 +639,13 @@ PushTextWrapPos(wrap_pos_x=0.0) = igPushTextWrapPos(wrap_pos_x)
 
 """
     PopTextWrapPos()
+See [`PushTextWrapPos`](@ref).
 """
 PopTextWrapPos() = igPopTextWrapPos()
 
 """
     PushAllowKeyboardFocus(allow_keyboard_focus)
-Allow focusing using TAB/Shift-TAB, enabled by default but you can disable it for certain widgets.
+Allow focusing using `TAB`/`Shift-TAB`, enabled by default but you can disable it for certain widgets.
 """
 PushAllowKeyboardFocus(allow_keyboard_focus) = igPushAllowKeyboardFocus(allow_keyboard_focus)
 
@@ -593,14 +656,15 @@ PopAllowKeyboardFocus() = igPopAllowKeyboardFocus()
 
 """
     PushButtonRepeat(repeat)
-In 'repeat' mode, `Button*()` functions return repeated true in a typematic manner (using
-`io.KeyRepeatDelay/io.KeyRepeatRate setting`). Note that you can call [`IsItemActive`](@ref)
+In "repeat" mode, `Button*()` functions return repeated true in a typematic manner (using
+`ImGuiIO.KeyRepeatDelay/ImGuiIO.KeyRepeatRate setting`). Note that you can call [`IsItemActive`](@ref)
 after any `Button()` to tell if the button is held in the current frame.
 """
 PushButtonRepeat(repeat) = igPushButtonRepeat(repeat)
 
 """
     PopButtonRepeat()
+See [`PushButtonRepeat`](@ref).
 """
 PopButtonRepeat() = igPopButtonRepeat()
 
@@ -613,10 +677,10 @@ it becomes a vertical separator.
 Separator() = igSeparator()
 
 """
-    SameLine(local_pos_x=0.0f0, spacing_w=-1.0f0)
+    SameLine(local_pos_x=0.0, spacing_w=-1.0)
 Call this function between widgets or groups to layout them horizontally.
 """
-SameLine(local_pos_x=0.0f0, spacing_w=-1.0f0) = igSameLine(local_pos_x, spacing_w)
+SameLine(local_pos_x=0.0, spacing_w=-1.0) = igSameLine(local_pos_x, spacing_w)
 
 """
     NewLine()
@@ -635,20 +699,20 @@ Spacing() = igSpacing()
     Dummy(x, y)
 Add a dummy item of given size.
 """
-Dummy(size::ImVec2) = igDummy(size)
+Dummy(size) = igDummy(size)
 Dummy(x, y) = Dummy(ImVec2(x,y))
 
 """
     Indent()
     Indent(indent_w)
-Move content position toward the right, by `style.IndentSpacing` or `indent_w` if != 0.
+Move content position toward the right, by `ImGuiStyle.IndentSpacing` or `indent_w` if `indent_w != 0`.
 """
 Indent(indent_w=Cfloat(0.0)) = igIndent(indent_w)
 
 """
     Unindent()
     Unindent(indent_w)
-Move content position back to the left, by `style.IndentSpacing` or `indent_w` if != 0
+Move content position back to the left, by `ImGuiStyle.IndentSpacing` or `indent_w` if `indent_w != 0`.
 """
 Unindent(indent_w=Cfloat(0.0)) = igUnindent(indent_w)
 
@@ -661,6 +725,7 @@ BeginGroup() = igBeginGroup()
 
 """
     EndGroup()
+See [`BeginGroup`](@ref).
 """
 EndGroup() = igEndGroup()
 
@@ -733,22 +798,22 @@ GetTextLineHeight() = igGetTextLineHeight()
 
 """
     GetTextLineHeightWithSpacing() -> Cfloat
-Return `FontSize + style.ItemSpacing.y` (distance in pixels between 2 consecutive lines of text).
+Return `FontSize + ImGuiStyle.ItemSpacing.y` (distance in pixels between 2 consecutive lines of text).
 """
 GetTextLineHeightWithSpacing() = igGetTextLineHeightWithSpacing()
 
 """
     GetFrameHeight() -> Cfloat
-Return `FontSize + style.FramePadding.y * 2`
+Return `FontSize + ImGuiStyle.FramePadding.y * 2`.
 """
 GetFrameHeight() = igGetFrameHeight()
 
 """
     GetFrameHeightWithSpacing() -> Cfloat
-Return `FontSize + style.FramePadding.y * 2 + style.ItemSpacing.y` (distance in pixels between 2 consecutive lines of framed widgets)
+Return `FontSize + ImGuiStyle.FramePadding.y * 2 + ImGuiStyle.ItemSpacing.y` (distance
+in pixels between 2 consecutive lines of framed widgets).
 """
 GetFrameHeightWithSpacing() = igGetFrameHeightWithSpacing()
-
 
 ###################################### ID stack/scopes #####################################
 """
@@ -758,12 +823,109 @@ GetFrameHeightWithSpacing() = igGetFrameHeightWithSpacing()
     PushID(str_id_begin::AbstractString, str_id_end::AbstractString)
 Push identifier into the ID stack. IDs are hash of the entire stack!
 
-!!! info
-    Read the [FAQ](https://github.com/ocornut/imgui/blob/801645d35092c8da0eeabe71d7c1997c47aa3648/imgui.cpp#L521)
-    for more details about how ID are handled in dear imgui. If you are creating widgets in
-    a loop you most likely want to push a unique identifier (e.g. object pointer, loop index)
+!!! note
+    Read the FAQ for more details about how ID are handled in dear imgui. If you are creating
+    widgets in a loop you most likely want to push a unique identifier (e.g. object pointer, loop index)
     to uniquely differentiate them. You can also use the "##foobar" syntax within widget label
     to distinguish them from each others.
+
+!!! tip "FAQ"
+    Q: How can I have multiple widgets with the same label or without a label?
+
+    Q: I have multiple widgets with the same label, and only the first one works. Why is that?
+
+    A: A primer on labels and the ID Stack...
+
+    Dear ImGui internally need to uniquely identify UI elements.
+    Elements that are typically not clickable (such as calls to the Text functions) don't need an ID.
+    Interactive widgets (such as calls to Button buttons) need a unique ID.
+    Unique ID are used internally to track active widgets and occasionally associate state to widgets.
+    Unique ID are implicitly built from the hash of multiple elements that identify the "path" to the UI element.
+    -  Unique ID are often derived from a string label:
+    ```
+    CImGui.Button("OK")          # Label = "OK",     ID = hash of (..., "OK")
+    CImGui.Button("Cancel")      # Label = "Cancel", ID = hash of (..., "Cancel")
+    ```
+    - ID are uniquely scoped within windows, tree nodes, etc. which all pushes to the ID stack.
+        Having two buttons labeled "OK" in different windows or different tree locations is fine.
+        We used "..." above to signify whatever was already pushed to the ID stack previously:
+    ```
+    CImGui.Begin("MyWindow")
+    CImGui.Button("OK")          # Label = "OK",     ID = hash of ("MyWindow", "OK")
+    CImGui.End()
+    ```
+    - If you have a same ID twice in the same location, you'll have a conflict:
+    ```
+    CImGui.Button("OK")
+    CImGui.Button("OK")          # ID collision! Interacting with either button will trigger the first one.
+    ```
+
+    Fear not! this is easy to solve and there are many ways to solve it!
+
+    - Solving ID conflict in a simple/local context:
+        When passing a label you can optionally specify extra ID information within string itself.
+        Use `##` to pass a complement to the ID that won't be visible to the end-user.
+        This helps solving the simple collision cases when you know e.g. at compilation time which items
+        are going to be created:
+    ```
+    CImGui.Begin("MyWindow")
+    CImGui.Button("Play")        # Label = "Play",   ID = hash of ("MyWindow", "Play")
+    CImGui.Button("Play##foo1")  # Label = "Play",   ID = hash of ("MyWindow", "Play##foo1")  # Different from above
+    CImGui.Button("Play##foo2")  # Label = "Play",   ID = hash of ("MyWindow", "Play##foo2")  # Different from above
+    CImGui.End()
+    ```
+    - If you want to completely hide the label, but still need an ID:
+    ```
+    CImGui.Checkbox("##On", &b)  # Label = "", ID = hash of (..., "##On") # No visible label, just a checkbox!
+    ```
+    - Occasionally/rarely you might want change a label while preserving a constant ID. This allows
+     you to animate labels. For example you may want to include varying information in a window title bar,
+     but windows are uniquely identified by their ID. Use `###` to pass a label that isn't part of ID:
+    ```
+    CImGui.Button("Hello###ID")  # Label = "Hello",  ID = hash of (..., "ID")
+    CImGui.Button("World###ID")  # Label = "World",  ID = hash of (..., "ID") # Same as above, even though the label looks different
+    buf = @sprintf("My game (%f FPS)###MyGame", fps)
+    CImGui.Begin(buf)            # Variable title,   ID = hash of "MyGame"
+    ```
+    - Solving ID conflict in a more general manner:
+     Use `PushID()` / `PopID()` to create scopes and manipulate the ID stack, as to avoid ID conflicts
+     within the same window. This is the most convenient way of distinguishing ID when iterating and
+     creating many UI elements programmatically.
+     You can push a pointer, a string or an integer value into the ID stack.
+     Remember that ID are formed from the concatenation of _everything_ in the ID stack!
+    ```
+    CImGui.Begin("Window")
+    for i = 0:100-1
+        CImGui.PushID(i)         # Push i to the id tack
+        CImGui.Button("Click")   # Label = "Click",  ID = Hash of ("Window", i, "Click")
+        CImGui.PopID()
+    end
+    End()
+    ```
+    - More example showing that you can stack multiple prefixes into the ID stack:
+    ```
+    CImGui.Button("Click")       # Label = "Click",  ID = hash of (..., "Click")
+    CImGui.PushID("node")
+    CImGui.Button("Click")       # Label = "Click",  ID = hash of (..., "node", "Click")
+        CImGui.PushID(my_ptr)
+        CImGui.Button("Click") # Label = "Click",  ID = hash of (..., "node", my_ptr, "Click")
+        CImGui.PopID()
+    CImGui.PopID()
+    ```
+    - Tree nodes implicitly creates a scope for you by calling `PushID()`.
+    ```
+    CImGui.Button("Click")     # Label = "Click",  ID = hash of (..., "Click")
+    if CImGui.TreeNode("node")
+        CImGui.Button("Click") # Label = "Click",  ID = hash of (..., "node", "Click")
+        CImGui.TreePop()
+    end
+    ```
+    - When working with trees, ID are used to preserve the open/close state of each tree node.
+        Depending on your use cases you may want to use strings, indices or pointers as ID.
+        * e.g. when following a single pointer that may change over time, using a static string as ID
+            will preserve your node open/closed state when the targeted object change.
+        * e.g. when displaying a list of objects, using indices or pointers as ID will preserve the
+            node open/closed state differently. See what makes more sense in your situation!
 """
 PushID(str_id::AbstractString) = igPushIDStr(str_id)
 PushID(str_id_begin::AbstractString, str_id_end::AbstractString) = igPushIDRange(str_id_begin, str_id_end)
@@ -772,7 +934,7 @@ PushID(int_id::Integer) = igPushIDInt(int_id)
 
 """
     PopID()
-See also [`PushID`](@ref).
+See [`PushID`](@ref).
 """
 PopID() = igPopID()
 
@@ -788,12 +950,10 @@ GetID(str_id_begin::AbstractString, str_id_end::AbstractString) = igGetIDRange(s
 GetID(ptr_id::Ptr) = igGetIDPtr(ptr_id)
 
 ####################################### Widgets: Text ######################################
-# formatting is not fully supported due to https://github.com/JuliaLang/julia/issues/1315
-# please use `using Printf` as a workaround
 """
     TextUnformatted(text, text_end)
 Raw text without formatting. Roughly equivalent to `Text("%s", text)` but:
-1. doesn't require null terminated string if 'text_end' is specified;
+1. doesn't require null terminated string if `text_end` is specified;
 2. it's faster, no memory copy is done, no buffer size limits, recommended for long chunks of text.
 """
 TextUnformatted(text, text_end) = igTextUnformatted(text, text_end)
@@ -802,7 +962,7 @@ TextUnformatted(text, text_end) = igTextUnformatted(text, text_end)
     Text(formatted_text)
 Create a text widget.
 
-!!! warning "limited support"
+!!! warning "Limited support"
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
@@ -812,7 +972,7 @@ Text(formatted_text) = igText(formatted_text)
     TextColored(col, formatted_text)
 Shortcut for `PushStyleColor(ImGuiCol_Text, col); Text(text); PopStyleColor();`.
 
-!!! warning "limited support"
+!!! warning "Limited support"
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
@@ -821,7 +981,7 @@ TextColored(col, formatted_text) = igTextColored(col, formatted_text)
 """
     TextDisabled(formatted_text)
 Shortcut for `PushStyleColor(ImGuiCol_Text, style.Colors[ImGuiCol_TextDisabled]); Text(text); PopStyleColor();`.
-!!! warning "limited support"
+!!! warning "Limited support"
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
@@ -833,7 +993,7 @@ Shortcut for `PushTextWrapPos(0.0f); Text(text); PopTextWrapPos();`.
 Note that this won't work on an auto-resizing window if there's no other widgets to extend
 the window width, yoy may need to set a size using [`SetNextWindowSize`](@ref).
 
-!!! warning "limited support"
+!!! warning "Limited support"
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
@@ -843,7 +1003,7 @@ TextWrapped(formatted_text) = igTextWrapped(formatted_text)
     LabelText(label, formatted_text)
 Display text+label aligned the same way as value+label widgets.
 
-!!! warning "limited support"
+!!! warning "Limited support"
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
@@ -851,9 +1011,9 @@ LabelText(label, formatted_text) = igLabelText(label, formatted_text)
 
 """
     BulletText(formatted_text)
-Shortcut for `Bullet()+Text()`.
+Shortcut for [`Bullet`](@ref)+[`Text`](@ref).
 
-!!! warning "limited support"
+!!! warning "Limited support"
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
@@ -893,10 +1053,10 @@ ArrowButton(str_id, dir) = igArrowButton(str_id, dir)
 # TODO: igImageButton(user_texture_id, size, uv0, uv1, frame_padding, bg_col, tint_col)
 
 """
-    Checkbox(label, v::Ref{Bool}) -> Bool
+    Checkbox(label, v) -> Bool
 Return true when the value has been changed or when pressed/selected.
 """
-Checkbox(label, v::Ref{Bool}) = igCheckbox(label, v)
+Checkbox(label, v) = igCheckbox(label, v)
 
 """
     CheckboxFlags(label, flags, flags_value) -> Bool
@@ -920,7 +1080,7 @@ RadioButton(label, active::Bool) = igRadioButtonBool(label, active)
 RadioButton(label, v::Ref, v_button::Integer) = igRadioButtonIntPtr(label, v, v_button)
 
 """
-    ProgressBar(fraction, size_arg=ImVec2(-1,0), overlay=C_NULL)
+    ProgressBar(fraction, size_arg=(-1,0), overlay=C_NULL)
 """
 ProgressBar(fraction, size_arg=ImVec2(-1,0), overlay=C_NULL) = igProgressBar(fraction, size_arg, overlay)
 
@@ -942,7 +1102,7 @@ BeginCombo(label, preview_value, flags=0) = igBeginCombo(label, preview_value, f
 """
     EndCombo()
 !!! note
-    only call `EndCombo` if [`BeginCombo`](@ref) returns true!
+    Only call `EndCombo` if [`BeginCombo`](@ref) returns true!
 
 See also [`BeginCombo`](@ref).
 """
@@ -954,7 +1114,6 @@ The old [`Combo`](@ref) api are helpers over [`BeginCombo`](@ref)/[`EndCombo`](@
 are kept available for convenience purpose.
 """
 Combo(label, current_item, items::Vector, items_count, popup_max_height_in_items=-1) = igCombo(label, current_item, items, items_count, popup_max_height_in_items)
-# Combo(label, current_item, items::Vector, items_count, popup_max_height_in_items=-1) = igCombo(label, current_item, Base.cconvert(Ptr{Cstring}, items), items_count, popup_max_height_in_items)
 
 """
     Combo(label, current_item, items_separated_by_zeros, popup_max_height_in_items=-1) -> Bool
@@ -970,22 +1129,25 @@ Combo(label, current_item, items_getter::Ptr{Cvoid}, data::Ptr{Cvoid}, items_cou
 ###################################### Widgets: Drags ######################################
 """
     DragFloat(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) -> Bool
-If `v_min >= v_max` we have no bound.
+If `v_min` >= `v_max` we have no bound.
 """
 DragFloat(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) = igDragFloat(label, v, v_speed, v_min, v_max, format, power)
 
 """
     DragFloat2(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) -> Bool
+The expected number of elements to be accessible in `v` is 2.
 """
 DragFloat2(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) = igDragFloat2(label, v, v_speed, v_min, v_max, format, power)
 
 """
     DragFloat3(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) -> Bool
+The expected number of elements to be accessible in `v` is 3.
 """
 DragFloat3(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) = igDragFloat3(label, v, v_speed, v_min, v_max, format, power)
 
 """
     DragFloat4(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) -> Bool
+The expected number of elements to be accessible in `v` is 4.
 """
 DragFloat4(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) = igDragFloat4(label, v, v_speed, v_min, v_max, format, power)
 
@@ -1001,16 +1163,19 @@ DragInt(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d") = igDragInt(label,
 
 """
     DragInt2(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d")
+The expected number of elements to be accessible in `v` is 2.
 """
 DragInt2(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d") = igDragInt2(label, v, v_speed, v_min, v_max, format)
 
 """
     DragInt3(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d")
+The expected number of elements to be accessible in `v` is 3.
 """
 DragInt3(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d") = igDragInt3(label, v, v_speed, v_min, v_max, format)
 
 """
     DragInt4(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d")
+The expected number of elements to be accessible in `v` is 4.
 """
 DragInt4(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d") = igDragInt4(label, v, v_speed, v_min, v_max, format)
 
@@ -1035,7 +1200,7 @@ DragScalarN(label, data_type, v, components, v_speed, v_min=C_NULL, v_max=C_NULL
 Create a slider widget.
 
 !!! tip
-    ctrl+click on a slider to input with keyboard. manually input values aren't clamped, can go off-bounds.
+    `ctrl+click` on a slider to input with keyboard. manually input values aren't clamped, can go off-bounds.
 
 ### Arguments
 - `format`: adjust format to decorate the value with a prefix or a suffix for in-slider labels or unit display
@@ -1048,16 +1213,19 @@ SliderFloat(label, v, v_min, v_max, format="%.3f", power=1.0) = igSliderFloat(la
 
 """
     SliderFloat2(label, v, v_min, v_max, format="%.3f", power=1.0) -> Bool
+The expected number of elements to be accessible in `v` is 2.
 """
 SliderFloat2(label, v, v_min, v_max, format="%.3f", power=1.0) = igSliderFloat2(label, v, v_min, v_max, format, power)
 
 """
     SliderFloat3(label, v, v_min, v_max, format="%.3f", power=1.0) -> Bool
+The expected number of elements to be accessible in `v` is 3.
 """
 SliderFloat3(label, v, v_min, v_max, format="%.3f", power=1.0) = igSliderFloat3(label, v, v_min, v_max, format, power)
 
 """
     SliderFloat4(label, v, v_min, v_max, format="%.3f", power=1.0) -> Bool
+The expected number of elements to be accessible in `v` is 4.
 """
 SliderFloat4(label, v, v_min, v_max, format="%.3f", power=1.0) = igSliderFloat4(label, v, v_min, v_max, format, power)
 
@@ -1073,16 +1241,19 @@ SliderInt(label, v, v_min, v_max, format="%d") = igSliderInt(label, v, v_min, v_
 
 """
     SliderInt2(label, v, v_min, v_max, format="%d") -> Bool
+The expected number of elements to be accessible in `v` is 2.
 """
 SliderInt2(label, v, v_min, v_max, format="%d") = igSliderInt2(label, v, v_min, v_max, format)
 
 """
     SliderInt3(label, v, v_min, v_max, format="%d") -> Bool
+The expected number of elements to be accessible in `v` is 3.
 """
 SliderInt3(label, v, v_min, v_max, format="%d") = igSliderInt3(label, v, v_min, v_max, format)
 
 """
     SliderInt4(label, v, v_min, v_max, format="%d") -> Bool
+The expected number of elements to be accessible in `v` is 4.
 """
 SliderInt4(label, v, v_min, v_max, format="%d") = igSliderInt4(label, v, v_min, v_max, format)
 
@@ -1129,16 +1300,19 @@ InputFloat(label, v, step=0, step_fast=0, format="%.3f", flags=0) = igInputFloat
 
 """
     InputFloat2(label, v, format="%.3f", flags=0) -> Bool
+The expected number of elements to be accessible in `v` is 2.
 """
 InputFloat2(label, v, format="%.3f", flags=0) = igInputFloat2(label, v, format, flags)
 
 """
     InputFloat3(label, v, format="%.3f", flags=0) -> Bool
+The expected number of elements to be accessible in `v` is 3.
 """
 InputFloat3(label, v, format="%.3f", flags=0) = igInputFloat3(label, v, format, flags)
 
 """
     InputFloat4(label, v, format="%.3f", flags=0) -> Bool
+The expected number of elements to be accessible in `v` is 4.
 """
 InputFloat4(label, v, format="%.3f", flags=0) = igInputFloat4(label, v, format, flags)
 
@@ -1149,16 +1323,19 @@ InputInt(label, v, step=1, step_fast=100, flags=0) = igInputInt(label, v, step, 
 
 """
     InputInt2(label, v, flags=0) -> Bool
+The expected number of elements to be accessible in `v` is 2.
 """
 InputInt2(label, v, flags=0) = igInputInt2(label, v, flags)
 
 """
     InputInt3(label, v, flags=0) -> Bool
+The expected number of elements to be accessible in `v` is 3.
 """
 InputInt3(label, v, flags=0) = igInputInt3(label, v, flags)
 
 """
     InputInt4(label, v, flags=0) -> Bool
+The expected number of elements to be accessible in `v` is 4.
 """
 InputInt4(label, v, flags=0) = igInputInt4(label, v, flags)
 
@@ -1214,7 +1391,7 @@ ColorButton(desc_id, col, flags=0, size=ImVec2(0,0)) = igColorButton(desc_id, co
     SetColorEditOptions(flags)
 Initialize current options (generally on application startup) if you want to select a default
 format, picker type, etc. User will be able to change many settings, unless you pass the
-_NoOptions flag to your calls.
+`_NoOptions` flag to your calls.
 """
 SetColorEditOptions(flags) = igSetColorEditOptions(flags)
 
@@ -1229,11 +1406,10 @@ TreeNode(label::AbstractString) = igTreeNodeStr(label)
 """
     TreeNode(str_id, formatted_text) -> Bool
 Helper variation to completely decorelate the id from the displayed string.
-Read the [FAQ](https://github.com/ocornut/imgui/blob/801645d35092c8da0eeabe71d7c1997c47aa3648/imgui.cpp#L521)
-about why and how to use ID. To align arbitrary text at the same level as a [`TreeNode`](@ref)
-you can use [`Bullet`](@ref).
+Read the FAQ in [`PushID`](@ref)'s' doc about why and how to use ID.
+To align arbitrary text at the same level as a [`TreeNode`](@ref) you can use [`Bullet`](@ref).
 
-!!! warning "limited support"
+!!! warning "Limited support"
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
@@ -1242,11 +1418,10 @@ TreeNode(str_id, formatted_text) = igTreeNodeStrStr(str_id, formatted_text)
 """
     TreeNodePtr(ptr_id::Ptr, formatted_text) -> Bool
 Helper variation to completely decorelate the id from the displayed string.
-Read the [FAQ](https://github.com/ocornut/imgui/blob/801645d35092c8da0eeabe71d7c1997c47aa3648/imgui.cpp#L521)
-about why and how to use ID. To align arbitrary text at the same level as a [`TreeNode`](@ref)
-you can use [`Bullet`](@ref).
+Read the FAQ in [`PushID`](@ref)'s' doc about why and how to use ID.
+To align arbitrary text at the same level as a [`TreeNode`](@ref) you can use [`Bullet`](@ref).
 
-!!! warning "limited support"
+!!! warning "Limited support"
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
@@ -1259,7 +1434,7 @@ TreeNodeEx(label, flags=0) = igTreeNodeExStr(label, flags)
 
 """
     TreeNodeEx(str_id, flags, formatted_text) -> Bool
-!!! warning "limited support"
+!!! warning "Limited support"
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
@@ -1267,7 +1442,7 @@ TreeNodeEx(str_id, flags, formatted_text) = igTreeNodeExStrStr(str_id, flags, fo
 
 """
     TreeNodeEx(ptr_id::Ptr, flags, formatted_text) -> Bool
-!!! warning "limited support"
+!!! warning "Limited support"
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
@@ -1275,21 +1450,21 @@ TreeNodeEx(ptr_id::Ptr, flags, formatted_text) = igTreeNodeExPtr(ptr_id, flags, 
 
 """
     TreePush(str_id)
-`Indent()+PushId()`. Already called by [`TreeNode`](@ref) when returning true, but you can
-call [`TreePush`](@ref)/[`TreePop`](@ref) yourself if desired.
+[`Indent`](@ref) + [`PushId`](@ref). Already called by [`TreeNode`](@ref) when returning true,
+but you can call [`TreePush`](@ref)/[`TreePop`](@ref) yourself if desired.
 """
 TreePush(str_id) = igTreePushStr(str_id)
 
 """
     TreePush(ptr_id::Ptr=C_NULL)
-`Indent()+PushId()`. Already called by [`TreeNode`](@ref) when returning true, but you can
-call [`TreePush`](@ref)/[`TreePop`](@ref) yourself if desired.
+[`Indent`](@ref) + [`PushId`](@ref). Already called by [`TreeNode`](@ref) when returning true,
+but you can call [`TreePush`](@ref)/[`TreePop`](@ref) yourself if desired.
 """
 TreePush(ptr_id::Ptr=C_NULL) = igTreePushPtr(ptr_id)
 
 """
     TreePop()
-Unindent()+PopId()
+[`Unindent`](@ref) + [`PopId`](@ref).
 """
 TreePop() = igTreePop()
 
@@ -1307,20 +1482,20 @@ GetTreeNodeToLabelSpacing() = igGetTreeNodeToLabelSpacing()
 
 """
     SetNextTreeNodeOpen(is_open, cond=0)
-Set next TreeNode/CollapsingHeader open state.
+Set next [`TreeNode`](@ref)/[`CollapsingHeader`](@ref) open state.
 """
 SetNextTreeNodeOpen(is_open, cond=0) = igSetNextTreeNodeOpen(is_open, cond)
 
 """
     CollapsingHeader(label, flags=0)
-If returning 'true' the header is open. Doesn't indent nor push on ID stack.
+If returning `true` the header is open. Doesn't indent nor push on ID stack.
 User doesn't have to call [`TreePop`](@ref).
 """
 CollapsingHeader(label, flags=0) = igCollapsingHeader(label, flags)
 
 """
     CollapsingHeaderBoolPtr(label, p_open, flags=0)
-When `p_open` isn't C_NULL, display an additional small close button on upper right of the header.
+When `p_open` isn't `C_NULL`, display an additional small close button on upper right of the header.
 """
 CollapsingHeaderBoolPtr(label, p_open, flags=0) = igCollapsingHeaderBoolPtr(label, p_open, flags)
 
@@ -1338,21 +1513,70 @@ Selectable(label, selected::Bool=false, flags=0, size=ImVec2(0,0)) = igSelectabl
 Selectable(label, p_selected::Ref, flags=0, size=ImVec2(0,0)) = igSelectableBoolPtr(label, p_selected, flags, size)
 
 #################################### Widgets: List Boxes ###################################
-# igListBoxStr_arr(label, current_item, items, items_count, height_in_items)
-# igListBoxFnPtr(label, current_item, items_getter, data, items_count, height_in_items)
-# igListBoxHeaderVec2(label, size)
-# igListBoxHeaderInt(label, items_count, height_in_items)
-# igListBoxFooter()
-# igPlotLines(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
-# igPlotLinesFnPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
-# igPlotHistogramFloatPtr(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
-# igPlotHistogramFnPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
+"""
+    ListBox(label, current_item, items, items_count, height_in_items=-1)
+    ListBox(label, current_item, items_getter::Ptr{Cvoid}, data::Ptr{Cvoid}, items_count, height_in_items=-1)
+"""
+ListBox(label, current_item, items, items_count, height_in_items=-1) = igListBoxStr_arr(label, current_item, items, items_count, height_in_items)
+ListBox(label, current_item, items_getter::Ptr{Cvoid}, data::Ptr{Cvoid}, items_count, height_in_items=-1) = igListBoxFnPtr(label, current_item, items_getter, data, items_count, height_in_items)
+
+"""
+    ListBoxHeader(label, size=(0,0))
+    ListBoxHeader(label, items_count::Integer, height_in_items=-1)
+Use if you want to reimplement [`ListBox`](@ref) will custom data or interactions.
+If the function return true, you can output elements then call [`ListBoxFooter`](@ref) afterwards.
+"""
+ListBoxHeader(label, size=ImVec2(0,0)) = igListBoxHeaderVec2(label, size)
+ListBoxHeader(label, items_count::Integer, height_in_items=-1) = igListBoxHeaderInt(label, items_count, height_in_items)
+
+"""
+    ListBoxFooter()
+Terminate the scrolling region.
+
+!!! note
+    Only call `ListBoxFooter()` if [`ListBoxHeader`](@ref) returned true!
+"""
+ListBoxFooter() = igListBoxFooter()
+
+################################## Widgets: Data Plotting ##################################
+"""
+    PlotLines(label, values, values_count::Integer, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=(0,0), stride=sizeof(Cfloat))
+    PlotLines(label, values_getter::Ptr, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=(0,0))
+"""
+PlotLines(label, values, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0), stride=sizeof(Cfloat)) = igPlotLines(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
+PlotLines(label, values_getter::Ptr, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0)) = igPlotLinesFnPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
+
+"""
+    PlotHistogram(label, values, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=(0,0), stride=sizeof(Cfloat))
+    PlotHistogram(label, values_getter::Ptr, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0))
+"""
+PlotHistogram(label, values, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0), stride=sizeof(Cfloat)) = igPlotHistogramFloatPtr(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
+PlotHistogram(label, values_getter::Ptr, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0)) = igPlotHistogramFnPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
 
 ################################# Widgets: Value() Helpers #################################
-# igValueBool(prefix, b)
-# igValueInt(prefix, v)
-# igValueUint(prefix, v)
-# igValueFloat(prefix, v, float_format)
+"""
+    ValueBool(prefix, b)
+Output single value in "name: value" format.
+"""
+ValueBool(prefix, b) = igValueBool(prefix, b)
+
+"""
+    ValueInt(prefix, v)
+Output single value in "name: value" format.
+"""
+ValueInt(prefix, v) = igValueInt(prefix, v)
+
+"""
+    ValueUint(prefix, v)
+Output single value in "name: value" format.
+"""
+ValueUint(prefix, v) = igValueUint(prefix, v)
+
+"""
+    ValueFloat(prefix, v, float_format=C_NULL)
+Output single value in "name: value" format.
+"""
+ValueFloat(prefix, v, float_format=C_NULL) = igValueFloat(prefix, v, float_format)
 
 ###################################### Widgets: Menus ######################################
 """
@@ -1364,7 +1588,7 @@ BeginMainMenuBar() = igBeginMainMenuBar()
 """
     EndMainMenuBar()
 !!! note
-    only call `EndMainMenuBar` if [`BeginMainMenuBar`](@ref) returns true!
+    Only call `EndMainMenuBar` if [`BeginMainMenuBar`](@ref) returns true!
 """
 EndMainMenuBar() = igEndMainMenuBar()
 
@@ -1377,8 +1601,7 @@ BeginMenuBar() = igBeginMenuBar()
 """
     EndMenuBar()
 !!! note
-    only call `EndMenuBar` if [`BeginMenuBar`](@ref) returns true!
-
+    Only call `EndMenuBar` if [`BeginMenuBar`](@ref) returns true!
 """
 EndMenuBar() = igEndMenuBar()
 
@@ -1392,7 +1615,7 @@ BeginMenu(label, enabled=true) = igBeginMenu(label, enabled)
 """
     EndMenu()
 !!! note
-    only call `EndMenu` if [`BeginMenu`](@ref) returns true!
+    Only call `EndMenu` if [`BeginMenu`](@ref) returns true!
 """
 EndMenu() = igEndMenu()
 
@@ -1406,8 +1629,28 @@ MenuItem(label, shortcut, selected::Ref, enabled::Bool=true) = igMenuItemBoolPtr
 
 
 ######################################### Tooltips #########################################
-# igBeginTooltip()
-# igEndTooltip()
+"""
+    BeginTooltip()
+Begin/append a tooltip window to create full-featured tooltip (with any kind of items).
+"""
+BeginTooltip() = igBeginTooltip()
+
+"""
+    EndTooltip()
+See [`BeginTooltip`](@ref).
+"""
+EndTooltip() = igEndTooltip()
+
+"""
+    SetTooltip(formatted_text)
+Set a text-only tooltip, typically use with [`IsItemHovered`](@ref).
+Overidde any previous call to [`SetTooltip`](@ref).
+
+!!! warning "Limited support"
+    Formatting is not supported which means you need to pass a formatted string to this function.
+    It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
+"""
+SetTooltip(formatted_text) = igSetTooltip(formatted_text)
 
 ########################################## Popups ##########################################
 """
@@ -1425,7 +1668,7 @@ OpenPopup(str_id) =  igOpenPopup(str_id)
 Return true if the popup is open, and you can start outputting to it.
 
 !!! note
-    only call [`EndPopup`](@ref) if [`BeginPopup`](@ref) returns true!
+    Only call [`EndPopup`](@ref) if [`BeginPopup`](@ref) returns true!
 """
 BeginPopup(str_id, flags=0) = igBeginPopup(str_id, flags)
 
@@ -1457,8 +1700,10 @@ BeginPopupModal(name, p_open=C_NULL, flags=0) = igBeginPopupModal(name, p_open, 
 
 """
     EndPopup()
+See [`BeginPopup`](@ref), [`BeginPopupContextItem`](@ref), [`BeginPopupContextWindow`](@ref),
+[`BeginPopupContextVoid`](@ref), [`BeginPopupModal`](@ref).
 !!! note
-    only call [`EndPopup`](@ref) if `BeginPopupXXX()` returns true!
+    Only call [`EndPopup`](@ref) if `BeginPopupXXX()` returns true!
 """
 EndPopup() = igEndPopup()
 
@@ -1526,7 +1771,7 @@ GetColumnOffset(column_index=-1) = igGetColumnOffset(column_index)
 """
     SetColumnOffset(column_index, offset_x)
 Set position of column line (in pixels, from the left side of the contents region).
-Pass -1 to use current column.
+Pass `-1` to use current column.
 """
 SetColumnOffset(column_index, offset_x) = igSetColumnOffset(column_index, offset_x)
 
@@ -1536,45 +1781,270 @@ SetColumnOffset(column_index, offset_x) = igSetColumnOffset(column_index, offset
 GetColumnsCount() = igGetColumnsCount()
 
 ##################################### Logging/Capture ######################################
-# igLogToTTY(max_depth)
-# igLogToFile(max_depth, filename)
-# igLogToClipboard(max_depth)
-# igLogFinish()
-# igLogButtons()
+"""
+    LogToTTY(max_depth=-1)
+Start logging to tty.
+
+All text output from interface is captured to tty. By default, tree nodes are
+automatically opened during logging.
+"""
+LogToTTY(max_depth=-1) = igLogToTTY(max_depth)
+
+"""
+    LogToFile(max_depth=-1, filename=C_NULL)
+Start logging to file.
+
+All text output from interface is captured to file. By default, tree nodes are
+automatically opened during logging.
+"""
+LogToFile(max_depth=-1, filename=C_NULL) = igLogToFile(max_depth, filename)
+
+"""
+    LogToClipboard(max_depth=-1)
+Start logging to OS clipboard.
+
+All text output from interface is captured to clipboard. By default, tree nodes are
+automatically opened during logging.
+"""
+LogToClipboard(max_depth=-1) = igLogToClipboard(max_depth)
+
+"""
+    LogFinish()
+Stop logging (close file, etc.)
+"""
+LogFinish() = igLogFinish()
+
+"""
+    LogButtons()
+Display buttons for logging to tty/file/clipboard.
+"""
+LogButtons() = igLogButtons()
+
+"""
+    LogText(formatted_text)
+Pass text data straight to log without being displayed.
+"""
+LogText(formatted_text) = igLogText(formatted_text)
 
 ###################################### Drag and Drop #######################################
-# igBeginDragDropSource(flags)
-# igSetDragDropPayload(type, data, size, cond)
-# igEndDragDropSource()
-# igBeginDragDropTarget()
-# igAcceptDragDropPayload(type, flags)
-# igEndDragDropTarget()
-# igGetDragDropPayload()
+"""
+    BeginDragDropSource(flags=ImGuiDragDropFlags_(0)) -> bool
+Call when the current item is active. If this return true, you can call [`SetDragDropPayload`](@ref) + [`EndDragDropSource`](@ref).
+
+!!! note "BETA API"
+    Missing Demo code. API may evolve.
+"""
+BeginDragDropSource(flags=ImGuiDragDropFlags_(0)) = igBeginDragDropSource(flags)
+
+"""
+    SetDragDropPayload(type, data, size, cond=ImGuiCond_(0)) -> bool
+`type` is a user defined string of maximum 32 characters. Strings starting with '_' are
+reserved for dear imgui internal types. Data is copied and held by imgui.
+
+!!! note "BETA API"
+    Missing Demo code. API may evolve.
+"""
+SetDragDropPayload(type, data, size, cond=ImGuiCond_(0)) = igSetDragDropPayload(type, data, size, cond)
+
+"""
+    EndDragDropSource()
+!!! note
+    Only call `EndDragDropSource()` if [`BeginDragDropSource`](@ref) returns true!
+
+!!! note "BETA API"
+    Missing Demo code. API may evolve.
+"""
+EndDragDropSource() = igEndDragDropSource()
+
+"""
+    BeginDragDropTarget() -> bool
+Call after submitting an item that may receive a payload. If this returns true, you can call
+[`AcceptDragDropPayload`](@ref) + [`EndDragDropTarget`](@ref).
+
+!!! note "BETA API"
+    Missing Demo code. API may evolve.
+"""
+BeginDragDropTarget() = igBeginDragDropTarget()
+
+"""
+    AcceptDragDropPayload(type, flags=ImGuiDragDropFlags_(0)) -> Ptr{ImGuiPayload}
+
+!!! note "BETA API"
+    Missing Demo code. API may evolve.
+"""
+AcceptDragDropPayload(type, flags=ImGuiDragDropFlags_(0)) = igAcceptDragDropPayload(type, flags)
+
+"""
+    EndDragDropTarget()
+!!! note
+    Only call [`EndDragDropTarget`](@ref) if [`BeginDragDropTarget`](@ref) returns true!
+
+!!! note "BETA API"
+    Missing Demo code. API may evolve.
+"""
+EndDragDropTarget() = igEndDragDropTarget()
+
+"""
+    GetDragDropPayload() -> Ptr{ImGuiPayload}
+Peek directly into the current payload from anywhere. May return C_NULL.
+Use [`IsDataType`](@ref) to test for the payload type.
+
+!!! note "BETA API"
+    Missing Demo code. API may evolve.
+"""
+GetDragDropPayload() = igGetDragDropPayload()
 
 ######################################### Clipping #########################################
-# igPushClipRect(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect)
-# igPopClipRect()
+"""
+    PushClipRect(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect)
+"""
+PushClipRect(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect) = igPushClipRect(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect)
+
+"""
+    PopClipRect()
+"""
+PopClipRect() = igPopClipRect()
 
 #################################### Focus, Activation #####################################
-# igSetItemDefaultFocus()
-# igSetKeyboardFocusHere(offset)
+"""
+    SetItemDefaultFocus()
+Make last item the default focused item of a window.
+
+!!! tip
+    Prefer using [`SetItemDefaultFocus`](@ref) over `if (IsWindowAppearing()) SetScrollHereY()`
+    when applicable to signify "this is the default item").
+"""
+SetItemDefaultFocus() = igSetItemDefaultFocus()
+
+"""
+    SetKeyboardFocusHere(offset=0)
+Focus keyboard on the next widget. Use positive `offset` to access sub components of a
+multiple component widget. Use `-1` to access previous widget.
+
+!!! tip
+    Prefer using [`SetItemDefaultFocus`](@ref) over `if (IsWindowAppearing()) SetScrollHereY()`
+    when applicable to signify "this is the default item").
+"""
+SetKeyboardFocusHere(offset=0) = igSetKeyboardFocusHere(offset)
 
 ################################## Item/Widgets Utilities ##################################
-# igIsItemHovered(flags)
-# igIsItemActive()
-# igIsItemFocused()
-# igIsItemClicked(mouse_button)
-# igIsItemVisible()
-# igIsItemEdited()
-# igIsItemDeactivated()
-# igIsItemDeactivatedAfterEdit()
-# igIsAnyItemHovered()
-# igIsAnyItemActive()
-# igIsAnyItemFocused()
-# igGetItemRectMin()
-# igGetItemRectMax()
-# igGetItemRectSize()
-# igSetItemAllowOverlap()
+"""
+    IsItemHovered(flags=ImGuiHoveredFlags_(0)) -> Bool
+Is the last item hovered? (and usable, aka not blocked by a popup, etc.).
+See the output of `CImGui.GetFlags(CImGui.ImGuiHoveredFlags_)` for options:
+
+```@eval
+using CImGui
+CImGui.ShowFlags(CImGui.ImGuiHoveredFlags_)
+```
+
+See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
+"""
+IsItemHovered(flags=ImGuiHoveredFlags_(0)) = igIsItemHovered(flags)
+
+"""
+    IsItemActive() -> Bool
+Is the last item active? (e.g. button being held, text field being edited.
+This will continuously return true while holding mouse button on an item.
+Items that don't interact will always return false)
+See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
+"""
+IsItemActive() = igIsItemActive()
+
+"""
+    IsItemFocused() -> Bool
+Is the last item focused for keyboard/gamepad navigation?
+See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
+"""
+IsItemFocused() = igIsItemFocused()
+
+"""
+    IsItemClicked() -> Bool
+    IsItemClicked(mouse_button=0) -> Bool
+Is the last item clicked? (e.g. button/node just clicked on) == `IsMouseClicked(mouse_button)` && [`IsItemHovered`](@ref).
+See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
+"""
+IsItemClicked(mouse_button=0) = igIsItemClicked(mouse_button)
+
+"""
+    IsItemVisible() -> Bool
+Is the last item visible? (items may be out of sight because of clipping/scrolling).
+See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
+"""
+IsItemVisible() = igIsItemVisible()
+
+"""
+    IsItemEdited() -> Bool
+Did the last item modify its underlying value this frame? or was pressed?
+This is generally the same as the "bool" return value of many widgets.
+See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
+"""
+IsItemEdited() = igIsItemEdited()
+
+"""
+    IsItemDeactivated() -> Bool
+Was the last item just made inactive (item was previously active).
+Useful for Undo/Redo patterns with widgets that requires continuous editing.
+See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
+"""
+IsItemDeactivated() = igIsItemDeactivated()
+
+"""
+    IsItemDeactivatedAfterEdit() -> Bool
+Was the last item just made inactive and made a value change when it was active?
+(e.g. Slider/Drag moved). Useful for Undo/Redo patterns with widgets that requires continuous editing.
+Note that you may get false positives (some widgets such as [`Combo`](@ref)/[`ListBox`](@ref)/[`Selectable`](@ref)
+will return true even when clicking an already selected item).
+See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
+"""
+IsItemDeactivatedAfterEdit() = igIsItemDeactivatedAfterEdit()
+
+"""
+    IsAnyItemHovered() -> Bool
+See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
+"""
+IsAnyItemHovered() = igIsAnyItemHovered()
+
+"""
+    IsAnyItemActive() -> Bool
+See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
+"""
+IsAnyItemActive() = igIsAnyItemActive()
+
+"""
+     IsAnyItemFocused() -> Bool
+See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
+"""
+IsAnyItemFocused() = igIsAnyItemFocused()
+
+"""
+    GetItemRectMin() -> ImVec2
+Return bounding rectangle of last item, in screen space.
+See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
+"""
+GetItemRectMin() = igGetItemRectMin()
+
+"""
+    GetItemRectMax() -> ImVec2
+Return bounding rectangle of last item, in screen space.
+See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
+"""
+GetItemRectMax() = igGetItemRectMax()
+
+"""
+    GetItemRectSize() -> ImVec2
+Return size of last item, in screen space.
+See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
+"""
+GetItemRectSize() = igGetItemRectSize()
+
+"""
+    SetItemAllowOverlap()
+Allow last item to be overlapped by a subsequent item. Sometimes useful with invisible buttons,
+selectables, etc. to catch unused area.
+See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
+"""
+SetItemAllowOverlap() = igSetItemAllowOverlap()
 
 ################################## Miscellaneous Utilities #################################
 """
@@ -1615,9 +2085,9 @@ This function might be used when creating your own `ImDrawList` instances.
 GetDrawListSharedData() = igGetDrawListSharedData()
 
 """
-    GetStyleColorName(idx::Integer) -> Cstring
+    GetStyleColorName(idx::Integer) -> String
 """
-GetStyleColorName(idx::Integer) = igGetStyleColorName(idx)
+GetStyleColorName(idx::Integer) = unsafe_string(igGetStyleColorName(idx))
 
 """
     SetStateStorage(storage)
@@ -1651,15 +2121,26 @@ BeginChildFrame(id, size, flags=0) = igBeginChildFrame(id, size, flags)
 """
     EndChildFrame()
 !!! note
-    always call `EndChildFrame` regardless of [`BeginChildFrame`](@ref) return values which
+    Always call `EndChildFrame()` regardless of [`BeginChildFrame`](@ref) return values which
     indicates a collapsed/clipped window.
 """
 EndChildFrame() = igEndChildFrame()
 
-
 ###################################### Color Utilities #####################################
-# igColorConvertU32ToFloat4(in)
-# igColorConvertFloat4ToU32(in)
+"""
+    ColorConvertU32ToFloat4(in) -> ImVec4
+Convert `ImU32` color to `ImVec4`. You could use `Base.convert(::Type{ImVec4}, x::ImU32)` instead.
+"""
+ColorConvertU32ToFloat4(in) = igColorConvertU32ToFloat4(in)
+
+"""
+    ColorConvertFloat4ToU32(in) -> ImU32
+Convert `ImVec4` color to `ImU32`. You could use `Base.convert(::Type{ImU32}, x::ImVec4)` instead.
+"""
+ColorConvertFloat4ToU32(in) = igColorConvertFloat4ToU32(in)
+
+ColorConvertRGBtoHSV(r, g, b, out_h, out_s, out_v) = igColorConvertRGBtoHSV(r, g, b, out_h, out_s, out_v)
+ColorConvertHSVtoRGB(h, s, v, out_r, out_g, out_b) = igColorConvertHSVtoRGB(h, s, v, out_r, out_g, out_b)
 
 ##################################### Inputs Utilities #####################################
 """
@@ -1796,9 +2277,9 @@ CaptureMouseFromApp(capture=true) = igCaptureMouseFromApp(capture)
 
 #################################### Clipboard Utilities ###################################
 """
-    GetClipboardText() -> Cstring
+    GetClipboardText() -> String
 """
-GetClipboardText() = igGetClipboardText()
+GetClipboardText() = unsafe_string(igGetClipboardText())
 
 """
     SetClipboardText(text)
@@ -1806,15 +2287,44 @@ GetClipboardText() = igGetClipboardText()
 SetClipboardText(text) = igSetClipboardText(text)
 
 ################################## Settings/.Ini Utilities #################################
-# igLoadIniSettingsFromDisk(ini_filename)
-# igLoadIniSettingsFromMemory(ini_data, ini_size)
-# igSaveIniSettingsToDisk(ini_filename)
-# igSaveIniSettingsToMemory(out_ini_size)
+"""
+    LoadIniSettingsFromDisk(ini_filename)
+Call after [`CreateContext`](@ref) and before the first call to [`NewFrame`](@ref).
+[`NewFrame`](@ref) automatically calls `LoadIniSettingsFromDisk(ImGuiIO.IniFilename)`.
+
+!!! tip
+    The disk functions are automatically called if `ImGuiIO.IniFilename` != C_NULL (default is "imgui.ini").
+    Set `ImGuiIO.IniFilename` to C_NULL to load/save manually.
+    Read `ImGuiIO.WantSaveIniSettings` description about handling `.ini` saving manually.
+"""
+LoadIniSettingsFromDisk(ini_filename) = igLoadIniSettingsFromDisk(ini_filename)
+
+"""
+    LoadIniSettingsFromMemory(ini_data, ini_size=0)
+Call after [`CreateContext`](@ref) and before the first call to [`NewFrame`](@ref) to
+provide `.ini` data from your own data source.
+"""
+LoadIniSettingsFromMemory(ini_data, ini_size=0) = igLoadIniSettingsFromMemory(ini_data, ini_size)
+
+"""
+    SaveIniSettingsToDisk(ini_filename)
+"""
+SaveIniSettingsToDisk(ini_filename) = igSaveIniSettingsToDisk(ini_filename)
+
+"""
+    SaveIniSettingsToMemory(out_ini_size=C_NULL)
+Return a zero-terminated string with the `.ini` data which you can save by your own mean.
+Call when `ImGuiIO.WantSaveIniSettings` is set, then save data by your own mean and clear
+`ImGuiIO.WantSaveIniSettings`.
+"""
+SaveIniSettingsToMemory(out_ini_size=C_NULL) = igSaveIniSettingsToMemory(out_ini_size)
 
 ##################################### Memory Utilities #####################################
-# igSetAllocatorFunctions(alloc_func, free_func, user_data)
-# igMemAlloc(size)
-# igMemFree(ptr)
+# All those functions are not reliant on the current context.
+# If you reload the contents of imgui.cpp at runtime, you may need to call SetCurrentContext() + SetAllocatorFunctions() again.
+SetAllocatorFunctions(alloc_func, free_func, user_data) = igSetAllocatorFunctions(alloc_func, free_func, user_data)
+MemAlloc(size) = igMemAlloc(size)
+MemFree(ptr) = igMemFree(ptr)
 
 ######################################## ImDrawList ########################################
 """
@@ -1836,14 +2346,14 @@ TextBuffer() = ImGuiTextBuffer_ImGuiTextBuffer()
 Destroy(handle::Ptr{ImGuiTextBuffer}) = ImGuiTextBuffer_destroy(handle)
 
 """
-    Begin(handle::Ptr{ImGuiTextBuffer}) -> Cstring
+    Begin(handle::Ptr{ImGuiTextBuffer}) -> String
 """
-Begin(handle::Ptr{ImGuiTextBuffer}) = ImGuiTextBuffer_begin(handle)
+Begin(handle::Ptr{ImGuiTextBuffer}) = unsafe_string(ImGuiTextBuffer_begin(handle))
 
 """
-    End(handle::Ptr{ImGuiTextBuffer}) -> Cstring
+    End(handle::Ptr{ImGuiTextBuffer}) -> String
 """
-End(handle::Ptr{ImGuiTextBuffer}) = ImGuiTextBuffer_end(handle)
+End(handle::Ptr{ImGuiTextBuffer}) = unsafe_string(ImGuiTextBuffer_end(handle))
 
 """
     Size(handle::Ptr{ImGuiTextBuffer}) -> Cint
@@ -1866,24 +2376,25 @@ Clear(handle::Ptr{ImGuiTextBuffer}) = ImGuiTextBuffer_clear(handle)
 Reserve(handle::Ptr{ImGuiTextBuffer}) = ImGuiTextBuffer_reserve(handle)
 
 """
-    C_str(handle::Ptr{ImGuiTextBuffer}) -> Cstring
+    C_str(handle::Ptr{ImGuiTextBuffer}) -> String
 """
-C_str(handle::Ptr{ImGuiTextBuffer}) = ImGuiTextBuffer_c_str(handle)
+C_str(handle::Ptr{ImGuiTextBuffer}) = unsafe_string(ImGuiTextBuffer_c_str(handle))
 
 """
     Appendf(handle::Ptr{ImGuiTextBuffer}, formatted_text)
-Helper: Text buffer for logging/accumulating text.
+Text buffer for logging/accumulating text.
 
-!!! warning "limited support"
+!!! warning "Limited support"
     Formatting is not supported which means you need to pass a formatted string to this function.
-    It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
+    It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating
+    C/C++ code to Julia.
 """
 Appendf(handle::Ptr{ImGuiTextBuffer}, formatted_text) = ImGuiTextBuffer_appendf(handle, formatted_text)
 
 ##################################### ImGuiListClipper #####################################
 """
     Clipper(items_count=-1, items_height=-1.0) -> Ptr{ImGuiListClipper}
-Helper: Manually clip large list of items.
+Manually clip large list of items.
 
 If you are submitting lots of evenly spaced items and you have a random access to the list,
 you can perform coarse clipping based on visibility to save yourself from processing those items at all.
@@ -1893,15 +2404,16 @@ you can perform coarse clipping based on visibility to save yourself from proces
 
 The clipper calculates the range of visible items and advance the cursor to compensate for the
 non-visible items we have skipped. ImGui already clip items based on their bounds but it needs
-to measure text size to do so. Coarse clipping before submission makes this cost and your own data fetching/submission cost null.
+to measure text size to do so. Coarse clipping before submission makes this cost and your own data
+fetching/submission cost null.
 
 ### Example
 ```julia
 clipper = CImGui.Clipper(1000) # we have 1000 elements, evenly spaced.
 while CImGui.Step()
-    s = CImGui.Get(clipper, :DisplayStart)
-    e = CImGui.Get(clipper, :DisplayEnd)-1
-    foreach(i->CImGui.Text("line number \$i"), s:e)
+    dis_start = CImGui.Get(clipper, :DisplayStart)
+    dis_end = CImGui.Get(clipper, :DisplayEnd)-1
+    foreach(i->CImGui.Text("line number \$i"), dis_start:dis_end)
 end
 ```
 - Step 0: the clipper let you process the first element, regardless of it being visible or not,
@@ -1915,7 +2427,7 @@ end
     to element DisplayEnd), advance the cursor to the end of the list and then returns `false`
     to end the loop.
 
-### Arguments:
+### Arguments
 - `items_count`: use -1 to ignore (you can call Begin later).
     use `INT_MAX` if you don't know how many items you have (in which case the cursor won't
     be advanced in the final step).
@@ -2029,33 +2541,3 @@ Get_Pos(handle::Ptr{ImGuiSizeCallbackData}) = ImGuiSizeCallbackData_Get_Pos(hand
 Get_CurrentSize(handle::Ptr{ImGuiSizeCallbackData}) = ImGuiSizeCallbackData_Get_CurrentSize(handle)
 Get_DesiredSize(handle::Ptr{ImGuiSizeCallbackData}) = ImGuiSizeCallbackData_Get_DesiredSize(handle)
 Set_DesiredSize(handle::Ptr{ImGuiSizeCallbackData}, x) = ImGuiSizeCallbackData_Set_DesiredSize(handle, x)
-
-################################### Helper (maybe unsafe) ##################################
-function UnsafeGetPtr(x::Ptr{T}, name::Symbol) where {T}
-    offset = x
-    type = T
-    flag = false
-    for i = 1:fieldcount(T)
-        name == fieldname(T, i) || continue
-        flag = true
-        type = fieldtype(T, i)
-        offset += fieldoffset(T, i)
-        break
-    end
-    flag || throw(ArgumentError("$T has no field named $name."))
-    return Ptr{type}(offset)
-end
-
-function Get(x::Ptr{T}, name::Symbol) where {T}
-    GC.@preserve x begin
-        value = unsafe_load(UnsafeGetPtr(x, name))
-    end
-    return value
-end
-
-function Set(x::Ptr{T}, name::Symbol, value::S) where {T,S}
-    GC.@preserve x value begin
-        unsafe_store!(UnsafeGetPtr(x, name), value)
-    end
-    return value
-end

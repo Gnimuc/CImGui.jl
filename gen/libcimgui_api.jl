@@ -942,6 +942,10 @@ function igEndTooltip()
     ccall((:igEndTooltip, libcimgui), Cvoid, ())
 end
 
+function igSetTooltip(text)
+    ccall((:igSetTooltip, libcimgui), Cvoid, (Cstring,), text)
+end
+
 function igOpenPopup(str_id)
     ccall((:igOpenPopup, libcimgui), Cvoid, (Cstring,), str_id)
 end
@@ -1032,6 +1036,10 @@ end
 
 function igLogButtons()
     ccall((:igLogButtons, libcimgui), Cvoid, ())
+end
+
+function igLogText(text)
+    ccall((:igLogText, libcimgui), Cvoid, (Cstring,), text)
 end
 
 function igBeginDragDropSource(flags)

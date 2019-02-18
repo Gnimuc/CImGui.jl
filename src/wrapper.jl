@@ -4,16 +4,14 @@
     CreateContext(shared_font_atlas::Ptr{ImFontAtlas}) -> Ptr{ImGuiContext}
 Return a handle of `ImGuiContext`.
 """
-CreateContext() = igCreateContext(C_NULL)
-CreateContext(shared_font_atlas::Ptr{ImFontAtlas}) = igCreateContext(shared_font_atlas)
+CreateContext(shared_font_atlas::Ptr{ImFontAtlas}=C_NULL) = igCreateContext(shared_font_atlas)
 
 """
     DestroyContext()
     DestroyContext(ctx::Ptr{ImGuiContext})
 Destroy `ImGuiContext`. `DestroyContext()` will destroy current context.
 """
-DestroyContext() = igDestroyContext(C_NULL)
-DestroyContext(ctx::Ptr{ImGuiContext}) = igDestroyContext(ctx)
+DestroyContext(ctx::Ptr{ImGuiContext}=C_NULL) = igDestroyContext(ctx)
 
 """
     GetCurrentContext() -> Ptr{ImGuiContext}
@@ -23,14 +21,14 @@ GetCurrentContext() = igGetCurrentContext()
 
 """
     SetCurrentContext(ctx::Ptr{ImGuiContext})
-Set the current context to the input.
+Set current context to `ctx`.
 """
 SetCurrentContext(ctx::Ptr{ImGuiContext}) = igSetCurrentContext(ctx)
 
 ########################################### Main ###########################################
 """
     GetIO() -> Ptr{ImGuiIO}
-Return a handle of `ImGuiIO` which is for accessing the IO structure:
+Return a handle of `ImGuiIO` which is for accessing the `IO` structure:
 - mouse/keyboard/gamepad inputs
 - time
 - various configuration options/flags
@@ -39,7 +37,7 @@ GetIO() = igGetIO()
 
 """
     GetStyle() -> Ptr{ImGuiStyle}
-Return a handle of `ImGuiStyle` which is for accessing the Style structure (colors, sizes).
+Return a handle of `ImGuiStyle` which is for accessing the `Style` structure (colors, sizes).
 
 !!! note
     Always use [`PushStyleCol`](@ref), [`PushStyleVar`](@ref) to modify style mid-frame.
@@ -48,7 +46,7 @@ GetStyle() = igGetStyle()
 
 """
     NewFrame()
-Start a new ImGui frame, you can submit any command from this point until [`Render`](@ref)
+Start a new ImGui frame. You can submit any command from this point until [`Render`](@ref)
 or [`EndFrame`](@ref).
 """
 NewFrame() = igNewFrame()
@@ -56,7 +54,7 @@ NewFrame() = igNewFrame()
 """
     EndFrame()
 Calling this function ends the ImGui frame. This function is automatically called by [`Render`](@ref),
-you likely don't need to call it yourself directly. If you don't need to render data (skipping rendering),
+so you likely don't need to call it yourself directly. If you don't need to render data (skipping rendering),
 you may call [`EndFrame`](@ref) but you'll have wasted CPU already! If you don't need to render,
 better to not create any imgui windows and not call [`NewFrame`](@ref) at all!
 """
@@ -66,8 +64,8 @@ EndFrame() = igEndFrame()
     Render()
 Calling this function ends the ImGui frame. This function finalizes the draw data.
 
-!!! info
-    Obsolete: optionally call io.RenderDrawListsFn if set. Nowadays, prefer calling your render
+!!! warning "Obsolete"
+    Optionally call `ImGuiIO.RenderDrawListsFn` if set. Nowadays, prefer calling your render
     function yourself.
 """
 Render() = igRender()
@@ -77,40 +75,44 @@ Render() = igRender()
 Return a handle of `ImDrawData` which is valid after [`Render`](@ref) and until the next call
 to [`NewFrame`](@ref). This is what you have to render.
 
-!!! info
-    Obsolete: this used to be passed to your io.RenderDrawListsFn() function.
+!!! warning "Obsolete"
+    This used to be passed to your `ImGuiIO.RenderDrawListsFn` function.
 """
 GetDrawData() = igGetDrawData()
 
 ################################# Demo, Debug, Information #################################
 """
+    ShowDemoWindow()
     ShowDemoWindow(p_open=C_NULL)
-Create demo/test window (previously called ShowTestWindow). Demonstrate most ImGui features.
-Call this to learn about the library! Try to make it always available in your application!
+Create demo/test window. Demonstrate most ImGui features.
 """
 ShowDemoWindow(p_open=C_NULL) = igShowDemoWindow(p_open)
 
 """
+    ShowAboutWindow()
     ShowAboutWindow(p_open=C_NULL)
 Create about window. Display Dear ImGui version, credits and build/system information.
 """
 ShowAboutWindow(p_open=C_NULL) = igShowAboutWindow(p_open)
 
 """
+    ShowMetricsWindow()
     ShowMetricsWindow(p_open=C_NULL)
-Create metrics window. display Dear ImGui internals: draw commands (with individual draw calls
+Create metrics window. Display Dear ImGui internals: draw commands (with individual draw calls
 and vertices), window list, basic internal state, etc.
 """
 ShowMetricsWindow(p_open=C_NULL) = igShowMetricsWindow(p_open)
 
 """
+    ShowStyleEditor()
     ShowStyleEditor(ref=C_NULL)
-Add style editor block (not a window). You can pass in a reference ImGuiStyle structure to
-compare to, revert to and save to (else it uses the default style)
+Add style editor block (not a window). You can pass in a reference `ImGuiStyle` structure to
+compare to, revert to and save to (else it uses the default style).
 """
 ShowStyleEditor(ref=C_NULL) = igShowStyleEditor(ref)
 
 """
+    ShowStyleSelector()
     ShowStyleSelector(label)
 Add style selector block (not a window), essentially a combo listing the default styles.
 """
@@ -129,10 +131,10 @@ Add basic help/info block (not a window): how to manipulate ImGui as a end-user 
 ShowUserGuide() = igShowUserGuide()
 
 """
-    GetVersion()
+    GetVersion() -> String
 Get the compiled version string e.g. "1.23"
 """
-GetVersion() = igGetVersion()
+GetVersion() = unsafe_string(igGetVersion())
 
 ########################################## Styles ##########################################
 """

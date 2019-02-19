@@ -7,13 +7,13 @@ function ImGui_ImplGlfw_MouseButtonCallback(window::GLFW.Window, button::GLFW.Mo
 end
 
 function ImGui_ImplGlfw_ScrollCallback(window::GLFW.Window, xoffset, yoffset)
-    io = igGetIO()
+    io = GetIO()
     io.MouseWheelH += Cfloat(xoffset)
     io.MouseWheel += Cfloat(yoffset)
 end
 
 function ImGui_ImplGlfw_KeyCallback(window::GLFW.Window, key, scancode, action, mods)
-    io = igGetIO()
+    io = GetIO()
     action == GLFW.PRESS && Set_KeysDown(io, key, true)
     action == GLFW.RELEASE && Set_KeysDown(io, key, false)
     # modifiers are not reliable across systems
@@ -24,6 +24,6 @@ function ImGui_ImplGlfw_KeyCallback(window::GLFW.Window, key, scancode, action, 
 end
 
 function ImGui_ImplGlfw_CharCallback(window::GLFW.Window, c)
-    io = igGetIO()
+    io = GetIO()
     0 < Cuint(c) < 0x10000 && AddInputCharacter(io, c)
 end

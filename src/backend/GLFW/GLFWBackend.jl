@@ -3,7 +3,8 @@ module GLFWBackend
 using Libdl
 using GLFW
 using ..LibCImGui
-using CImGui: FLT_MAX, Set_KeyMap, Set_KeysDown, Get_KeysDown, Set_MouseDown, AddInputCharacter
+using CImGui: FLT_MAX, AddInputCharacter
+using CImGui: GetIO, Set_KeyMap, Set_KeysDown, Get_KeysDown, Set_MouseDown, GetMouseCursor
 
 include("callbacks.jl")
 

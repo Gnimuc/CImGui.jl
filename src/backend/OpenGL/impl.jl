@@ -1,6 +1,25 @@
-function ImGui_ImplOpenGL3_Init()
-    io = igGetIO()
-    ImGuiIO_Set_BackendRendererName(io, "imgui_impl_opengl3")
+#----------------------------------------
+# OpenGL    GLSL      GLSL
+# version   version   string
+#----------------------------------------
+#  2.0       110       "#version 110"
+#  2.1       120
+#  3.0       130
+#  3.1       140
+#  3.2       150       "#version 150"
+#  3.3       330
+#  4.0       400
+#  4.1       410       "#version 410 core"
+#  4.2       420
+#  4.3       430
+#  ES 2.0    100       "#version 100"
+#  ES 3.0    300       "#version 300 es"
+#----------------------------------------
+
+function ImGui_ImplOpenGL3_Init(glsl_version::Integer=130)
+    io = GetIO()
+    io.BackendRendererName = "imgui_impl_opengl3"
+    global g_GlslVersion = glsl_version
     return true
 end
 
@@ -13,9 +32,9 @@ end
 
 function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
     # avoid rendering when minimized, scale coordinates for retina displays
-    io = igGetIO()
+    io = GetIO()
+    fb_scale = io.DisplayFramebufferScale
     disp_size = ImDrawData_Get_DisplaySize(draw_data)
-    fb_scale = ImGuiIO_Get_DisplayFramebufferScale(io)
     fb_width = trunc(Cint, disp_size.x * fb_scale.x)
     fb_height = trunc(Cint, disp_size.y * fb_scale.y)
     (fb_width ≤ 0 || fb_height ≤ 0) && return nothing
@@ -171,11 +190,10 @@ function ImGui_ImplOpenGL3_CreateFontsTexture()
     global g_FontTexture
 
     # build texture atlas
-    io = igGetIO()
-    fonts = ImGuiIO_Get_Fonts(io)
+    fonts = igGetIO().Fonts
     pixels = Ptr{Cuchar}(C_NULL)
     width, height = Cint(0), Cint(0)
-    @c ImFontAtlas_GetTexDataAsRGBA32(fonts, &pixels, &width, &height, C_NULL)
+    @c GetTexDataAsRGBA32(fonts, &pixels, &width, &height)
 
     # upload texture to graphics system
     last_texture = GLint(0)
@@ -188,7 +206,7 @@ function ImGui_ImplOpenGL3_CreateFontsTexture()
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
     # store our identifier
-    ImFontAtlas_SetTexID(fonts, ImTextureID(Int(g_FontTexture)))
+    SetTexID(fonts, ImTextureID(Int(g_FontTexture)))
     # restore state
     glBindTexture(GL_TEXTURE_2D, last_texture)
 
@@ -198,22 +216,110 @@ end
 function ImGui_ImplOpenGL3_DestroyFontsTexture()
     global g_FontTexture
     if g_FontTexture != 0
-        io = igGetIO()
         @c glDeleteTextures(1, &g_FontTexture)
-        fonts = ImGuiIO_Get_Fonts(io)
-        ImFontAtlas_SetTexID(fonts, ImTextureID(0))
+        SetTexID(GetIO().Fonts, ImTextureID(0))
         g_FontTexture = GLuint(0)
     end
 end
 
 function ImGui_ImplOpenGL3_CreateDeviceObjects()
+    global g_GlslVersion
+    vertex_shader_glsl_120 = """
+        #version $g_GlslVersion
+        uniform mat4 ProjMtx;
+        attribute vec2 Position;
+        attribute vec2 UV;
+        attribute vec4 Color;
+        varying vec2 Frag_UV;
+        varying vec4 Frag_Color;
+        void main()
+        {
+            Frag_UV = UV;
+            Frag_Color = Color;
+            gl_Position = ProjMtx * vec4(Position.xy,0,1);
+        }"""
+
+    vertex_shader_glsl_130 = """
+        #version $g_GlslVersion
+        uniform mat4 ProjMtx;
+        in vec2 Position;
+        in vec2 UV;
+        in vec4 Color;
+        out vec2 Frag_UV;
+        out vec4 Frag_Color;
+        void main()
+        {
+            Frag_UV = UV;
+            Frag_Color = Color;
+            gl_Position = ProjMtx * vec4(Position.xy,0,1);
+        }"""
+
+    vertex_shader_glsl_410_core = """
+        #version $g_GlslVersion
+        layout (location = 0) in vec2 Position;
+        layout (location = 1) in vec2 UV;
+        layout (location = 2) in vec4 Color;
+        uniform mat4 ProjMtx;
+        out vec2 Frag_UV;
+        out vec4 Frag_Color;
+        void main()
+        {
+            Frag_UV = UV;
+            Frag_Color = Color;
+            gl_Position = ProjMtx * vec4(Position.xy,0,1);
+        }"""
+
+    fragment_shader_glsl_120 = """
+        #version $g_GlslVersion
+        #ifdef GL_ES
+            precision mediump float;
+        #endif
+        uniform sampler2D Texture;
+        varying vec2 Frag_UV;
+        varying vec4 Frag_Color;
+        void main()
+        {
+            gl_FragColor = Frag_Color * texture2D(Texture, Frag_UV.st);
+        }"""
+
+    fragment_shader_glsl_130 = """
+        #version $g_GlslVersion
+        uniform sampler2D Texture;
+        in vec2 Frag_UV;
+        in vec4 Frag_Color;
+        out vec4 Out_Color;
+        void main()
+        {
+            Out_Color = Frag_Color * texture(Texture, Frag_UV.st);
+        }"""
+
+    fragment_shader_glsl_410_core = """
+        in vec2 Frag_UV;
+        in vec4 Frag_Color;
+        uniform sampler2D Texture;
+        layout (location = 0) out vec4 Out_Color;
+        void main()
+        {
+            Out_Color = Frag_Color * texture(Texture, Frag_UV.st);
+        }"""
+
+    if g_GlslVersion < 130
+        vertex_shader = vertex_shader_glsl_120
+        fragment_shader = fragment_shader_glsl_120
+    elseif g_GlslVersion == 410
+        vertex_shader = vertex_shader_glsl_410_core
+        fragment_shader = fragment_shader_glsl_410_core
+    else
+        vertex_shader = vertex_shader_glsl_130
+        fragment_shader = fragment_shader_glsl_130
+    end
+
     # backup GL state
     last_texture, last_array_buffer, last_vertex_array = GLint(0), GLint(0), GLint(0)
     @c glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture)
     @c glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer)
     @c glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array)
 
-    vertex_shader = read(joinpath(@__DIR__, "vertex.glsl"), String)
     global g_VertHandle = glCreateShader(GL_VERTEX_SHADER)
     glShaderSource(g_VertHandle, 1, Ptr{GLchar}[pointer(vertex_shader)], C_NULL)
     glCompileShader(g_VertHandle)
@@ -228,7 +334,6 @@ function ImGui_ImplOpenGL3_CreateDeviceObjects()
         @error "[GL]: failed to compile vertex shader: $(g_VertHandle): $(String(log))"
     end
 
-    fragment_shader = read(joinpath(@__DIR__, "fragment.glsl"), String)
     global g_FragHandle = glCreateShader(GL_FRAGMENT_SHADER)
     glShaderSource(g_FragHandle, 1, Ptr{GLchar}[pointer(fragment_shader)], C_NULL)
     glCompileShader(g_FragHandle)

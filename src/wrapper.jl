@@ -2535,16 +2535,64 @@ Build(self::Ptr{ImFontAtlas}) = ImFontAtlas_Build(self)
 """
 IsBuilt(self::Ptr{ImFontAtlas}) = ImFontAtlas_IsBuilt(self)
 
-# ImFontAtlas_GetTexDataAsAlpha8(self, out_pixels, out_width, out_height, out_bytes_per_pixel)
-# ImFontAtlas_GetTexDataAsRGBA32(self, out_pixels, out_width, out_height, out_bytes_per_pixel)
-# ImFontAtlas_SetTexID(self, id)
-# ImFontAtlas_GetGlyphRangesDefault(self)
-# ImFontAtlas_GetGlyphRangesKorean(self)
-# ImFontAtlas_GetGlyphRangesJapanese(self)
-# ImFontAtlas_GetGlyphRangesChineseFull(self)
-# ImFontAtlas_GetGlyphRangesChineseSimplifiedCommon(self)
-# ImFontAtlas_GetGlyphRangesCyrillic(self)
-# ImFontAtlas_GetGlyphRangesThai(self)
+"""
+    GetTexDataAsAlpha8(self::Ptr{ImFontAtlas}, out_pixels, out_width, out_height, out_bytes_per_pixel=C_NULL)
+1 byte per-pixel.
+"""
+GetTexDataAsAlpha8(self::Ptr{ImFontAtlas}, out_pixels, out_width, out_height, out_bytes_per_pixel=C_NULL) = ImFontAtlas_GetTexDataAsAlpha8(self, out_pixels, out_width, out_height, out_bytes_per_pixel)
+
+"""
+    GetTexDataAsRGBA32(self::Ptr{ImFontAtlas}, out_pixels, out_width, out_height, out_bytes_per_pixel=C_NULL)
+4 bytes-per-pixel.
+"""
+GetTexDataAsRGBA32(self::Ptr{ImFontAtlas}, out_pixels, out_width, out_height, out_bytes_per_pixel=C_NULL) = ImFontAtlas_GetTexDataAsRGBA32(self, out_pixels, out_width, out_height, out_bytes_per_pixel)
+
+"""
+    SetTexID(self::Ptr{ImFontAtlas}, id)
+"""
+SetTexID(self::Ptr{ImFontAtlas}, id) = ImFontAtlas_SetTexID(self, id)
+
+"""
+    GetGlyphRangesDefault(self::Ptr{ImFontAtlas}) -> Ptr{ImWchar}
+Basic Latin, Extended Latin.
+"""
+GetGlyphRangesDefault(self::Ptr{ImFontAtlas}) = ImFontAtlas_GetGlyphRangesDefault(self)
+
+"""
+    GetGlyphRangesKorean(self::Ptr{ImFontAtlas}) -> Ptr{ImWchar}
+Default + Korean characters.
+"""
+GetGlyphRangesKorean(self::Ptr{ImFontAtlas}) = ImFontAtlas_GetGlyphRangesKorean(self)
+
+"""
+    GetGlyphRangesJapanese(self::Ptr{ImFontAtlas}) -> Ptr{ImWchar}
+Default + Hiragana, Katakana, Half-Width, Selection of 1946 Ideographs.
+"""
+GetGlyphRangesJapanese(self::Ptr{ImFontAtlas}) = ImFontAtlas_GetGlyphRangesJapanese(self)
+
+"""
+    GetGlyphRangesChineseFull(self::Ptr{ImFontAtlas}) -> Ptr{ImWchar}
+Default + Half-Width + Japanese Hiragana/Katakana + full set of about 21000 CJK Unified Ideographs.
+"""
+GetGlyphRangesChineseFull(self::Ptr{ImFontAtlas}) = ImFontAtlas_GetGlyphRangesChineseFull(self)
+
+"""
+    GetGlyphRangesChineseSimplifiedCommon(self::Ptr{ImFontAtlas}) -> Ptr{ImWchar}
+Default + Half-Width + Japanese Hiragana/Katakana + set of 2500 CJK Unified Ideographs for common simplified Chinese.
+"""
+GetGlyphRangesChineseSimplifiedCommon(self::Ptr{ImFontAtlas}) = ImFontAtlas_GetGlyphRangesChineseSimplifiedCommon(self)
+
+"""
+    GetGlyphRangesCyrillic(self::Ptr{ImFontAtlas}) -> Ptr{ImWchar}
+Default + about 400 Cyrillic characters.
+"""
+GetGlyphRangesCyrillic(self::Ptr{ImFontAtlas}) = ImFontAtlas_GetGlyphRangesCyrillic(self)
+
+"""
+    GetGlyphRangesThai(self::Ptr{ImFontAtlas}) -> Ptr{ImWchar}
+Default + Thai characters.
+"""
+GetGlyphRangesThai(self::Ptr{ImFontAtlas}) = ImFontAtlas_GetGlyphRangesThai(self)
 
 # TODO: find out the use case
 # ImFontAtlas_ImFontAtlas()

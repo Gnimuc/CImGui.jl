@@ -4,6 +4,7 @@ using ModernGL
 using CSyntax
 using CSyntax.CEnum
 using ..LibCImGui
+using ..CImGui: GetIO, GetTexDataAsRGBA32, SetTexID
 
 include("impl.jl")
 export ImGui_ImplOpenGL3_Init, ImGui_ImplOpenGL3_Shutdown
@@ -13,6 +14,7 @@ export ImGui_ImplOpenGL3_CreateFontsTexture, ImGui_ImplOpenGL3_DestroyFontsTextu
 export ImGui_ImplOpenGL3_CreateDeviceObjects, ImGui_ImplOpenGL3_DestroyDeviceObjects
 
 function __init__()
+    global g_GlslVersion = 130
     global g_FontTexture = GLuint(0)
     global g_ShaderHandle = GLuint(0)
     global g_VertHandle = GLuint(0)

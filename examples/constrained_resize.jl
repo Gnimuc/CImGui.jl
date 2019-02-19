@@ -1,6 +1,7 @@
 using CImGui
 using CImGui: ImVec2, FLT_MAX
 using CSyntax
+using CImGui.LibCImGui
 
 let
 auto_resize = false

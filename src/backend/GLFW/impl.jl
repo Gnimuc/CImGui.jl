@@ -7,7 +7,7 @@ function ImGui_ImplGlfw_Init(window::GLFW.Window, install_callbacks::Bool, clien
     global g_Time = 0.0
 
     # setup back-end capabilities flags
-    io = igGetIO()
+    io = GetIO()
     io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors
     io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos
     io.BackendPlatformName = "imgui_impl_glfw"
@@ -80,7 +80,7 @@ function ImGui_ImplGlfw_UpdateMousePosAndButtons()
     global g_Window
     global g_MouseJustPressed
     # update buttons
-    io = igGetIO()
+    io = GetIO()
     for i = 1:length(g_MouseJustPressed)
         # if a mouse press event came, always pass it as "mouse held this frame",
         # so we don't miss click-release events that are shorter than 1 frame.
@@ -106,13 +106,13 @@ function ImGui_ImplGlfw_UpdateMouseCursor()
     global g_Window
     global g_MouseCursors
 
-    io = igGetIO()
+    io = GetIO()
     if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) != 0 ||
         GLFW.GetInputMode(g_Window, GLFW.CURSOR) == GLFW.CURSOR_DISABLED
         return nothing
     end
 
-    imgui_cursor = igGetMouseCursor()
+    imgui_cursor = GetMouseCursor()
     if imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor
         # hide OS mouse cursor if imgui is drawing it or if it wants no cursor
         GLFW.SetInputMode(g_Window, GLFW.CURSOR, GLFW_CURSOR_HIDDEN)
@@ -128,7 +128,7 @@ end
 
 function ImGui_ImplGlfw_NewFrame()
     global g_Time
-    io = igGetIO()
+    io = GetIO()
     @assert ImFontAtlas_IsBuilt(io.Fonts)
 
     # setup display size

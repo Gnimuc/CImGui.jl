@@ -1,5 +1,7 @@
 module CImGui
 
+using CSyntax
+
 include("LibCImGui.jl")
 using .LibCImGui
 

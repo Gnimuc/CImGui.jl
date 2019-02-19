@@ -110,6 +110,18 @@ function ImGuiIO_Get_BackendRendererName(io)
     ccall((:ImGuiIO_Get_BackendRendererName, libcimgui_helper), Cstring, (Ptr{ImGuiIO},), io)
 end
 
+function ImGuiIO_Set_GetClipboardTextFn(io, x)
+    ccall((:ImGuiIO_Set_GetClipboardTextFn, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Ptr{Cvoid}), io, x)
+end
+
+function ImGuiIO_Set_SetClipboardTextFn(io, x)
+    ccall((:ImGuiIO_Set_SetClipboardTextFn, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Ptr{Cvoid}), io, x)
+end
+
+function ImGuiIO_Set_ClipboardUserData(io, x)
+    ccall((:ImGuiIO_Set_ClipboardUserData, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Ptr{Cvoid}), io, x)
+end
+
 function ImGuiIO_Get_ImeWindowHandle(io)
     ccall((:ImGuiIO_Get_ImeWindowHandle, libcimgui_helper), Ptr{Cvoid}, (Ptr{ImGuiIO},), io)
 end

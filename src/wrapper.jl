@@ -2463,7 +2463,118 @@ Automatically called on the last call of [`Step`](@ref) that returns false.
 """
 End(handle::Ptr{ImGuiListClipper}) = ImGuiListClipper_End(handle)
 
+######################################## ImFontAtlas #######################################
+"""
+    AddFont(self::Ptr{ImFontAtlas}, font_cfg) -> Ptr{ImFont}
+"""
+AddFont(self::Ptr{ImFontAtlas}, font_cfg) = ImFontAtlas_AddFont(self, font_cfg)
+
+"""
+    AddFontDefault(self::Ptr{ImFontAtlas}, font_cfg=C_NULL) -> Ptr{ImFont}
+"""
+AddFontDefault(self::Ptr{ImFontAtlas}, font_cfg=C_NULL) = ImFontAtlas_AddFontDefault(self, font_cfg)
+
+"""
+    AddFontFromFileTTF(self::Ptr{ImFontAtlas}, filename, size_pixels, font_cfg=C_NULL, glyph_ranges=C_NULL) -> Ptr{ImFont}
+"""
+AddFontFromFileTTF(self::Ptr{ImFontAtlas}, filename, size_pixels, font_cfg=C_NULL, glyph_ranges=C_NULL) = ImFontAtlas_AddFontFromFileTTF(self, filename, size_pixels, font_cfg, glyph_ranges)
+
+"""
+    AddFontFromMemoryTTF(self::Ptr{ImFontAtlas}, font_data, font_size, size_pixels, font_cfg=C_NULL, glyph_ranges=C_NULL) -> Ptr{ImFont}
+!!! note
+    Transfer ownership of 'ttf_data' to ImFontAtlas! Will be deleted after destruction of the atlas.
+    Set `font_cfg.FontDataOwnedByAtlas=false` to keep ownership of your data and it won't be freed.
+"""
+AddFontFromMemoryTTF(self::Ptr{ImFontAtlas}, font_data, font_size, size_pixels, font_cfg=C_NULL, glyph_ranges=C_NULL) = ImFontAtlas_AddFontFromMemoryTTF(self, font_data, font_size, size_pixels, font_cfg, glyph_ranges)
+
+"""
+    AddFontFromMemoryCompressedTTF(self::Ptr{ImFontAtlas}, compressed_font_data, compressed_font_size, size_pixels, font_cfg=C_NULL, glyph_ranges=C_NULL) -> Ptr{ImFont}
+'compressed_font_data' still owned by caller.
+"""
+AddFontFromMemoryCompressedTTF(self::Ptr{ImFontAtlas}, compressed_font_data, compressed_font_size, size_pixels, font_cfg=C_NULL, glyph_ranges=C_NULL) = ImFontAtlas_AddFontFromMemoryCompressedTTF(self, compressed_font_data, compressed_font_size, size_pixels, font_cfg, glyph_ranges)
+
+"""
+    AddFontFromMemoryCompressedBase85TTF(self::Ptr{ImFontAtlas}, compressed_font_data_base85, size_pixels, font_cfg=C_NULL, glyph_ranges=C_NULL) -> Ptr{ImFont}
+'compressed_font_data_base85' still owned by caller.
+"""
+AddFontFromMemoryCompressedBase85TTF(self::Ptr{ImFontAtlas}, compressed_font_data_base85, size_pixels, font_cfg=C_NULL, glyph_ranges=C_NULL) = ImFontAtlas_AddFontFromMemoryCompressedBase85TTF(self, compressed_font_data_base85, size_pixels, font_cfg, glyph_ranges)
+
+"""
+    ClearInputData(self::Ptr{ImFontAtlas})
+Clear input data (all ImFontConfig structures including sizes, TTF data, glyph ranges, etc.) = all
+the data used to build the texture and fonts.
+"""
+ClearInputData(self::Ptr{ImFontAtlas}) = ImFontAtlas_ClearInputData(self)
+
+"""
+    ClearTexData(self::Ptr{ImFontAtlas})
+Clear output texture data (CPU side). Saves RAM once the texture has been copied to graphics memory.
+"""
+ClearTexData(self::Ptr{ImFontAtlas}) = ImFontAtlas_ClearTexData(self)
+
+"""
+    ClearFonts(self::Ptr{ImFontAtlas})
+Clear output font data (glyphs storage, UV coordinates).
+"""
+ClearFonts(self::Ptr{ImFontAtlas}) = ImFontAtlas_ClearFonts(self)
+
+"""
+    Clear(self::Ptr{ImFontAtlas})
+Clear all input and output.
+"""
+Clear(self::Ptr{ImFontAtlas}) = ImFontAtlas_Clear(self)
+
+"""
+    Build(self::Ptr{ImFontAtlas}) -> Bool
+Build pixels data. This is called automatically for you by the GetTexData*** functions.
+"""
+Build(self::Ptr{ImFontAtlas}) = ImFontAtlas_Build(self)
+
+"""
+    IsBuilt(self::Ptr{ImFontAtlas}) -> Bool
+"""
+IsBuilt(self::Ptr{ImFontAtlas}) = ImFontAtlas_IsBuilt(self)
+
+# ImFontAtlas_GetTexDataAsAlpha8(self, out_pixels, out_width, out_height, out_bytes_per_pixel)
+# ImFontAtlas_GetTexDataAsRGBA32(self, out_pixels, out_width, out_height, out_bytes_per_pixel)
+# ImFontAtlas_SetTexID(self, id)
+# ImFontAtlas_GetGlyphRangesDefault(self)
+# ImFontAtlas_GetGlyphRangesKorean(self)
+# ImFontAtlas_GetGlyphRangesJapanese(self)
+# ImFontAtlas_GetGlyphRangesChineseFull(self)
+# ImFontAtlas_GetGlyphRangesChineseSimplifiedCommon(self)
+# ImFontAtlas_GetGlyphRangesCyrillic(self)
+# ImFontAtlas_GetGlyphRangesThai(self)
+
+# TODO: find out the use case
+# ImFontAtlas_ImFontAtlas()
+# ImFontAtlas_destroy(self)
+
 ########################################## ImGuiIO #########################################
+# functions
+"""
+    AddInputCharacter(io::Ptr{ImGuiIO}, c)
+Add new character into `InputCharacters[]`.
+"""
+AddInputCharacter(io::Ptr{ImGuiIO}, c) = ImGuiIO_AddInputCharacter(io, c)
+
+"""
+    AddInputCharactersUTF8(io::Ptr{ImGuiIO}, utf8_chars)
+Add new characters into `InputCharacters[]` from an UTF-8 string.
+"""
+AddInputCharactersUTF8(io::Ptr{ImGuiIO}, utf8_chars) = ImGuiIO_AddInputCharactersUTF8(io, utf8_chars)
+
+"""
+    ClearInputCharacters(io)
+Clear the text input buffer manually.
+"""
+ClearInputCharacters(io) = ImGuiIO_ClearInputCharacters(io)
+
+# TODO: find out the use case
+# ImGuiIO_ImGuiIO()
+# ImGuiIO_destroy(self)
+
+# extra
 Get_ConfigFlags(io::Ptr{ImGuiIO}) = ImGuiIO_Get_ConfigFlags(io)
 Get_BackendFlags(io::Ptr{ImGuiIO}) = ImGuiIO_Get_BackendFlags(io)
 Get_DisplaySize(io::Ptr{ImGuiIO}) = ImGuiIO_Get_DisplaySize(io)
@@ -2534,6 +2645,80 @@ Get_KeysDownDuration(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_KeysDownDuration(io, i)
 Get_KeysDownDurationPrev(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_KeysDownDurationPrev(io, i)
 Get_NavInputsDownDuration(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_NavInputsDownDuration(io, i)
 Get_NavInputsDownDurationPrev(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_NavInputsDownDurationPrev(io, i)
+
+Set_ConfigFlags(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_ConfigFlags(io, x)
+Set_BackendFlags(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_BackendFlags(io, x)
+Set_DisplaySize(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_DisplaySize(io, x)
+Set_DeltaTime(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_DeltaTime(io, x)
+Set_IniSavingRate(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_IniSavingRate(io, x)
+Set_IniFilename(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_IniFilename(io, x)
+Set_LogFilename(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_LogFilename(io, x)
+Set_MouseDoubleClickTime(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MouseDoubleClickTime(io, x)
+Set_MouseDoubleClickMaxDist(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MouseDoubleClickMaxDist(io, x)
+Set_MouseDragThreshold(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MouseDragThreshold(io, x)
+Set_KeyMap(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_KeyMap(io, i, x)
+Set_KeyRepeatDelay(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_KeyRepeatDelay(io, x)
+Set_KeyRepeatRate(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_KeyRepeatRate(io, x)
+Set_UserData(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_UserData(io, x)
+Set_Fonts(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_Fonts(io, x)
+Set_FontGlobalScale(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_FontGlobalScale(io, x)
+Set_FontAllowUserScaling(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_FontAllowUserScaling(io, x)
+Set_FontDefault(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_FontDefault(io, x)
+Set_DisplayFramebufferScale(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_DisplayFramebufferScale(io, x)
+Set_DisplayVisibleMin(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_DisplayVisibleMin(io, x)
+Set_DisplayVisibleMax(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_DisplayVisibleMax(io, x)
+Set_MouseDrawCursor(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MouseDrawCursor(io, x)
+Set_ConfigMacOSXBehaviors(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_ConfigMacOSXBehaviors(io, x)
+Set_ConfigInputTextCursorBlink(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_ConfigInputTextCursorBlink(io, x)
+Set_ConfigResizeWindowsFromEdges(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_ConfigResizeWindowsFromEdges(io, x)
+Set_BackendPlatformName(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_BackendPlatformName(io, x)
+Set_BackendRendererName(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_BackendRendererName(io, x)
+Set_GetClipboardTextFn(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_GetClipboardTextFn(io, x)
+Set_SetClipboardTextFn(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_SetClipboardTextFn(io, x)
+Set_ClipboardUserData(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_ClipboardUserData(io, x)
+Set_ImeWindowHandle(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_ImeWindowHandle(io, x)
+Set_RenderDrawListsFnUnused(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_RenderDrawListsFnUnused(io, x)
+Set_MousePos(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MousePos(io, x)
+Set_MouseDown(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDown(io, i, x)
+Set_MouseWheel(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MouseWheel(io, x)
+Set_MouseWheelH(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MouseWheelH(io, x)
+Set_KeyCtrl(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_KeyCtrl(io, x)
+Set_KeyShift(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_KeyShift(io, x)
+Set_KeyAlt(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_KeyAlt(io, x)
+Set_KeySuper(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_KeySuper(io, x)
+Set_KeysDown(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_KeysDown(io, i, x)
+Set_InputCharacters(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_InputCharacters(io, i, x)
+Set_NavInputs(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_NavInputs(io, i, x)
+Set_WantCaptureMouse(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_WantCaptureMouse(io, x)
+Set_WantCaptureKeyboard(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_WantCaptureKeyboard(io, x)
+Set_MouseDown(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MouseDown(io, i, x)
+Set_WantTextInput(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_WantTextInput(io, x)
+Set_WantSetMousePos(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_WantSetMousePos(io, x)
+Set_WantSaveIniSettings(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_WantSaveIniSettings(io, x)
+Set_NavActive(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_NavActive(io, x)
+Set_NavVisible(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_NavVisible(io, x)
+Set_Framerate(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_Framerate(io, x)
+Set_MetricsRenderVertices(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MetricsRenderVertices(io, x)
+Set_MetricsRenderIndices(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MetricsRenderIndices(io, x)
+Set_MetricsRenderWindows(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MetricsRenderWindows(io, x)
+Set_MetricsActiveWindows(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MetricsActiveWindows(io, x)
+Set_MetricsActiveAllocations(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MetricsActiveAllocations(io, x)
+Set_MouseDelta(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MouseDelta(io, x)
+Set_MousePosPrev(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MousePosPrev(io, x)
+Set_MouseClickedPos(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseClickedPos(io, i, x)
+Set_MouseClickedTime(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseClickedTime(io, i, x)
+Set_MouseClicked(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseClicked(io, i, x)
+Set_MouseDoubleClicked(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDoubleClicked(io, i, x)
+Set_MouseReleased(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseReleased(io, i, x)
+Set_MouseDownOwned(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDownOwned(io, i, x)
+Set_MouseDownDuration(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDownDuration(io, i, x)
+Set_MouseDownDurationPrev(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDownDurationPrev(io, i, x)
+Set_MouseDragMaxDistanceAbs(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDragMaxDistanceAbs(io, i, x)
+Set_MouseDragMaxDistanceSqr(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDragMaxDistanceSqr(io, i, x)
+Set_KeysDownDuration(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_KeysDownDuration(io, i, x)
+Set_KeysDownDurationPrev(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_KeysDownDurationPrev(io, i, x)
+Set_NavInputsDownDuration(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_NavInputsDownDuration(io, i, x)
+Set_NavInputsDownDurationPrev(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_NavInputsDownDurationPrev(io, i, x)
 
 ################################### ImGuiSizeCallbackData ##################################
 Get_UserData(handle::Ptr{ImGuiSizeCallbackData}) = ImGuiSizeCallbackData_Get_UserData(handle)

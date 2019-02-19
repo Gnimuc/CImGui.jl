@@ -8,43 +8,37 @@ function ImGui_ImplGlfw_Init(window::GLFW.Window, install_callbacks::Bool, clien
 
     # setup back-end capabilities flags
     io = igGetIO()
-    backend_flags::UInt32 = ImGuiIO_Get_BackendFlags(io)
-    backend_flags |= ImGuiBackendFlags_HasMouseCursors
-    backend_flags |= ImGuiBackendFlags_HasSetMousePos
-    ImGuiIO_Set_BackendFlags(io, backend_flags)
-    ImGuiIO_Set_BackendPlatformName(io, "imgui_impl_glfw")
+    io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors
+    io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos
+    io.BackendPlatformName = "imgui_impl_glfw"
 
     # keyboard mapping
-    ImGuiIO_Set_KeyMap(io, ImGuiKey_Tab, GLFW.KEY_TAB)
-    ImGuiIO_Set_KeyMap(io, ImGuiKey_LeftArrow, GLFW.KEY_LEFT)
-    ImGuiIO_Set_KeyMap(io, ImGuiKey_RightArrow, GLFW.KEY_RIGHT)
-    ImGuiIO_Set_KeyMap(io, ImGuiKey_UpArrow, GLFW.KEY_UP)
-    ImGuiIO_Set_KeyMap(io, ImGuiKey_DownArrow, GLFW.KEY_DOWN)
-    ImGuiIO_Set_KeyMap(io, ImGuiKey_PageUp, GLFW.KEY_PAGE_UP)
-    ImGuiIO_Set_KeyMap(io, ImGuiKey_PageDown, GLFW.KEY_PAGE_DOWN)
-    ImGuiIO_Set_KeyMap(io, ImGuiKey_Home, GLFW.KEY_HOME)
-    ImGuiIO_Set_KeyMap(io, ImGuiKey_End, GLFW.KEY_END)
-    ImGuiIO_Set_KeyMap(io, ImGuiKey_Insert, GLFW.KEY_INSERT)
-    ImGuiIO_Set_KeyMap(io, ImGuiKey_Delete, GLFW.KEY_DELETE)
-    ImGuiIO_Set_KeyMap(io, ImGuiKey_Backspace, GLFW.KEY_BACKSPACE)
-    ImGuiIO_Set_KeyMap(io, ImGuiKey_Space, GLFW.KEY_SPACE)
-    ImGuiIO_Set_KeyMap(io, ImGuiKey_Enter, GLFW.KEY_ENTER)
-    ImGuiIO_Set_KeyMap(io, ImGuiKey_Escape, GLFW.KEY_ESCAPE)
-    ImGuiIO_Set_KeyMap(io, ImGuiKey_A, GLFW.KEY_A)
-    ImGuiIO_Set_KeyMap(io, ImGuiKey_C, GLFW.KEY_C)
-    ImGuiIO_Set_KeyMap(io, ImGuiKey_V, GLFW.KEY_V)
-    ImGuiIO_Set_KeyMap(io, ImGuiKey_X, GLFW.KEY_X)
-    ImGuiIO_Set_KeyMap(io, ImGuiKey_Y, GLFW.KEY_Y)
-    ImGuiIO_Set_KeyMap(io, ImGuiKey_Z, GLFW.KEY_Z)
+    Set_KeyMap(io, ImGuiKey_Tab, GLFW.KEY_TAB)
+    Set_KeyMap(io, ImGuiKey_LeftArrow, GLFW.KEY_LEFT)
+    Set_KeyMap(io, ImGuiKey_RightArrow, GLFW.KEY_RIGHT)
+    Set_KeyMap(io, ImGuiKey_UpArrow, GLFW.KEY_UP)
+    Set_KeyMap(io, ImGuiKey_DownArrow, GLFW.KEY_DOWN)
+    Set_KeyMap(io, ImGuiKey_PageUp, GLFW.KEY_PAGE_UP)
+    Set_KeyMap(io, ImGuiKey_PageDown, GLFW.KEY_PAGE_DOWN)
+    Set_KeyMap(io, ImGuiKey_Home, GLFW.KEY_HOME)
+    Set_KeyMap(io, ImGuiKey_End, GLFW.KEY_END)
+    Set_KeyMap(io, ImGuiKey_Insert, GLFW.KEY_INSERT)
+    Set_KeyMap(io, ImGuiKey_Delete, GLFW.KEY_DELETE)
+    Set_KeyMap(io, ImGuiKey_Backspace, GLFW.KEY_BACKSPACE)
+    Set_KeyMap(io, ImGuiKey_Space, GLFW.KEY_SPACE)
+    Set_KeyMap(io, ImGuiKey_Enter, GLFW.KEY_ENTER)
+    Set_KeyMap(io, ImGuiKey_Escape, GLFW.KEY_ESCAPE)
+    Set_KeyMap(io, ImGuiKey_A, GLFW.KEY_A)
+    Set_KeyMap(io, ImGuiKey_C, GLFW.KEY_C)
+    Set_KeyMap(io, ImGuiKey_V, GLFW.KEY_V)
+    Set_KeyMap(io, ImGuiKey_X, GLFW.KEY_X)
+    Set_KeyMap(io, ImGuiKey_Y, GLFW.KEY_Y)
+    Set_KeyMap(io, ImGuiKey_Z, GLFW.KEY_Z)
 
-    # io.SetClipboardTextFn = ImGui_ImplGlfw_SetClipboardText;
-    # io.GetClipboardTextFn = ImGui_ImplGlfw_GetClipboardText;
-    # io.ClipboardUserData = g_Window;
-    # GC.@preserve io begin
-    #     io_blob.SetClipboardTextFn[] = g_ImplGlfw_SetClipboardText
-    #     io_blob.GetClipboardTextFn[] = g_ImplGlfw_GetClipboardText
-    #     io_blob.ClipboardUserData[] = Ptr{Cvoid}(g_Window.handle)
-    # end
+    io.SetClipboardTextFn = g_ImplGlfw_SetClipboardText
+    io.GetClipboardTextFn = g_ImplGlfw_GetClipboardText
+    io.ClipboardUserData = Ptr{Cvoid}(g_Window.handle)
+
     g_MouseCursors[ImGuiMouseCursor_Arrow+1] = GLFW.CreateStandardCursor(GLFW.ARROW_CURSOR)
     g_MouseCursors[ImGuiMouseCursor_TextInput+1] = GLFW.CreateStandardCursor(GLFW.IBEAM_CURSOR)
     g_MouseCursors[ImGuiMouseCursor_ResizeAll+1] = GLFW.CreateStandardCursor(GLFW.ARROW_CURSOR)
@@ -75,7 +69,7 @@ end
 
 function ImGui_ImplGlfw_Shutdown()
     global g_MouseCursors
-    for cursor_n = 1:Int(ImGuiMouseCursor_COUNT)
+    for cursor_n = 1:ImGuiMouseCursor_COUNT
         GLFW.DestroyCursor(g_MouseCursors[cursor_n])
         g_MouseCursors[cursor_n] = GLFW.Cursor(C_NULL)
     end
@@ -91,19 +85,19 @@ function ImGui_ImplGlfw_UpdateMousePosAndButtons()
         # if a mouse press event came, always pass it as "mouse held this frame",
         # so we don't miss click-release events that are shorter than 1 frame.
         mousedown = g_MouseJustPressed[i] || GLFW.GetMouseButton(g_Window, GLFW.MouseButton(i-1))
-        ImGuiIO_Set_MouseDown(io, i-1, mousedown)
+        Set_MouseDown(io, i-1, mousedown)
         g_MouseJustPressed[i] = false
     end
 
     # update mouse position
-    mouse_pos_backup = ImGuiIO_Get_MousePos(io)
-    ImGuiIO_Set_MousePos(io, ImVec2(-FLT_MAX, -FLT_MAX))
+    mouse_pos_backup = io.MousePos
+    io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX)
     if GLFW.GetWindowAttrib(g_Window, GLFW.FOCUSED) != 0
-        if ImGuiIO_Get_WantSetMousePos(io)
+        if io.WantSetMousePos
             GLFW.SetCursorPos(g_Window, Cdouble(mouse_pos_backup.x), Cdouble(mouse_pos_backup.y))
         else
             mouse_x, mouse_y = GLFW.GetCursorPos(g_Window)
-            ImGuiIO_Set_MousePos(io, ImVec2(Cfloat(mouse_x), Cfloat(mouse_y)))
+            io.MousePos = ImVec2(Cfloat(mouse_x), Cfloat(mouse_y))
         end
     end
 end
@@ -113,13 +107,13 @@ function ImGui_ImplGlfw_UpdateMouseCursor()
     global g_MouseCursors
 
     io = igGetIO()
-    if (UInt32(ImGuiIO_Get_ConfigFlags(io)) & ImGuiConfigFlags_NoMouseCursorChange) != 0 ||
+    if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) != 0 ||
         GLFW.GetInputMode(g_Window, GLFW.CURSOR) == GLFW.CURSOR_DISABLED
         return nothing
     end
 
     imgui_cursor = igGetMouseCursor()
-    if imgui_cursor == ImGuiMouseCursor_None || ImGuiIO_Get_MouseDrawCursor(io)
+    if imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor
         # hide OS mouse cursor if imgui is drawing it or if it wants no cursor
         GLFW.SetInputMode(g_Window, GLFW.CURSOR, GLFW_CURSOR_HIDDEN)
     else
@@ -135,22 +129,23 @@ end
 function ImGui_ImplGlfw_NewFrame()
     global g_Time
     io = igGetIO()
-    fonts = ImGuiIO_Get_Fonts(io)
-    @assert ImFontAtlas_IsBuilt(fonts)
+    @assert ImFontAtlas_IsBuilt(io.Fonts)
 
     # setup display size
     w, h = GLFW.GetWindowSize(g_Window)
     display_w, display_h = GLFW.GetFramebufferSize(g_Window)
-    ImGuiIO_Set_DisplaySize(io, ImVec2(Cfloat(w), Cfloat(h)))
-    w_scale = w > 0 ? Cfloat(display_w / w) : 0
-    h_scale = h > 0 ? Cfloat(display_h / h) : 0
-    ImGuiIO_Set_DisplayFramebufferScale(io, ImVec2(w_scale, h_scale))
+    io.DisplaySize = ImVec2(Cfloat(w), Cfloat(h))
+    w_scale = w > 0 ? Cfloat(display_w / w) : 0f0
+    h_scale = h > 0 ? Cfloat(display_h / h) : 0f0
+    io.DisplayFramebufferScale = ImVec2(w_scale, h_scale)
 
     # setup time step
     current_time = ccall((:glfwGetTime, GLFW.lib), Cdouble, ())
-    ImGuiIO_Set_DeltaTime(io, g_Time > 0.0 ? Cfloat(current_time - g_Time) : Cfloat(1.0/60.0))
+    io.DeltaTime = g_Time > 0.0 ? Cfloat(current_time - g_Time) : Cfloat(1.0/60.0)
     g_Time = current_time
 
     ImGui_ImplGlfw_UpdateMousePosAndButtons()
     ImGui_ImplGlfw_UpdateMouseCursor()
+
+    # TODO: Gamepad navigation mapping
 end

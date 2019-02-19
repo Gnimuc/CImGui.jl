@@ -2,9 +2,8 @@ module GLFWBackend
 
 using Libdl
 using GLFW
-using CSyntax
 using ..LibCImGui
-using ..CImGui: FLT_MAX
+using CImGui: FLT_MAX, Set_KeyMap, Set_KeysDown, Get_KeysDown, Set_MouseDown, AddInputCharacter
 
 include("callbacks.jl")
 
@@ -20,7 +19,7 @@ function __init__()
     global g_ClientApi = GlfwClientApi_Unknown
     global g_Time = 0.0
     global g_MouseJustPressed = [false, false, false, false, false]
-    global g_MouseCursors = [GLFW.Cursor(C_NULL) for i = 1:Int(ImGuiMouseCursor_COUNT)]
+    global g_MouseCursors = [GLFW.Cursor(C_NULL) for i = 1:ImGuiMouseCursor_COUNT]
     global g_ImplGlfw_GetClipboardText = dlsym(dlopen(GLFW.lib), :glfwGetClipboardString)
     global g_ImplGlfw_SetClipboardText = dlsym(dlopen(GLFW.lib), :glfwSetClipboardString)
 end

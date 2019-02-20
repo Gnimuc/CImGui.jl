@@ -139,3 +139,23 @@ function Base.setproperty!(io::Ptr{ImGuiIO}, x::Symbol, v)
     x == :KeySuper && return ImGuiIO_Set_KeySuper(io, v)
     throw(ArgumentError("field $x is not supported to be used like this!"))
 end
+
+# emulate draw_data.xxx
+function Base.getproperty(data::Ptr{ImDrawData}, x::Symbol)
+    x == :Valid && return ImDrawData_Get_Valid(data)
+    x == :CmdListsCount && return ImDrawData_Get_CmdListsCount(data)
+    x == :TotalIdxCount && return ImDrawData_Get_TotalIdxCount(data)
+    x == :TotalVtxCount && return ImDrawData_Get_TotalVtxCount(data)
+    x == :DisplayPos && return ImDrawData_Get_DisplayPos(data)
+    x == :DisplaySize && return ImDrawData_Get_DisplaySize(data)
+    x == :FramebufferScale && return ImDrawData_Get_FramebufferScale(data)
+end
+
+# emulate cmd.xxx
+function Base.getproperty(cmd::Ptr{ImDrawCmd}, x::Symbol)
+    x == :ElemCount && return ImDrawCmd_Get_ElemCount(cmd)
+    x == :ClipRect && return ImDrawCmd_Get_ClipRect(cmd)
+    x == :TextureId && return ImDrawCmd_Get_TextureId(cmd)
+    x == :UserCallback && return ImDrawCmd_Get_UserCallback(cmd)
+    x == :UserCallbackData && return ImDrawCmd_Get_UserCallbackData(cmd)
+end

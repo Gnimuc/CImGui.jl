@@ -129,9 +129,9 @@ end
 function ImGui_ImplGlfw_NewFrame()
     global g_Time
     io = GetIO()
-    @assert ImFontAtlas_IsBuilt(io.Fonts)
+    @assert ImFontAtlas_IsBuilt(io.Fonts) "Font atlas not built! It is generally built by the renderer back-end. Missing call to renderer _NewFrame() function? e.g. ImGui_ImplOpenGL3_NewFrame()."
 
-    # setup display size
+    # setup display size (every frame to accommodate for window resizing)
     w, h = GLFW.GetWindowSize(g_Window)
     display_w, display_h = GLFW.GetFramebufferSize(g_Window)
     io.DisplaySize = ImVec2(Cfloat(w), Cfloat(h))
@@ -148,4 +148,45 @@ function ImGui_ImplGlfw_NewFrame()
     ImGui_ImplGlfw_UpdateMouseCursor()
 
     # TODO: Gamepad navigation mapping
+    # ImGui_ImplGlfw_UpdateGamepads()
 end
+
+# function ImGui_ImplGlfw_UpdateGamepads()
+#     io = GetIO()
+#     memset(io.NavInputs, 0, sizeof(io.NavInputs));
+#     io.ConfigFlags & ImGuiConfigFlags_NavEnableGamepad == 0 && return
+#
+#     # update gamepad inputs
+#     MAP_BUTTON(NAV_NO, BUTTON_NO) = buttons_count > BUTTON_NO && buttons[BUTTON_NO] == GLFW.PRESS && Set_NavInputs(io, NAV_NO, 1.0f0)
+#     function MAP_ANALOG(NAV_NO, AXIS_NO, V0, V1)
+#         v = (axes_count > AXIS_NO) ? axes[AXIS_NO] : V0
+#         v = (v - V0) / (V1 - V0)
+#         v > 1.0 && (v = 1.0)
+#         Get_NavInputs(io, NAV_NO) < v && Set_NavInputs(io, NAV_NO, v)
+#     end
+#     axes_count = Cint(0)
+#     buttons_count = Cint(0)
+#     axes = @c GLFW.GetJoystickAxes(GLFW.JOYSTICK_1, &axes_count)
+#     buttons = GLFW.GetJoystickButtons(GLFW.JOYSTICK_1, &buttons_count)
+#     MAP_BUTTON(ImGuiNavInput_Activate,   0)     # Cross / A
+#     MAP_BUTTON(ImGuiNavInput_Cancel,     1)     # Circle / B
+#     MAP_BUTTON(ImGuiNavInput_Menu,       2)     # Square / X
+#     MAP_BUTTON(ImGuiNavInput_Input,      3)     # Triangle / Y
+#     MAP_BUTTON(ImGuiNavInput_DpadLeft,   13)    # D-Pad Left
+#     MAP_BUTTON(ImGuiNavInput_DpadRight,  11)    # D-Pad Right
+#     MAP_BUTTON(ImGuiNavInput_DpadUp,     10)    # D-Pad Up
+#     MAP_BUTTON(ImGuiNavInput_DpadDown,   12)    # D-Pad Down
+#     MAP_BUTTON(ImGuiNavInput_FocusPrev,  4)     # L1 / LB
+#     MAP_BUTTON(ImGuiNavInput_FocusNext,  5)     # R1 / RB
+#     MAP_BUTTON(ImGuiNavInput_TweakSlow,  4)     # L1 / LB
+#     MAP_BUTTON(ImGuiNavInput_TweakFast,  5)     # R1 / RB
+#     MAP_ANALOG(ImGuiNavInput_LStickLeft, 0,  -0.3,  -0.9)
+#     MAP_ANALOG(ImGuiNavInput_LStickRight,0,  +0.3,  +0.9)
+#     MAP_ANALOG(ImGuiNavInput_LStickUp,   1,  +0.3,  +0.9)
+#     MAP_ANALOG(ImGuiNavInput_LStickDown, 1,  -0.3,  -0.9)
+#     if axes_count > 0 && buttons_count > 0
+#         io.BackendFlags |= ImGuiBackendFlags_HasGamepad
+#     else
+#         io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad
+#     end
+# end

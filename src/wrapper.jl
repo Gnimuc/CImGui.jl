@@ -2829,6 +2829,23 @@ Set_NavInputs(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_NavInputs(io, i, x)
 # Set_NavInputsDownDuration(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_NavInputsDownDuration(io, i, x)
 # Set_NavInputsDownDurationPrev(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_NavInputsDownDurationPrev(io, i, x)
 
+######################################### ImDrawData #######################################
+Get_Valid(data::Ptr{ImDrawData}) = ImDrawData_Get_Valid(data)
+Get_CmdLists(data::Ptr{ImDrawData}, i) = ImDrawData_Get_CmdLists(data, i)
+Get_CmdListsCount(data::Ptr{ImDrawData}) = ImDrawData_Get_CmdListsCount(data)
+Get_TotalIdxCount(data::Ptr{ImDrawData}) = ImDrawData_Get_TotalIdxCount(data)
+Get_TotalVtxCount(data::Ptr{ImDrawData}) = ImDrawData_Get_TotalVtxCount(data)
+Get_DisplayPos(data::Ptr{ImDrawData}) = ImDrawData_Get_DisplayPos(data)
+Get_DisplaySize(data::Ptr{ImDrawData}) = ImDrawData_Get_DisplaySize(data)
+Get_FramebufferScale(data::Ptr{ImDrawData}) = ImDrawData_Get_FramebufferScale(data)
+
+######################################### ImDrawCmd ########################################
+Get_ElemCount(cmd::Ptr{ImDrawCmd}) = ImDrawCmd_Get_ElemCount(cmd)
+Get_ClipRect(cmd::Ptr{ImDrawCmd}) = ImDrawCmd_Get_ClipRect(cmd)
+Get_TextureId(cmd::Ptr{ImDrawCmd}) = ImDrawCmd_Get_TextureId(cmd)
+Get_UserCallback(cmd::Ptr{ImDrawCmd}) = ImDrawCmd_Get_UserCallback(cmd)
+Get_UserCallbackData(cmd::Ptr{ImDrawCmd}) = ImDrawCmd_Get_UserCallbackData(cmd)
+
 ################################### ImGuiSizeCallbackData ##################################
 Get_UserData(handle::Ptr{ImGuiSizeCallbackData}) = ImGuiSizeCallbackData_Get_UserData(handle)
 Get_Pos(handle::Ptr{ImGuiSizeCallbackData}) = ImGuiSizeCallbackData_Get_Pos(handle)

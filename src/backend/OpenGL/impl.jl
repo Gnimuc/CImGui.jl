@@ -32,13 +32,9 @@ end
 
 function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
     # avoid rendering when minimized, scale coordinates for retina displays
-    io = GetIO()
-    fb_scale = io.DisplayFramebufferScale
-    disp_size = ImDrawData_Get_DisplaySize(draw_data)
-    fb_width = trunc(Cint, disp_size.x * fb_scale.x)
-    fb_height = trunc(Cint, disp_size.y * fb_scale.y)
+    fb_width = trunc(Cint, draw_data.DisplaySize.x * draw_data.FramebufferScale.x)
+    fb_height = trunc(Cint, draw_data.DisplaySize.y * draw_data.FramebufferScale.y)
     (fb_width ≤ 0 || fb_height ≤ 0) && return nothing
-    ImDrawData_ScaleClipRects(draw_data, fb_scale)
 
     # backup GL state
     last_active_texture = GLint(0); @c glGetIntegerv(GL_ACTIVE_TEXTURE, &last_active_texture)
@@ -62,8 +58,11 @@ function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
     last_enable_depth_test = glIsEnabled(GL_DEPTH_TEST)
     last_enable_scissor_test = glIsEnabled(GL_SCISSOR_TEST)
     clip_origin_lower_left = true
-    # last_clip_origin = GLint(0); glGetIntegerv(GL_CLIP_ORIGIN, &last_clip_origin)
-    # last_clip_origin == GL_UPPER_LEFT && (clip_origin_lower_left = false;)
+    # if g_GlslVersion > 450
+    #     last_clip_origin = GLint(0)
+    #     @c glGetIntegerv(GL_CLIP_ORIGIN, &last_clip_origin)
+    #     last_clip_origin == GL_UPPER_LEFT && (clip_origin_lower_left = false;)
+    # end
 
     # setup render state:
     # - alpha-blending enabled
@@ -81,7 +80,8 @@ function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
 
     # setup viewport, orthographic projection matrix
     glViewport(0, 0, GLsizei(fb_width), GLsizei(fb_height))
-    disp_pos = ImDrawData_Get_DisplayPos(draw_data)
+    disp_pos = draw_data.DisplayPos
+    disp_size = draw_data.DisplaySize
     L = disp_pos.x
     R = disp_pos.x + disp_size.x
     T = disp_pos.y
@@ -114,11 +114,13 @@ function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
     glVertexAttribPointer(g_AttribLocationUV, 2, GL_FLOAT, GL_FALSE, idv_size, Ptr{GLCvoid}(uv_offset))
     glVertexAttribPointer(g_AttribLocationColor, 4, GL_UNSIGNED_BYTE, GL_TRUE, idv_size, Ptr{GLCvoid}(col_offset))
 
-    # draw
-    pos = ImDrawData_Get_DisplayPos(draw_data)
-    cmd_lists_count = ImDrawData_Get_CmdListsCount(draw_data)
-    for n = 0:cmd_lists_count-1
-        idx_buffer_offset = Ptr{ImDrawIdx}(0)
+    # will project scissor/clipping rectangles into framebuffer space
+    clip_off = draw_data.DisplayPos         # (0,0) unless using multi-viewports
+    clip_scale = draw_data.FramebufferScale # (1,1) unless using retina display which are often (2,2)
+
+    # render command lists
+    for n = 0:draw_data.CmdListsCount-1
+        idx_buffer_offset = Csize_t(0)
         cmd_list = ImDrawData_Get_CmdLists(draw_data, n)
         vtx_buffer = ImDrawList_Get_VtxBuffer(cmd_list)
         idx_buffer = ImDrawList_Get_IdxBuffer(cmd_list)
@@ -130,27 +132,27 @@ function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
 
         cmd_buffer = ImDrawList_Get_CmdBuffer(cmd_list)
         for cmd_i = 0:cmd_buffer.Size-1
-            pcmd = cmd_buffer.Data + cmd_i * Core.sizeof(ImDrawCmd)
-            elem_count = ImDrawCmd_Get_ElemCount(pcmd)
-            if ImDrawCmd_Get_UserCallback(pcmd) != C_NULL
-                @error "not implenmented yet"
+            pcmd = cmd_buffer.Data + cmd_i * sizeof(ImDrawCmd)
+            elem_count = pcmd.ElemCount
+            if pcmd.UserCallback != C_NULL
                 # user callback (registered via ImDrawList_AddCallback)
-                # pcmd->UserCallback(cmd_list, pcmd);
+                ccall(pcmd.UserCallback, Cvoid, (Ptr{ImDrawList}, Ptr{ImDrawCmd}), cmd_list, pcmd)
             else
                 # project scissor/clipping rectangles into framebuffer space
-                rect = ImDrawCmd_Get_ClipRect(pcmd)
-                clip_rect_x = (rect.x - pos.x);
-                clip_rect_y = (rect.y - pos.y);
-                clip_rect_z = (rect.z - pos.x);
-                clip_rect_w = (rect.w - pos.y);
+                rect = pcmd.ClipRect
+                clip_rect_x = (rect.x - clip_off.x) * clip_scale.x
+                clip_rect_y = (rect.y - clip_off.y) * clip_scale.y
+                clip_rect_z = (rect.z - clip_off.x) * clip_scale.x
+                clip_rect_w = (rect.w - clip_off.y) * clip_scale.y
                 if clip_rect_x < fb_width && clip_rect_y < fb_height && clip_rect_z ≥ 0 && clip_rect_w ≥ 0
-                    # Apply scissor/clipping rectangle
-                    if (clip_origin_lower_left)
+                    # apply scissor/clipping rectangle
+                    if clip_origin_lower_left
                         ix = trunc(Cint, clip_rect_x)
                         iy = trunc(Cint, fb_height - clip_rect_w)
                         iz = trunc(Cint, clip_rect_z - clip_rect_x)
                         iw = trunc(Cint, clip_rect_w - clip_rect_y)
                     else
+                        # support for GL 4.5's glClipControl(GL_UPPER_LEFT)
                         ix = trunc(Cint, clip_rect_x)
                         iy = trunc(Cint, clip_rect_y)
                         iz = trunc(Cint, clip_rect_z)
@@ -158,12 +160,12 @@ function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
                     end
                     glScissor(ix, iy, iz, iw)
                     # bind texture, draw
-                    glBindTexture(GL_TEXTURE_2D, UInt((ImDrawCmd_Get_TextureId(pcmd))))
+                    glBindTexture(GL_TEXTURE_2D, UInt(pcmd.TextureId))
                     format = sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT
-                    glDrawElements(GL_TRIANGLES, GLsizei(elem_count), format, idx_buffer_offset)
+                    glDrawElements(GL_TRIANGLES, GLsizei(elem_count), format, Ptr{Cvoid}(idx_buffer_offset))
                 end
             end
-            idx_buffer_offset += elem_count * Core.sizeof(ImDrawIdx)
+            idx_buffer_offset += elem_count * sizeof(ImDrawIdx)
         end
     end
     @c glDeleteVertexArrays(1, &vao_handle)

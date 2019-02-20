@@ -6,10 +6,11 @@ include("LibCImGui.jl")
 using .LibCImGui
 
 const FLT_MAX = igGET_FLT_MAX()
-const IMGUI_VERSION = igGetVersion()
 
 include("helper.jl")
 include("wrapper.jl")
+
+const IMGUI_VERSION = GetVersion()
 
 include("backend/GLFW/GLFWBackend.jl")
 using .GLFWBackend

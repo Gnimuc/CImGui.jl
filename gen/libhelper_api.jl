@@ -610,6 +610,10 @@ function ImDrawData_Get_DisplaySize(data)
     ccall((:ImDrawData_Get_DisplaySize, libcimgui_helper), ImVec2, (Ptr{ImDrawData},), data)
 end
 
+function ImDrawData_Get_FramebufferScale(data)
+    ccall((:ImDrawData_Get_FramebufferScale, libcimgui_helper), ImVec2, (Ptr{ImDrawData},), data)
+end
+
 function ImDrawList_Get_CmdBuffer(list)
     ccall((:ImDrawList_Get_CmdBuffer, libcimgui_helper), ImVector_ImDrawCmd, (Ptr{ImDrawList},), list)
 end

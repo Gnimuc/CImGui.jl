@@ -286,8 +286,8 @@ function igSetScrollHereY(center_y_ratio)
     ccall((:igSetScrollHereY, libcimgui), Cvoid, (Cfloat,), center_y_ratio)
 end
 
-function igSetScrollFromPosY(pos_y, center_y_ratio)
-    ccall((:igSetScrollFromPosY, libcimgui), Cvoid, (Cfloat, Cfloat), pos_y, center_y_ratio)
+function igSetScrollFromPosY(local_y, center_y_ratio)
+    ccall((:igSetScrollFromPosY, libcimgui), Cvoid, (Cfloat, Cfloat), local_y, center_y_ratio)
 end
 
 function igPushFont(font)
@@ -362,8 +362,8 @@ function igCalcItemWidth()
     ccall((:igCalcItemWidth, libcimgui), Cfloat, ())
 end
 
-function igPushTextWrapPos(wrap_pos_x)
-    ccall((:igPushTextWrapPos, libcimgui), Cvoid, (Cfloat,), wrap_pos_x)
+function igPushTextWrapPos(wrap_local_pos_x)
+    ccall((:igPushTextWrapPos, libcimgui), Cvoid, (Cfloat,), wrap_local_pos_x)
 end
 
 function igPopTextWrapPos()
@@ -390,8 +390,8 @@ function igSeparator()
     ccall((:igSeparator, libcimgui), Cvoid, ())
 end
 
-function igSameLine(pos_x, spacing_w)
-    ccall((:igSameLine, libcimgui), Cvoid, (Cfloat, Cfloat), pos_x, spacing_w)
+function igSameLine(local_pos_x, spacing_w)
+    ccall((:igSameLine, libcimgui), Cvoid, (Cfloat, Cfloat), local_pos_x, spacing_w)
 end
 
 function igNewLine()
@@ -438,12 +438,12 @@ function igSetCursorPos(local_pos)
     ccall((:igSetCursorPos, libcimgui), Cvoid, (ImVec2,), local_pos)
 end
 
-function igSetCursorPosX(x)
-    ccall((:igSetCursorPosX, libcimgui), Cvoid, (Cfloat,), x)
+function igSetCursorPosX(local_x)
+    ccall((:igSetCursorPosX, libcimgui), Cvoid, (Cfloat,), local_x)
 end
 
-function igSetCursorPosY(y)
-    ccall((:igSetCursorPosY, libcimgui), Cvoid, (Cfloat,), y)
+function igSetCursorPosY(local_y)
+    ccall((:igSetCursorPosY, libcimgui), Cvoid, (Cfloat,), local_y)
 end
 
 function igGetCursorStartPos()
@@ -454,8 +454,8 @@ function igGetCursorScreenPos()
     ccall((:igGetCursorScreenPos, libcimgui), ImVec2, ())
 end
 
-function igSetCursorScreenPos(screen_pos)
-    ccall((:igSetCursorScreenPos, libcimgui), Cvoid, (ImVec2,), screen_pos)
+function igSetCursorScreenPos(pos)
+    ccall((:igSetCursorScreenPos, libcimgui), Cvoid, (ImVec2,), pos)
 end
 
 function igAlignTextToFramePadding()
@@ -599,7 +599,7 @@ function igCombo(label, current_item, items, items_count, popup_max_height_in_it
 end
 
 function igComboStr(label, current_item, items_separated_by_zeros, popup_max_height_in_items)
-    ccall((:igComboStr, libcimgui), Bool, (Cstring, Ptr{Cint}, Ptr{UInt8}, Cint), label, current_item, items_separated_by_zeros, popup_max_height_in_items)
+    ccall((:igComboStr, libcimgui), Bool, (Cstring, Ptr{Cint}, Cstring, Cint), label, current_item, items_separated_by_zeros, popup_max_height_in_items)
 end
 
 function igComboFnPtr(label, current_item, items_getter, data, items_count, popup_max_height_in_items)
@@ -734,8 +734,8 @@ function igInputFloat4(label, v, format, flags)
     ccall((:igInputFloat4, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cstring, ImGuiInputTextFlags), label, v, format, flags)
 end
 
-function igInputInt(label, v, step, step_fast, extra_flags)
-    ccall((:igInputInt, libcimgui), Bool, (Cstring, Ptr{Cint}, Cint, Cint, ImGuiInputTextFlags), label, v, step, step_fast, extra_flags)
+function igInputInt(label, v, step, step_fast, flags)
+    ccall((:igInputInt, libcimgui), Bool, (Cstring, Ptr{Cint}, Cint, Cint, ImGuiInputTextFlags), label, v, step, step_fast, flags)
 end
 
 function igInputInt2(label, v, flags)
@@ -750,16 +750,16 @@ function igInputInt4(label, v, flags)
     ccall((:igInputInt4, libcimgui), Bool, (Cstring, Ptr{Cint}, ImGuiInputTextFlags), label, v, flags)
 end
 
-function igInputDouble(label, v, step, step_fast, format, extra_flags)
-    ccall((:igInputDouble, libcimgui), Bool, (Cstring, Ptr{Cdouble}, Cdouble, Cdouble, Cstring, ImGuiInputTextFlags), label, v, step, step_fast, format, extra_flags)
+function igInputDouble(label, v, step, step_fast, format, flags)
+    ccall((:igInputDouble, libcimgui), Bool, (Cstring, Ptr{Cdouble}, Cdouble, Cdouble, Cstring, ImGuiInputTextFlags), label, v, step, step_fast, format, flags)
 end
 
-function igInputScalar(label, data_type, v, step, step_fast, format, extra_flags)
-    ccall((:igInputScalar, libcimgui), Bool, (Cstring, ImGuiDataType, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, ImGuiInputTextFlags), label, data_type, v, step, step_fast, format, extra_flags)
+function igInputScalar(label, data_type, v, step, step_fast, format, flags)
+    ccall((:igInputScalar, libcimgui), Bool, (Cstring, ImGuiDataType, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, ImGuiInputTextFlags), label, data_type, v, step, step_fast, format, flags)
 end
 
-function igInputScalarN(label, data_type, v, components, step, step_fast, format, extra_flags)
-    ccall((:igInputScalarN, libcimgui), Bool, (Cstring, ImGuiDataType, Ptr{Cvoid}, Cint, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, ImGuiInputTextFlags), label, data_type, v, components, step, step_fast, format, extra_flags)
+function igInputScalarN(label, data_type, v, components, step, step_fast, format, flags)
+    ccall((:igInputScalarN, libcimgui), Bool, (Cstring, ImGuiDataType, Ptr{Cvoid}, Cint, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, ImGuiInputTextFlags), label, data_type, v, components, step, step_fast, format, flags)
 end
 
 function igColorEdit3(label, col, flags)
@@ -1018,6 +1018,26 @@ function igGetColumnsCount()
     ccall((:igGetColumnsCount, libcimgui), Cint, ())
 end
 
+function igBeginTabBar(str_id, flags)
+    ccall((:igBeginTabBar, libcimgui), Bool, (Cstring, ImGuiTabBarFlags), str_id, flags)
+end
+
+function igEndTabBar()
+    ccall((:igEndTabBar, libcimgui), Cvoid, ())
+end
+
+function igBeginTabItem(label, p_open, flags)
+    ccall((:igBeginTabItem, libcimgui), Bool, (Cstring, Ptr{Bool}, ImGuiTabItemFlags), label, p_open, flags)
+end
+
+function igEndTabItem()
+    ccall((:igEndTabItem, libcimgui), Cvoid, ())
+end
+
+function igSetTabItemClosed(tab_or_docked_window_label)
+    ccall((:igSetTabItemClosed, libcimgui), Cvoid, (Cstring,), tab_or_docked_window_label)
+end
+
 function igLogToTTY(max_depth)
     ccall((:igLogToTTY, libcimgui), Cvoid, (Cint,), max_depth)
 end
@@ -1108,6 +1128,10 @@ end
 
 function igIsItemEdited()
     ccall((:igIsItemEdited, libcimgui), Bool, ())
+end
+
+function igIsItemActivated()
+    ccall((:igIsItemActivated, libcimgui), Bool, ())
 end
 
 function igIsItemDeactivated()
@@ -1282,12 +1306,12 @@ function igSetMouseCursor(type)
     ccall((:igSetMouseCursor, libcimgui), Cvoid, (ImGuiMouseCursor,), type)
 end
 
-function igCaptureKeyboardFromApp(capture)
-    ccall((:igCaptureKeyboardFromApp, libcimgui), Cvoid, (Bool,), capture)
+function igCaptureKeyboardFromApp(want_capture_keyboard_value)
+    ccall((:igCaptureKeyboardFromApp, libcimgui), Cvoid, (Bool,), want_capture_keyboard_value)
 end
 
-function igCaptureMouseFromApp(capture)
-    ccall((:igCaptureMouseFromApp, libcimgui), Cvoid, (Bool,), capture)
+function igCaptureMouseFromApp(want_capture_mouse_value)
+    ccall((:igCaptureMouseFromApp, libcimgui), Cvoid, (Bool,), want_capture_mouse_value)
 end
 
 function igGetClipboardText()
@@ -1342,8 +1366,8 @@ function ImGuiIO_AddInputCharacter(self, c)
     ccall((:ImGuiIO_AddInputCharacter, libcimgui), Cvoid, (Ptr{ImGuiIO}, ImWchar), self, c)
 end
 
-function ImGuiIO_AddInputCharactersUTF8(self, utf8_chars)
-    ccall((:ImGuiIO_AddInputCharactersUTF8, libcimgui), Cvoid, (Ptr{ImGuiIO}, Cstring), self, utf8_chars)
+function ImGuiIO_AddInputCharactersUTF8(self, str)
+    ccall((:ImGuiIO_AddInputCharactersUTF8, libcimgui), Cvoid, (Ptr{ImGuiIO}, Cstring), self, str)
 end
 
 function ImGuiIO_ClearInputCharacters(self)
@@ -1502,8 +1526,8 @@ function ImGuiTextBuffer_c_str(self)
     ccall((:ImGuiTextBuffer_c_str, libcimgui), Cstring, (Ptr{ImGuiTextBuffer},), self)
 end
 
-function ImGuiTextBuffer_appendf(self, text)
-    ccall((:ImGuiTextBuffer_appendf, libcimgui), Cstring, (Ptr{ImGuiTextBuffer}, Cstring), self, text)
+function ImGuiTextBuffer_append(self, str, str_end)
+    ccall((:ImGuiTextBuffer_append, libcimgui), Cvoid, (Ptr{ImGuiTextBuffer}, Cstring, Cstring), self, str, str_end)
 end
 
 function Pair_PairInt(_key, _val_i)
@@ -1870,8 +1894,8 @@ function ImDrawData_DeIndexAllBuffers(self)
     ccall((:ImDrawData_DeIndexAllBuffers, libcimgui), Cvoid, (Ptr{ImDrawData},), self)
 end
 
-function ImDrawData_ScaleClipRects(self, sc)
-    ccall((:ImDrawData_ScaleClipRects, libcimgui), Cvoid, (Ptr{ImDrawData}, ImVec2), self, sc)
+function ImDrawData_ScaleClipRects(self, fb_scale)
+    ccall((:ImDrawData_ScaleClipRects, libcimgui), Cvoid, (Ptr{ImDrawData}, ImVec2), self, fb_scale)
 end
 
 function ImFontConfig_ImFontConfig()
@@ -1880,6 +1904,38 @@ end
 
 function ImFontConfig_destroy(self)
     ccall((:ImFontConfig_destroy, libcimgui), Cvoid, (Ptr{ImFontConfig},), self)
+end
+
+function ImFontGlyphRangesBuilder_ImFontGlyphRangesBuilder()
+    ccall((:ImFontGlyphRangesBuilder_ImFontGlyphRangesBuilder, libcimgui), Ptr{ImFontGlyphRangesBuilder}, ())
+end
+
+function ImFontGlyphRangesBuilder_destroy(self)
+    ccall((:ImFontGlyphRangesBuilder_destroy, libcimgui), Cvoid, (Ptr{ImFontGlyphRangesBuilder},), self)
+end
+
+function ImFontGlyphRangesBuilder_GetBit(self, n)
+    ccall((:ImFontGlyphRangesBuilder_GetBit, libcimgui), Bool, (Ptr{ImFontGlyphRangesBuilder}, Cint), self, n)
+end
+
+function ImFontGlyphRangesBuilder_SetBit(self, n)
+    ccall((:ImFontGlyphRangesBuilder_SetBit, libcimgui), Cvoid, (Ptr{ImFontGlyphRangesBuilder}, Cint), self, n)
+end
+
+function ImFontGlyphRangesBuilder_AddChar(self, c)
+    ccall((:ImFontGlyphRangesBuilder_AddChar, libcimgui), Cvoid, (Ptr{ImFontGlyphRangesBuilder}, ImWchar), self, c)
+end
+
+function ImFontGlyphRangesBuilder_AddText(self, text, text_end)
+    ccall((:ImFontGlyphRangesBuilder_AddText, libcimgui), Cvoid, (Ptr{ImFontGlyphRangesBuilder}, Cstring, Cstring), self, text, text_end)
+end
+
+function ImFontGlyphRangesBuilder_AddRanges(self, ranges)
+    ccall((:ImFontGlyphRangesBuilder_AddRanges, libcimgui), Cvoid, (Ptr{ImFontGlyphRangesBuilder}, Ptr{ImWchar}), self, ranges)
+end
+
+function ImFontGlyphRangesBuilder_BuildRanges(self, out_ranges)
+    ccall((:ImFontGlyphRangesBuilder_BuildRanges, libcimgui), Cvoid, (Ptr{ImFontGlyphRangesBuilder}, Ptr{ImVector_ImWchar}), self, out_ranges)
 end
 
 function ImFontAtlas_ImFontAtlas()
@@ -1934,16 +1990,16 @@ function ImFontAtlas_Build(self)
     ccall((:ImFontAtlas_Build, libcimgui), Bool, (Ptr{ImFontAtlas},), self)
 end
 
-function ImFontAtlas_IsBuilt(self)
-    ccall((:ImFontAtlas_IsBuilt, libcimgui), Bool, (Ptr{ImFontAtlas},), self)
-end
-
 function ImFontAtlas_GetTexDataAsAlpha8(self, out_pixels, out_width, out_height, out_bytes_per_pixel)
     ccall((:ImFontAtlas_GetTexDataAsAlpha8, libcimgui), Cvoid, (Ptr{ImFontAtlas}, Ptr{Ptr{Cuchar}}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), self, out_pixels, out_width, out_height, out_bytes_per_pixel)
 end
 
 function ImFontAtlas_GetTexDataAsRGBA32(self, out_pixels, out_width, out_height, out_bytes_per_pixel)
     ccall((:ImFontAtlas_GetTexDataAsRGBA32, libcimgui), Cvoid, (Ptr{ImFontAtlas}, Ptr{Ptr{Cuchar}}, Ptr{Cint}, Ptr{Cint}, Ptr{Cint}), self, out_pixels, out_width, out_height, out_bytes_per_pixel)
+end
+
+function ImFontAtlas_IsBuilt(self)
+    ccall((:ImFontAtlas_IsBuilt, libcimgui), Bool, (Ptr{ImFontAtlas},), self)
 end
 
 function ImFontAtlas_SetTexID(self, id)
@@ -1976,38 +2032,6 @@ end
 
 function ImFontAtlas_GetGlyphRangesThai(self)
     ccall((:ImFontAtlas_GetGlyphRangesThai, libcimgui), Ptr{ImWchar}, (Ptr{ImFontAtlas},), self)
-end
-
-function GlyphRangesBuilder_GlyphRangesBuilder()
-    ccall((:GlyphRangesBuilder_GlyphRangesBuilder, libcimgui), Ptr{GlyphRangesBuilder}, ())
-end
-
-function GlyphRangesBuilder_destroy(self)
-    ccall((:GlyphRangesBuilder_destroy, libcimgui), Cvoid, (Ptr{GlyphRangesBuilder},), self)
-end
-
-function GlyphRangesBuilder_GetBit(self, n)
-    ccall((:GlyphRangesBuilder_GetBit, libcimgui), Bool, (Ptr{GlyphRangesBuilder}, Cint), self, n)
-end
-
-function GlyphRangesBuilder_SetBit(self, n)
-    ccall((:GlyphRangesBuilder_SetBit, libcimgui), Cvoid, (Ptr{GlyphRangesBuilder}, Cint), self, n)
-end
-
-function GlyphRangesBuilder_AddChar(self, c)
-    ccall((:GlyphRangesBuilder_AddChar, libcimgui), Cvoid, (Ptr{GlyphRangesBuilder}, ImWchar), self, c)
-end
-
-function GlyphRangesBuilder_AddText(self, text, text_end)
-    ccall((:GlyphRangesBuilder_AddText, libcimgui), Cvoid, (Ptr{GlyphRangesBuilder}, Cstring, Cstring), self, text, text_end)
-end
-
-function GlyphRangesBuilder_AddRanges(self, ranges)
-    ccall((:GlyphRangesBuilder_AddRanges, libcimgui), Cvoid, (Ptr{GlyphRangesBuilder}, Ptr{ImWchar}), self, ranges)
-end
-
-function GlyphRangesBuilder_BuildRanges(self, out_ranges)
-    ccall((:GlyphRangesBuilder_BuildRanges, libcimgui), Cvoid, (Ptr{GlyphRangesBuilder}, Ptr{ImVector_ImWchar}), self, out_ranges)
 end
 
 function CustomRect_CustomRect()
@@ -2050,24 +2074,12 @@ function ImFont_destroy(self)
     ccall((:ImFont_destroy, libcimgui), Cvoid, (Ptr{ImFont},), self)
 end
 
-function ImFont_ClearOutputData(self)
-    ccall((:ImFont_ClearOutputData, libcimgui), Cvoid, (Ptr{ImFont},), self)
-end
-
-function ImFont_BuildLookupTable(self)
-    ccall((:ImFont_BuildLookupTable, libcimgui), Cvoid, (Ptr{ImFont},), self)
-end
-
 function ImFont_FindGlyph(self, c)
     ccall((:ImFont_FindGlyph, libcimgui), Ptr{ImFontGlyph}, (Ptr{ImFont}, ImWchar), self, c)
 end
 
 function ImFont_FindGlyphNoFallback(self, c)
     ccall((:ImFont_FindGlyphNoFallback, libcimgui), Ptr{ImFontGlyph}, (Ptr{ImFont}, ImWchar), self, c)
-end
-
-function ImFont_SetFallbackChar(self, c)
-    ccall((:ImFont_SetFallbackChar, libcimgui), Cvoid, (Ptr{ImFont}, ImWchar), self, c)
 end
 
 function ImFont_GetCharAdvance(self, c)
@@ -2098,6 +2110,14 @@ function ImFont_RenderText(self, draw_list, size, pos, col, clip_rect, text_begi
     ccall((:ImFont_RenderText, libcimgui), Cvoid, (Ptr{ImFont}, Ptr{ImDrawList}, Cfloat, ImVec2, ImU32, ImVec4, Cstring, Cstring, Cfloat, Bool), self, draw_list, size, pos, col, clip_rect, text_begin, text_end, wrap_width, cpu_fine_clip)
 end
 
+function ImFont_BuildLookupTable(self)
+    ccall((:ImFont_BuildLookupTable, libcimgui), Cvoid, (Ptr{ImFont},), self)
+end
+
+function ImFont_ClearOutputData(self)
+    ccall((:ImFont_ClearOutputData, libcimgui), Cvoid, (Ptr{ImFont},), self)
+end
+
 function ImFont_GrowIndex(self, new_size)
     ccall((:ImFont_GrowIndex, libcimgui), Cvoid, (Ptr{ImFont}, Cint), self, new_size)
 end
@@ -2108,6 +2128,10 @@ end
 
 function ImFont_AddRemapChar(self, dst, src, overwrite_dst)
     ccall((:ImFont_AddRemapChar, libcimgui), Cvoid, (Ptr{ImFont}, ImWchar, ImWchar, Bool), self, dst, src, overwrite_dst)
+end
+
+function ImFont_SetFallbackChar(self, c)
+    ccall((:ImFont_SetFallbackChar, libcimgui), Cvoid, (Ptr{ImFont}, ImWchar), self, c)
 end
 
 function igGetWindowPos_nonUDT(pOut)
@@ -2286,6 +2310,1994 @@ function ImFont_CalcTextSizeA_nonUDT2(self, size, max_width, wrap_width, text_be
     ccall((:ImFont_CalcTextSizeA_nonUDT2, libcimgui), ImVec2_Simple, (Ptr{ImFont}, Cfloat, Cfloat, Cfloat, Cstring, Cstring, Ptr{Cstring}), self, size, max_width, wrap_width, text_begin, text_end, remaining)
 end
 
+function ImVector_float_ImVector_float()
+    ccall((:ImVector_float_ImVector_float, libcimgui), Ptr{ImVector_float}, ())
+end
+
+function ImVector_float_destroy(self)
+    ccall((:ImVector_float_destroy, libcimgui), Cvoid, (Ptr{ImVector_float},), self)
+end
+
+function ImVector_ImWchar_ImVector_ImWchar()
+    ccall((:ImVector_ImWchar_ImVector_ImWchar, libcimgui), Ptr{ImVector_ImWchar}, ())
+end
+
+function ImVector_ImWchar_destroy(self)
+    ccall((:ImVector_ImWchar_destroy, libcimgui), Cvoid, (Ptr{ImVector_ImWchar},), self)
+end
+
+function ImVector_ImFontConfig_ImVector_ImFontConfig()
+    ccall((:ImVector_ImFontConfig_ImVector_ImFontConfig, libcimgui), Ptr{ImVector_ImFontConfig}, ())
+end
+
+function ImVector_ImFontConfig_destroy(self)
+    ccall((:ImVector_ImFontConfig_destroy, libcimgui), Cvoid, (Ptr{ImVector_ImFontConfig},), self)
+end
+
+function ImVector_ImFontGlyph_ImVector_ImFontGlyph()
+    ccall((:ImVector_ImFontGlyph_ImVector_ImFontGlyph, libcimgui), Ptr{ImVector_ImFontGlyph}, ())
+end
+
+function ImVector_ImFontGlyph_destroy(self)
+    ccall((:ImVector_ImFontGlyph_destroy, libcimgui), Cvoid, (Ptr{ImVector_ImFontGlyph},), self)
+end
+
+function ImVector_TextRange_ImVector_TextRange()
+    ccall((:ImVector_TextRange_ImVector_TextRange, libcimgui), Ptr{ImVector_TextRange}, ())
+end
+
+function ImVector_TextRange_destroy(self)
+    ccall((:ImVector_TextRange_destroy, libcimgui), Cvoid, (Ptr{ImVector_TextRange},), self)
+end
+
+function ImVector_CustomRect_ImVector_CustomRect()
+    ccall((:ImVector_CustomRect_ImVector_CustomRect, libcimgui), Ptr{ImVector_CustomRect}, ())
+end
+
+function ImVector_CustomRect_destroy(self)
+    ccall((:ImVector_CustomRect_destroy, libcimgui), Cvoid, (Ptr{ImVector_CustomRect},), self)
+end
+
+function ImVector_ImDrawChannel_ImVector_ImDrawChannel()
+    ccall((:ImVector_ImDrawChannel_ImVector_ImDrawChannel, libcimgui), Ptr{ImVector_ImDrawChannel}, ())
+end
+
+function ImVector_ImDrawChannel_destroy(self)
+    ccall((:ImVector_ImDrawChannel_destroy, libcimgui), Cvoid, (Ptr{ImVector_ImDrawChannel},), self)
+end
+
+function ImVector_char_ImVector_char()
+    ccall((:ImVector_char_ImVector_char, libcimgui), Ptr{ImVector_char}, ())
+end
+
+function ImVector_char_destroy(self)
+    ccall((:ImVector_char_destroy, libcimgui), Cvoid, (Ptr{ImVector_char},), self)
+end
+
+function ImVector_ImTextureID_ImVector_ImTextureID()
+    ccall((:ImVector_ImTextureID_ImVector_ImTextureID, libcimgui), Ptr{ImVector_ImTextureID}, ())
+end
+
+function ImVector_ImTextureID_destroy(self)
+    ccall((:ImVector_ImTextureID_destroy, libcimgui), Cvoid, (Ptr{ImVector_ImTextureID},), self)
+end
+
+function ImVector_ImDrawVert_ImVector_ImDrawVert()
+    ccall((:ImVector_ImDrawVert_ImVector_ImDrawVert, libcimgui), Ptr{ImVector_ImDrawVert}, ())
+end
+
+function ImVector_ImDrawVert_destroy(self)
+    ccall((:ImVector_ImDrawVert_destroy, libcimgui), Cvoid, (Ptr{ImVector_ImDrawVert},), self)
+end
+
+function ImVector_int_ImVector_int()
+    ccall((:ImVector_int_ImVector_int, libcimgui), Ptr{ImVector_int}, ())
+end
+
+function ImVector_int_destroy(self)
+    ccall((:ImVector_int_destroy, libcimgui), Cvoid, (Ptr{ImVector_int},), self)
+end
+
+function ImVector_Pair_ImVector_Pair()
+    ccall((:ImVector_Pair_ImVector_Pair, libcimgui), Ptr{ImVector_Pair}, ())
+end
+
+function ImVector_Pair_destroy(self)
+    ccall((:ImVector_Pair_destroy, libcimgui), Cvoid, (Ptr{ImVector_Pair},), self)
+end
+
+function ImVector_ImFontPtr_ImVector_ImFontPtr()
+    ccall((:ImVector_ImFontPtr_ImVector_ImFontPtr, libcimgui), Ptr{ImVector_ImFontPtr}, ())
+end
+
+function ImVector_ImFontPtr_destroy(self)
+    ccall((:ImVector_ImFontPtr_destroy, libcimgui), Cvoid, (Ptr{ImVector_ImFontPtr},), self)
+end
+
+function ImVector_ImVec4_ImVector_ImVec4()
+    ccall((:ImVector_ImVec4_ImVector_ImVec4, libcimgui), Ptr{ImVector_ImVec4}, ())
+end
+
+function ImVector_ImVec4_destroy(self)
+    ccall((:ImVector_ImVec4_destroy, libcimgui), Cvoid, (Ptr{ImVector_ImVec4},), self)
+end
+
+function ImVector_ImDrawCmd_ImVector_ImDrawCmd()
+    ccall((:ImVector_ImDrawCmd_ImVector_ImDrawCmd, libcimgui), Ptr{ImVector_ImDrawCmd}, ())
+end
+
+function ImVector_ImDrawCmd_destroy(self)
+    ccall((:ImVector_ImDrawCmd_destroy, libcimgui), Cvoid, (Ptr{ImVector_ImDrawCmd},), self)
+end
+
+function ImVector_ImDrawIdx_ImVector_ImDrawIdx()
+    ccall((:ImVector_ImDrawIdx_ImVector_ImDrawIdx, libcimgui), Ptr{ImVector_ImDrawIdx}, ())
+end
+
+function ImVector_ImDrawIdx_destroy(self)
+    ccall((:ImVector_ImDrawIdx_destroy, libcimgui), Cvoid, (Ptr{ImVector_ImDrawIdx},), self)
+end
+
+function ImVector_ImVec2_ImVector_ImVec2()
+    ccall((:ImVector_ImVec2_ImVector_ImVec2, libcimgui), Ptr{ImVector_ImVec2}, ())
+end
+
+function ImVector_ImVec2_destroy(self)
+    ccall((:ImVector_ImVec2_destroy, libcimgui), Cvoid, (Ptr{ImVector_ImVec2},), self)
+end
+
+function ImVector_float_ImVector_floatVector(src)
+    ccall((:ImVector_float_ImVector_floatVector, libcimgui), Ptr{ImVector_float}, (ImVector_float,), src)
+end
+
+function ImVector_ImWchar_ImVector_ImWcharVector(src)
+    ccall((:ImVector_ImWchar_ImVector_ImWcharVector, libcimgui), Ptr{ImVector_ImWchar}, (ImVector_ImWchar,), src)
+end
+
+function ImVector_ImFontConfig_ImVector_ImFontConfigVector(src)
+    ccall((:ImVector_ImFontConfig_ImVector_ImFontConfigVector, libcimgui), Ptr{ImVector_ImFontConfig}, (ImVector_ImFontConfig,), src)
+end
+
+function ImVector_ImFontGlyph_ImVector_ImFontGlyphVector(src)
+    ccall((:ImVector_ImFontGlyph_ImVector_ImFontGlyphVector, libcimgui), Ptr{ImVector_ImFontGlyph}, (ImVector_ImFontGlyph,), src)
+end
+
+function ImVector_TextRange_ImVector_TextRangeVector(src)
+    ccall((:ImVector_TextRange_ImVector_TextRangeVector, libcimgui), Ptr{ImVector_TextRange}, (ImVector_TextRange,), src)
+end
+
+function ImVector_CustomRect_ImVector_CustomRectVector(src)
+    ccall((:ImVector_CustomRect_ImVector_CustomRectVector, libcimgui), Ptr{ImVector_CustomRect}, (ImVector_CustomRect,), src)
+end
+
+function ImVector_ImDrawChannel_ImVector_ImDrawChannelVector(src)
+    ccall((:ImVector_ImDrawChannel_ImVector_ImDrawChannelVector, libcimgui), Ptr{ImVector_ImDrawChannel}, (ImVector_ImDrawChannel,), src)
+end
+
+function ImVector_char_ImVector_charVector(src)
+    ccall((:ImVector_char_ImVector_charVector, libcimgui), Ptr{ImVector_char}, (ImVector_char,), src)
+end
+
+function ImVector_ImTextureID_ImVector_ImTextureIDVector(src)
+    ccall((:ImVector_ImTextureID_ImVector_ImTextureIDVector, libcimgui), Ptr{ImVector_ImTextureID}, (ImVector_ImTextureID,), src)
+end
+
+function ImVector_ImDrawVert_ImVector_ImDrawVertVector(src)
+    ccall((:ImVector_ImDrawVert_ImVector_ImDrawVertVector, libcimgui), Ptr{ImVector_ImDrawVert}, (ImVector_ImDrawVert,), src)
+end
+
+function ImVector_int_ImVector_intVector(src)
+    ccall((:ImVector_int_ImVector_intVector, libcimgui), Ptr{ImVector_int}, (ImVector_int,), src)
+end
+
+function ImVector_Pair_ImVector_PairVector(src)
+    ccall((:ImVector_Pair_ImVector_PairVector, libcimgui), Ptr{ImVector_Pair}, (ImVector_Pair,), src)
+end
+
+function ImVector_ImFontPtr_ImVector_ImFontPtrVector(src)
+    ccall((:ImVector_ImFontPtr_ImVector_ImFontPtrVector, libcimgui), Ptr{ImVector_ImFontPtr}, (ImVector_ImFontPtr,), src)
+end
+
+function ImVector_ImVec4_ImVector_ImVec4Vector(src)
+    ccall((:ImVector_ImVec4_ImVector_ImVec4Vector, libcimgui), Ptr{ImVector_ImVec4}, (ImVector_ImVec4,), src)
+end
+
+function ImVector_ImDrawCmd_ImVector_ImDrawCmdVector(src)
+    ccall((:ImVector_ImDrawCmd_ImVector_ImDrawCmdVector, libcimgui), Ptr{ImVector_ImDrawCmd}, (ImVector_ImDrawCmd,), src)
+end
+
+function ImVector_ImDrawIdx_ImVector_ImDrawIdxVector(src)
+    ccall((:ImVector_ImDrawIdx_ImVector_ImDrawIdxVector, libcimgui), Ptr{ImVector_ImDrawIdx}, (ImVector_ImDrawIdx,), src)
+end
+
+function ImVector_ImVec2_ImVector_ImVec2Vector(src)
+    ccall((:ImVector_ImVec2_ImVector_ImVec2Vector, libcimgui), Ptr{ImVector_ImVec2}, (ImVector_ImVec2,), src)
+end
+
+function ImVector_float_empty(self)
+    ccall((:ImVector_float_empty, libcimgui), Bool, (Ptr{ImVector_float},), self)
+end
+
+function ImVector_ImWchar_empty(self)
+    ccall((:ImVector_ImWchar_empty, libcimgui), Bool, (Ptr{ImVector_ImWchar},), self)
+end
+
+function ImVector_ImFontConfig_empty(self)
+    ccall((:ImVector_ImFontConfig_empty, libcimgui), Bool, (Ptr{ImVector_ImFontConfig},), self)
+end
+
+function ImVector_ImFontGlyph_empty(self)
+    ccall((:ImVector_ImFontGlyph_empty, libcimgui), Bool, (Ptr{ImVector_ImFontGlyph},), self)
+end
+
+function ImVector_TextRange_empty(self)
+    ccall((:ImVector_TextRange_empty, libcimgui), Bool, (Ptr{ImVector_TextRange},), self)
+end
+
+function ImVector_CustomRect_empty(self)
+    ccall((:ImVector_CustomRect_empty, libcimgui), Bool, (Ptr{ImVector_CustomRect},), self)
+end
+
+function ImVector_ImDrawChannel_empty(self)
+    ccall((:ImVector_ImDrawChannel_empty, libcimgui), Bool, (Ptr{ImVector_ImDrawChannel},), self)
+end
+
+function ImVector_char_empty(self)
+    ccall((:ImVector_char_empty, libcimgui), Bool, (Ptr{ImVector_char},), self)
+end
+
+function ImVector_ImTextureID_empty(self)
+    ccall((:ImVector_ImTextureID_empty, libcimgui), Bool, (Ptr{ImVector_ImTextureID},), self)
+end
+
+function ImVector_ImDrawVert_empty(self)
+    ccall((:ImVector_ImDrawVert_empty, libcimgui), Bool, (Ptr{ImVector_ImDrawVert},), self)
+end
+
+function ImVector_int_empty(self)
+    ccall((:ImVector_int_empty, libcimgui), Bool, (Ptr{ImVector_int},), self)
+end
+
+function ImVector_Pair_empty(self)
+    ccall((:ImVector_Pair_empty, libcimgui), Bool, (Ptr{ImVector_Pair},), self)
+end
+
+function ImVector_ImFontPtr_empty(self)
+    ccall((:ImVector_ImFontPtr_empty, libcimgui), Bool, (Ptr{ImVector_ImFontPtr},), self)
+end
+
+function ImVector_ImVec4_empty(self)
+    ccall((:ImVector_ImVec4_empty, libcimgui), Bool, (Ptr{ImVector_ImVec4},), self)
+end
+
+function ImVector_ImDrawCmd_empty(self)
+    ccall((:ImVector_ImDrawCmd_empty, libcimgui), Bool, (Ptr{ImVector_ImDrawCmd},), self)
+end
+
+function ImVector_ImDrawIdx_empty(self)
+    ccall((:ImVector_ImDrawIdx_empty, libcimgui), Bool, (Ptr{ImVector_ImDrawIdx},), self)
+end
+
+function ImVector_ImVec2_empty(self)
+    ccall((:ImVector_ImVec2_empty, libcimgui), Bool, (Ptr{ImVector_ImVec2},), self)
+end
+
+function ImVector_float_size(self)
+    ccall((:ImVector_float_size, libcimgui), Cint, (Ptr{ImVector_float},), self)
+end
+
+function ImVector_ImWchar_size(self)
+    ccall((:ImVector_ImWchar_size, libcimgui), Cint, (Ptr{ImVector_ImWchar},), self)
+end
+
+function ImVector_ImFontConfig_size(self)
+    ccall((:ImVector_ImFontConfig_size, libcimgui), Cint, (Ptr{ImVector_ImFontConfig},), self)
+end
+
+function ImVector_ImFontGlyph_size(self)
+    ccall((:ImVector_ImFontGlyph_size, libcimgui), Cint, (Ptr{ImVector_ImFontGlyph},), self)
+end
+
+function ImVector_TextRange_size(self)
+    ccall((:ImVector_TextRange_size, libcimgui), Cint, (Ptr{ImVector_TextRange},), self)
+end
+
+function ImVector_CustomRect_size(self)
+    ccall((:ImVector_CustomRect_size, libcimgui), Cint, (Ptr{ImVector_CustomRect},), self)
+end
+
+function ImVector_ImDrawChannel_size(self)
+    ccall((:ImVector_ImDrawChannel_size, libcimgui), Cint, (Ptr{ImVector_ImDrawChannel},), self)
+end
+
+function ImVector_char_size(self)
+    ccall((:ImVector_char_size, libcimgui), Cint, (Ptr{ImVector_char},), self)
+end
+
+function ImVector_ImTextureID_size(self)
+    ccall((:ImVector_ImTextureID_size, libcimgui), Cint, (Ptr{ImVector_ImTextureID},), self)
+end
+
+function ImVector_ImDrawVert_size(self)
+    ccall((:ImVector_ImDrawVert_size, libcimgui), Cint, (Ptr{ImVector_ImDrawVert},), self)
+end
+
+function ImVector_int_size(self)
+    ccall((:ImVector_int_size, libcimgui), Cint, (Ptr{ImVector_int},), self)
+end
+
+function ImVector_Pair_size(self)
+    ccall((:ImVector_Pair_size, libcimgui), Cint, (Ptr{ImVector_Pair},), self)
+end
+
+function ImVector_ImFontPtr_size(self)
+    ccall((:ImVector_ImFontPtr_size, libcimgui), Cint, (Ptr{ImVector_ImFontPtr},), self)
+end
+
+function ImVector_ImVec4_size(self)
+    ccall((:ImVector_ImVec4_size, libcimgui), Cint, (Ptr{ImVector_ImVec4},), self)
+end
+
+function ImVector_ImDrawCmd_size(self)
+    ccall((:ImVector_ImDrawCmd_size, libcimgui), Cint, (Ptr{ImVector_ImDrawCmd},), self)
+end
+
+function ImVector_ImDrawIdx_size(self)
+    ccall((:ImVector_ImDrawIdx_size, libcimgui), Cint, (Ptr{ImVector_ImDrawIdx},), self)
+end
+
+function ImVector_ImVec2_size(self)
+    ccall((:ImVector_ImVec2_size, libcimgui), Cint, (Ptr{ImVector_ImVec2},), self)
+end
+
+function ImVector_float_size_in_bytes(self)
+    ccall((:ImVector_float_size_in_bytes, libcimgui), Cint, (Ptr{ImVector_float},), self)
+end
+
+function ImVector_ImWchar_size_in_bytes(self)
+    ccall((:ImVector_ImWchar_size_in_bytes, libcimgui), Cint, (Ptr{ImVector_ImWchar},), self)
+end
+
+function ImVector_ImFontConfig_size_in_bytes(self)
+    ccall((:ImVector_ImFontConfig_size_in_bytes, libcimgui), Cint, (Ptr{ImVector_ImFontConfig},), self)
+end
+
+function ImVector_ImFontGlyph_size_in_bytes(self)
+    ccall((:ImVector_ImFontGlyph_size_in_bytes, libcimgui), Cint, (Ptr{ImVector_ImFontGlyph},), self)
+end
+
+function ImVector_TextRange_size_in_bytes(self)
+    ccall((:ImVector_TextRange_size_in_bytes, libcimgui), Cint, (Ptr{ImVector_TextRange},), self)
+end
+
+function ImVector_CustomRect_size_in_bytes(self)
+    ccall((:ImVector_CustomRect_size_in_bytes, libcimgui), Cint, (Ptr{ImVector_CustomRect},), self)
+end
+
+function ImVector_ImDrawChannel_size_in_bytes(self)
+    ccall((:ImVector_ImDrawChannel_size_in_bytes, libcimgui), Cint, (Ptr{ImVector_ImDrawChannel},), self)
+end
+
+function ImVector_char_size_in_bytes(self)
+    ccall((:ImVector_char_size_in_bytes, libcimgui), Cint, (Ptr{ImVector_char},), self)
+end
+
+function ImVector_ImTextureID_size_in_bytes(self)
+    ccall((:ImVector_ImTextureID_size_in_bytes, libcimgui), Cint, (Ptr{ImVector_ImTextureID},), self)
+end
+
+function ImVector_ImDrawVert_size_in_bytes(self)
+    ccall((:ImVector_ImDrawVert_size_in_bytes, libcimgui), Cint, (Ptr{ImVector_ImDrawVert},), self)
+end
+
+function ImVector_int_size_in_bytes(self)
+    ccall((:ImVector_int_size_in_bytes, libcimgui), Cint, (Ptr{ImVector_int},), self)
+end
+
+function ImVector_Pair_size_in_bytes(self)
+    ccall((:ImVector_Pair_size_in_bytes, libcimgui), Cint, (Ptr{ImVector_Pair},), self)
+end
+
+function ImVector_ImFontPtr_size_in_bytes(self)
+    ccall((:ImVector_ImFontPtr_size_in_bytes, libcimgui), Cint, (Ptr{ImVector_ImFontPtr},), self)
+end
+
+function ImVector_ImVec4_size_in_bytes(self)
+    ccall((:ImVector_ImVec4_size_in_bytes, libcimgui), Cint, (Ptr{ImVector_ImVec4},), self)
+end
+
+function ImVector_ImDrawCmd_size_in_bytes(self)
+    ccall((:ImVector_ImDrawCmd_size_in_bytes, libcimgui), Cint, (Ptr{ImVector_ImDrawCmd},), self)
+end
+
+function ImVector_ImDrawIdx_size_in_bytes(self)
+    ccall((:ImVector_ImDrawIdx_size_in_bytes, libcimgui), Cint, (Ptr{ImVector_ImDrawIdx},), self)
+end
+
+function ImVector_ImVec2_size_in_bytes(self)
+    ccall((:ImVector_ImVec2_size_in_bytes, libcimgui), Cint, (Ptr{ImVector_ImVec2},), self)
+end
+
+function ImVector_float_capacity(self)
+    ccall((:ImVector_float_capacity, libcimgui), Cint, (Ptr{ImVector_float},), self)
+end
+
+function ImVector_ImWchar_capacity(self)
+    ccall((:ImVector_ImWchar_capacity, libcimgui), Cint, (Ptr{ImVector_ImWchar},), self)
+end
+
+function ImVector_ImFontConfig_capacity(self)
+    ccall((:ImVector_ImFontConfig_capacity, libcimgui), Cint, (Ptr{ImVector_ImFontConfig},), self)
+end
+
+function ImVector_ImFontGlyph_capacity(self)
+    ccall((:ImVector_ImFontGlyph_capacity, libcimgui), Cint, (Ptr{ImVector_ImFontGlyph},), self)
+end
+
+function ImVector_TextRange_capacity(self)
+    ccall((:ImVector_TextRange_capacity, libcimgui), Cint, (Ptr{ImVector_TextRange},), self)
+end
+
+function ImVector_CustomRect_capacity(self)
+    ccall((:ImVector_CustomRect_capacity, libcimgui), Cint, (Ptr{ImVector_CustomRect},), self)
+end
+
+function ImVector_ImDrawChannel_capacity(self)
+    ccall((:ImVector_ImDrawChannel_capacity, libcimgui), Cint, (Ptr{ImVector_ImDrawChannel},), self)
+end
+
+function ImVector_char_capacity(self)
+    ccall((:ImVector_char_capacity, libcimgui), Cint, (Ptr{ImVector_char},), self)
+end
+
+function ImVector_ImTextureID_capacity(self)
+    ccall((:ImVector_ImTextureID_capacity, libcimgui), Cint, (Ptr{ImVector_ImTextureID},), self)
+end
+
+function ImVector_ImDrawVert_capacity(self)
+    ccall((:ImVector_ImDrawVert_capacity, libcimgui), Cint, (Ptr{ImVector_ImDrawVert},), self)
+end
+
+function ImVector_int_capacity(self)
+    ccall((:ImVector_int_capacity, libcimgui), Cint, (Ptr{ImVector_int},), self)
+end
+
+function ImVector_Pair_capacity(self)
+    ccall((:ImVector_Pair_capacity, libcimgui), Cint, (Ptr{ImVector_Pair},), self)
+end
+
+function ImVector_ImFontPtr_capacity(self)
+    ccall((:ImVector_ImFontPtr_capacity, libcimgui), Cint, (Ptr{ImVector_ImFontPtr},), self)
+end
+
+function ImVector_ImVec4_capacity(self)
+    ccall((:ImVector_ImVec4_capacity, libcimgui), Cint, (Ptr{ImVector_ImVec4},), self)
+end
+
+function ImVector_ImDrawCmd_capacity(self)
+    ccall((:ImVector_ImDrawCmd_capacity, libcimgui), Cint, (Ptr{ImVector_ImDrawCmd},), self)
+end
+
+function ImVector_ImDrawIdx_capacity(self)
+    ccall((:ImVector_ImDrawIdx_capacity, libcimgui), Cint, (Ptr{ImVector_ImDrawIdx},), self)
+end
+
+function ImVector_ImVec2_capacity(self)
+    ccall((:ImVector_ImVec2_capacity, libcimgui), Cint, (Ptr{ImVector_ImVec2},), self)
+end
+
+function ImVector_float_clear(self)
+    ccall((:ImVector_float_clear, libcimgui), Cvoid, (Ptr{ImVector_float},), self)
+end
+
+function ImVector_ImWchar_clear(self)
+    ccall((:ImVector_ImWchar_clear, libcimgui), Cvoid, (Ptr{ImVector_ImWchar},), self)
+end
+
+function ImVector_ImFontConfig_clear(self)
+    ccall((:ImVector_ImFontConfig_clear, libcimgui), Cvoid, (Ptr{ImVector_ImFontConfig},), self)
+end
+
+function ImVector_ImFontGlyph_clear(self)
+    ccall((:ImVector_ImFontGlyph_clear, libcimgui), Cvoid, (Ptr{ImVector_ImFontGlyph},), self)
+end
+
+function ImVector_TextRange_clear(self)
+    ccall((:ImVector_TextRange_clear, libcimgui), Cvoid, (Ptr{ImVector_TextRange},), self)
+end
+
+function ImVector_CustomRect_clear(self)
+    ccall((:ImVector_CustomRect_clear, libcimgui), Cvoid, (Ptr{ImVector_CustomRect},), self)
+end
+
+function ImVector_ImDrawChannel_clear(self)
+    ccall((:ImVector_ImDrawChannel_clear, libcimgui), Cvoid, (Ptr{ImVector_ImDrawChannel},), self)
+end
+
+function ImVector_char_clear(self)
+    ccall((:ImVector_char_clear, libcimgui), Cvoid, (Ptr{ImVector_char},), self)
+end
+
+function ImVector_ImTextureID_clear(self)
+    ccall((:ImVector_ImTextureID_clear, libcimgui), Cvoid, (Ptr{ImVector_ImTextureID},), self)
+end
+
+function ImVector_ImDrawVert_clear(self)
+    ccall((:ImVector_ImDrawVert_clear, libcimgui), Cvoid, (Ptr{ImVector_ImDrawVert},), self)
+end
+
+function ImVector_int_clear(self)
+    ccall((:ImVector_int_clear, libcimgui), Cvoid, (Ptr{ImVector_int},), self)
+end
+
+function ImVector_Pair_clear(self)
+    ccall((:ImVector_Pair_clear, libcimgui), Cvoid, (Ptr{ImVector_Pair},), self)
+end
+
+function ImVector_ImFontPtr_clear(self)
+    ccall((:ImVector_ImFontPtr_clear, libcimgui), Cvoid, (Ptr{ImVector_ImFontPtr},), self)
+end
+
+function ImVector_ImVec4_clear(self)
+    ccall((:ImVector_ImVec4_clear, libcimgui), Cvoid, (Ptr{ImVector_ImVec4},), self)
+end
+
+function ImVector_ImDrawCmd_clear(self)
+    ccall((:ImVector_ImDrawCmd_clear, libcimgui), Cvoid, (Ptr{ImVector_ImDrawCmd},), self)
+end
+
+function ImVector_ImDrawIdx_clear(self)
+    ccall((:ImVector_ImDrawIdx_clear, libcimgui), Cvoid, (Ptr{ImVector_ImDrawIdx},), self)
+end
+
+function ImVector_ImVec2_clear(self)
+    ccall((:ImVector_ImVec2_clear, libcimgui), Cvoid, (Ptr{ImVector_ImVec2},), self)
+end
+
+function ImVector_float_begin(self)
+    ccall((:ImVector_float_begin, libcimgui), Ptr{Cfloat}, (Ptr{ImVector_float},), self)
+end
+
+function ImVector_ImWchar_begin(self)
+    ccall((:ImVector_ImWchar_begin, libcimgui), Ptr{ImWchar}, (Ptr{ImVector_ImWchar},), self)
+end
+
+function ImVector_ImFontConfig_begin(self)
+    ccall((:ImVector_ImFontConfig_begin, libcimgui), Ptr{ImFontConfig}, (Ptr{ImVector_ImFontConfig},), self)
+end
+
+function ImVector_ImFontGlyph_begin(self)
+    ccall((:ImVector_ImFontGlyph_begin, libcimgui), Ptr{ImFontGlyph}, (Ptr{ImVector_ImFontGlyph},), self)
+end
+
+function ImVector_TextRange_begin(self)
+    ccall((:ImVector_TextRange_begin, libcimgui), Ptr{TextRange}, (Ptr{ImVector_TextRange},), self)
+end
+
+function ImVector_CustomRect_begin(self)
+    ccall((:ImVector_CustomRect_begin, libcimgui), Ptr{CustomRect}, (Ptr{ImVector_CustomRect},), self)
+end
+
+function ImVector_ImDrawChannel_begin(self)
+    ccall((:ImVector_ImDrawChannel_begin, libcimgui), Ptr{ImDrawChannel}, (Ptr{ImVector_ImDrawChannel},), self)
+end
+
+function ImVector_char_begin(self)
+    ccall((:ImVector_char_begin, libcimgui), Cstring, (Ptr{ImVector_char},), self)
+end
+
+function ImVector_ImTextureID_begin(self)
+    ccall((:ImVector_ImTextureID_begin, libcimgui), Ptr{ImTextureID}, (Ptr{ImVector_ImTextureID},), self)
+end
+
+function ImVector_ImDrawVert_begin(self)
+    ccall((:ImVector_ImDrawVert_begin, libcimgui), Ptr{ImDrawVert}, (Ptr{ImVector_ImDrawVert},), self)
+end
+
+function ImVector_int_begin(self)
+    ccall((:ImVector_int_begin, libcimgui), Ptr{Cint}, (Ptr{ImVector_int},), self)
+end
+
+function ImVector_Pair_begin(self)
+    ccall((:ImVector_Pair_begin, libcimgui), Ptr{Pair}, (Ptr{ImVector_Pair},), self)
+end
+
+function ImVector_ImFontPtr_begin(self)
+    ccall((:ImVector_ImFontPtr_begin, libcimgui), Ptr{Ptr{ImFont}}, (Ptr{ImVector_ImFontPtr},), self)
+end
+
+function ImVector_ImVec4_begin(self)
+    ccall((:ImVector_ImVec4_begin, libcimgui), Ptr{ImVec4}, (Ptr{ImVector_ImVec4},), self)
+end
+
+function ImVector_ImDrawCmd_begin(self)
+    ccall((:ImVector_ImDrawCmd_begin, libcimgui), Ptr{ImDrawCmd}, (Ptr{ImVector_ImDrawCmd},), self)
+end
+
+function ImVector_ImDrawIdx_begin(self)
+    ccall((:ImVector_ImDrawIdx_begin, libcimgui), Ptr{ImDrawIdx}, (Ptr{ImVector_ImDrawIdx},), self)
+end
+
+function ImVector_ImVec2_begin(self)
+    ccall((:ImVector_ImVec2_begin, libcimgui), Ptr{ImVec2}, (Ptr{ImVector_ImVec2},), self)
+end
+
+function ImVector_float_begin_const(self)
+    ccall((:ImVector_float_begin_const, libcimgui), Ptr{Cfloat}, (Ptr{ImVector_float},), self)
+end
+
+function ImVector_ImWchar_begin_const(self)
+    ccall((:ImVector_ImWchar_begin_const, libcimgui), Ptr{ImWchar}, (Ptr{ImVector_ImWchar},), self)
+end
+
+function ImVector_ImFontConfig_begin_const(self)
+    ccall((:ImVector_ImFontConfig_begin_const, libcimgui), Ptr{ImFontConfig}, (Ptr{ImVector_ImFontConfig},), self)
+end
+
+function ImVector_ImFontGlyph_begin_const(self)
+    ccall((:ImVector_ImFontGlyph_begin_const, libcimgui), Ptr{ImFontGlyph}, (Ptr{ImVector_ImFontGlyph},), self)
+end
+
+function ImVector_TextRange_begin_const(self)
+    ccall((:ImVector_TextRange_begin_const, libcimgui), Ptr{TextRange}, (Ptr{ImVector_TextRange},), self)
+end
+
+function ImVector_CustomRect_begin_const(self)
+    ccall((:ImVector_CustomRect_begin_const, libcimgui), Ptr{CustomRect}, (Ptr{ImVector_CustomRect},), self)
+end
+
+function ImVector_ImDrawChannel_begin_const(self)
+    ccall((:ImVector_ImDrawChannel_begin_const, libcimgui), Ptr{ImDrawChannel}, (Ptr{ImVector_ImDrawChannel},), self)
+end
+
+function ImVector_char_begin_const(self)
+    ccall((:ImVector_char_begin_const, libcimgui), Cstring, (Ptr{ImVector_char},), self)
+end
+
+function ImVector_ImTextureID_begin_const(self)
+    ccall((:ImVector_ImTextureID_begin_const, libcimgui), Ptr{ImTextureID}, (Ptr{ImVector_ImTextureID},), self)
+end
+
+function ImVector_ImDrawVert_begin_const(self)
+    ccall((:ImVector_ImDrawVert_begin_const, libcimgui), Ptr{ImDrawVert}, (Ptr{ImVector_ImDrawVert},), self)
+end
+
+function ImVector_int_begin_const(self)
+    ccall((:ImVector_int_begin_const, libcimgui), Ptr{Cint}, (Ptr{ImVector_int},), self)
+end
+
+function ImVector_Pair_begin_const(self)
+    ccall((:ImVector_Pair_begin_const, libcimgui), Ptr{Pair}, (Ptr{ImVector_Pair},), self)
+end
+
+function ImVector_ImFontPtr_begin_const(self)
+    ccall((:ImVector_ImFontPtr_begin_const, libcimgui), Ptr{Ptr{ImFont}}, (Ptr{ImVector_ImFontPtr},), self)
+end
+
+function ImVector_ImVec4_begin_const(self)
+    ccall((:ImVector_ImVec4_begin_const, libcimgui), Ptr{ImVec4}, (Ptr{ImVector_ImVec4},), self)
+end
+
+function ImVector_ImDrawCmd_begin_const(self)
+    ccall((:ImVector_ImDrawCmd_begin_const, libcimgui), Ptr{ImDrawCmd}, (Ptr{ImVector_ImDrawCmd},), self)
+end
+
+function ImVector_ImDrawIdx_begin_const(self)
+    ccall((:ImVector_ImDrawIdx_begin_const, libcimgui), Ptr{ImDrawIdx}, (Ptr{ImVector_ImDrawIdx},), self)
+end
+
+function ImVector_ImVec2_begin_const(self)
+    ccall((:ImVector_ImVec2_begin_const, libcimgui), Ptr{ImVec2}, (Ptr{ImVector_ImVec2},), self)
+end
+
+function ImVector_float_end(self)
+    ccall((:ImVector_float_end, libcimgui), Ptr{Cfloat}, (Ptr{ImVector_float},), self)
+end
+
+function ImVector_ImWchar_end(self)
+    ccall((:ImVector_ImWchar_end, libcimgui), Ptr{ImWchar}, (Ptr{ImVector_ImWchar},), self)
+end
+
+function ImVector_ImFontConfig_end(self)
+    ccall((:ImVector_ImFontConfig_end, libcimgui), Ptr{ImFontConfig}, (Ptr{ImVector_ImFontConfig},), self)
+end
+
+function ImVector_ImFontGlyph_end(self)
+    ccall((:ImVector_ImFontGlyph_end, libcimgui), Ptr{ImFontGlyph}, (Ptr{ImVector_ImFontGlyph},), self)
+end
+
+function ImVector_TextRange_end(self)
+    ccall((:ImVector_TextRange_end, libcimgui), Ptr{TextRange}, (Ptr{ImVector_TextRange},), self)
+end
+
+function ImVector_CustomRect_end(self)
+    ccall((:ImVector_CustomRect_end, libcimgui), Ptr{CustomRect}, (Ptr{ImVector_CustomRect},), self)
+end
+
+function ImVector_ImDrawChannel_end(self)
+    ccall((:ImVector_ImDrawChannel_end, libcimgui), Ptr{ImDrawChannel}, (Ptr{ImVector_ImDrawChannel},), self)
+end
+
+function ImVector_char_end(self)
+    ccall((:ImVector_char_end, libcimgui), Cstring, (Ptr{ImVector_char},), self)
+end
+
+function ImVector_ImTextureID_end(self)
+    ccall((:ImVector_ImTextureID_end, libcimgui), Ptr{ImTextureID}, (Ptr{ImVector_ImTextureID},), self)
+end
+
+function ImVector_ImDrawVert_end(self)
+    ccall((:ImVector_ImDrawVert_end, libcimgui), Ptr{ImDrawVert}, (Ptr{ImVector_ImDrawVert},), self)
+end
+
+function ImVector_int_end(self)
+    ccall((:ImVector_int_end, libcimgui), Ptr{Cint}, (Ptr{ImVector_int},), self)
+end
+
+function ImVector_Pair_end(self)
+    ccall((:ImVector_Pair_end, libcimgui), Ptr{Pair}, (Ptr{ImVector_Pair},), self)
+end
+
+function ImVector_ImFontPtr_end(self)
+    ccall((:ImVector_ImFontPtr_end, libcimgui), Ptr{Ptr{ImFont}}, (Ptr{ImVector_ImFontPtr},), self)
+end
+
+function ImVector_ImVec4_end(self)
+    ccall((:ImVector_ImVec4_end, libcimgui), Ptr{ImVec4}, (Ptr{ImVector_ImVec4},), self)
+end
+
+function ImVector_ImDrawCmd_end(self)
+    ccall((:ImVector_ImDrawCmd_end, libcimgui), Ptr{ImDrawCmd}, (Ptr{ImVector_ImDrawCmd},), self)
+end
+
+function ImVector_ImDrawIdx_end(self)
+    ccall((:ImVector_ImDrawIdx_end, libcimgui), Ptr{ImDrawIdx}, (Ptr{ImVector_ImDrawIdx},), self)
+end
+
+function ImVector_ImVec2_end(self)
+    ccall((:ImVector_ImVec2_end, libcimgui), Ptr{ImVec2}, (Ptr{ImVector_ImVec2},), self)
+end
+
+function ImVector_float_end_const(self)
+    ccall((:ImVector_float_end_const, libcimgui), Ptr{Cfloat}, (Ptr{ImVector_float},), self)
+end
+
+function ImVector_ImWchar_end_const(self)
+    ccall((:ImVector_ImWchar_end_const, libcimgui), Ptr{ImWchar}, (Ptr{ImVector_ImWchar},), self)
+end
+
+function ImVector_ImFontConfig_end_const(self)
+    ccall((:ImVector_ImFontConfig_end_const, libcimgui), Ptr{ImFontConfig}, (Ptr{ImVector_ImFontConfig},), self)
+end
+
+function ImVector_ImFontGlyph_end_const(self)
+    ccall((:ImVector_ImFontGlyph_end_const, libcimgui), Ptr{ImFontGlyph}, (Ptr{ImVector_ImFontGlyph},), self)
+end
+
+function ImVector_TextRange_end_const(self)
+    ccall((:ImVector_TextRange_end_const, libcimgui), Ptr{TextRange}, (Ptr{ImVector_TextRange},), self)
+end
+
+function ImVector_CustomRect_end_const(self)
+    ccall((:ImVector_CustomRect_end_const, libcimgui), Ptr{CustomRect}, (Ptr{ImVector_CustomRect},), self)
+end
+
+function ImVector_ImDrawChannel_end_const(self)
+    ccall((:ImVector_ImDrawChannel_end_const, libcimgui), Ptr{ImDrawChannel}, (Ptr{ImVector_ImDrawChannel},), self)
+end
+
+function ImVector_char_end_const(self)
+    ccall((:ImVector_char_end_const, libcimgui), Cstring, (Ptr{ImVector_char},), self)
+end
+
+function ImVector_ImTextureID_end_const(self)
+    ccall((:ImVector_ImTextureID_end_const, libcimgui), Ptr{ImTextureID}, (Ptr{ImVector_ImTextureID},), self)
+end
+
+function ImVector_ImDrawVert_end_const(self)
+    ccall((:ImVector_ImDrawVert_end_const, libcimgui), Ptr{ImDrawVert}, (Ptr{ImVector_ImDrawVert},), self)
+end
+
+function ImVector_int_end_const(self)
+    ccall((:ImVector_int_end_const, libcimgui), Ptr{Cint}, (Ptr{ImVector_int},), self)
+end
+
+function ImVector_Pair_end_const(self)
+    ccall((:ImVector_Pair_end_const, libcimgui), Ptr{Pair}, (Ptr{ImVector_Pair},), self)
+end
+
+function ImVector_ImFontPtr_end_const(self)
+    ccall((:ImVector_ImFontPtr_end_const, libcimgui), Ptr{Ptr{ImFont}}, (Ptr{ImVector_ImFontPtr},), self)
+end
+
+function ImVector_ImVec4_end_const(self)
+    ccall((:ImVector_ImVec4_end_const, libcimgui), Ptr{ImVec4}, (Ptr{ImVector_ImVec4},), self)
+end
+
+function ImVector_ImDrawCmd_end_const(self)
+    ccall((:ImVector_ImDrawCmd_end_const, libcimgui), Ptr{ImDrawCmd}, (Ptr{ImVector_ImDrawCmd},), self)
+end
+
+function ImVector_ImDrawIdx_end_const(self)
+    ccall((:ImVector_ImDrawIdx_end_const, libcimgui), Ptr{ImDrawIdx}, (Ptr{ImVector_ImDrawIdx},), self)
+end
+
+function ImVector_ImVec2_end_const(self)
+    ccall((:ImVector_ImVec2_end_const, libcimgui), Ptr{ImVec2}, (Ptr{ImVector_ImVec2},), self)
+end
+
+function ImVector_float_front(self)
+    ccall((:ImVector_float_front, libcimgui), Ptr{Cfloat}, (Ptr{ImVector_float},), self)
+end
+
+function ImVector_ImWchar_front(self)
+    ccall((:ImVector_ImWchar_front, libcimgui), Ptr{ImWchar}, (Ptr{ImVector_ImWchar},), self)
+end
+
+function ImVector_ImFontConfig_front(self)
+    ccall((:ImVector_ImFontConfig_front, libcimgui), Ptr{ImFontConfig}, (Ptr{ImVector_ImFontConfig},), self)
+end
+
+function ImVector_ImFontGlyph_front(self)
+    ccall((:ImVector_ImFontGlyph_front, libcimgui), Ptr{ImFontGlyph}, (Ptr{ImVector_ImFontGlyph},), self)
+end
+
+function ImVector_TextRange_front(self)
+    ccall((:ImVector_TextRange_front, libcimgui), Ptr{TextRange}, (Ptr{ImVector_TextRange},), self)
+end
+
+function ImVector_CustomRect_front(self)
+    ccall((:ImVector_CustomRect_front, libcimgui), Ptr{CustomRect}, (Ptr{ImVector_CustomRect},), self)
+end
+
+function ImVector_ImDrawChannel_front(self)
+    ccall((:ImVector_ImDrawChannel_front, libcimgui), Ptr{ImDrawChannel}, (Ptr{ImVector_ImDrawChannel},), self)
+end
+
+function ImVector_char_front(self)
+    ccall((:ImVector_char_front, libcimgui), Cstring, (Ptr{ImVector_char},), self)
+end
+
+function ImVector_ImTextureID_front(self)
+    ccall((:ImVector_ImTextureID_front, libcimgui), Ptr{ImTextureID}, (Ptr{ImVector_ImTextureID},), self)
+end
+
+function ImVector_ImDrawVert_front(self)
+    ccall((:ImVector_ImDrawVert_front, libcimgui), Ptr{ImDrawVert}, (Ptr{ImVector_ImDrawVert},), self)
+end
+
+function ImVector_int_front(self)
+    ccall((:ImVector_int_front, libcimgui), Ptr{Cint}, (Ptr{ImVector_int},), self)
+end
+
+function ImVector_Pair_front(self)
+    ccall((:ImVector_Pair_front, libcimgui), Ptr{Pair}, (Ptr{ImVector_Pair},), self)
+end
+
+function ImVector_ImFontPtr_front(self)
+    ccall((:ImVector_ImFontPtr_front, libcimgui), Ptr{Ptr{ImFont}}, (Ptr{ImVector_ImFontPtr},), self)
+end
+
+function ImVector_ImVec4_front(self)
+    ccall((:ImVector_ImVec4_front, libcimgui), Ptr{ImVec4}, (Ptr{ImVector_ImVec4},), self)
+end
+
+function ImVector_ImDrawCmd_front(self)
+    ccall((:ImVector_ImDrawCmd_front, libcimgui), Ptr{ImDrawCmd}, (Ptr{ImVector_ImDrawCmd},), self)
+end
+
+function ImVector_ImDrawIdx_front(self)
+    ccall((:ImVector_ImDrawIdx_front, libcimgui), Ptr{ImDrawIdx}, (Ptr{ImVector_ImDrawIdx},), self)
+end
+
+function ImVector_ImVec2_front(self)
+    ccall((:ImVector_ImVec2_front, libcimgui), Ptr{ImVec2}, (Ptr{ImVector_ImVec2},), self)
+end
+
+function ImVector_float_front_const(self)
+    ccall((:ImVector_float_front_const, libcimgui), Ptr{Cfloat}, (Ptr{ImVector_float},), self)
+end
+
+function ImVector_ImWchar_front_const(self)
+    ccall((:ImVector_ImWchar_front_const, libcimgui), Ptr{ImWchar}, (Ptr{ImVector_ImWchar},), self)
+end
+
+function ImVector_ImFontConfig_front_const(self)
+    ccall((:ImVector_ImFontConfig_front_const, libcimgui), Ptr{ImFontConfig}, (Ptr{ImVector_ImFontConfig},), self)
+end
+
+function ImVector_ImFontGlyph_front_const(self)
+    ccall((:ImVector_ImFontGlyph_front_const, libcimgui), Ptr{ImFontGlyph}, (Ptr{ImVector_ImFontGlyph},), self)
+end
+
+function ImVector_TextRange_front_const(self)
+    ccall((:ImVector_TextRange_front_const, libcimgui), Ptr{TextRange}, (Ptr{ImVector_TextRange},), self)
+end
+
+function ImVector_CustomRect_front_const(self)
+    ccall((:ImVector_CustomRect_front_const, libcimgui), Ptr{CustomRect}, (Ptr{ImVector_CustomRect},), self)
+end
+
+function ImVector_ImDrawChannel_front_const(self)
+    ccall((:ImVector_ImDrawChannel_front_const, libcimgui), Ptr{ImDrawChannel}, (Ptr{ImVector_ImDrawChannel},), self)
+end
+
+function ImVector_char_front_const(self)
+    ccall((:ImVector_char_front_const, libcimgui), Cstring, (Ptr{ImVector_char},), self)
+end
+
+function ImVector_ImTextureID_front_const(self)
+    ccall((:ImVector_ImTextureID_front_const, libcimgui), Ptr{ImTextureID}, (Ptr{ImVector_ImTextureID},), self)
+end
+
+function ImVector_ImDrawVert_front_const(self)
+    ccall((:ImVector_ImDrawVert_front_const, libcimgui), Ptr{ImDrawVert}, (Ptr{ImVector_ImDrawVert},), self)
+end
+
+function ImVector_int_front_const(self)
+    ccall((:ImVector_int_front_const, libcimgui), Ptr{Cint}, (Ptr{ImVector_int},), self)
+end
+
+function ImVector_Pair_front_const(self)
+    ccall((:ImVector_Pair_front_const, libcimgui), Ptr{Pair}, (Ptr{ImVector_Pair},), self)
+end
+
+function ImVector_ImFontPtr_front_const(self)
+    ccall((:ImVector_ImFontPtr_front_const, libcimgui), Ptr{Ptr{ImFont}}, (Ptr{ImVector_ImFontPtr},), self)
+end
+
+function ImVector_ImVec4_front_const(self)
+    ccall((:ImVector_ImVec4_front_const, libcimgui), Ptr{ImVec4}, (Ptr{ImVector_ImVec4},), self)
+end
+
+function ImVector_ImDrawCmd_front_const(self)
+    ccall((:ImVector_ImDrawCmd_front_const, libcimgui), Ptr{ImDrawCmd}, (Ptr{ImVector_ImDrawCmd},), self)
+end
+
+function ImVector_ImDrawIdx_front_const(self)
+    ccall((:ImVector_ImDrawIdx_front_const, libcimgui), Ptr{ImDrawIdx}, (Ptr{ImVector_ImDrawIdx},), self)
+end
+
+function ImVector_ImVec2_front_const(self)
+    ccall((:ImVector_ImVec2_front_const, libcimgui), Ptr{ImVec2}, (Ptr{ImVector_ImVec2},), self)
+end
+
+function ImVector_float_back(self)
+    ccall((:ImVector_float_back, libcimgui), Ptr{Cfloat}, (Ptr{ImVector_float},), self)
+end
+
+function ImVector_ImWchar_back(self)
+    ccall((:ImVector_ImWchar_back, libcimgui), Ptr{ImWchar}, (Ptr{ImVector_ImWchar},), self)
+end
+
+function ImVector_ImFontConfig_back(self)
+    ccall((:ImVector_ImFontConfig_back, libcimgui), Ptr{ImFontConfig}, (Ptr{ImVector_ImFontConfig},), self)
+end
+
+function ImVector_ImFontGlyph_back(self)
+    ccall((:ImVector_ImFontGlyph_back, libcimgui), Ptr{ImFontGlyph}, (Ptr{ImVector_ImFontGlyph},), self)
+end
+
+function ImVector_TextRange_back(self)
+    ccall((:ImVector_TextRange_back, libcimgui), Ptr{TextRange}, (Ptr{ImVector_TextRange},), self)
+end
+
+function ImVector_CustomRect_back(self)
+    ccall((:ImVector_CustomRect_back, libcimgui), Ptr{CustomRect}, (Ptr{ImVector_CustomRect},), self)
+end
+
+function ImVector_ImDrawChannel_back(self)
+    ccall((:ImVector_ImDrawChannel_back, libcimgui), Ptr{ImDrawChannel}, (Ptr{ImVector_ImDrawChannel},), self)
+end
+
+function ImVector_char_back(self)
+    ccall((:ImVector_char_back, libcimgui), Cstring, (Ptr{ImVector_char},), self)
+end
+
+function ImVector_ImTextureID_back(self)
+    ccall((:ImVector_ImTextureID_back, libcimgui), Ptr{ImTextureID}, (Ptr{ImVector_ImTextureID},), self)
+end
+
+function ImVector_ImDrawVert_back(self)
+    ccall((:ImVector_ImDrawVert_back, libcimgui), Ptr{ImDrawVert}, (Ptr{ImVector_ImDrawVert},), self)
+end
+
+function ImVector_int_back(self)
+    ccall((:ImVector_int_back, libcimgui), Ptr{Cint}, (Ptr{ImVector_int},), self)
+end
+
+function ImVector_Pair_back(self)
+    ccall((:ImVector_Pair_back, libcimgui), Ptr{Pair}, (Ptr{ImVector_Pair},), self)
+end
+
+function ImVector_ImFontPtr_back(self)
+    ccall((:ImVector_ImFontPtr_back, libcimgui), Ptr{Ptr{ImFont}}, (Ptr{ImVector_ImFontPtr},), self)
+end
+
+function ImVector_ImVec4_back(self)
+    ccall((:ImVector_ImVec4_back, libcimgui), Ptr{ImVec4}, (Ptr{ImVector_ImVec4},), self)
+end
+
+function ImVector_ImDrawCmd_back(self)
+    ccall((:ImVector_ImDrawCmd_back, libcimgui), Ptr{ImDrawCmd}, (Ptr{ImVector_ImDrawCmd},), self)
+end
+
+function ImVector_ImDrawIdx_back(self)
+    ccall((:ImVector_ImDrawIdx_back, libcimgui), Ptr{ImDrawIdx}, (Ptr{ImVector_ImDrawIdx},), self)
+end
+
+function ImVector_ImVec2_back(self)
+    ccall((:ImVector_ImVec2_back, libcimgui), Ptr{ImVec2}, (Ptr{ImVector_ImVec2},), self)
+end
+
+function ImVector_float_back_const(self)
+    ccall((:ImVector_float_back_const, libcimgui), Ptr{Cfloat}, (Ptr{ImVector_float},), self)
+end
+
+function ImVector_ImWchar_back_const(self)
+    ccall((:ImVector_ImWchar_back_const, libcimgui), Ptr{ImWchar}, (Ptr{ImVector_ImWchar},), self)
+end
+
+function ImVector_ImFontConfig_back_const(self)
+    ccall((:ImVector_ImFontConfig_back_const, libcimgui), Ptr{ImFontConfig}, (Ptr{ImVector_ImFontConfig},), self)
+end
+
+function ImVector_ImFontGlyph_back_const(self)
+    ccall((:ImVector_ImFontGlyph_back_const, libcimgui), Ptr{ImFontGlyph}, (Ptr{ImVector_ImFontGlyph},), self)
+end
+
+function ImVector_TextRange_back_const(self)
+    ccall((:ImVector_TextRange_back_const, libcimgui), Ptr{TextRange}, (Ptr{ImVector_TextRange},), self)
+end
+
+function ImVector_CustomRect_back_const(self)
+    ccall((:ImVector_CustomRect_back_const, libcimgui), Ptr{CustomRect}, (Ptr{ImVector_CustomRect},), self)
+end
+
+function ImVector_ImDrawChannel_back_const(self)
+    ccall((:ImVector_ImDrawChannel_back_const, libcimgui), Ptr{ImDrawChannel}, (Ptr{ImVector_ImDrawChannel},), self)
+end
+
+function ImVector_char_back_const(self)
+    ccall((:ImVector_char_back_const, libcimgui), Cstring, (Ptr{ImVector_char},), self)
+end
+
+function ImVector_ImTextureID_back_const(self)
+    ccall((:ImVector_ImTextureID_back_const, libcimgui), Ptr{ImTextureID}, (Ptr{ImVector_ImTextureID},), self)
+end
+
+function ImVector_ImDrawVert_back_const(self)
+    ccall((:ImVector_ImDrawVert_back_const, libcimgui), Ptr{ImDrawVert}, (Ptr{ImVector_ImDrawVert},), self)
+end
+
+function ImVector_int_back_const(self)
+    ccall((:ImVector_int_back_const, libcimgui), Ptr{Cint}, (Ptr{ImVector_int},), self)
+end
+
+function ImVector_Pair_back_const(self)
+    ccall((:ImVector_Pair_back_const, libcimgui), Ptr{Pair}, (Ptr{ImVector_Pair},), self)
+end
+
+function ImVector_ImFontPtr_back_const(self)
+    ccall((:ImVector_ImFontPtr_back_const, libcimgui), Ptr{Ptr{ImFont}}, (Ptr{ImVector_ImFontPtr},), self)
+end
+
+function ImVector_ImVec4_back_const(self)
+    ccall((:ImVector_ImVec4_back_const, libcimgui), Ptr{ImVec4}, (Ptr{ImVector_ImVec4},), self)
+end
+
+function ImVector_ImDrawCmd_back_const(self)
+    ccall((:ImVector_ImDrawCmd_back_const, libcimgui), Ptr{ImDrawCmd}, (Ptr{ImVector_ImDrawCmd},), self)
+end
+
+function ImVector_ImDrawIdx_back_const(self)
+    ccall((:ImVector_ImDrawIdx_back_const, libcimgui), Ptr{ImDrawIdx}, (Ptr{ImVector_ImDrawIdx},), self)
+end
+
+function ImVector_ImVec2_back_const(self)
+    ccall((:ImVector_ImVec2_back_const, libcimgui), Ptr{ImVec2}, (Ptr{ImVector_ImVec2},), self)
+end
+
+function ImVector_float_swap(self, rhs)
+    ccall((:ImVector_float_swap, libcimgui), Cvoid, (Ptr{ImVector_float}, ImVector_float), self, rhs)
+end
+
+function ImVector_ImWchar_swap(self, rhs)
+    ccall((:ImVector_ImWchar_swap, libcimgui), Cvoid, (Ptr{ImVector_ImWchar}, ImVector_ImWchar), self, rhs)
+end
+
+function ImVector_ImFontConfig_swap(self, rhs)
+    ccall((:ImVector_ImFontConfig_swap, libcimgui), Cvoid, (Ptr{ImVector_ImFontConfig}, ImVector_ImFontConfig), self, rhs)
+end
+
+function ImVector_ImFontGlyph_swap(self, rhs)
+    ccall((:ImVector_ImFontGlyph_swap, libcimgui), Cvoid, (Ptr{ImVector_ImFontGlyph}, ImVector_ImFontGlyph), self, rhs)
+end
+
+function ImVector_TextRange_swap(self, rhs)
+    ccall((:ImVector_TextRange_swap, libcimgui), Cvoid, (Ptr{ImVector_TextRange}, ImVector_TextRange), self, rhs)
+end
+
+function ImVector_CustomRect_swap(self, rhs)
+    ccall((:ImVector_CustomRect_swap, libcimgui), Cvoid, (Ptr{ImVector_CustomRect}, ImVector_CustomRect), self, rhs)
+end
+
+function ImVector_ImDrawChannel_swap(self, rhs)
+    ccall((:ImVector_ImDrawChannel_swap, libcimgui), Cvoid, (Ptr{ImVector_ImDrawChannel}, ImVector_ImDrawChannel), self, rhs)
+end
+
+function ImVector_char_swap(self, rhs)
+    ccall((:ImVector_char_swap, libcimgui), Cvoid, (Ptr{ImVector_char}, ImVector_char), self, rhs)
+end
+
+function ImVector_ImTextureID_swap(self, rhs)
+    ccall((:ImVector_ImTextureID_swap, libcimgui), Cvoid, (Ptr{ImVector_ImTextureID}, ImVector_ImTextureID), self, rhs)
+end
+
+function ImVector_ImDrawVert_swap(self, rhs)
+    ccall((:ImVector_ImDrawVert_swap, libcimgui), Cvoid, (Ptr{ImVector_ImDrawVert}, ImVector_ImDrawVert), self, rhs)
+end
+
+function ImVector_int_swap(self, rhs)
+    ccall((:ImVector_int_swap, libcimgui), Cvoid, (Ptr{ImVector_int}, ImVector_int), self, rhs)
+end
+
+function ImVector_Pair_swap(self, rhs)
+    ccall((:ImVector_Pair_swap, libcimgui), Cvoid, (Ptr{ImVector_Pair}, ImVector_Pair), self, rhs)
+end
+
+function ImVector_ImFontPtr_swap(self, rhs)
+    ccall((:ImVector_ImFontPtr_swap, libcimgui), Cvoid, (Ptr{ImVector_ImFontPtr}, ImVector_ImFontPtr), self, rhs)
+end
+
+function ImVector_ImVec4_swap(self, rhs)
+    ccall((:ImVector_ImVec4_swap, libcimgui), Cvoid, (Ptr{ImVector_ImVec4}, ImVector_ImVec4), self, rhs)
+end
+
+function ImVector_ImDrawCmd_swap(self, rhs)
+    ccall((:ImVector_ImDrawCmd_swap, libcimgui), Cvoid, (Ptr{ImVector_ImDrawCmd}, ImVector_ImDrawCmd), self, rhs)
+end
+
+function ImVector_ImDrawIdx_swap(self, rhs)
+    ccall((:ImVector_ImDrawIdx_swap, libcimgui), Cvoid, (Ptr{ImVector_ImDrawIdx}, ImVector_ImDrawIdx), self, rhs)
+end
+
+function ImVector_ImVec2_swap(self, rhs)
+    ccall((:ImVector_ImVec2_swap, libcimgui), Cvoid, (Ptr{ImVector_ImVec2}, ImVector_ImVec2), self, rhs)
+end
+
+function ImVector_float__grow_capacity(self, sz)
+    ccall((:ImVector_float__grow_capacity, libcimgui), Cint, (Ptr{ImVector_float}, Cint), self, sz)
+end
+
+function ImVector_ImWchar__grow_capacity(self, sz)
+    ccall((:ImVector_ImWchar__grow_capacity, libcimgui), Cint, (Ptr{ImVector_ImWchar}, Cint), self, sz)
+end
+
+function ImVector_ImFontConfig__grow_capacity(self, sz)
+    ccall((:ImVector_ImFontConfig__grow_capacity, libcimgui), Cint, (Ptr{ImVector_ImFontConfig}, Cint), self, sz)
+end
+
+function ImVector_ImFontGlyph__grow_capacity(self, sz)
+    ccall((:ImVector_ImFontGlyph__grow_capacity, libcimgui), Cint, (Ptr{ImVector_ImFontGlyph}, Cint), self, sz)
+end
+
+function ImVector_TextRange__grow_capacity(self, sz)
+    ccall((:ImVector_TextRange__grow_capacity, libcimgui), Cint, (Ptr{ImVector_TextRange}, Cint), self, sz)
+end
+
+function ImVector_CustomRect__grow_capacity(self, sz)
+    ccall((:ImVector_CustomRect__grow_capacity, libcimgui), Cint, (Ptr{ImVector_CustomRect}, Cint), self, sz)
+end
+
+function ImVector_ImDrawChannel__grow_capacity(self, sz)
+    ccall((:ImVector_ImDrawChannel__grow_capacity, libcimgui), Cint, (Ptr{ImVector_ImDrawChannel}, Cint), self, sz)
+end
+
+function ImVector_char__grow_capacity(self, sz)
+    ccall((:ImVector_char__grow_capacity, libcimgui), Cint, (Ptr{ImVector_char}, Cint), self, sz)
+end
+
+function ImVector_ImTextureID__grow_capacity(self, sz)
+    ccall((:ImVector_ImTextureID__grow_capacity, libcimgui), Cint, (Ptr{ImVector_ImTextureID}, Cint), self, sz)
+end
+
+function ImVector_ImDrawVert__grow_capacity(self, sz)
+    ccall((:ImVector_ImDrawVert__grow_capacity, libcimgui), Cint, (Ptr{ImVector_ImDrawVert}, Cint), self, sz)
+end
+
+function ImVector_int__grow_capacity(self, sz)
+    ccall((:ImVector_int__grow_capacity, libcimgui), Cint, (Ptr{ImVector_int}, Cint), self, sz)
+end
+
+function ImVector_Pair__grow_capacity(self, sz)
+    ccall((:ImVector_Pair__grow_capacity, libcimgui), Cint, (Ptr{ImVector_Pair}, Cint), self, sz)
+end
+
+function ImVector_ImFontPtr__grow_capacity(self, sz)
+    ccall((:ImVector_ImFontPtr__grow_capacity, libcimgui), Cint, (Ptr{ImVector_ImFontPtr}, Cint), self, sz)
+end
+
+function ImVector_ImVec4__grow_capacity(self, sz)
+    ccall((:ImVector_ImVec4__grow_capacity, libcimgui), Cint, (Ptr{ImVector_ImVec4}, Cint), self, sz)
+end
+
+function ImVector_ImDrawCmd__grow_capacity(self, sz)
+    ccall((:ImVector_ImDrawCmd__grow_capacity, libcimgui), Cint, (Ptr{ImVector_ImDrawCmd}, Cint), self, sz)
+end
+
+function ImVector_ImDrawIdx__grow_capacity(self, sz)
+    ccall((:ImVector_ImDrawIdx__grow_capacity, libcimgui), Cint, (Ptr{ImVector_ImDrawIdx}, Cint), self, sz)
+end
+
+function ImVector_ImVec2__grow_capacity(self, sz)
+    ccall((:ImVector_ImVec2__grow_capacity, libcimgui), Cint, (Ptr{ImVector_ImVec2}, Cint), self, sz)
+end
+
+function ImVector_float_resize(self, new_size)
+    ccall((:ImVector_float_resize, libcimgui), Cvoid, (Ptr{ImVector_float}, Cint), self, new_size)
+end
+
+function ImVector_ImWchar_resize(self, new_size)
+    ccall((:ImVector_ImWchar_resize, libcimgui), Cvoid, (Ptr{ImVector_ImWchar}, Cint), self, new_size)
+end
+
+function ImVector_ImFontConfig_resize(self, new_size)
+    ccall((:ImVector_ImFontConfig_resize, libcimgui), Cvoid, (Ptr{ImVector_ImFontConfig}, Cint), self, new_size)
+end
+
+function ImVector_ImFontGlyph_resize(self, new_size)
+    ccall((:ImVector_ImFontGlyph_resize, libcimgui), Cvoid, (Ptr{ImVector_ImFontGlyph}, Cint), self, new_size)
+end
+
+function ImVector_TextRange_resize(self, new_size)
+    ccall((:ImVector_TextRange_resize, libcimgui), Cvoid, (Ptr{ImVector_TextRange}, Cint), self, new_size)
+end
+
+function ImVector_CustomRect_resize(self, new_size)
+    ccall((:ImVector_CustomRect_resize, libcimgui), Cvoid, (Ptr{ImVector_CustomRect}, Cint), self, new_size)
+end
+
+function ImVector_ImDrawChannel_resize(self, new_size)
+    ccall((:ImVector_ImDrawChannel_resize, libcimgui), Cvoid, (Ptr{ImVector_ImDrawChannel}, Cint), self, new_size)
+end
+
+function ImVector_char_resize(self, new_size)
+    ccall((:ImVector_char_resize, libcimgui), Cvoid, (Ptr{ImVector_char}, Cint), self, new_size)
+end
+
+function ImVector_ImTextureID_resize(self, new_size)
+    ccall((:ImVector_ImTextureID_resize, libcimgui), Cvoid, (Ptr{ImVector_ImTextureID}, Cint), self, new_size)
+end
+
+function ImVector_ImDrawVert_resize(self, new_size)
+    ccall((:ImVector_ImDrawVert_resize, libcimgui), Cvoid, (Ptr{ImVector_ImDrawVert}, Cint), self, new_size)
+end
+
+function ImVector_int_resize(self, new_size)
+    ccall((:ImVector_int_resize, libcimgui), Cvoid, (Ptr{ImVector_int}, Cint), self, new_size)
+end
+
+function ImVector_Pair_resize(self, new_size)
+    ccall((:ImVector_Pair_resize, libcimgui), Cvoid, (Ptr{ImVector_Pair}, Cint), self, new_size)
+end
+
+function ImVector_ImFontPtr_resize(self, new_size)
+    ccall((:ImVector_ImFontPtr_resize, libcimgui), Cvoid, (Ptr{ImVector_ImFontPtr}, Cint), self, new_size)
+end
+
+function ImVector_ImVec4_resize(self, new_size)
+    ccall((:ImVector_ImVec4_resize, libcimgui), Cvoid, (Ptr{ImVector_ImVec4}, Cint), self, new_size)
+end
+
+function ImVector_ImDrawCmd_resize(self, new_size)
+    ccall((:ImVector_ImDrawCmd_resize, libcimgui), Cvoid, (Ptr{ImVector_ImDrawCmd}, Cint), self, new_size)
+end
+
+function ImVector_ImDrawIdx_resize(self, new_size)
+    ccall((:ImVector_ImDrawIdx_resize, libcimgui), Cvoid, (Ptr{ImVector_ImDrawIdx}, Cint), self, new_size)
+end
+
+function ImVector_ImVec2_resize(self, new_size)
+    ccall((:ImVector_ImVec2_resize, libcimgui), Cvoid, (Ptr{ImVector_ImVec2}, Cint), self, new_size)
+end
+
+function ImVector_float_resizeT(self, new_size, v)
+    ccall((:ImVector_float_resizeT, libcimgui), Cvoid, (Ptr{ImVector_float}, Cint, Cfloat), self, new_size, v)
+end
+
+function ImVector_ImWchar_resizeT(self, new_size, v)
+    ccall((:ImVector_ImWchar_resizeT, libcimgui), Cvoid, (Ptr{ImVector_ImWchar}, Cint, ImWchar), self, new_size, v)
+end
+
+function ImVector_ImFontConfig_resizeT(self, new_size, v)
+    ccall((:ImVector_ImFontConfig_resizeT, libcimgui), Cvoid, (Ptr{ImVector_ImFontConfig}, Cint, ImFontConfig), self, new_size, v)
+end
+
+function ImVector_ImFontGlyph_resizeT(self, new_size, v)
+    ccall((:ImVector_ImFontGlyph_resizeT, libcimgui), Cvoid, (Ptr{ImVector_ImFontGlyph}, Cint, ImFontGlyph), self, new_size, v)
+end
+
+function ImVector_TextRange_resizeT(self, new_size, v)
+    ccall((:ImVector_TextRange_resizeT, libcimgui), Cvoid, (Ptr{ImVector_TextRange}, Cint, TextRange), self, new_size, v)
+end
+
+function ImVector_CustomRect_resizeT(self, new_size, v)
+    ccall((:ImVector_CustomRect_resizeT, libcimgui), Cvoid, (Ptr{ImVector_CustomRect}, Cint, CustomRect), self, new_size, v)
+end
+
+function ImVector_ImDrawChannel_resizeT(self, new_size, v)
+    ccall((:ImVector_ImDrawChannel_resizeT, libcimgui), Cvoid, (Ptr{ImVector_ImDrawChannel}, Cint, ImDrawChannel), self, new_size, v)
+end
+
+function ImVector_char_resizeT(self, new_size, v)
+    ccall((:ImVector_char_resizeT, libcimgui), Cvoid, (Ptr{ImVector_char}, Cint, UInt8), self, new_size, v)
+end
+
+function ImVector_ImTextureID_resizeT(self, new_size, v)
+    ccall((:ImVector_ImTextureID_resizeT, libcimgui), Cvoid, (Ptr{ImVector_ImTextureID}, Cint, ImTextureID), self, new_size, v)
+end
+
+function ImVector_ImDrawVert_resizeT(self, new_size, v)
+    ccall((:ImVector_ImDrawVert_resizeT, libcimgui), Cvoid, (Ptr{ImVector_ImDrawVert}, Cint, ImDrawVert), self, new_size, v)
+end
+
+function ImVector_int_resizeT(self, new_size, v)
+    ccall((:ImVector_int_resizeT, libcimgui), Cvoid, (Ptr{ImVector_int}, Cint, Cint), self, new_size, v)
+end
+
+function ImVector_Pair_resizeT(self, new_size, v)
+    ccall((:ImVector_Pair_resizeT, libcimgui), Cvoid, (Ptr{ImVector_Pair}, Cint, Pair), self, new_size, v)
+end
+
+function ImVector_ImFontPtr_resizeT(self, new_size, v)
+    ccall((:ImVector_ImFontPtr_resizeT, libcimgui), Cvoid, (Ptr{ImVector_ImFontPtr}, Cint, Ptr{ImFont}), self, new_size, v)
+end
+
+function ImVector_ImVec4_resizeT(self, new_size, v)
+    ccall((:ImVector_ImVec4_resizeT, libcimgui), Cvoid, (Ptr{ImVector_ImVec4}, Cint, ImVec4), self, new_size, v)
+end
+
+function ImVector_ImDrawCmd_resizeT(self, new_size, v)
+    ccall((:ImVector_ImDrawCmd_resizeT, libcimgui), Cvoid, (Ptr{ImVector_ImDrawCmd}, Cint, ImDrawCmd), self, new_size, v)
+end
+
+function ImVector_ImDrawIdx_resizeT(self, new_size, v)
+    ccall((:ImVector_ImDrawIdx_resizeT, libcimgui), Cvoid, (Ptr{ImVector_ImDrawIdx}, Cint, ImDrawIdx), self, new_size, v)
+end
+
+function ImVector_ImVec2_resizeT(self, new_size, v)
+    ccall((:ImVector_ImVec2_resizeT, libcimgui), Cvoid, (Ptr{ImVector_ImVec2}, Cint, ImVec2), self, new_size, v)
+end
+
+function ImVector_float_reserve(self, new_capacity)
+    ccall((:ImVector_float_reserve, libcimgui), Cvoid, (Ptr{ImVector_float}, Cint), self, new_capacity)
+end
+
+function ImVector_ImWchar_reserve(self, new_capacity)
+    ccall((:ImVector_ImWchar_reserve, libcimgui), Cvoid, (Ptr{ImVector_ImWchar}, Cint), self, new_capacity)
+end
+
+function ImVector_ImFontConfig_reserve(self, new_capacity)
+    ccall((:ImVector_ImFontConfig_reserve, libcimgui), Cvoid, (Ptr{ImVector_ImFontConfig}, Cint), self, new_capacity)
+end
+
+function ImVector_ImFontGlyph_reserve(self, new_capacity)
+    ccall((:ImVector_ImFontGlyph_reserve, libcimgui), Cvoid, (Ptr{ImVector_ImFontGlyph}, Cint), self, new_capacity)
+end
+
+function ImVector_TextRange_reserve(self, new_capacity)
+    ccall((:ImVector_TextRange_reserve, libcimgui), Cvoid, (Ptr{ImVector_TextRange}, Cint), self, new_capacity)
+end
+
+function ImVector_CustomRect_reserve(self, new_capacity)
+    ccall((:ImVector_CustomRect_reserve, libcimgui), Cvoid, (Ptr{ImVector_CustomRect}, Cint), self, new_capacity)
+end
+
+function ImVector_ImDrawChannel_reserve(self, new_capacity)
+    ccall((:ImVector_ImDrawChannel_reserve, libcimgui), Cvoid, (Ptr{ImVector_ImDrawChannel}, Cint), self, new_capacity)
+end
+
+function ImVector_char_reserve(self, new_capacity)
+    ccall((:ImVector_char_reserve, libcimgui), Cvoid, (Ptr{ImVector_char}, Cint), self, new_capacity)
+end
+
+function ImVector_ImTextureID_reserve(self, new_capacity)
+    ccall((:ImVector_ImTextureID_reserve, libcimgui), Cvoid, (Ptr{ImVector_ImTextureID}, Cint), self, new_capacity)
+end
+
+function ImVector_ImDrawVert_reserve(self, new_capacity)
+    ccall((:ImVector_ImDrawVert_reserve, libcimgui), Cvoid, (Ptr{ImVector_ImDrawVert}, Cint), self, new_capacity)
+end
+
+function ImVector_int_reserve(self, new_capacity)
+    ccall((:ImVector_int_reserve, libcimgui), Cvoid, (Ptr{ImVector_int}, Cint), self, new_capacity)
+end
+
+function ImVector_Pair_reserve(self, new_capacity)
+    ccall((:ImVector_Pair_reserve, libcimgui), Cvoid, (Ptr{ImVector_Pair}, Cint), self, new_capacity)
+end
+
+function ImVector_ImFontPtr_reserve(self, new_capacity)
+    ccall((:ImVector_ImFontPtr_reserve, libcimgui), Cvoid, (Ptr{ImVector_ImFontPtr}, Cint), self, new_capacity)
+end
+
+function ImVector_ImVec4_reserve(self, new_capacity)
+    ccall((:ImVector_ImVec4_reserve, libcimgui), Cvoid, (Ptr{ImVector_ImVec4}, Cint), self, new_capacity)
+end
+
+function ImVector_ImDrawCmd_reserve(self, new_capacity)
+    ccall((:ImVector_ImDrawCmd_reserve, libcimgui), Cvoid, (Ptr{ImVector_ImDrawCmd}, Cint), self, new_capacity)
+end
+
+function ImVector_ImDrawIdx_reserve(self, new_capacity)
+    ccall((:ImVector_ImDrawIdx_reserve, libcimgui), Cvoid, (Ptr{ImVector_ImDrawIdx}, Cint), self, new_capacity)
+end
+
+function ImVector_ImVec2_reserve(self, new_capacity)
+    ccall((:ImVector_ImVec2_reserve, libcimgui), Cvoid, (Ptr{ImVector_ImVec2}, Cint), self, new_capacity)
+end
+
+function ImVector_float_push_back(self, v)
+    ccall((:ImVector_float_push_back, libcimgui), Cvoid, (Ptr{ImVector_float}, Cfloat), self, v)
+end
+
+function ImVector_ImWchar_push_back(self, v)
+    ccall((:ImVector_ImWchar_push_back, libcimgui), Cvoid, (Ptr{ImVector_ImWchar}, ImWchar), self, v)
+end
+
+function ImVector_ImFontConfig_push_back(self, v)
+    ccall((:ImVector_ImFontConfig_push_back, libcimgui), Cvoid, (Ptr{ImVector_ImFontConfig}, ImFontConfig), self, v)
+end
+
+function ImVector_ImFontGlyph_push_back(self, v)
+    ccall((:ImVector_ImFontGlyph_push_back, libcimgui), Cvoid, (Ptr{ImVector_ImFontGlyph}, ImFontGlyph), self, v)
+end
+
+function ImVector_TextRange_push_back(self, v)
+    ccall((:ImVector_TextRange_push_back, libcimgui), Cvoid, (Ptr{ImVector_TextRange}, TextRange), self, v)
+end
+
+function ImVector_CustomRect_push_back(self, v)
+    ccall((:ImVector_CustomRect_push_back, libcimgui), Cvoid, (Ptr{ImVector_CustomRect}, CustomRect), self, v)
+end
+
+function ImVector_ImDrawChannel_push_back(self, v)
+    ccall((:ImVector_ImDrawChannel_push_back, libcimgui), Cvoid, (Ptr{ImVector_ImDrawChannel}, ImDrawChannel), self, v)
+end
+
+function ImVector_char_push_back(self, v)
+    ccall((:ImVector_char_push_back, libcimgui), Cvoid, (Ptr{ImVector_char}, UInt8), self, v)
+end
+
+function ImVector_ImTextureID_push_back(self, v)
+    ccall((:ImVector_ImTextureID_push_back, libcimgui), Cvoid, (Ptr{ImVector_ImTextureID}, ImTextureID), self, v)
+end
+
+function ImVector_ImDrawVert_push_back(self, v)
+    ccall((:ImVector_ImDrawVert_push_back, libcimgui), Cvoid, (Ptr{ImVector_ImDrawVert}, ImDrawVert), self, v)
+end
+
+function ImVector_int_push_back(self, v)
+    ccall((:ImVector_int_push_back, libcimgui), Cvoid, (Ptr{ImVector_int}, Cint), self, v)
+end
+
+function ImVector_Pair_push_back(self, v)
+    ccall((:ImVector_Pair_push_back, libcimgui), Cvoid, (Ptr{ImVector_Pair}, Pair), self, v)
+end
+
+function ImVector_ImFontPtr_push_back(self, v)
+    ccall((:ImVector_ImFontPtr_push_back, libcimgui), Cvoid, (Ptr{ImVector_ImFontPtr}, Ptr{ImFont}), self, v)
+end
+
+function ImVector_ImVec4_push_back(self, v)
+    ccall((:ImVector_ImVec4_push_back, libcimgui), Cvoid, (Ptr{ImVector_ImVec4}, ImVec4), self, v)
+end
+
+function ImVector_ImDrawCmd_push_back(self, v)
+    ccall((:ImVector_ImDrawCmd_push_back, libcimgui), Cvoid, (Ptr{ImVector_ImDrawCmd}, ImDrawCmd), self, v)
+end
+
+function ImVector_ImDrawIdx_push_back(self, v)
+    ccall((:ImVector_ImDrawIdx_push_back, libcimgui), Cvoid, (Ptr{ImVector_ImDrawIdx}, ImDrawIdx), self, v)
+end
+
+function ImVector_ImVec2_push_back(self, v)
+    ccall((:ImVector_ImVec2_push_back, libcimgui), Cvoid, (Ptr{ImVector_ImVec2}, ImVec2), self, v)
+end
+
+function ImVector_float_pop_back(self)
+    ccall((:ImVector_float_pop_back, libcimgui), Cvoid, (Ptr{ImVector_float},), self)
+end
+
+function ImVector_ImWchar_pop_back(self)
+    ccall((:ImVector_ImWchar_pop_back, libcimgui), Cvoid, (Ptr{ImVector_ImWchar},), self)
+end
+
+function ImVector_ImFontConfig_pop_back(self)
+    ccall((:ImVector_ImFontConfig_pop_back, libcimgui), Cvoid, (Ptr{ImVector_ImFontConfig},), self)
+end
+
+function ImVector_ImFontGlyph_pop_back(self)
+    ccall((:ImVector_ImFontGlyph_pop_back, libcimgui), Cvoid, (Ptr{ImVector_ImFontGlyph},), self)
+end
+
+function ImVector_TextRange_pop_back(self)
+    ccall((:ImVector_TextRange_pop_back, libcimgui), Cvoid, (Ptr{ImVector_TextRange},), self)
+end
+
+function ImVector_CustomRect_pop_back(self)
+    ccall((:ImVector_CustomRect_pop_back, libcimgui), Cvoid, (Ptr{ImVector_CustomRect},), self)
+end
+
+function ImVector_ImDrawChannel_pop_back(self)
+    ccall((:ImVector_ImDrawChannel_pop_back, libcimgui), Cvoid, (Ptr{ImVector_ImDrawChannel},), self)
+end
+
+function ImVector_char_pop_back(self)
+    ccall((:ImVector_char_pop_back, libcimgui), Cvoid, (Ptr{ImVector_char},), self)
+end
+
+function ImVector_ImTextureID_pop_back(self)
+    ccall((:ImVector_ImTextureID_pop_back, libcimgui), Cvoid, (Ptr{ImVector_ImTextureID},), self)
+end
+
+function ImVector_ImDrawVert_pop_back(self)
+    ccall((:ImVector_ImDrawVert_pop_back, libcimgui), Cvoid, (Ptr{ImVector_ImDrawVert},), self)
+end
+
+function ImVector_int_pop_back(self)
+    ccall((:ImVector_int_pop_back, libcimgui), Cvoid, (Ptr{ImVector_int},), self)
+end
+
+function ImVector_Pair_pop_back(self)
+    ccall((:ImVector_Pair_pop_back, libcimgui), Cvoid, (Ptr{ImVector_Pair},), self)
+end
+
+function ImVector_ImFontPtr_pop_back(self)
+    ccall((:ImVector_ImFontPtr_pop_back, libcimgui), Cvoid, (Ptr{ImVector_ImFontPtr},), self)
+end
+
+function ImVector_ImVec4_pop_back(self)
+    ccall((:ImVector_ImVec4_pop_back, libcimgui), Cvoid, (Ptr{ImVector_ImVec4},), self)
+end
+
+function ImVector_ImDrawCmd_pop_back(self)
+    ccall((:ImVector_ImDrawCmd_pop_back, libcimgui), Cvoid, (Ptr{ImVector_ImDrawCmd},), self)
+end
+
+function ImVector_ImDrawIdx_pop_back(self)
+    ccall((:ImVector_ImDrawIdx_pop_back, libcimgui), Cvoid, (Ptr{ImVector_ImDrawIdx},), self)
+end
+
+function ImVector_ImVec2_pop_back(self)
+    ccall((:ImVector_ImVec2_pop_back, libcimgui), Cvoid, (Ptr{ImVector_ImVec2},), self)
+end
+
+function ImVector_float_push_front(self, v)
+    ccall((:ImVector_float_push_front, libcimgui), Cvoid, (Ptr{ImVector_float}, Cfloat), self, v)
+end
+
+function ImVector_ImWchar_push_front(self, v)
+    ccall((:ImVector_ImWchar_push_front, libcimgui), Cvoid, (Ptr{ImVector_ImWchar}, ImWchar), self, v)
+end
+
+function ImVector_ImFontConfig_push_front(self, v)
+    ccall((:ImVector_ImFontConfig_push_front, libcimgui), Cvoid, (Ptr{ImVector_ImFontConfig}, ImFontConfig), self, v)
+end
+
+function ImVector_ImFontGlyph_push_front(self, v)
+    ccall((:ImVector_ImFontGlyph_push_front, libcimgui), Cvoid, (Ptr{ImVector_ImFontGlyph}, ImFontGlyph), self, v)
+end
+
+function ImVector_TextRange_push_front(self, v)
+    ccall((:ImVector_TextRange_push_front, libcimgui), Cvoid, (Ptr{ImVector_TextRange}, TextRange), self, v)
+end
+
+function ImVector_CustomRect_push_front(self, v)
+    ccall((:ImVector_CustomRect_push_front, libcimgui), Cvoid, (Ptr{ImVector_CustomRect}, CustomRect), self, v)
+end
+
+function ImVector_ImDrawChannel_push_front(self, v)
+    ccall((:ImVector_ImDrawChannel_push_front, libcimgui), Cvoid, (Ptr{ImVector_ImDrawChannel}, ImDrawChannel), self, v)
+end
+
+function ImVector_char_push_front(self, v)
+    ccall((:ImVector_char_push_front, libcimgui), Cvoid, (Ptr{ImVector_char}, UInt8), self, v)
+end
+
+function ImVector_ImTextureID_push_front(self, v)
+    ccall((:ImVector_ImTextureID_push_front, libcimgui), Cvoid, (Ptr{ImVector_ImTextureID}, ImTextureID), self, v)
+end
+
+function ImVector_ImDrawVert_push_front(self, v)
+    ccall((:ImVector_ImDrawVert_push_front, libcimgui), Cvoid, (Ptr{ImVector_ImDrawVert}, ImDrawVert), self, v)
+end
+
+function ImVector_int_push_front(self, v)
+    ccall((:ImVector_int_push_front, libcimgui), Cvoid, (Ptr{ImVector_int}, Cint), self, v)
+end
+
+function ImVector_Pair_push_front(self, v)
+    ccall((:ImVector_Pair_push_front, libcimgui), Cvoid, (Ptr{ImVector_Pair}, Pair), self, v)
+end
+
+function ImVector_ImFontPtr_push_front(self, v)
+    ccall((:ImVector_ImFontPtr_push_front, libcimgui), Cvoid, (Ptr{ImVector_ImFontPtr}, Ptr{ImFont}), self, v)
+end
+
+function ImVector_ImVec4_push_front(self, v)
+    ccall((:ImVector_ImVec4_push_front, libcimgui), Cvoid, (Ptr{ImVector_ImVec4}, ImVec4), self, v)
+end
+
+function ImVector_ImDrawCmd_push_front(self, v)
+    ccall((:ImVector_ImDrawCmd_push_front, libcimgui), Cvoid, (Ptr{ImVector_ImDrawCmd}, ImDrawCmd), self, v)
+end
+
+function ImVector_ImDrawIdx_push_front(self, v)
+    ccall((:ImVector_ImDrawIdx_push_front, libcimgui), Cvoid, (Ptr{ImVector_ImDrawIdx}, ImDrawIdx), self, v)
+end
+
+function ImVector_ImVec2_push_front(self, v)
+    ccall((:ImVector_ImVec2_push_front, libcimgui), Cvoid, (Ptr{ImVector_ImVec2}, ImVec2), self, v)
+end
+
+function ImVector_float_erase(self, it)
+    ccall((:ImVector_float_erase, libcimgui), Ptr{Cfloat}, (Ptr{ImVector_float}, Ptr{Cfloat}), self, it)
+end
+
+function ImVector_ImWchar_erase(self, it)
+    ccall((:ImVector_ImWchar_erase, libcimgui), Ptr{ImWchar}, (Ptr{ImVector_ImWchar}, Ptr{ImWchar}), self, it)
+end
+
+function ImVector_ImFontConfig_erase(self, it)
+    ccall((:ImVector_ImFontConfig_erase, libcimgui), Ptr{ImFontConfig}, (Ptr{ImVector_ImFontConfig}, Ptr{ImFontConfig}), self, it)
+end
+
+function ImVector_ImFontGlyph_erase(self, it)
+    ccall((:ImVector_ImFontGlyph_erase, libcimgui), Ptr{ImFontGlyph}, (Ptr{ImVector_ImFontGlyph}, Ptr{ImFontGlyph}), self, it)
+end
+
+function ImVector_TextRange_erase(self, it)
+    ccall((:ImVector_TextRange_erase, libcimgui), Ptr{TextRange}, (Ptr{ImVector_TextRange}, Ptr{TextRange}), self, it)
+end
+
+function ImVector_CustomRect_erase(self, it)
+    ccall((:ImVector_CustomRect_erase, libcimgui), Ptr{CustomRect}, (Ptr{ImVector_CustomRect}, Ptr{CustomRect}), self, it)
+end
+
+function ImVector_ImDrawChannel_erase(self, it)
+    ccall((:ImVector_ImDrawChannel_erase, libcimgui), Ptr{ImDrawChannel}, (Ptr{ImVector_ImDrawChannel}, Ptr{ImDrawChannel}), self, it)
+end
+
+function ImVector_char_erase(self, it)
+    ccall((:ImVector_char_erase, libcimgui), Cstring, (Ptr{ImVector_char}, Cstring), self, it)
+end
+
+function ImVector_ImTextureID_erase(self, it)
+    ccall((:ImVector_ImTextureID_erase, libcimgui), Ptr{ImTextureID}, (Ptr{ImVector_ImTextureID}, Ptr{ImTextureID}), self, it)
+end
+
+function ImVector_ImDrawVert_erase(self, it)
+    ccall((:ImVector_ImDrawVert_erase, libcimgui), Ptr{ImDrawVert}, (Ptr{ImVector_ImDrawVert}, Ptr{ImDrawVert}), self, it)
+end
+
+function ImVector_int_erase(self, it)
+    ccall((:ImVector_int_erase, libcimgui), Ptr{Cint}, (Ptr{ImVector_int}, Ptr{Cint}), self, it)
+end
+
+function ImVector_Pair_erase(self, it)
+    ccall((:ImVector_Pair_erase, libcimgui), Ptr{Pair}, (Ptr{ImVector_Pair}, Ptr{Pair}), self, it)
+end
+
+function ImVector_ImFontPtr_erase(self, it)
+    ccall((:ImVector_ImFontPtr_erase, libcimgui), Ptr{Ptr{ImFont}}, (Ptr{ImVector_ImFontPtr}, Ptr{Ptr{ImFont}}), self, it)
+end
+
+function ImVector_ImVec4_erase(self, it)
+    ccall((:ImVector_ImVec4_erase, libcimgui), Ptr{ImVec4}, (Ptr{ImVector_ImVec4}, Ptr{ImVec4}), self, it)
+end
+
+function ImVector_ImDrawCmd_erase(self, it)
+    ccall((:ImVector_ImDrawCmd_erase, libcimgui), Ptr{ImDrawCmd}, (Ptr{ImVector_ImDrawCmd}, Ptr{ImDrawCmd}), self, it)
+end
+
+function ImVector_ImDrawIdx_erase(self, it)
+    ccall((:ImVector_ImDrawIdx_erase, libcimgui), Ptr{ImDrawIdx}, (Ptr{ImVector_ImDrawIdx}, Ptr{ImDrawIdx}), self, it)
+end
+
+function ImVector_ImVec2_erase(self, it)
+    ccall((:ImVector_ImVec2_erase, libcimgui), Ptr{ImVec2}, (Ptr{ImVector_ImVec2}, Ptr{ImVec2}), self, it)
+end
+
+function ImVector_float_eraseTPtr(self, it, it_last)
+    ccall((:ImVector_float_eraseTPtr, libcimgui), Ptr{Cfloat}, (Ptr{ImVector_float}, Ptr{Cfloat}, Ptr{Cfloat}), self, it, it_last)
+end
+
+function ImVector_ImWchar_eraseTPtr(self, it, it_last)
+    ccall((:ImVector_ImWchar_eraseTPtr, libcimgui), Ptr{ImWchar}, (Ptr{ImVector_ImWchar}, Ptr{ImWchar}, Ptr{ImWchar}), self, it, it_last)
+end
+
+function ImVector_ImFontConfig_eraseTPtr(self, it, it_last)
+    ccall((:ImVector_ImFontConfig_eraseTPtr, libcimgui), Ptr{ImFontConfig}, (Ptr{ImVector_ImFontConfig}, Ptr{ImFontConfig}, Ptr{ImFontConfig}), self, it, it_last)
+end
+
+function ImVector_ImFontGlyph_eraseTPtr(self, it, it_last)
+    ccall((:ImVector_ImFontGlyph_eraseTPtr, libcimgui), Ptr{ImFontGlyph}, (Ptr{ImVector_ImFontGlyph}, Ptr{ImFontGlyph}, Ptr{ImFontGlyph}), self, it, it_last)
+end
+
+function ImVector_TextRange_eraseTPtr(self, it, it_last)
+    ccall((:ImVector_TextRange_eraseTPtr, libcimgui), Ptr{TextRange}, (Ptr{ImVector_TextRange}, Ptr{TextRange}, Ptr{TextRange}), self, it, it_last)
+end
+
+function ImVector_CustomRect_eraseTPtr(self, it, it_last)
+    ccall((:ImVector_CustomRect_eraseTPtr, libcimgui), Ptr{CustomRect}, (Ptr{ImVector_CustomRect}, Ptr{CustomRect}, Ptr{CustomRect}), self, it, it_last)
+end
+
+function ImVector_ImDrawChannel_eraseTPtr(self, it, it_last)
+    ccall((:ImVector_ImDrawChannel_eraseTPtr, libcimgui), Ptr{ImDrawChannel}, (Ptr{ImVector_ImDrawChannel}, Ptr{ImDrawChannel}, Ptr{ImDrawChannel}), self, it, it_last)
+end
+
+function ImVector_char_eraseTPtr(self, it, it_last)
+    ccall((:ImVector_char_eraseTPtr, libcimgui), Cstring, (Ptr{ImVector_char}, Cstring, Cstring), self, it, it_last)
+end
+
+function ImVector_ImTextureID_eraseTPtr(self, it, it_last)
+    ccall((:ImVector_ImTextureID_eraseTPtr, libcimgui), Ptr{ImTextureID}, (Ptr{ImVector_ImTextureID}, Ptr{ImTextureID}, Ptr{ImTextureID}), self, it, it_last)
+end
+
+function ImVector_ImDrawVert_eraseTPtr(self, it, it_last)
+    ccall((:ImVector_ImDrawVert_eraseTPtr, libcimgui), Ptr{ImDrawVert}, (Ptr{ImVector_ImDrawVert}, Ptr{ImDrawVert}, Ptr{ImDrawVert}), self, it, it_last)
+end
+
+function ImVector_int_eraseTPtr(self, it, it_last)
+    ccall((:ImVector_int_eraseTPtr, libcimgui), Ptr{Cint}, (Ptr{ImVector_int}, Ptr{Cint}, Ptr{Cint}), self, it, it_last)
+end
+
+function ImVector_Pair_eraseTPtr(self, it, it_last)
+    ccall((:ImVector_Pair_eraseTPtr, libcimgui), Ptr{Pair}, (Ptr{ImVector_Pair}, Ptr{Pair}, Ptr{Pair}), self, it, it_last)
+end
+
+function ImVector_ImFontPtr_eraseTPtr(self, it, it_last)
+    ccall((:ImVector_ImFontPtr_eraseTPtr, libcimgui), Ptr{Ptr{ImFont}}, (Ptr{ImVector_ImFontPtr}, Ptr{Ptr{ImFont}}, Ptr{Ptr{ImFont}}), self, it, it_last)
+end
+
+function ImVector_ImVec4_eraseTPtr(self, it, it_last)
+    ccall((:ImVector_ImVec4_eraseTPtr, libcimgui), Ptr{ImVec4}, (Ptr{ImVector_ImVec4}, Ptr{ImVec4}, Ptr{ImVec4}), self, it, it_last)
+end
+
+function ImVector_ImDrawCmd_eraseTPtr(self, it, it_last)
+    ccall((:ImVector_ImDrawCmd_eraseTPtr, libcimgui), Ptr{ImDrawCmd}, (Ptr{ImVector_ImDrawCmd}, Ptr{ImDrawCmd}, Ptr{ImDrawCmd}), self, it, it_last)
+end
+
+function ImVector_ImDrawIdx_eraseTPtr(self, it, it_last)
+    ccall((:ImVector_ImDrawIdx_eraseTPtr, libcimgui), Ptr{ImDrawIdx}, (Ptr{ImVector_ImDrawIdx}, Ptr{ImDrawIdx}, Ptr{ImDrawIdx}), self, it, it_last)
+end
+
+function ImVector_ImVec2_eraseTPtr(self, it, it_last)
+    ccall((:ImVector_ImVec2_eraseTPtr, libcimgui), Ptr{ImVec2}, (Ptr{ImVector_ImVec2}, Ptr{ImVec2}, Ptr{ImVec2}), self, it, it_last)
+end
+
+function ImVector_float_erase_unsorted(self, it)
+    ccall((:ImVector_float_erase_unsorted, libcimgui), Ptr{Cfloat}, (Ptr{ImVector_float}, Ptr{Cfloat}), self, it)
+end
+
+function ImVector_ImWchar_erase_unsorted(self, it)
+    ccall((:ImVector_ImWchar_erase_unsorted, libcimgui), Ptr{ImWchar}, (Ptr{ImVector_ImWchar}, Ptr{ImWchar}), self, it)
+end
+
+function ImVector_ImFontConfig_erase_unsorted(self, it)
+    ccall((:ImVector_ImFontConfig_erase_unsorted, libcimgui), Ptr{ImFontConfig}, (Ptr{ImVector_ImFontConfig}, Ptr{ImFontConfig}), self, it)
+end
+
+function ImVector_ImFontGlyph_erase_unsorted(self, it)
+    ccall((:ImVector_ImFontGlyph_erase_unsorted, libcimgui), Ptr{ImFontGlyph}, (Ptr{ImVector_ImFontGlyph}, Ptr{ImFontGlyph}), self, it)
+end
+
+function ImVector_TextRange_erase_unsorted(self, it)
+    ccall((:ImVector_TextRange_erase_unsorted, libcimgui), Ptr{TextRange}, (Ptr{ImVector_TextRange}, Ptr{TextRange}), self, it)
+end
+
+function ImVector_CustomRect_erase_unsorted(self, it)
+    ccall((:ImVector_CustomRect_erase_unsorted, libcimgui), Ptr{CustomRect}, (Ptr{ImVector_CustomRect}, Ptr{CustomRect}), self, it)
+end
+
+function ImVector_ImDrawChannel_erase_unsorted(self, it)
+    ccall((:ImVector_ImDrawChannel_erase_unsorted, libcimgui), Ptr{ImDrawChannel}, (Ptr{ImVector_ImDrawChannel}, Ptr{ImDrawChannel}), self, it)
+end
+
+function ImVector_char_erase_unsorted(self, it)
+    ccall((:ImVector_char_erase_unsorted, libcimgui), Cstring, (Ptr{ImVector_char}, Cstring), self, it)
+end
+
+function ImVector_ImTextureID_erase_unsorted(self, it)
+    ccall((:ImVector_ImTextureID_erase_unsorted, libcimgui), Ptr{ImTextureID}, (Ptr{ImVector_ImTextureID}, Ptr{ImTextureID}), self, it)
+end
+
+function ImVector_ImDrawVert_erase_unsorted(self, it)
+    ccall((:ImVector_ImDrawVert_erase_unsorted, libcimgui), Ptr{ImDrawVert}, (Ptr{ImVector_ImDrawVert}, Ptr{ImDrawVert}), self, it)
+end
+
+function ImVector_int_erase_unsorted(self, it)
+    ccall((:ImVector_int_erase_unsorted, libcimgui), Ptr{Cint}, (Ptr{ImVector_int}, Ptr{Cint}), self, it)
+end
+
+function ImVector_Pair_erase_unsorted(self, it)
+    ccall((:ImVector_Pair_erase_unsorted, libcimgui), Ptr{Pair}, (Ptr{ImVector_Pair}, Ptr{Pair}), self, it)
+end
+
+function ImVector_ImFontPtr_erase_unsorted(self, it)
+    ccall((:ImVector_ImFontPtr_erase_unsorted, libcimgui), Ptr{Ptr{ImFont}}, (Ptr{ImVector_ImFontPtr}, Ptr{Ptr{ImFont}}), self, it)
+end
+
+function ImVector_ImVec4_erase_unsorted(self, it)
+    ccall((:ImVector_ImVec4_erase_unsorted, libcimgui), Ptr{ImVec4}, (Ptr{ImVector_ImVec4}, Ptr{ImVec4}), self, it)
+end
+
+function ImVector_ImDrawCmd_erase_unsorted(self, it)
+    ccall((:ImVector_ImDrawCmd_erase_unsorted, libcimgui), Ptr{ImDrawCmd}, (Ptr{ImVector_ImDrawCmd}, Ptr{ImDrawCmd}), self, it)
+end
+
+function ImVector_ImDrawIdx_erase_unsorted(self, it)
+    ccall((:ImVector_ImDrawIdx_erase_unsorted, libcimgui), Ptr{ImDrawIdx}, (Ptr{ImVector_ImDrawIdx}, Ptr{ImDrawIdx}), self, it)
+end
+
+function ImVector_ImVec2_erase_unsorted(self, it)
+    ccall((:ImVector_ImVec2_erase_unsorted, libcimgui), Ptr{ImVec2}, (Ptr{ImVector_ImVec2}, Ptr{ImVec2}), self, it)
+end
+
+function ImVector_float_insert(self, it, v)
+    ccall((:ImVector_float_insert, libcimgui), Ptr{Cfloat}, (Ptr{ImVector_float}, Ptr{Cfloat}, Cfloat), self, it, v)
+end
+
+function ImVector_ImWchar_insert(self, it, v)
+    ccall((:ImVector_ImWchar_insert, libcimgui), Ptr{ImWchar}, (Ptr{ImVector_ImWchar}, Ptr{ImWchar}, ImWchar), self, it, v)
+end
+
+function ImVector_ImFontConfig_insert(self, it, v)
+    ccall((:ImVector_ImFontConfig_insert, libcimgui), Ptr{ImFontConfig}, (Ptr{ImVector_ImFontConfig}, Ptr{ImFontConfig}, ImFontConfig), self, it, v)
+end
+
+function ImVector_ImFontGlyph_insert(self, it, v)
+    ccall((:ImVector_ImFontGlyph_insert, libcimgui), Ptr{ImFontGlyph}, (Ptr{ImVector_ImFontGlyph}, Ptr{ImFontGlyph}, ImFontGlyph), self, it, v)
+end
+
+function ImVector_TextRange_insert(self, it, v)
+    ccall((:ImVector_TextRange_insert, libcimgui), Ptr{TextRange}, (Ptr{ImVector_TextRange}, Ptr{TextRange}, TextRange), self, it, v)
+end
+
+function ImVector_CustomRect_insert(self, it, v)
+    ccall((:ImVector_CustomRect_insert, libcimgui), Ptr{CustomRect}, (Ptr{ImVector_CustomRect}, Ptr{CustomRect}, CustomRect), self, it, v)
+end
+
+function ImVector_ImDrawChannel_insert(self, it, v)
+    ccall((:ImVector_ImDrawChannel_insert, libcimgui), Ptr{ImDrawChannel}, (Ptr{ImVector_ImDrawChannel}, Ptr{ImDrawChannel}, ImDrawChannel), self, it, v)
+end
+
+function ImVector_char_insert(self, it, v)
+    ccall((:ImVector_char_insert, libcimgui), Cstring, (Ptr{ImVector_char}, Cstring, UInt8), self, it, v)
+end
+
+function ImVector_ImTextureID_insert(self, it, v)
+    ccall((:ImVector_ImTextureID_insert, libcimgui), Ptr{ImTextureID}, (Ptr{ImVector_ImTextureID}, Ptr{ImTextureID}, ImTextureID), self, it, v)
+end
+
+function ImVector_ImDrawVert_insert(self, it, v)
+    ccall((:ImVector_ImDrawVert_insert, libcimgui), Ptr{ImDrawVert}, (Ptr{ImVector_ImDrawVert}, Ptr{ImDrawVert}, ImDrawVert), self, it, v)
+end
+
+function ImVector_int_insert(self, it, v)
+    ccall((:ImVector_int_insert, libcimgui), Ptr{Cint}, (Ptr{ImVector_int}, Ptr{Cint}, Cint), self, it, v)
+end
+
+function ImVector_Pair_insert(self, it, v)
+    ccall((:ImVector_Pair_insert, libcimgui), Ptr{Pair}, (Ptr{ImVector_Pair}, Ptr{Pair}, Pair), self, it, v)
+end
+
+function ImVector_ImFontPtr_insert(self, it, v)
+    ccall((:ImVector_ImFontPtr_insert, libcimgui), Ptr{Ptr{ImFont}}, (Ptr{ImVector_ImFontPtr}, Ptr{Ptr{ImFont}}, Ptr{ImFont}), self, it, v)
+end
+
+function ImVector_ImVec4_insert(self, it, v)
+    ccall((:ImVector_ImVec4_insert, libcimgui), Ptr{ImVec4}, (Ptr{ImVector_ImVec4}, Ptr{ImVec4}, ImVec4), self, it, v)
+end
+
+function ImVector_ImDrawCmd_insert(self, it, v)
+    ccall((:ImVector_ImDrawCmd_insert, libcimgui), Ptr{ImDrawCmd}, (Ptr{ImVector_ImDrawCmd}, Ptr{ImDrawCmd}, ImDrawCmd), self, it, v)
+end
+
+function ImVector_ImDrawIdx_insert(self, it, v)
+    ccall((:ImVector_ImDrawIdx_insert, libcimgui), Ptr{ImDrawIdx}, (Ptr{ImVector_ImDrawIdx}, Ptr{ImDrawIdx}, ImDrawIdx), self, it, v)
+end
+
+function ImVector_ImVec2_insert(self, it, v)
+    ccall((:ImVector_ImVec2_insert, libcimgui), Ptr{ImVec2}, (Ptr{ImVector_ImVec2}, Ptr{ImVec2}, ImVec2), self, it, v)
+end
+
+function ImVector_float_contains(self, v)
+    ccall((:ImVector_float_contains, libcimgui), Bool, (Ptr{ImVector_float}, Cfloat), self, v)
+end
+
+function ImVector_ImWchar_contains(self, v)
+    ccall((:ImVector_ImWchar_contains, libcimgui), Bool, (Ptr{ImVector_ImWchar}, ImWchar), self, v)
+end
+
+function ImVector_char_contains(self, v)
+    ccall((:ImVector_char_contains, libcimgui), Bool, (Ptr{ImVector_char}, UInt8), self, v)
+end
+
+function ImVector_int_contains(self, v)
+    ccall((:ImVector_int_contains, libcimgui), Bool, (Ptr{ImVector_int}, Cint), self, v)
+end
+
+function ImVector_float_index_from_ptr(self, it)
+    ccall((:ImVector_float_index_from_ptr, libcimgui), Cint, (Ptr{ImVector_float}, Ptr{Cfloat}), self, it)
+end
+
+function ImVector_ImWchar_index_from_ptr(self, it)
+    ccall((:ImVector_ImWchar_index_from_ptr, libcimgui), Cint, (Ptr{ImVector_ImWchar}, Ptr{ImWchar}), self, it)
+end
+
+function ImVector_ImFontConfig_index_from_ptr(self, it)
+    ccall((:ImVector_ImFontConfig_index_from_ptr, libcimgui), Cint, (Ptr{ImVector_ImFontConfig}, Ptr{ImFontConfig}), self, it)
+end
+
+function ImVector_ImFontGlyph_index_from_ptr(self, it)
+    ccall((:ImVector_ImFontGlyph_index_from_ptr, libcimgui), Cint, (Ptr{ImVector_ImFontGlyph}, Ptr{ImFontGlyph}), self, it)
+end
+
+function ImVector_TextRange_index_from_ptr(self, it)
+    ccall((:ImVector_TextRange_index_from_ptr, libcimgui), Cint, (Ptr{ImVector_TextRange}, Ptr{TextRange}), self, it)
+end
+
+function ImVector_CustomRect_index_from_ptr(self, it)
+    ccall((:ImVector_CustomRect_index_from_ptr, libcimgui), Cint, (Ptr{ImVector_CustomRect}, Ptr{CustomRect}), self, it)
+end
+
+function ImVector_ImDrawChannel_index_from_ptr(self, it)
+    ccall((:ImVector_ImDrawChannel_index_from_ptr, libcimgui), Cint, (Ptr{ImVector_ImDrawChannel}, Ptr{ImDrawChannel}), self, it)
+end
+
+function ImVector_char_index_from_ptr(self, it)
+    ccall((:ImVector_char_index_from_ptr, libcimgui), Cint, (Ptr{ImVector_char}, Cstring), self, it)
+end
+
+function ImVector_ImTextureID_index_from_ptr(self, it)
+    ccall((:ImVector_ImTextureID_index_from_ptr, libcimgui), Cint, (Ptr{ImVector_ImTextureID}, Ptr{ImTextureID}), self, it)
+end
+
+function ImVector_ImDrawVert_index_from_ptr(self, it)
+    ccall((:ImVector_ImDrawVert_index_from_ptr, libcimgui), Cint, (Ptr{ImVector_ImDrawVert}, Ptr{ImDrawVert}), self, it)
+end
+
+function ImVector_int_index_from_ptr(self, it)
+    ccall((:ImVector_int_index_from_ptr, libcimgui), Cint, (Ptr{ImVector_int}, Ptr{Cint}), self, it)
+end
+
+function ImVector_Pair_index_from_ptr(self, it)
+    ccall((:ImVector_Pair_index_from_ptr, libcimgui), Cint, (Ptr{ImVector_Pair}, Ptr{Pair}), self, it)
+end
+
+function ImVector_ImFontPtr_index_from_ptr(self, it)
+    ccall((:ImVector_ImFontPtr_index_from_ptr, libcimgui), Cint, (Ptr{ImVector_ImFontPtr}, Ptr{Ptr{ImFont}}), self, it)
+end
+
+function ImVector_ImVec4_index_from_ptr(self, it)
+    ccall((:ImVector_ImVec4_index_from_ptr, libcimgui), Cint, (Ptr{ImVector_ImVec4}, Ptr{ImVec4}), self, it)
+end
+
+function ImVector_ImDrawCmd_index_from_ptr(self, it)
+    ccall((:ImVector_ImDrawCmd_index_from_ptr, libcimgui), Cint, (Ptr{ImVector_ImDrawCmd}, Ptr{ImDrawCmd}), self, it)
+end
+
+function ImVector_ImDrawIdx_index_from_ptr(self, it)
+    ccall((:ImVector_ImDrawIdx_index_from_ptr, libcimgui), Cint, (Ptr{ImVector_ImDrawIdx}, Ptr{ImDrawIdx}), self, it)
+end
+
+function ImVector_ImVec2_index_from_ptr(self, it)
+    ccall((:ImVector_ImVec2_index_from_ptr, libcimgui), Cint, (Ptr{ImVector_ImVec2}, Ptr{ImVec2}), self, it)
+end
+
 function igGET_FLT_MAX()
     ccall((:igGET_FLT_MAX, libcimgui), Cfloat, ())
 end
@@ -2300,10 +4312,6 @@ end
 
 function ImVector_ImWchar_create()
     ccall((:ImVector_ImWchar_create, libcimgui), Ptr{ImVector_ImWchar}, ())
-end
-
-function ImVector_ImWchar_destroy(p)
-    ccall((:ImVector_ImWchar_destroy, libcimgui), Cvoid, (Ptr{ImVector_ImWchar},), p)
 end
 
 function ImVector_ImWchar_Init(p)

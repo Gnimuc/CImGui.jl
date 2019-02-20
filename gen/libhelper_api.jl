@@ -78,14 +78,6 @@ function ImGuiIO_Get_DisplayFramebufferScale(io)
     ccall((:ImGuiIO_Get_DisplayFramebufferScale, libcimgui_helper), ImVec2, (Ptr{ImGuiIO},), io)
 end
 
-function ImGuiIO_Get_DisplayVisibleMin(io)
-    ccall((:ImGuiIO_Get_DisplayVisibleMin, libcimgui_helper), ImVec2, (Ptr{ImGuiIO},), io)
-end
-
-function ImGuiIO_Get_DisplayVisibleMax(io)
-    ccall((:ImGuiIO_Get_DisplayVisibleMax, libcimgui_helper), ImVec2, (Ptr{ImGuiIO},), io)
-end
-
 function ImGuiIO_Get_MouseDrawCursor(io)
     ccall((:ImGuiIO_Get_MouseDrawCursor, libcimgui_helper), Bool, (Ptr{ImGuiIO},), io)
 end
@@ -98,8 +90,12 @@ function ImGuiIO_Get_ConfigInputTextCursorBlink(io)
     ccall((:ImGuiIO_Get_ConfigInputTextCursorBlink, libcimgui_helper), Bool, (Ptr{ImGuiIO},), io)
 end
 
-function ImGuiIO_Get_ConfigResizeWindowsFromEdges(io)
-    ccall((:ImGuiIO_Get_ConfigResizeWindowsFromEdges, libcimgui_helper), Bool, (Ptr{ImGuiIO},), io)
+function ImGuiIO_Get_ConfigWindowsResizeFromEdges(io)
+    ccall((:ImGuiIO_Get_ConfigWindowsResizeFromEdges, libcimgui_helper), Bool, (Ptr{ImGuiIO},), io)
+end
+
+function ImGuiIO_Get_ConfigWindowsMoveFromTitleBarOnly(io)
+    ccall((:ImGuiIO_Get_ConfigWindowsMoveFromTitleBarOnly, libcimgui_helper), Bool, (Ptr{ImGuiIO},), io)
 end
 
 function ImGuiIO_Get_BackendPlatformName(io)
@@ -110,16 +106,16 @@ function ImGuiIO_Get_BackendRendererName(io)
     ccall((:ImGuiIO_Get_BackendRendererName, libcimgui_helper), Cstring, (Ptr{ImGuiIO},), io)
 end
 
-function ImGuiIO_Set_GetClipboardTextFn(io, x)
-    ccall((:ImGuiIO_Set_GetClipboardTextFn, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Ptr{Cvoid}), io, x)
+function ImGuiIO_Get_BackendPlatformUserData(io)
+    ccall((:ImGuiIO_Get_BackendPlatformUserData, libcimgui_helper), Ptr{Cvoid}, (Ptr{ImGuiIO},), io)
 end
 
-function ImGuiIO_Set_SetClipboardTextFn(io, x)
-    ccall((:ImGuiIO_Set_SetClipboardTextFn, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Ptr{Cvoid}), io, x)
+function ImGuiIO_Get_BackendRendererUserData(io)
+    ccall((:ImGuiIO_Get_BackendRendererUserData, libcimgui_helper), Ptr{Cvoid}, (Ptr{ImGuiIO},), io)
 end
 
-function ImGuiIO_Set_ClipboardUserData(io, x)
-    ccall((:ImGuiIO_Set_ClipboardUserData, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Ptr{Cvoid}), io, x)
+function ImGuiIO_Get_BackendLanguageUserData(io)
+    ccall((:ImGuiIO_Get_BackendLanguageUserData, libcimgui_helper), Ptr{Cvoid}, (Ptr{ImGuiIO},), io)
 end
 
 function ImGuiIO_Get_ImeWindowHandle(io)
@@ -164,10 +160,6 @@ end
 
 function ImGuiIO_Get_KeysDown(io, i)
     ccall((:ImGuiIO_Get_KeysDown, libcimgui_helper), Bool, (Ptr{ImGuiIO}, Cint), io, i)
-end
-
-function ImGuiIO_Get_InputCharacters(io, i)
-    ccall((:ImGuiIO_Get_InputCharacters, libcimgui_helper), ImWchar, (Ptr{ImGuiIO}, Cint), io, i)
 end
 
 function ImGuiIO_Get_NavInputs(io, i)
@@ -290,6 +282,10 @@ function ImGuiIO_Get_NavInputsDownDurationPrev(io, i)
     ccall((:ImGuiIO_Get_NavInputsDownDurationPrev, libcimgui_helper), Cfloat, (Ptr{ImGuiIO}, Cint), io, i)
 end
 
+function ImGuiIO_Get_InputQueueCharacters(io)
+    ccall((:ImGuiIO_Get_InputQueueCharacters, libcimgui_helper), ImVector_ImWchar, (Ptr{ImGuiIO},), io)
+end
+
 function ImGuiIO_Set_ConfigFlags(io, x)
     ccall((:ImGuiIO_Set_ConfigFlags, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, ImGuiConfigFlags), io, x)
 end
@@ -366,14 +362,6 @@ function ImGuiIO_Set_DisplayFramebufferScale(io, x)
     ccall((:ImGuiIO_Set_DisplayFramebufferScale, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, ImVec2), io, x)
 end
 
-function ImGuiIO_Set_DisplayVisibleMin(io, x)
-    ccall((:ImGuiIO_Set_DisplayVisibleMin, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, ImVec2), io, x)
-end
-
-function ImGuiIO_Set_DisplayVisibleMax(io, x)
-    ccall((:ImGuiIO_Set_DisplayVisibleMax, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, ImVec2), io, x)
-end
-
 function ImGuiIO_Set_MouseDrawCursor(io, x)
     ccall((:ImGuiIO_Set_MouseDrawCursor, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Bool), io, x)
 end
@@ -386,8 +374,12 @@ function ImGuiIO_Set_ConfigInputTextCursorBlink(io, x)
     ccall((:ImGuiIO_Set_ConfigInputTextCursorBlink, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Bool), io, x)
 end
 
-function ImGuiIO_Set_ConfigResizeWindowsFromEdges(io, x)
-    ccall((:ImGuiIO_Set_ConfigResizeWindowsFromEdges, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Bool), io, x)
+function ImGuiIO_Set_ConfigWindowsResizeFromEdges(io, x)
+    ccall((:ImGuiIO_Set_ConfigWindowsResizeFromEdges, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Bool), io, x)
+end
+
+function ImGuiIO_Set_ConfigWindowsMoveFromTitleBarOnly(io, x)
+    ccall((:ImGuiIO_Set_ConfigWindowsMoveFromTitleBarOnly, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Bool), io, x)
 end
 
 function ImGuiIO_Set_BackendPlatformName(io, x)
@@ -396,6 +388,34 @@ end
 
 function ImGuiIO_Set_BackendRendererName(io, x)
     ccall((:ImGuiIO_Set_BackendRendererName, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Cstring), io, x)
+end
+
+function ImGuiIO_Set_BackendPlatformUserData(io, x)
+    ccall((:ImGuiIO_Set_BackendPlatformUserData, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Ptr{Cvoid}), io, x)
+end
+
+function ImGuiIO_Set_BackendRendererUserData(io, x)
+    ccall((:ImGuiIO_Set_BackendRendererUserData, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Ptr{Cvoid}), io, x)
+end
+
+function ImGuiIO_Set_BackendLanguageUserData(io, x)
+    ccall((:ImGuiIO_Set_BackendLanguageUserData, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Ptr{Cvoid}), io, x)
+end
+
+function ImGuiIO_Set_GetClipboardTextFn(io, x)
+    ccall((:ImGuiIO_Set_GetClipboardTextFn, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Ptr{Cvoid}), io, x)
+end
+
+function ImGuiIO_Set_SetClipboardTextFn(io, x)
+    ccall((:ImGuiIO_Set_SetClipboardTextFn, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Ptr{Cvoid}), io, x)
+end
+
+function ImGuiIO_Set_ClipboardUserData(io, x)
+    ccall((:ImGuiIO_Set_ClipboardUserData, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Ptr{Cvoid}), io, x)
+end
+
+function ImGuiIO_Set_ImeSetInputScreenPosFn(io, x)
+    ccall((:ImGuiIO_Set_ImeSetInputScreenPosFn, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Ptr{Cvoid}), io, x)
 end
 
 function ImGuiIO_Set_ImeWindowHandle(io, x)
@@ -440,10 +460,6 @@ end
 
 function ImGuiIO_Set_KeysDown(io, i, x)
     ccall((:ImGuiIO_Set_KeysDown, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Cint, Bool), io, i, x)
-end
-
-function ImGuiIO_Set_InputCharacters(io, i, x)
-    ccall((:ImGuiIO_Set_InputCharacters, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Cint, ImWchar), io, i, x)
 end
 
 function ImGuiIO_Set_NavInputs(io, i, x)

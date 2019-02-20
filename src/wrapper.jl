@@ -522,11 +522,11 @@ When using to make a "default/current item" visible, consider using [`SetItemDef
 SetScrollHereY(center_y_ratio=0.5) = igSetScrollHereY(center_y_ratio)
 
 """
-    SetScrollFromPosY(pos_y, center_y_ratio=0.5)
+    SetScrollFromPosY(local_y, center_y_ratio=0.5)
 Adjust scrolling amount to make given position valid. Use [`GetCursorPos`](@ref) or
 [`GetCursorStartPos`](@ref)+offset to get valid positions.
 """
-SetScrollFromPosY(pos_y, center_y_ratio=0.5) = igSetScrollFromPosY(pos_y, center_y_ratio)
+SetScrollFromPosY(local_y, center_y_ratio=0.5) = igSetScrollFromPosY(local_y, center_y_ratio)
 
 ################################ Parameters stacks (shared) ################################
 """
@@ -635,7 +635,7 @@ Word-wrapping for `Text*()` commands:
 - `wrap_pos_x == 0`: wrap to end of window (or column)
 - `wrap_pos_x > 0`: wrap at `wrap_pos_x` position in window local space
 """
-PushTextWrapPos(wrap_pos_x=0.0) = igPushTextWrapPos(wrap_pos_x)
+PushTextWrapPos(wrap_local_pos_x=0.0) = igPushTextWrapPos(wrap_local_pos_x)
 
 """
     PopTextWrapPos()
@@ -1780,6 +1780,52 @@ SetColumnOffset(column_index, offset_x) = igSetColumnOffset(column_index, offset
 """
 GetColumnsCount() = igGetColumnsCount()
 
+##################################### Tab Bars, Tabs #######################################
+"""
+    igBeginTabBar(str_id, flags=ImGuiTabBarFlags_(0)) -> Bool
+Create and append into a TabBar.
+
+!!! note "BETA API"
+    API may evolve!
+"""
+BeginTabBar(str_id, flags=ImGuiTabBarFlags_(0)) = igBeginTabBar(str_id, flags)
+
+"""
+    EndTabBar()
+Only call [`EndTabBar`](@ref) if [`BeginTabBar`](@ref) returns true!
+
+!!! note "BETA API"
+    API may evolve!
+"""
+EndTabBar() = igEndTabBar()
+
+"""
+    BeginTabItem(label, p_open=C_NULL, flags=ImGuiTabItemFlags_(0)) -> Bool
+!!! note "BETA API"
+    API may evolve!
+"""
+BeginTabItem(label, p_open=C_NULL, flags=ImGuiTabItemFlags_(0)) = igBeginTabItem(label, p_open, flags)
+
+"""
+    EndTabItem()
+Only call [`EndTabItem`](@ref) if [`BeginTabItem`](@ref) returns true!
+
+!!! note "BETA API"
+    API may evolve!
+"""
+EndTabItem() = igEndTabItem()
+
+"""
+    SetTabItemClosed(tab_or_docked_window_label)
+Notify TabBar or Docking system of a closed tab/window ahead (useful to reduce visual flicker
+on reorderable tab bars). For tab-bar: call after BeginTabBar() and before Tab submissions.
+Otherwise call with a window name.
+
+!!! note "BETA API"
+    API may evolve!
+"""
+SetTabItemClosed(tab_or_docked_window_label) = igSetTabItemClosed(tab_or_docked_window_label)
+
 ##################################### Logging/Capture ######################################
 """
     LogToTTY(max_depth=-1)
@@ -1980,6 +2026,12 @@ This is generally the same as the "bool" return value of many widgets.
 See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
 """
 IsItemEdited() = igIsItemEdited()
+
+"""
+    IsItemActivated() -> Bool
+Was the last item just made active (item was previously inactive).
+"""
+IsItemActivated() = igIsItemActivated()
 
 """
     IsItemDeactivated() -> Bool
@@ -2642,14 +2694,16 @@ Get_FontGlobalScale(io::Ptr{ImGuiIO}) = ImGuiIO_Get_FontGlobalScale(io)
 Get_FontAllowUserScaling(io::Ptr{ImGuiIO}) = ImGuiIO_Get_FontAllowUserScaling(io)
 Get_FontDefault(io::Ptr{ImGuiIO}) = ImGuiIO_Get_FontDefault(io)
 Get_DisplayFramebufferScale(io::Ptr{ImGuiIO}) = ImGuiIO_Get_DisplayFramebufferScale(io)
-Get_DisplayVisibleMin(io::Ptr{ImGuiIO}) = ImGuiIO_Get_DisplayVisibleMin(io)
-Get_DisplayVisibleMax(io::Ptr{ImGuiIO}) = ImGuiIO_Get_DisplayVisibleMax(io)
 Get_MouseDrawCursor(io::Ptr{ImGuiIO}) = ImGuiIO_Get_MouseDrawCursor(io)
 Get_ConfigMacOSXBehaviors(io::Ptr{ImGuiIO}) = ImGuiIO_Get_ConfigMacOSXBehaviors(io)
 Get_ConfigInputTextCursorBlink(io::Ptr{ImGuiIO}) = ImGuiIO_Get_ConfigInputTextCursorBlink(io)
-Get_ConfigResizeWindowsFromEdges(io::Ptr{ImGuiIO}) = ImGuiIO_Get_ConfigResizeWindowsFromEdges(io)
+Get_ConfigWindowsResizeFromEdges(io::Ptr{ImGuiIO}) = ImGuiIO_Get_ConfigWindowsResizeFromEdges(io)
+Get_ConfigWindowsMoveFromTitleBarOnly(io::Ptr{ImGuiIO}) = ImGuiIO_Get_ConfigWindowsMoveFromTitleBarOnly(io)
 Get_BackendPlatformName(io::Ptr{ImGuiIO}) = ImGuiIO_Get_BackendPlatformName(io)
 Get_BackendRendererName(io::Ptr{ImGuiIO}) = ImGuiIO_Get_BackendRendererName(io)
+Get_BackendPlatformUserData(io::Ptr{ImGuiIO}) = ImGuiIO_Get_BackendPlatformUserData(io)
+Get_BackendRendererUserData(io::Ptr{ImGuiIO}) = ImGuiIO_Get_BackendRendererUserData(io)
+Get_BackendLanguageUserData(io::Ptr{ImGuiIO}) = ImGuiIO_Get_BackendLanguageUserData(io)
 Get_ImeWindowHandle(io::Ptr{ImGuiIO}) = ImGuiIO_Get_ImeWindowHandle(io)
 Get_RenderDrawListsFnUnused(io::Ptr{ImGuiIO}) = ImGuiIO_Get_RenderDrawListsFnUnused(io)
 Get_MousePos(io::Ptr{ImGuiIO}) = ImGuiIO_Get_MousePos(io)
@@ -2661,7 +2715,6 @@ Get_KeyShift(io::Ptr{ImGuiIO}) = ImGuiIO_Get_KeyShift(io)
 Get_KeyAlt(io::Ptr{ImGuiIO}) = ImGuiIO_Get_KeyAlt(io)
 Get_KeySuper(io::Ptr{ImGuiIO}) = ImGuiIO_Get_KeySuper(io)
 Get_KeysDown(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_KeysDown(io, i)
-Get_InputCharacters(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_InputCharacters(io, i)
 Get_NavInputs(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_NavInputs(io, i)
 Get_WantCaptureMouse(io::Ptr{ImGuiIO}) = ImGuiIO_Get_WantCaptureMouse(io)
 Get_WantCaptureKeyboard(io::Ptr{ImGuiIO}) = ImGuiIO_Get_WantCaptureKeyboard(io)
@@ -2693,6 +2746,7 @@ Get_KeysDownDuration(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_KeysDownDuration(io, i)
 Get_KeysDownDurationPrev(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_KeysDownDurationPrev(io, i)
 Get_NavInputsDownDuration(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_NavInputsDownDuration(io, i)
 Get_NavInputsDownDurationPrev(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_NavInputsDownDurationPrev(io, i)
+Get_InputQueueCharacters(io::Ptr{ImGuiIO}) = ImGuiIO_Get_InputQueueCharacters(io)
 
 Set_ConfigFlags(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_ConfigFlags(io, x)
 Set_BackendFlags(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_BackendFlags(io, x)
@@ -2713,19 +2767,23 @@ Set_FontGlobalScale(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_FontGlobalScale(io, x)
 Set_FontAllowUserScaling(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_FontAllowUserScaling(io, x)
 Set_FontDefault(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_FontDefault(io, x)
 Set_DisplayFramebufferScale(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_DisplayFramebufferScale(io, x)
-Set_DisplayVisibleMin(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_DisplayVisibleMin(io, x)
-Set_DisplayVisibleMax(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_DisplayVisibleMax(io, x)
 Set_MouseDrawCursor(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MouseDrawCursor(io, x)
 Set_ConfigMacOSXBehaviors(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_ConfigMacOSXBehaviors(io, x)
 Set_ConfigInputTextCursorBlink(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_ConfigInputTextCursorBlink(io, x)
 Set_ConfigResizeWindowsFromEdges(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_ConfigResizeWindowsFromEdges(io, x)
 Set_BackendPlatformName(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_BackendPlatformName(io, x)
 Set_BackendRendererName(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_BackendRendererName(io, x)
+Set_BackendPlatformUserData(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_BackendPlatformUserData(io::Ptr{ImGuiIO}, x)
+Set_BackendRendererUserData(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_BackendRendererUserData(io::Ptr{ImGuiIO}, x)
+Set_BackendLanguageUserData(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_BackendLanguageUserData(io::Ptr{ImGuiIO}, x)
 Set_GetClipboardTextFn(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_GetClipboardTextFn(io, x)
 Set_SetClipboardTextFn(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_SetClipboardTextFn(io, x)
 Set_ClipboardUserData(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_ClipboardUserData(io, x)
+Set_ImeSetInputScreenPosFn(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_ImeSetInputScreenPosFn(io, x)
 Set_ImeWindowHandle(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_ImeWindowHandle(io, x)
 Set_RenderDrawListsFnUnused(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_RenderDrawListsFnUnused(io, x)
+
+# Input - Fill before calling NewFrame()
 Set_MousePos(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MousePos(io, x)
 Set_MouseDown(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDown(io, i, x)
 Set_MouseWheel(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MouseWheel(io, x)
@@ -2735,38 +2793,41 @@ Set_KeyShift(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_KeyShift(io, x)
 Set_KeyAlt(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_KeyAlt(io, x)
 Set_KeySuper(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_KeySuper(io, x)
 Set_KeysDown(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_KeysDown(io, i, x)
-Set_InputCharacters(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_InputCharacters(io, i, x)
 Set_NavInputs(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_NavInputs(io, i, x)
-Set_WantCaptureMouse(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_WantCaptureMouse(io, x)
-Set_WantCaptureKeyboard(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_WantCaptureKeyboard(io, x)
-Set_MouseDown(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MouseDown(io, i, x)
-Set_WantTextInput(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_WantTextInput(io, x)
-Set_WantSetMousePos(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_WantSetMousePos(io, x)
-Set_WantSaveIniSettings(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_WantSaveIniSettings(io, x)
-Set_NavActive(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_NavActive(io, x)
-Set_NavVisible(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_NavVisible(io, x)
-Set_Framerate(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_Framerate(io, x)
-Set_MetricsRenderVertices(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MetricsRenderVertices(io, x)
-Set_MetricsRenderIndices(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MetricsRenderIndices(io, x)
-Set_MetricsRenderWindows(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MetricsRenderWindows(io, x)
-Set_MetricsActiveWindows(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MetricsActiveWindows(io, x)
-Set_MetricsActiveAllocations(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MetricsActiveAllocations(io, x)
-Set_MouseDelta(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MouseDelta(io, x)
-Set_MousePosPrev(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MousePosPrev(io, x)
-Set_MouseClickedPos(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseClickedPos(io, i, x)
-Set_MouseClickedTime(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseClickedTime(io, i, x)
-Set_MouseClicked(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseClicked(io, i, x)
-Set_MouseDoubleClicked(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDoubleClicked(io, i, x)
-Set_MouseReleased(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseReleased(io, i, x)
-Set_MouseDownOwned(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDownOwned(io, i, x)
-Set_MouseDownDuration(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDownDuration(io, i, x)
-Set_MouseDownDurationPrev(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDownDurationPrev(io, i, x)
-Set_MouseDragMaxDistanceAbs(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDragMaxDistanceAbs(io, i, x)
-Set_MouseDragMaxDistanceSqr(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDragMaxDistanceSqr(io, i, x)
-Set_KeysDownDuration(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_KeysDownDuration(io, i, x)
-Set_KeysDownDurationPrev(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_KeysDownDurationPrev(io, i, x)
-Set_NavInputsDownDuration(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_NavInputsDownDuration(io, i, x)
-Set_NavInputsDownDurationPrev(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_NavInputsDownDurationPrev(io, i, x)
+
+# Output - Retrieve after calling NewFrame()
+# Set_WantCaptureMouse(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_WantCaptureMouse(io, x)
+# Set_WantCaptureKeyboard(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_WantCaptureKeyboard(io, x)
+# Set_MouseDown(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MouseDown(io, i, x)
+# Set_WantTextInput(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_WantTextInput(io, x)
+# Set_WantSetMousePos(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_WantSetMousePos(io, x)
+# Set_WantSaveIniSettings(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_WantSaveIniSettings(io, x)
+# Set_NavActive(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_NavActive(io, x)
+# Set_NavVisible(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_NavVisible(io, x)
+# Set_Framerate(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_Framerate(io, x)
+# Set_MetricsRenderVertices(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MetricsRenderVertices(io, x)
+# Set_MetricsRenderIndices(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MetricsRenderIndices(io, x)
+# Set_MetricsRenderWindows(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MetricsRenderWindows(io, x)
+# Set_MetricsActiveWindows(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MetricsActiveWindows(io, x)
+# Set_MetricsActiveAllocations(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MetricsActiveAllocations(io, x)
+# Set_MouseDelta(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MouseDelta(io, x)
+
+# [Internal] ImGui will maintain those fields. Forward compatibility not guaranteed!
+# Set_MousePosPrev(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MousePosPrev(io, x)
+# Set_MouseClickedPos(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseClickedPos(io, i, x)
+# Set_MouseClickedTime(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseClickedTime(io, i, x)
+# Set_MouseClicked(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseClicked(io, i, x)
+# Set_MouseDoubleClicked(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDoubleClicked(io, i, x)
+# Set_MouseReleased(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseReleased(io, i, x)
+# Set_MouseDownOwned(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDownOwned(io, i, x)
+# Set_MouseDownDuration(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDownDuration(io, i, x)
+# Set_MouseDownDurationPrev(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDownDurationPrev(io, i, x)
+# Set_MouseDragMaxDistanceAbs(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDragMaxDistanceAbs(io, i, x)
+# Set_MouseDragMaxDistanceSqr(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDragMaxDistanceSqr(io, i, x)
+# Set_KeysDownDuration(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_KeysDownDuration(io, i, x)
+# Set_KeysDownDurationPrev(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_KeysDownDurationPrev(io, i, x)
+# Set_NavInputsDownDuration(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_NavInputsDownDuration(io, i, x)
+# Set_NavInputsDownDurationPrev(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_NavInputsDownDurationPrev(io, i, x)
 
 ################################### ImGuiSizeCallbackData ##################################
 Get_UserData(handle::Ptr{ImGuiSizeCallbackData}) = ImGuiSizeCallbackData_Get_UserData(handle)

@@ -599,7 +599,7 @@ function igCombo(label, current_item, items, items_count, popup_max_height_in_it
 end
 
 function igComboStr(label, current_item, items_separated_by_zeros, popup_max_height_in_items)
-    ccall((:igComboStr, libcimgui), Bool, (Cstring, Ptr{Cint}, Cstring, Cint), label, current_item, items_separated_by_zeros, popup_max_height_in_items)
+    ccall((:igComboStr, libcimgui), Bool, (Cstring, Ptr{Cint}, Ptr{UInt8}, Cint), label, current_item, items_separated_by_zeros, popup_max_height_in_items)
 end
 
 function igComboFnPtr(label, current_item, items_getter, data, items_count, popup_max_height_in_items)

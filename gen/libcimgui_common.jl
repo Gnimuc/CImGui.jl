@@ -60,19 +60,19 @@ end
 const ImFontAtlasFlags = Cint
 const ImTextureID = Ptr{Cvoid}
 
-struct ImVector_ImFontPtr
+struct ImVector_ImFontPtr{ImFont_}
     Size::Cint
     Capacity::Cint
-    Data::Ptr{Ptr{ImFont}}
+    Data::Ptr{Ptr{ImFont_}}
 end
 
-struct ImVector_CustomRect
+struct ImVector_CustomRect{CustomRect_}
     Size::Cint
     Capacity::Cint
-    Data::Ptr{CustomRect}
+    Data::Ptr{CustomRect_}
 end
 
-struct ImFontConfig
+struct ImFontConfig{ImFont_}
     FontData::Ptr{Cvoid}
     FontDataSize::Cint
     FontDataOwnedByAtlas::Bool
@@ -90,7 +90,7 @@ struct ImFontConfig
     RasterizerFlags::UInt32
     RasterizerMultiply::Cfloat
     Name::NTuple{40, UInt8}
-    DstFont::Ptr{ImFont}
+    DstFont::Ptr{ImFont_}
 end
 
 struct ImVector_ImFontConfig

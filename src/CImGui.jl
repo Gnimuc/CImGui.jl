@@ -10,7 +10,7 @@ const FLT_MAX = igGET_FLT_MAX()
 include("helper.jl")
 include("wrapper.jl")
 
-const IMGUI_VERSION = GetVersion()
+const IMGUI_VERSION = unsafe_string(GetVersion())
 
 include("backend/GLFW/GLFWBackend.jl")
 using .GLFWBackend

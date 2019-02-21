@@ -1,8 +1,7 @@
 using CImGui
+using CImGui.CSyntax.CStatic
 
-let
-dummy_members = Cfloat[0.0, 0.0, 1.0, 3.1416, 100.0, 999.0, 0.0, 0.0]
-global function show_dummy_object(prefix, uid)
+function ShowDummyObject(prefix, uid)
     CImGui.PushID(uid) # use object uid as identifier. most commonly you could also use the object pointer as a base ID.
     CImGui.AlignTextToFramePadding()  # Text and Tree nodes are less high than regular widgets, here we add vertical spacing to make the tree lines equal high.
     node_open = CImGui.TreeNode("Object", "$(prefix)_$(uid)")
@@ -11,10 +10,11 @@ global function show_dummy_object(prefix, uid)
     CImGui.Text("my sailor is rich")
     CImGui.NextColumn()
     if node_open
+@cstatic dummy_members=Cfloat[0.0, 0.0, 1.0, 3.1416, 100.0, 999.0, 0.0, 0.0] begin
         for i = 0:8-1
             CImGui.PushID(i) # use field index as identifier
             if i < 2
-                show_dummy_object("Child", 424242)
+                ShowDummyObject("Child", 424242)
             else
                 # here we use a TreeNode to highlight on hover (we could use e.g. Selectable as well)
                 CImGui.AlignTextToFramePadding()
@@ -33,16 +33,16 @@ global function show_dummy_object(prefix, uid)
             CImGui.PopID()
         end
         CImGui.TreePop()
+end
     end
     CImGui.PopID()
 end
-end # let
 
 """
-    show_app_property_editor(p_open::Ref{Bool})
+    ShowExampleAppPropertyEditor(p_open::Ref{Bool})
 Create a simple property editor.
 """
-function show_app_property_editor(p_open::Ref{Bool})
+function ShowExampleAppPropertyEditor(p_open::Ref{Bool})
     CImGui.SetNextWindowSize((430,450), CImGui.ImGuiCond_FirstUseEver)
     CImGui.Begin("Example: Property editor", p_open) || (CImGui.End(); return)
 
@@ -53,7 +53,7 @@ function show_app_property_editor(p_open::Ref{Bool})
     CImGui.Separator()
 
     # iterate dummy objects with dummy members (all the same data)
-    foreach(obj_i->show_dummy_object("Object", obj_i), 0:2)
+    foreach(obj_i->ShowDummyObject("Object", obj_i), 0:2)
 
     CImGui.Columns(1)
     CImGui.Separator()

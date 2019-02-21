@@ -1,17 +1,13 @@
 using CImGui
-using CImGui: ImVec2, FLT_MAX
-using CSyntax
-using CImGui.LibCImGui
+using CImGui: ImVec2, FLT_MAX, ImGuiSizeCallbackData
+using CImGui.CSyntax
+using CImGui.CSyntax.CStatic
 
-let
-auto_resize = false
-type = Cint(0)
-display_lines = Cint(10)
 """
-    show_app_constrained_resize(p_open::Ref{Bool})
+    ShowExampleAppConstrainedResize(p_open::Ref{Bool})
 Create a window with custom resize constraints.
 """
-global function show_app_constrained_resize(p_open::Ref{Bool})
+global function ShowExampleAppConstrainedResize(p_open::Ref{Bool})
     function Square(data::Ptr{ImGuiSizeCallbackData})::Cvoid
         desired_size = CImGui.Get_DesiredSize(data)
         max_size = max(desired_size.x, desired_size.y)
@@ -29,6 +25,7 @@ global function show_app_constrained_resize(p_open::Ref{Bool})
     square_fptr = @cfunction($Square, Cvoid, (Ptr{ImGuiSizeCallbackData},))
     step_fptr = @cfunction($Step, Cvoid, (Ptr{ImGuiSizeCallbackData},))
 
+@cstatic auto_resize=false type=Cint(0) display_lines=Cint(10) begin
     type == 0 && CImGui.SetNextWindowSizeConstraints(ImVec2(-1, 0),    ImVec2(-1, FLT_MAX))      # vertical only
     type == 1 && CImGui.SetNextWindowSizeConstraints(ImVec2(0, -1),    ImVec2(FLT_MAX, -1))      # horizontal only
     type == 2 && CImGui.SetNextWindowSizeConstraints(ImVec2(100, 100), ImVec2(FLT_MAX, FLT_MAX)) # width > 100, Height > 100
@@ -61,6 +58,6 @@ global function show_app_constrained_resize(p_open::Ref{Bool})
         foreach(i->CImGui.Text("$(" "^4i)Hello, sailor! Making this line long enough for the example."), 1:display_lines)
     end
     CImGui.End()
-end
+end # @cstatic
 
-end # let
+end

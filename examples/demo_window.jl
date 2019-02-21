@@ -1,12 +1,12 @@
 using CImGui
 using CSyntax
 
-include(joinpath(@__DIR__, "main_menu_bar.jl"))
-include(joinpath(@__DIR__, "simple_layout.jl"))
-include(joinpath(@__DIR__, "property_editor.jl"))
-include(joinpath(@__DIR__, "long_text.jl"))
-include(joinpath(@__DIR__, "auto_resize.jl"))
-include(joinpath(@__DIR__, "constrained_resize.jl"))
+include(joinpath(@__DIR__, "app_main_menu_bar.jl"))
+include(joinpath(@__DIR__, "app_simple_layout.jl"))
+include(joinpath(@__DIR__, "app_property_editor.jl"))
+include(joinpath(@__DIR__, "app_long_text.jl"))
+include(joinpath(@__DIR__, "app_auto_resize.jl"))
+include(joinpath(@__DIR__, "app_constrained_resize.jl"))
 include(joinpath(@__DIR__, "simple_overlay.jl"))
 include(joinpath(@__DIR__, "window_titles.jl"))
 include(joinpath(@__DIR__, "custom_rendering.jl"))

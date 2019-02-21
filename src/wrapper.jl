@@ -133,10 +133,10 @@ Add basic help/info block (not a window): how to manipulate ImGui as a end-user 
 ShowUserGuide() = igShowUserGuide()
 
 """
-    GetVersion() -> String
+    GetVersion() -> Cstring
 Get the compiled version string e.g. "1.23"
 """
-GetVersion() = unsafe_string(igGetVersion())
+GetVersion() = igGetVersion()
 
 ########################################## Styles ##########################################
 """
@@ -2398,14 +2398,14 @@ TextBuffer() = ImGuiTextBuffer_ImGuiTextBuffer()
 Destroy(handle::Ptr{ImGuiTextBuffer}) = ImGuiTextBuffer_destroy(handle)
 
 """
-    Begin(handle::Ptr{ImGuiTextBuffer}) -> String
+    Begin(handle::Ptr{ImGuiTextBuffer}) -> Cstring
 """
-Begin(handle::Ptr{ImGuiTextBuffer}) = unsafe_string(ImGuiTextBuffer_begin(handle))
+Begin(handle::Ptr{ImGuiTextBuffer}) = ImGuiTextBuffer_begin(handle)
 
 """
-    End(handle::Ptr{ImGuiTextBuffer}) -> String
+    End(handle::Ptr{ImGuiTextBuffer}) -> Cstring
 """
-End(handle::Ptr{ImGuiTextBuffer}) = unsafe_string(ImGuiTextBuffer_end(handle))
+End(handle::Ptr{ImGuiTextBuffer}) = ImGuiTextBuffer_end(handle)
 
 """
     Size(handle::Ptr{ImGuiTextBuffer}) -> Cint
@@ -2428,20 +2428,26 @@ Clear(handle::Ptr{ImGuiTextBuffer}) = ImGuiTextBuffer_clear(handle)
 Reserve(handle::Ptr{ImGuiTextBuffer}) = ImGuiTextBuffer_reserve(handle)
 
 """
-    C_str(handle::Ptr{ImGuiTextBuffer}) -> String
+    C_str(handle::Ptr{ImGuiTextBuffer}) -> Cstring
 """
-C_str(handle::Ptr{ImGuiTextBuffer}) = unsafe_string(ImGuiTextBuffer_c_str(handle))
+C_str(handle::Ptr{ImGuiTextBuffer}) = ImGuiTextBuffer_c_str(handle)
 
 """
-    Appendf(handle::Ptr{ImGuiTextBuffer}, formatted_text)
+    Append(handle::Ptr{ImGuiTextBuffer}, str, str_end=C_NULL)
 Text buffer for logging/accumulating text.
-
-!!! warning "Limited support"
-    Formatting is not supported which means you need to pass a formatted string to this function.
-    It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating
-    C/C++ code to Julia.
 """
-Appendf(handle::Ptr{ImGuiTextBuffer}, formatted_text) = ImGuiTextBuffer_appendf(handle, formatted_text)
+Append(handle::Ptr{ImGuiTextBuffer}, str, str_end=C_NULL) = ImGuiTextBuffer_append(handle, str, str_end)
+
+# """
+#     Appendf(handle::Ptr{ImGuiTextBuffer}, formatted_text)
+# Text buffer for logging/accumulating text.
+#
+# !!! warning "Limited support"
+#     Formatting is not supported which means you need to pass a formatted string to this function.
+#     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating
+#     C/C++ code to Julia.
+# """
+# Appendf(handle::Ptr{ImGuiTextBuffer}, formatted_text) = ImGuiTextBuffer_appendf(handle, formatted_text)
 
 ##################################### ImGuiListClipper #####################################
 """

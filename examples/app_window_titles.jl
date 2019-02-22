@@ -2,13 +2,13 @@ using CImGui
 using Printf
 
 """
-    show_app_window_titles(p_open::Ref{Bool})
+    ShowExampleAppWindowTitles(p_open::Ref{Bool})
 Demonstrate using "##" and "###" in identifiers to manipulate ID generation.
 This apply to all regular items as well. Read [FAQ](https://github.com/ocornut/imgui/blob/801645d35092c8da0eeabe71d7c1997c47aa3648/imgui.cpp#L521)
 section "How can I have multiple widgets with the same label?
 Can I have widget without a label? (Yes). A primer on the purpose of labels/IDs." for details.
 """
-function show_app_window_titles(p_open::Ref{Bool})
+function ShowExampleAppWindowTitles(p_open::Ref{Bool})
     # by default, Windows are uniquely identified by their title.
     # you can use the "##" and "###" markers to manipulate the display/ID.
 

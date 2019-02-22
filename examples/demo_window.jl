@@ -7,9 +7,9 @@ include(joinpath(@__DIR__, "app_property_editor.jl"))
 include(joinpath(@__DIR__, "app_long_text.jl"))
 include(joinpath(@__DIR__, "app_auto_resize.jl"))
 include(joinpath(@__DIR__, "app_constrained_resize.jl"))
-include(joinpath(@__DIR__, "simple_overlay.jl"))
-include(joinpath(@__DIR__, "window_titles.jl"))
-include(joinpath(@__DIR__, "custom_rendering.jl"))
+include(joinpath(@__DIR__, "app_simple_overlay.jl"))
+include(joinpath(@__DIR__, "app_window_titles.jl"))
+include(joinpath(@__DIR__, "app_custom_rendering.jl"))
 
 let
 # example apps

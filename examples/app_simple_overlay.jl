@@ -1,32 +1,34 @@
 using CImGui
+using CImGui.CSyntax.CStatic
 using Printf
 
-const DISTANCE = Cfloat(10.0)
-
-let corner::Cint = 0
 """
-    show_app_simple_overlay(p_open::Ref{Bool})
+    ShowExampleAppSimpleOverlay(p_open::Ref{Bool})
 Create a simple static window with no decoration + a context-menu to choose which corner of
 the screen to use.
 """
-global function show_app_simple_overlay(p_open::Ref{Bool})
-    display_size = CImGui.Get_DisplaySize(CImGui.GetIO())
-    window_pos_x = corner & 1 != 0 ? display_size.x - DISTANCE : DISTANCE
-    window_pos_y = corner & 2 != 0 ? display_size.y - DISTANCE : DISTANCE
-    window_pos = (window_pos_x, window_pos_y)
-    window_pos_pivot = (corner & 1 != 0 ? 1.0 : 0.0, corner & 2 != 0 ? 1.0 : 0.0)
-    corner != -1 && CImGui.SetNextWindowPos(window_pos, CImGui.ImGuiCond_Always, window_pos_pivot)
+function ShowExampleAppSimpleOverlay(p_open::Ref{Bool})
+    DISTANCE = Cfloat(10.0)
+
+    io = CImGui.GetIO()
+@cstatic corner=Cint(0) begin
+    if corner != -1
+        window_pos_x = corner & 1 != 0 ? io.DisplaySize.x - DISTANCE : DISTANCE
+        window_pos_y = corner & 2 != 0 ? io.DisplaySize.y - DISTANCE : DISTANCE
+        window_pos = (window_pos_x, window_pos_y)
+        window_pos_pivot = (corner & 1 != 0 ? 1.0 : 0.0, corner & 2 != 0 ? 1.0 : 0.0)
+        CImGui.SetNextWindowPos(window_pos, CImGui.ImGuiCond_Always, window_pos_pivot)
+    end
     CImGui.SetNextWindowBgAlpha(0.3) # transparent background
-    flag = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize |
-           ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav
-    flag |= corner != -1 ? ImGuiWindowFlags_NoMove : ImGuiWindowFlags_None
+    flag = CImGui.ImGuiWindowFlags_NoTitleBar | CImGui.ImGuiWindowFlags_NoResize |
+           CImGui.ImGuiWindowFlags_AlwaysAutoResize | CImGui.ImGuiWindowFlags_NoSavedSettings |
+           CImGui.ImGuiWindowFlags_NoFocusOnAppearing | CImGui.ImGuiWindowFlags_NoNav
+    flag |= corner != -1 ? CImGui.ImGuiWindowFlags_NoMove : CImGui.ImGuiWindowFlags_None
     if CImGui.Begin("Example: Simple Overlay", p_open, flag)
         CImGui.Text("Simple overlay\n in the corner of the screen.\n (right-click to change position)")
         CImGui.Separator()
         if CImGui.IsMousePosValid()
-            mouse_pos = CImGui.GetMousePos()
-            txt = @sprintf "Mouse Position: (%.1f,%.1f)" mouse_pos.x mouse_pos.y
-            CImGui.Text(txt)
+            CImGui.Text(@sprintf("Mouse Position: (%.1f,%.1f)", io.MousePos.x, io.MousePos.y))
         else
             CImGui.Text("Mouse Position: <invalid>")
         end
@@ -41,6 +43,6 @@ global function show_app_simple_overlay(p_open::Ref{Bool})
         end
     end
     CImGui.End()
-end
+end # @cstatic
 
-end # let
+end

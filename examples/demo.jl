@@ -80,7 +80,9 @@ while !GLFW.WindowShouldClose(window)
     ShowExampleAppLongText(Ref(true))
     ShowExampleAppAutoResize(Ref(true))
     ShowExampleAppConstrainedResize(Ref(true))
-
+    ShowExampleAppSimpleOverlay(Ref(true))
+    ShowExampleAppWindowTitles(Ref(true))
+    ShowExampleAppCustomRendering(Ref(true))
 
     # rendering
     CImGui.Render()

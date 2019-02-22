@@ -2379,10 +2379,329 @@ MemAlloc(size) = igMemAlloc(size)
 MemFree(ptr) = igMemFree(ptr)
 
 ######################################## ImDrawList ########################################
+# TODO: find out the use case
+# ImDrawList_ImDrawList(shared_data)
+# ImDrawList_destroy(handle)
+
 """
-    AddRectFilled(self::Ptr{ImDrawList}, a, b, col, rounding=0, rounding_corners_flags=ImDrawCornerFlags_All)
+    PushClipRect(handle::Ptr{ImDrawList}, clip_rect_min, clip_rect_max, intersect_with_current_clip_rect)
+Render-level scissoring. This is passed down to your render function but not used for CPU-side
+coarse clipping. Prefer using higher-level [`PushClipRect`](@ref) to affect logic (hit-testing
+and widget culling).
 """
-AddRectFilled(self::Ptr{ImDrawList}, a, b, col, rounding=0, rounding_corners_flags=ImDrawCornerFlags_All) = ImDrawList_AddRectFilled(self, a, b, col, rounding, rounding_corners_flags)
+PushClipRect(handle::Ptr{ImDrawList}, clip_rect_min, clip_rect_max, intersect_with_current_clip_rect) = ImDrawList_PushClipRect(handle, clip_rect_min, clip_rect_max, intersect_with_current_clip_rect)
+
+"""
+    PushClipRectFullScreen(handle::Ptr{ImDrawList})
+"""
+PushClipRectFullScreen(handle::Ptr{ImDrawList}) = ImDrawList_PushClipRectFullScreen(handle)
+
+"""
+    PopClipRect(handle::Ptr{ImDrawList})
+"""
+PopClipRect(handle::Ptr{ImDrawList}) = ImDrawList_PopClipRect(handle)
+
+"""
+    PushTextureID(handle::Ptr{ImDrawList}, texture_id)
+"""
+PushTextureID(handle::Ptr{ImDrawList}, texture_id) = ImDrawList_PushTextureID(handle, texture_id)
+
+"""
+    PopTextureID(handle::Ptr{ImDrawList})
+"""
+PopTextureID(handle::Ptr{ImDrawList}) = ImDrawList_PopTextureID(handle)
+
+"""
+    GetClipRectMin(handle::Ptr{ImDrawList}) -> ImVec2
+"""
+GetClipRectMin(handle::Ptr{ImDrawList}) = ImDrawList_GetClipRectMin(handle)
+
+"""
+    GetClipRectMax(handle::Ptr{ImDrawList}) -> ImVec2
+"""
+GetClipRectMax(handle::Ptr{ImDrawList}) = ImDrawList_GetClipRectMax(handle)
+
+"""
+    AddLine(handle::Ptr{ImDrawList}, a, b, col, thickness=1.0)
+"""
+AddLine(handle::Ptr{ImDrawList}, a, b, col, thickness=1.0) = ImDrawList_AddLine(handle, a, b, col, thickness)
+
+"""
+    AddRect(handle::Ptr{ImDrawList}, a, b, col, rounding=0.0, rounding_corners_flags=ImDrawCornerFlags_All, thickness=1.0)
+### Arguments
+- `a`: upper-left
+- `b`: lower-right
+- `rounding_corners_flags`: 4-bits corresponding to which corner to round
+"""
+AddRect(handle::Ptr{ImDrawList}, a, b, col, rounding=0.0, rounding_corners_flags=ImDrawCornerFlags_All, thickness=1.0) = ImDrawList_AddRect(handle, a, b, col, rounding, rounding_corners_flags, thickness)
+
+"""
+    AddRectFilled(handle::Ptr{ImDrawList}, a, b, col, rounding=0.0, rounding_corners_flags=ImDrawCornerFlags_All)
+### Arguments
+- `a`: upper-left
+- `b`: lower-right
+"""
+AddRectFilled(handle::Ptr{ImDrawList}, a, b, col, rounding=0.0, rounding_corners_flags=ImDrawCornerFlags_All) = ImDrawList_AddRectFilled(handle, a, b, col, rounding, rounding_corners_flags)
+
+"""
+    AddRectFilledMultiColor(handle::Ptr{ImDrawList}, a, b, col_upr_left, col_upr_right, col_bot_right, col_bot_left)
+"""
+AddRectFilledMultiColor(handle::Ptr{ImDrawList}, a, b, col_upr_left, col_upr_right, col_bot_right, col_bot_left) = ImDrawList_AddRectFilledMultiColor(handle, a, b, col_upr_left, col_upr_right, col_bot_right, col_bot_left)
+
+"""
+    AddQuad(handle::Ptr{ImDrawList}, a, b, c, d, col, thickness=1.0)
+"""
+AddQuad(handle::Ptr{ImDrawList}, a, b, c, d, col, thickness=1.0) = ImDrawList_AddQuad(handle, a, b, c, d, col, thickness)
+
+"""
+    AddQuadFilled(handle::Ptr{ImDrawList}, a, b, c, d, col)
+"""
+AddQuadFilled(handle::Ptr{ImDrawList}, a, b, c, d, col) = ImDrawList_AddQuadFilled(handle, a, b, c, d, col)
+
+"""
+    AddTriangle(handle::Ptr{ImDrawList}, a, b, c, col, thickness=1.0)
+"""
+AddTriangle(handle::Ptr{ImDrawList}, a, b, c, col, thickness=1.0) = ImDrawList_AddTriangle(handle, a, b, c, col, thickness)
+
+"""
+    AddTriangleFilled(handle::Ptr{ImDrawList}, a, b, c, col)
+"""
+AddTriangleFilled(handle::Ptr{ImDrawList}, a, b, c, col) = ImDrawList_AddTriangleFilled(handle, a, b, c, col)
+
+"""
+    AddCircle(handle::Ptr{ImDrawList}, centre, radius, col, num_segments=12, thickness=1.0)
+"""
+AddCircle(handle::Ptr{ImDrawList}, centre, radius, col, num_segments=12, thickness=1.0) = ImDrawList_AddCircle(handle, centre, radius, col, num_segments, thickness)
+
+"""
+    AddCircleFilled(handle::Ptr{ImDrawList}, centre, radius, col, num_segments=12)
+"""
+AddCircleFilled(handle::Ptr{ImDrawList}, centre, radius, col, num_segments=12) = ImDrawList_AddCircleFilled(handle, centre, radius, col, num_segments)
+
+"""
+    AddText(handle::Ptr{ImDrawList}, pos, col, text_begin, text_end=C_NULL)
+"""
+AddText(handle::Ptr{ImDrawList}, pos, col, text_begin, text_end=C_NULL) = ImDrawList_AddText(handle, pos, col, text_begin, text_end)
+
+"""
+    AddText(handle::Ptr{ImDrawList}, font::Ptr{ImFont}, font_size, pos, col, text_begin, text_end=C_NULL, wrap_width=0.0, cpu_fine_clip_rect=C_NULL)
+"""
+AddText(handle::Ptr{ImDrawList}, font::Ptr{ImFont}, font_size, pos, col, text_begin, text_end=C_NULL, wrap_width=0.0, cpu_fine_clip_rect=C_NULL) = ImDrawList_AddTextFontPtr(handle, font, font_size, pos, col, text_begin, text_end, wrap_width, cpu_fine_clip_rect)
+
+"""
+    AddImage(handle::Ptr{ImDrawList}, user_texture_id, a, b, uv_a=(0,0), uv_b=(1,1), col=0xffffffff)
+"""
+AddImage(handle::Ptr{ImDrawList}, user_texture_id, a, b, uv_a=ImVec2(0,0), uv_b=ImVec2(1,1), col=0xffffffff) = ImDrawList_AddImage(handle, user_texture_id, a, b, uv_a, uv_b, col)
+
+"""
+    AddImageQuad(handle::Ptr{ImDrawList}, user_texture_id, a, b, c, d, uv_a=(0,0), uv_b=(1,0), uv_c=(1,1), uv_d=(0,1), col=0xffffffff)
+"""
+AddImageQuad(handle::Ptr{ImDrawList}, user_texture_id, a, b, c, d, uv_a=ImVec2(0,0), uv_b=ImVec2(1,0), uv_c=ImVec2(1,1), uv_d=ImVec2(0,1), col=0xffffffff) = ImDrawList_AddImageQuad(handle, user_texture_id, a, b, c, d, uv_a, uv_b, uv_c, uv_d, col)
+
+"""
+    AddImageRounded(handle::Ptr{ImDrawList}, user_texture_id, a, b, uv_a, uv_b, col, rounding, rounding_corners=ImDrawCornerFlags_All)
+"""
+AddImageRounded(handle::Ptr{ImDrawList}, user_texture_id, a, b, uv_a, uv_b, col, rounding, rounding_corners=ImDrawCornerFlags_All) = ImDrawList_AddImageRounded(handle, user_texture_id, a, b, uv_a, uv_b, col, rounding, rounding_corners)
+
+"""
+    AddPolyline(handle::Ptr{ImDrawList}, points, num_points, col, closed, thickness)
+"""
+AddPolyline(handle::Ptr{ImDrawList}, points, num_points, col, closed, thickness) = ImDrawList_AddPolyline(handle, points, num_points, col, closed, thickness)
+
+"""
+    AddConvexPolyFilled(handle::Ptr{ImDrawList}, points, num_points, col)
+!!! note
+    Anti-aliased filling requires points to be in clockwise order.
+"""
+AddConvexPolyFilled(handle::Ptr{ImDrawList}, points, num_points, col) = ImDrawList_AddConvexPolyFilled(handle, points, num_points, col)
+
+"""
+    AddBezierCurve(handle::Ptr{ImDrawList}, pos0, cp0, cp1, pos1, col, thickness, num_segments=0)
+"""
+AddBezierCurve(handle::Ptr{ImDrawList}, pos0, cp0, cp1, pos1, col, thickness, num_segments=0) = ImDrawList_AddBezierCurve(handle, pos0, cp0, cp1, pos1, col, thickness, num_segments)
+
+"""
+    PathClear(handle::Ptr{ImDrawList})
+Stateful path API, add points then finish with [`PathFillConvex`](@ref) or [`PathStroke`](@ref).
+"""
+PathClear(handle::Ptr{ImDrawList}) = ImDrawList_PathClear(handle)
+
+"""
+    PathLineTo(handle::Ptr{ImDrawList}, pos)
+Stateful path API, add points then finish with [`PathFillConvex`](@ref) or [`PathStroke`](@ref).
+"""
+PathLineTo(handle::Ptr{ImDrawList}, pos) = ImDrawList_PathLineTo(handle, pos)
+
+"""
+    PathLineToMergeDuplicate(handle::Ptr{ImDrawList}, pos)
+Stateful path API, add points then finish with [`PathFillConvex`](@ref) or [`PathStroke`](@ref).
+"""
+PathLineToMergeDuplicate(handle::Ptr{ImDrawList}, pos) = ImDrawList_PathLineToMergeDuplicate(handle, pos)
+
+"""
+    PathFillConvex(handle::Ptr{ImDrawList}, col)
+!!! note
+    Anti-aliased filling requires points to be in clockwise order.
+"""
+PathFillConvex(handle::Ptr{ImDrawList}, col) = ImDrawList_PathFillConvex(handle, col)
+
+"""
+    PathStroke(handle::Ptr{ImDrawList}, col, closed, thickness=1.0)
+"""
+PathStroke(handle::Ptr{ImDrawList}, col, closed, thickness=1.0) = ImDrawList_PathStroke(handle, col, closed, thickness)
+
+"""
+    PathArcTo(handle::Ptr{ImDrawList}, centre, radius, a_min, a_max, num_segments=10)
+Stateful path API, add points then finish with [`PathFillConvex`](@ref) or [`PathStroke`](@ref).
+"""
+PathArcTo(handle::Ptr{ImDrawList}, centre, radius, a_min, a_max, num_segments=10) = ImDrawList_PathArcTo(handle, centre, radius, a_min, a_max, num_segments)
+
+"""
+    PathArcToFast(handle::Ptr{ImDrawList}, centre, radius, a_min_of_12, a_max_of_12)
+Stateful path API, add points then finish with [`PathFillConvex`](@ref) or [`PathStroke`](@ref).
+"""
+PathArcToFast(handle::Ptr{ImDrawList}, centre, radius, a_min_of_12, a_max_of_12) = ImDrawList_PathArcToFast(handle, centre, radius, a_min_of_12, a_max_of_12)
+
+"""
+    PathBezierCurveTo(handle::Ptr{ImDrawList}, p1, p2, p3, num_segments=0)
+Stateful path API, add points then finish with [`PathFillConvex`](@ref) or [`PathStroke`](@ref).
+"""
+PathBezierCurveTo(handle::Ptr{ImDrawList}, p1, p2, p3, num_segments=0) = ImDrawList_PathBezierCurveTo(handle, p1, p2, p3, num_segments)
+
+"""
+    PathRect(handle::Ptr{ImDrawList}, rect_min, rect_max, rounding=0.0, rounding_corners_flags=ImDrawCornerFlags_All)
+Stateful path API, add points then finish with [`PathFillConvex`](@ref) or [`PathStroke`](@ref).
+"""
+PathRect(handle::Ptr{ImDrawList}, rect_min, rect_max, rounding=0.0, rounding_corners_flags=ImDrawCornerFlags_All) = ImDrawList_PathRect(handle, rect_min, rect_max, rounding, rounding_corners_flags)
+
+"""
+    ChannelsSplit(handle::Ptr{ImDrawList}, channels_count)
+!!! tip
+    - Use to simulate layers. By switching channels to can render out-of-order (e.g. submit
+        foreground primitives before background primitives)
+    - Use to minimize draw calls (e.g. if going back-and-forth between multiple non-overlapping
+        clipping rectangles, prefer to append into separate channels then merge at the end)
+"""
+ChannelsSplit(handle::Ptr{ImDrawList}, channels_count) = ImDrawList_ChannelsSplit(handle, channels_count)
+
+"""
+    ChannelsMerge(handle::Ptr{ImDrawList})
+!!! tip
+    - Use to simulate layers. By switching channels to can render out-of-order (e.g. submit
+        foreground primitives before background primitives)
+    - Use to minimize draw calls (e.g. if going back-and-forth between multiple non-overlapping
+        clipping rectangles, prefer to append into separate channels then merge at the end)
+"""
+ChannelsMerge(handle::Ptr{ImDrawList}) = ImDrawList_ChannelsMerge(handle)
+
+"""
+    ChannelsSetCurrent(handle::Ptr{ImDrawList}, channel_index)
+!!! tip
+    - Use to simulate layers. By switching channels to can render out-of-order (e.g. submit
+        foreground primitives before background primitives)
+    - Use to minimize draw calls (e.g. if going back-and-forth between multiple non-overlapping
+        clipping rectangles, prefer to append into separate channels then merge at the end)
+"""
+ChannelsSetCurrent(handle::Ptr{ImDrawList}, channel_index) = ImDrawList_ChannelsSetCurrent(handle, channel_index)
+
+"""
+    AddCallback(handle::Ptr{ImDrawList}, callback, callback_data)
+Your rendering function must check for `UserCallback` in ImDrawCmd and call the function
+instead of rendering triangles.
+"""
+AddCallback(handle::Ptr{ImDrawList}, callback, callback_data) = ImDrawList_AddCallback(handle, callback, callback_data)
+
+"""
+    AddDrawCmd(handle::Ptr{ImDrawList})
+This is useful if you need to forcefully create a new draw call (to allow for dependent
+rendering / blending). Otherwise primitives are merged into the same draw-call as much as possible.
+"""
+AddDrawCmd(handle::Ptr{ImDrawList}) = ImDrawList_AddDrawCmd(handle)
+
+"""
+    CloneOutput(handle::Ptr{ImDrawList}) -> Ptr{ImDrawList}
+Create a clone of the CmdBuffer/IdxBuffer/VtxBuffer.
+"""
+CloneOutput(handle::Ptr{ImDrawList}) = ImDrawList_CloneOutput(handle)
+
+"""
+    Clear(handle::Ptr{ImDrawList})
+!!! note
+    All primitives needs to be reserved via [`PrimReserve`](@ref) beforehand!
+"""
+Clear(handle::Ptr{ImDrawList}) = ImDrawList_Clear(handle)
+
+"""
+    ClearFreeMemory(handle::Ptr{ImDrawList})
+!!! note
+    All primitives needs to be reserved via [`PrimReserve`](@ref) beforehand!
+"""
+ClearFreeMemory(handle::Ptr{ImDrawList}) = ImDrawList_ClearFreeMemory(handle)
+
+"""
+    PrimReserve(handle::Ptr{ImDrawList}, idx_count, vtx_count)
+!!! note
+    All primitives needs to be reserved via [`PrimReserve`](@ref) beforehand!
+"""
+PrimReserve(handle::Ptr{ImDrawList}, idx_count, vtx_count) = ImDrawList_PrimReserve(handle, idx_count, vtx_count)
+
+"""
+    PrimRect(handle::Ptr{ImDrawList}, a, b, col)
+Axis aligned rectangle (composed of two triangles).
+
+!!! note
+    All primitives needs to be reserved via [`PrimReserve`](@ref) beforehand!
+"""
+PrimRect(handle::Ptr{ImDrawList}, a, b, col) = ImDrawList_PrimRect(handle, a, b, col)
+
+"""
+    PrimRectUV(handle::Ptr{ImDrawList}, a, b, uv_a, uv_b, col)
+!!! note
+    All primitives needs to be reserved via [`PrimReserve`](@ref) beforehand!
+"""
+PrimRectUV(handle::Ptr{ImDrawList}, a, b, uv_a, uv_b, col) = ImDrawList_PrimRectUV(handle, a, b, uv_a, uv_b, col)
+
+"""
+    PrimQuadUV(handle::Ptr{ImDrawList}, a, b, c, d, uv_a, uv_b, uv_c, uv_d, col)
+!!! note
+    All primitives needs to be reserved via [`PrimReserve`](@ref) beforehand!
+"""
+PrimQuadUV(handle::Ptr{ImDrawList}, a, b, c, d, uv_a, uv_b, uv_c, uv_d, col) = ImDrawList_PrimQuadUV(handle, a, b, c, d, uv_a, uv_b, uv_c, uv_d, col)
+
+"""
+    PrimWriteVtx(handle::Ptr{ImDrawList}, pos, uv, col)
+!!! note
+    All primitives needs to be reserved via [`PrimReserve`](@ref) beforehand!
+"""
+PrimWriteVtx(handle::Ptr{ImDrawList}, pos, uv, col) = ImDrawList_PrimWriteVtx(handle, pos, uv, col)
+
+"""
+    PrimWriteIdx(handle::Ptr{ImDrawList}, idx)
+!!! note
+    All primitives needs to be reserved via [`PrimReserve`](@ref) beforehand!
+"""
+PrimWriteIdx(handle::Ptr{ImDrawList}, idx) = ImDrawList_PrimWriteIdx(handle, idx)
+
+"""
+    PrimVtx(handle::Ptr{ImDrawList}, pos, uv, col)
+!!! note
+    All primitives needs to be reserved via [`PrimReserve`](@ref) beforehand!
+"""
+PrimVtx(handle::Ptr{ImDrawList}, pos, uv, col) = ImDrawList_PrimVtx(handle, pos, uv, col)
+
+"""
+    UpdateClipRect(handle::Ptr{ImDrawList})
+!!! note
+    All primitives needs to be reserved via [`PrimReserve`](@ref) beforehand!
+"""
+UpdateClipRect(handle::Ptr{ImDrawList}) = ImDrawList_UpdateClipRect(handle)
+
+"""
+    UpdateTextureID(handle::Ptr{ImDrawList})
+!!! note
+    All primitives needs to be reserved via [`PrimReserve`](@ref) beforehand!
+"""
+UpdateTextureID(handle::Ptr{ImDrawList}) = ImDrawList_UpdateTextureID(handle)
 
 
 ###################################### ImGuiTextBuffer #####################################
@@ -2836,6 +3155,14 @@ Set_NavInputs(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_NavInputs(io, i, x)
 # Set_NavInputsDownDurationPrev(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_NavInputsDownDurationPrev(io, i, x)
 
 ######################################### ImDrawData #######################################
+# TODO: find out the use case
+# ImDrawData_ImDrawData()
+# ImDrawData_destroy(handle)
+Clear(handle::Ptr{ImDrawData}) = ImDrawData_Clear(handle)
+DeIndexAllBuffers(handle::Ptr{ImDrawData}) = ImDrawData_DeIndexAllBuffers(handle)
+ScaleClipRects(handle::Ptr{ImDrawData}, fb_scale) = ImDrawData_ScaleClipRects(handle, fb_scale)
+
+# extra
 Get_Valid(data::Ptr{ImDrawData}) = ImDrawData_Get_Valid(data)
 Get_CmdLists(data::Ptr{ImDrawData}, i) = ImDrawData_Get_CmdLists(data, i)
 Get_CmdListsCount(data::Ptr{ImDrawData}) = ImDrawData_Get_CmdListsCount(data)

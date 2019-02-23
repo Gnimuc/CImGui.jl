@@ -5,8 +5,6 @@ Base.convert(::Type{ImVec4}, x::ImU32) = ColorConvertU32ToFloat4(x)
 Base.convert(::Type{ImU32}, x::ImVec4) = ColorConvertFloat4ToU32(x)
 
 # put this in CEnum.jl?
-using CSyntax.CEnum: Cenum, enum_names, enum_values
-
 Base.:|(a::T, b::Integer) where {T<:Cenum{UInt32}} = UInt32(a) | UInt32(b)
 Base.:|(a::Integer, b::T) where {T<:Cenum{UInt32}} = UInt32(b) | UInt32(a)
 

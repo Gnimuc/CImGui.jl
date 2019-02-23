@@ -605,6 +605,7 @@ GetColorU32(idx::Integer, alpha_mul=1.0) = igGetColorU32(idx, alpha_mul)
 GetColorU32(col::ImVec4) = igGetColorU32Vec4(col)
 GetColorU32(r, g, b, a) = GetColorU32(ImVec4(r,g,b,a))
 GetColorU32(col::ImU32) = igGetColorU32U32(col)
+GetColorU32(col::Cenum) = GetColorU32(Int(col))
 
 ############################ Parameters stacks (current window) ############################
 """
@@ -1488,17 +1489,17 @@ Set next [`TreeNode`](@ref)/[`CollapsingHeader`](@ref) open state.
 SetNextTreeNodeOpen(is_open, cond=0) = igSetNextTreeNodeOpen(is_open, cond)
 
 """
-    CollapsingHeader(label, flags=0)
+    CollapsingHeader(label, flags=ImGuiTreeNodeFlags_(0)) -> Bool
 If returning `true` the header is open. Doesn't indent nor push on ID stack.
 User doesn't have to call [`TreePop`](@ref).
 """
-CollapsingHeader(label, flags=0) = igCollapsingHeader(label, flags)
+CollapsingHeader(label, flags=ImGuiTreeNodeFlags_(0)) = igCollapsingHeader(label, flags)
 
 """
-    CollapsingHeaderBoolPtr(label, p_open, flags=0)
+    CollapsingHeader(label, p_open::Ref, flags=ImGuiTreeNodeFlags_(0)) -> Bool
 When `p_open` isn't `C_NULL`, display an additional small close button on upper right of the header.
 """
-CollapsingHeaderBoolPtr(label, p_open, flags=0) = igCollapsingHeaderBoolPtr(label, p_open, flags)
+CollapsingHeader(label, p_open::Ref, flags=ImGuiTreeNodeFlags_(0)) = igCollapsingHeaderBoolPtr(label, p_open, flags)
 
 ################################### Widgets: Selectables ###################################
 """
@@ -1754,7 +1755,7 @@ GetColumnIndex() = igGetColumnIndex()
     GetColumnWidth(column_index=-1) -> Cfloat
 Return column width (in pixels). Pass -1 to use current column.
 """
-GetColumnWidth(column_index) = igGetColumnWidth(column_index)
+GetColumnWidth(column_index=-1) = igGetColumnWidth(column_index)
 
 """
     SetColumnWidth(column_index, width)

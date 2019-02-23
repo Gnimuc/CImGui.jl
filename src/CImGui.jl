@@ -1,6 +1,8 @@
 module CImGui
 
+using Printf
 using CSyntax
+using CSyntax.CEnum: Cenum, enum_names, enum_values
 
 include("LibCImGui.jl")
 using .LibCImGui

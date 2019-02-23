@@ -12,6 +12,9 @@ include(joinpath(@__DIR__, "app_simple_overlay.jl"))
 include(joinpath(@__DIR__, "app_window_titles.jl"))
 include(joinpath(@__DIR__, "app_custom_rendering.jl"))
 include(joinpath(@__DIR__, "demo_helper.jl"))
+include(joinpath(@__DIR__, "demo_columns.jl"))
+# include(joinpath(@__DIR__, "demo_widgets.jl"))
+include(joinpath(@__DIR__, "demo_misc.jl"))
 
 let
 # examples Apps (accessible from the "Examples" menu)
@@ -140,25 +143,6 @@ global function ShowDemoWindow(p_open::Ref{Bool})
         CImGui.ShowUserGuide()
     end
 
-    if CImGui.CollapsingHeader("Window options")
-        @c CImGui.Checkbox("No titlebar", &no_titlebar)
-        CImGui.SameLine(150)
-        @c CImGui.Checkbox("No scrollbar", &no_scrollbar)
-        CImGui.SameLine(300)
-        @c CImGui.Checkbox("No menu", &no_menu)
-        @c CImGui.Checkbox("No move", &no_move)
-        CImGui.SameLine(150)
-        @c CImGui.Checkbox("No resize", &no_resize)
-        CImGui.SameLine(300)
-        @c CImGui.Checkbox("No collapse", &no_collapse)
-        @c CImGui.Checkbox("No close", &no_close)
-        CImGui.SameLine(150)
-        @c CImGui.Checkbox("No nav", &no_nav)
-        CImGui.SameLine(300)
-        @c CImGui.Checkbox("No background", &no_background)
-        @c CImGui.Checkbox("No bring to front", &no_bring_to_front)
-    end
-
     if CImGui.CollapsingHeader("Configuration")
         io = CImGui.GetIO()
         if CImGui.TreeNode("Configuration##2")
@@ -226,12 +210,31 @@ global function ShowDemoWindow(p_open::Ref{Bool})
         end
     end
 
+    if CImGui.CollapsingHeader("Window options")
+        @c CImGui.Checkbox("No titlebar", &no_titlebar)
+        CImGui.SameLine(150)
+        @c CImGui.Checkbox("No scrollbar", &no_scrollbar)
+        CImGui.SameLine(300)
+        @c CImGui.Checkbox("No menu", &no_menu)
+        @c CImGui.Checkbox("No move", &no_move)
+        CImGui.SameLine(150)
+        @c CImGui.Checkbox("No resize", &no_resize)
+        CImGui.SameLine(300)
+        @c CImGui.Checkbox("No collapse", &no_collapse)
+        @c CImGui.Checkbox("No close", &no_close)
+        CImGui.SameLine(150)
+        @c CImGui.Checkbox("No nav", &no_nav)
+        CImGui.SameLine(300)
+        @c CImGui.Checkbox("No background", &no_background)
+        @c CImGui.Checkbox("No bring to front", &no_bring_to_front)
+    end
+
     # all demo contents
     # ShowDemoWindowWidgets()
     # ShowDemoWindowLayout()
     # ShowDemoWindowPopups()
-    # ShowDemoWindowColumns()
-    # ShowDemoWindowMisc()
+    ShowDemoWindowColumns()
+    ShowDemoWindowMisc()
 
     CImGui.End() # demo
 end

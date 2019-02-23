@@ -115,7 +115,7 @@ function ImGui_ImplGlfw_UpdateMouseCursor()
     imgui_cursor = GetMouseCursor()
     if imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor
         # hide OS mouse cursor if imgui is drawing it or if it wants no cursor
-        GLFW.SetInputMode(g_Window, GLFW.CURSOR, GLFW_CURSOR_HIDDEN)
+        GLFW.SetInputMode(g_Window, GLFW.CURSOR, GLFW.CURSOR_HIDDEN)
     else
         # show OS mouse cursor
         cursor = g_MouseCursors[imgui_cursor+1]

@@ -73,16 +73,7 @@ while !GLFW.WindowShouldClose(window)
     ImGui_ImplGlfw_NewFrame()
     CImGui.NewFrame()
 
-    # demo_open && @c demo(&demo_open)
-    ShowExampleAppMainMenuBar(Ref(true))
-    ShowExampleAppLayout(Ref(true))
-    ShowExampleAppPropertyEditor(Ref(true))
-    ShowExampleAppLongText(Ref(true))
-    ShowExampleAppAutoResize(Ref(true))
-    ShowExampleAppConstrainedResize(Ref(true))
-    ShowExampleAppSimpleOverlay(Ref(true))
-    ShowExampleAppWindowTitles(Ref(true))
-    ShowExampleAppCustomRendering(Ref(true))
+    demo_open && @c ShowDemoWindow(&demo_open)
 
     # rendering
     CImGui.Render()

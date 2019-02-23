@@ -951,12 +951,12 @@ GetID(ptr_id::Ptr) = igGetIDPtr(ptr_id)
 
 ####################################### Widgets: Text ######################################
 """
-    TextUnformatted(text, text_end)
+    TextUnformatted(text, text_end=C_NULL)
 Raw text without formatting. Roughly equivalent to `Text("%s", text)` but:
 1. doesn't require null terminated string if `text_end` is specified;
 2. it's faster, no memory copy is done, no buffer size limits, recommended for long chunks of text.
 """
-TextUnformatted(text, text_end) = igTextUnformatted(text, text_end)
+TextUnformatted(text, text_end=C_NULL) = igTextUnformatted(text, text_end)
 
 """
     Text(formatted_text)
@@ -1063,6 +1063,7 @@ Checkbox(label, v) = igCheckbox(label, v)
 Return true when the value has been changed or when pressed/selected.
 """
 CheckboxFlags(label, flags, flags_value) = igCheckboxFlags(label, flags, flags_value)
+CheckboxFlags(label, flags::Ref{Cint}, flags_value) = (tmp=Ref{Cuint}(flags[]); igCheckboxFlags(label, tmp, flags_value); flags[]=tmp[];)
 
 """
     RadioButton(label, active::Bool) -> Bool

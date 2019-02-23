@@ -7,3 +7,4 @@ deps/usr
 deps/deps.jl
 deps/build.log
 *.ini
+imgui_log.txt

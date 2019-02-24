@@ -11,6 +11,13 @@ Base.:|(a::Integer, b::T) where {T<:Cenum{UInt32}} = UInt32(b) | UInt32(a)
 Base.:&(a::T, b::Integer) where {T<:Cenum{UInt32}} = UInt32(a) & UInt32(b)
 Base.:&(a::Integer, b::T) where {T<:Cenum{UInt32}} = UInt32(b) & UInt32(a)
 
+Base.:⊻(a::T, b::T) where {T<:Cenum{UInt32}} = UInt32(a) ⊻ UInt32(b)
+Base.:⊻(a::T, b::UInt32) where {T<:Cenum{UInt32}} = UInt32(a) ⊻ b
+Base.:⊻(a::UInt32, b::T) where {T<:Cenum{UInt32}} = b ⊻ a
+
+Base.:⊻(a::T, b::Integer) where {T<:Cenum{UInt32}} = UInt32(a) ⊻ UInt32(b)
+Base.:⊻(a::Integer, b::T) where {T<:Cenum{UInt32}} = UInt32(b) ⊻ UInt32(a)
+
 Base.:(:)(a::T, b::Cenum) where {T<:Integer} = a:T(b)
 Base.:(:)(a::Cenum, b::T) where {T<:Integer} = T(a):b
 

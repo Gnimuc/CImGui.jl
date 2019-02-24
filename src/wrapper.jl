@@ -557,11 +557,11 @@ PopStyleColor(count=1) = igPopStyleColor(count)
 
 """
     PushStyleVar(idx, val)
-    PushStyleVar(idx, val::AbstractFloat)
+    PushStyleVar(idx, val::Real)
 See also [`GetStyle`](@ref).
 """
 PushStyleVar(idx, val) = igPushStyleVarVec2(idx, val)
-PushStyleVar(idx, val::AbstractFloat) = igPushStyleVarFloat(idx, val)
+PushStyleVar(idx, val::Real) = igPushStyleVarFloat(idx, val)
 
 """
     PopStyleVar(count=1)
@@ -1546,14 +1546,14 @@ ListBoxFooter() = igListBoxFooter()
     PlotLines(label, values_getter::Ptr, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=(0,0))
 """
 PlotLines(label, values, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0), stride=sizeof(Cfloat)) = igPlotLines(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
-PlotLines(label, values_getter::Ptr, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0)) = igPlotLinesFnPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
+PlotLines(label, values_getter, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0)) = igPlotLinesFnPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
 
 """
     PlotHistogram(label, values, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=(0,0), stride=sizeof(Cfloat))
     PlotHistogram(label, values_getter::Ptr, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0))
 """
 PlotHistogram(label, values, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0), stride=sizeof(Cfloat)) = igPlotHistogramFloatPtr(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
-PlotHistogram(label, values_getter::Ptr, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0)) = igPlotHistogramFnPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
+PlotHistogram(label, values_getter, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0)) = igPlotHistogramFnPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
 
 ################################# Widgets: Value() Helpers #################################
 """
@@ -1885,14 +1885,14 @@ Call when the current item is active. If this return true, you can call [`SetDra
 BeginDragDropSource(flags=ImGuiDragDropFlags_(0)) = igBeginDragDropSource(flags)
 
 """
-    SetDragDropPayload(type, data, size, cond=ImGuiCond_(0)) -> bool
+    SetDragDropPayload(type, data, size, cond=ImGuiCond_(1)) -> bool
 `type` is a user defined string of maximum 32 characters. Strings starting with '_' are
 reserved for dear imgui internal types. Data is copied and held by imgui.
 
 !!! note "BETA API"
     Missing Demo code. API may evolve.
 """
-SetDragDropPayload(type, data, size, cond=ImGuiCond_(0)) = igSetDragDropPayload(type, data, size, cond)
+SetDragDropPayload(type, data, size, cond=ImGuiCond_(1)) = igSetDragDropPayload(type, data, size, cond)
 
 """
     EndDragDropSource()

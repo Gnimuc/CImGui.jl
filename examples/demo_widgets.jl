@@ -524,212 +524,199 @@ end
         end
     end
 
-    # if (CImGui.TreeNode("Plots Widgets"))
-    # {
-    #     static bool animate = true;
-    #     CImGui.Checkbox("Animate", &animate);
-    #
-    #     static float arr[] = { 0.6f, 0.1f, 1.0f, 0.5f, 0.92f, 0.1f, 0.2f };
-    #     CImGui.PlotLines("Frame Times", arr, IM_ARRAYSIZE(arr));
-    #
-    #     // Create a dummy array of contiguous float values to plot
-    #     // Tip: If your float aren't contiguous but part of a structure, you can pass a pointer to your first float and the sizeof() of your structure in the Stride parameter.
-    #     static float values[90] = { 0 };
-    #     static int values_offset = 0;
-    #     static double refresh_time = 0.0;
-    #     if (!animate || refresh_time == 0.0)
-    #         refresh_time = CImGui.GetTime();
-    #     while (refresh_time < CImGui.GetTime()) // Create dummy data at fixed 60 hz rate for the demo
-    #     {
-    #         static float phase = 0.0f;
-    #         values[values_offset] = cosf(phase);
-    #         values_offset = (values_offset+1) % IM_ARRAYSIZE(values);
-    #         phase += 0.10f*values_offset;
-    #         refresh_time += 1.0f/60.0f;
-    #     }
-    #     CImGui.PlotLines("Lines", values, IM_ARRAYSIZE(values), values_offset, "avg 0.0", -1.0f, 1.0f, ImVec2(0,80));
-    #     CImGui.PlotHistogram("Histogram", arr, IM_ARRAYSIZE(arr), 0, NULL, 0.0f, 1.0f, ImVec2(0,80));
-    #
-    #     // Use functions to generate output
-    #     // FIXME: This is rather awkward because current plot API only pass in indices. We probably want an API passing floats and user provide sample rate/count.
-    #     struct Funcs
-    #     {
-    #         static float Sin(void*, int i) { return sinf(i * 0.1f); }
-    #         static float Saw(void*, int i) { return (i & 1) ? 1.0f : -1.0f; }
-    #     };
-    #     static int func_type = 0, display_count = 70;
-    #     CImGui.Separator();
-    #     CImGui.PushItemWidth(100); CImGui.Combo("func", &func_type, "Sin\0Saw\0"); CImGui.PopItemWidth();
-    #     CImGui.SameLine();
-    #     CImGui.SliderInt("Sample count", &display_count, 1, 400);
-    #     float (*func)(void*, int) = (func_type == 0) ? Funcs::Sin : Funcs::Saw;
-    #     CImGui.PlotLines("Lines", func, NULL, display_count, 0, NULL, -1.0f, 1.0f, ImVec2(0,80));
-    #     CImGui.PlotHistogram("Histogram", func, NULL, display_count, 0, NULL, -1.0f, 1.0f, ImVec2(0,80));
-    #     CImGui.Separator();
-    #
-    #     // Animate a simple progress bar
-    #     static float progress = 0.0f, progress_dir = 1.0f;
-    #     if (animate)
-    #     {
-    #         progress += progress_dir * 0.4f * CImGui.GetIO().DeltaTime;
-    #         if (progress >= +1.1f) { progress = +1.1f; progress_dir *= -1.0f; }
-    #         if (progress <= -0.1f) { progress = -0.1f; progress_dir *= -1.0f; }
-    #     }
-    #
-    #     // Typically we would use ImVec2(-1.0f,0.0f) to use all available width, or ImVec2(width,0.0f) for a specified width. ImVec2(0.0f,0.0f) uses ItemWidth.
-    #     CImGui.ProgressBar(progress, ImVec2(0.0f,0.0f));
-    #     CImGui.SameLine(0.0f, CImGui.GetStyle().ItemInnerSpacing.x);
-    #     CImGui.Text("Progress Bar");
-    #
-    #     float progress_saturated = (progress < 0.0f) ? 0.0f : (progress > 1.0f) ? 1.0f : progress;
-    #     char buf[32];
-    #     sprintf(buf, "%d/%d", (int)(progress_saturated*1753), 1753);
-    #     CImGui.ProgressBar(progress, ImVec2(0.f,0.f), buf);
-    #     CImGui.TreePop();
-    # }
-    #
-    # if (CImGui.TreeNode("Color/Picker Widgets"))
-    # {
-    #     static ImVec4 color = ImVec4(114.0f/255.0f, 144.0f/255.0f, 154.0f/255.0f, 200.0f/255.0f);
-    #
-    #     static bool alpha_preview = true;
-    #     static bool alpha_half_preview = false;
-    #     static bool drag_and_drop = true;
-    #     static bool options_menu = true;
-    #     static bool hdr = false;
-    #     CImGui.Checkbox("With Alpha Preview", &alpha_preview);
-    #     CImGui.Checkbox("With Half Alpha Preview", &alpha_half_preview);
-    #     CImGui.Checkbox("With Drag and Drop", &drag_and_drop);
-    #     CImGui.Checkbox("With Options Menu", &options_menu); CImGui.SameLine(); ShowHelpMarker("Right-click on the individual color widget to show options.");
-    #     CImGui.Checkbox("With HDR", &hdr); CImGui.SameLine(); ShowHelpMarker("Currently all this does is to lift the 0..1 limits on dragging widgets.");
-    #     int misc_flags = (hdr ? ImGuiColorEditFlags_HDR : 0) | (drag_and_drop ? 0 : ImGuiColorEditFlags_NoDragDrop) | (alpha_half_preview ? ImGuiColorEditFlags_AlphaPreviewHalf : (alpha_preview ? ImGuiColorEditFlags_AlphaPreview : 0)) | (options_menu ? 0 : ImGuiColorEditFlags_NoOptions);
-    #
-    #     CImGui.Text("Color widget:");
-    #     CImGui.SameLine(); ShowHelpMarker("Click on the colored square to open a color picker.\nCTRL+click on individual component to input value.\n");
-    #     CImGui.ColorEdit3("MyColor##1", (float*)&color, misc_flags);
-    #
-    #     CImGui.Text("Color widget HSV with Alpha:");
-    #     CImGui.ColorEdit4("MyColor##2", (float*)&color, ImGuiColorEditFlags_HSV | misc_flags);
-    #
-    #     CImGui.Text("Color widget with Float Display:");
-    #     CImGui.ColorEdit4("MyColor##2f", (float*)&color, ImGuiColorEditFlags_Float | misc_flags);
-    #
-    #     CImGui.Text("Color button with Picker:");
-    #     CImGui.SameLine(); ShowHelpMarker("With the ImGuiColorEditFlags_NoInputs flag you can hide all the slider/text inputs.\nWith the ImGuiColorEditFlags_NoLabel flag you can pass a non-empty label which will only be used for the tooltip and picker popup.");
-    #     CImGui.ColorEdit4("MyColor##3", (float*)&color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | misc_flags);
-    #
-    #     CImGui.Text("Color button with Custom Picker Popup:");
-    #
-    #     // Generate a dummy default palette. The palette will persist and can be edited.
-    #     static bool saved_palette_init = true;
-    #     static ImVec4 saved_palette[32] = { };
-    #     if (saved_palette_init)
-    #     {
-    #         for (int n = 0; n < IM_ARRAYSIZE(saved_palette); n++)
-    #         {
-    #             CImGui.ColorConvertHSVtoRGB(n / 31.0f, 0.8f, 0.8f, saved_palette[n].x, saved_palette[n].y, saved_palette[n].z);
-    #             saved_palette[n].w = 1.0f; // Alpha
-    #         }
-    #         saved_palette_init = false;
-    #     }
-    #
-    #     static ImVec4 backup_color;
-    #     bool open_popup = CImGui.ColorButton("MyColor##3b", color, misc_flags);
-    #     CImGui.SameLine();
-    #     open_popup |= CImGui.Button("Palette");
-    #     if (open_popup)
-    #     {
-    #         CImGui.OpenPopup("mypicker");
-    #         backup_color = color;
-    #     }
-    #     if (CImGui.BeginPopup("mypicker"))
-    #     {
-    #         CImGui.Text("MY CUSTOM COLOR PICKER WITH AN AMAZING PALETTE!");
-    #         CImGui.Separator();
-    #         CImGui.ColorPicker4("##picker", (float*)&color, misc_flags | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview);
-    #         CImGui.SameLine();
-    #
-    #         CImGui.BeginGroup(); // Lock X position
-    #         CImGui.Text("Current");
-    #         CImGui.ColorButton("##current", color, ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf, ImVec2(60,40));
-    #         CImGui.Text("Previous");
-    #         if (CImGui.ColorButton("##previous", backup_color, ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_AlphaPreviewHalf, ImVec2(60,40)))
-    #             color = backup_color;
-    #         CImGui.Separator();
-    #         CImGui.Text("Palette");
-    #         for (int n = 0; n < IM_ARRAYSIZE(saved_palette); n++)
-    #         {
-    #             CImGui.PushID(n);
-    #             if ((n % 8) != 0)
-    #                 CImGui.SameLine(0.0f, CImGui.GetStyle().ItemSpacing.y);
-    #             if (CImGui.ColorButton("##palette", saved_palette[n], ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoTooltip, ImVec2(20,20)))
-    #                 color = ImVec4(saved_palette[n].x, saved_palette[n].y, saved_palette[n].z, color.w); // Preserve alpha!
-    #
-    #             // Allow user to drop colors into each palette entry
-    #             // (Note that ColorButton is already a drag source by default, unless using ImGuiColorEditFlags_NoDragDrop)
-    #             if (CImGui.BeginDragDropTarget())
-    #             {
-    #                 if (const ImGuiPayload* payload = CImGui.AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F))
-    #                     memcpy((float*)&saved_palette[n], payload->Data, sizeof(float) * 3);
-    #                 if (const ImGuiPayload* payload = CImGui.AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_4F))
-    #                     memcpy((float*)&saved_palette[n], payload->Data, sizeof(float) * 4);
-    #                 CImGui.EndDragDropTarget();
-    #             }
-    #
-    #             CImGui.PopID();
-    #         }
-    #         CImGui.EndGroup();
-    #         CImGui.EndPopup();
-    #     }
-    #
-    #     CImGui.Text("Color button only:");
-    #     CImGui.ColorButton("MyColor##3c", *(ImVec4*)&color, misc_flags, ImVec2(80,80));
-    #
-    #     CImGui.Text("Color picker:");
-    #     static bool alpha = true;
-    #     static bool alpha_bar = true;
-    #     static bool side_preview = true;
-    #     static bool ref_color = false;
-    #     static ImVec4 ref_color_v(1.0f,0.0f,1.0f,0.5f);
-    #     static int inputs_mode = 2;
-    #     static int picker_mode = 0;
-    #     CImGui.Checkbox("With Alpha", &alpha);
-    #     CImGui.Checkbox("With Alpha Bar", &alpha_bar);
-    #     CImGui.Checkbox("With Side Preview", &side_preview);
-    #     if (side_preview)
-    #     {
-    #         CImGui.SameLine();
-    #         CImGui.Checkbox("With Ref Color", &ref_color);
-    #         if (ref_color)
-    #         {
-    #             CImGui.SameLine();
-    #             CImGui.ColorEdit4("##RefColor", &ref_color_v.x, ImGuiColorEditFlags_NoInputs | misc_flags);
-    #         }
-    #     }
-    #     CImGui.Combo("Inputs Mode", &inputs_mode, "All Inputs\0No Inputs\0RGB Input\0HSV Input\0HEX Input\0");
-    #     CImGui.Combo("Picker Mode", &picker_mode, "Auto/Current\0Hue bar + SV rect\0Hue wheel + SV triangle\0");
-    #     CImGui.SameLine(); ShowHelpMarker("User can right-click the picker to change mode.");
-    #     ImGuiColorEditFlags flags = misc_flags;
-    #     if (!alpha) flags |= ImGuiColorEditFlags_NoAlpha; // This is by default if you call ColorPicker3() instead of ColorPicker4()
-    #     if (alpha_bar) flags |= ImGuiColorEditFlags_AlphaBar;
-    #     if (!side_preview) flags |= ImGuiColorEditFlags_NoSidePreview;
-    #     if (picker_mode == 1) flags |= ImGuiColorEditFlags_PickerHueBar;
-    #     if (picker_mode == 2) flags |= ImGuiColorEditFlags_PickerHueWheel;
-    #     if (inputs_mode == 1) flags |= ImGuiColorEditFlags_NoInputs;
-    #     if (inputs_mode == 2) flags |= ImGuiColorEditFlags_RGB;
-    #     if (inputs_mode == 3) flags |= ImGuiColorEditFlags_HSV;
-    #     if (inputs_mode == 4) flags |= ImGuiColorEditFlags_HEX;
-    #     CImGui.ColorPicker4("MyColor##4", (float*)&color, flags, ref_color ? &ref_color_v.x : NULL);
-    #
-    #     CImGui.Text("Programmatically set defaults:");
-    #     CImGui.SameLine(); ShowHelpMarker("SetColorEditOptions() is designed to allow you to set boot-time default.\nWe don't have Push/Pop functions because you can force options on a per-widget basis if needed, and the user can change non-forced ones with the options menu.\nWe don't have a getter to avoid encouraging you to persistently save values that aren't forward-compatible.");
-    #     if (CImGui.Button("Default: Uint8 + HSV + Hue Bar"))
-    #         CImGui.SetColorEditOptions(ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_HSV | ImGuiColorEditFlags_PickerHueBar);
-    #     if (CImGui.Button("Default: Float + HDR + Hue Wheel"))
-    #         CImGui.SetColorEditOptions(ImGuiColorEditFlags_Float | ImGuiColorEditFlags_HDR | ImGuiColorEditFlags_PickerHueWheel);
-    #
-    #     CImGui.TreePop();
-    # }
+    if CImGui.TreeNode("Plots Widgets")
+animate, _ = @cstatic animate=true arr=Cfloat[0.6, 0.1, 1.0, 0.5, 0.92, 0.1, 0.2] begin
+        @c CImGui.Checkbox("Animate", &animate)
+        CImGui.PlotLines("Frame Times", arr, length(arr))
+
+        # create a dummy array of contiguous float values to plot
+        # Tip: If your float aren't contiguous but part of a structure, you can pass a pointer to your first float and the sizeof() of your structure in the Stride parameter.
+        @cstatic values=fill(Cfloat(0),90) values_offset=Cint(0) refresh_time=Cdouble(0) begin
+            (!animate || refresh_time == 0.0) && (refresh_time = CImGui.GetTime();)
+
+            while refresh_time < CImGui.GetTime() # create dummy data at fixed 60 hz rate for the demo
+                @cstatic phase=Cfloat(0) begin
+                    values[values_offset+1] = cos(phase)
+                    values_offset = (values_offset+1) % length(values)
+                    phase += 0.10*values_offset
+                    refresh_time += 1.0/60.0
+                end
+            end
+            CImGui.PlotLines("Lines", values, length(values), values_offset, "avg 0.0", -1.0, 1.0, (0,80))
+            CImGui.PlotHistogram("Histogram", arr, length(arr), 0, C_NULL, 0.0, 1.0, (0,80))
+        end
+end # @cstatic
+        # use functions to generate output
+        # FIXME: This is rather awkward because current plot API only pass in indices. We probably want an API passing floats and user provide sample rate/count.
+        Sin(::Ptr{Cvoid}, i::Cint) = Cfloat(sin(i * 0.1))
+        Saw(::Ptr{Cvoid}, i::Cint) = Cfloat((i & 1) != 0 ? 1.0 : -1.0)
+        Sin_ptr = @cfunction($Sin, Cfloat, (Ptr{Cvoid}, Cint))
+        Saw_ptr = @cfunction($Saw, Cfloat, (Ptr{Cvoid}, Cint))
+
+        @cstatic func_type=Cint(0) display_count=Cint(70) begin
+            CImGui.Separator()
+            CImGui.PushItemWidth(100)
+            @c CImGui.Combo("func", &func_type, "Sin\0Saw\0")
+            CImGui.PopItemWidth()
+            CImGui.SameLine()
+            @c CImGui.SliderInt("Sample count", &display_count, 1, 400)
+            func = func_type == 0 ? Sin_ptr : Saw_ptr
+            CImGui.PlotLines("Lines", func, C_NULL, display_count, 0, C_NULL, -1.0, 1.0, (0,80))
+            CImGui.PlotHistogram("Histogram", func, C_NULL, display_count, 0, C_NULL, -1.0, 1.0, (0,80))
+            CImGui.Separator()
+        end
+
+        # animate a simple progress bar
+        @cstatic progress=Cfloat(0) progress_dir=Cfloat(1) begin
+            if animate
+                progress += progress_dir * 0.4 * CImGui.GetIO().DeltaTime
+                progress ≥ 1.1 && (progress = 1.1; progress_dir *= -1.0;)
+                progress ≤ -0.1 && (progress = -0.1; progress_dir *= -1.0;)
+            end
+
+            # typically we would use ImVec2(-1.0,0.0) to use all available width, or ImVec2(width,0.0) for a specified width. ImVec2(0.0,0.0) uses ItemWidth.
+            CImGui.ProgressBar(progress, ImVec2(0.0,0.0))
+            # CImGui.SameLine(0.0, CImGui.GetStyle().ItemInnerSpacing.x)
+            CImGui.Text("Progress Bar")
+
+            progress_saturated = (progress < 0.0) ? 0.0 : (progress > 1.0) ? 1.0 : progress
+            buf = @sprintf("%d/%d", progress_saturated*1753, 1753)
+            CImGui.ProgressBar(progress, ImVec2(0,0), buf)
+        end
+        CImGui.TreePop()
+    end
+
+    if CImGui.TreeNode("Color/Picker Widgets")
+@cstatic color=Cfloat[114/255, 144/255, 154/255, 200/255] backup_color=Cfloat[0,0,0,0] saved_palette_init=true saved_palette=fill(ImVec4(0,0,0,0), 32) alpha_preview=true alpha_half_preview=false drag_and_drop=true options_menu=true hdr=false begin
+        @c CImGui.Checkbox("With Alpha Preview", &alpha_preview)
+        @c CImGui.Checkbox("With Half Alpha Preview", &alpha_half_preview)
+        @c CImGui.Checkbox("With Drag and Drop", &drag_and_drop)
+        @c CImGui.Checkbox("With Options Menu", &options_menu)
+        CImGui.SameLine()
+        ShowHelpMarker("Right-click on the individual color widget to show options.")
+        @c CImGui.Checkbox("With HDR", &hdr)
+        CImGui.SameLine()
+        ShowHelpMarker("Currently all this does is to lift the 0..1 limits on dragging widgets.")
+        misc_flags = (hdr ? CImGui.ImGuiColorEditFlags_HDR : 0) | (drag_and_drop ? 0 : CImGui.ImGuiColorEditFlags_NoDragDrop) | (alpha_half_preview ? CImGui.ImGuiColorEditFlags_AlphaPreviewHalf : (alpha_preview ? CImGui.ImGuiColorEditFlags_AlphaPreview : 0)) | (options_menu ? 0 : CImGui.ImGuiColorEditFlags_NoOptions)
+
+        CImGui.Text("Color widget:")
+        CImGui.SameLine()
+        ShowHelpMarker("Click on the colored square to open a color picker.\nCTRL+click on individual component to input value.\n")
+        CImGui.ColorEdit3("MyColor##1", color, misc_flags)
+
+        CImGui.Text("Color widget HSV with Alpha:")
+        CImGui.ColorEdit4("MyColor##2", color, CImGui.ImGuiColorEditFlags_HSV | misc_flags)
+
+        CImGui.Text("Color widget with Float Display:")
+        CImGui.ColorEdit4("MyColor##2f", color, CImGui.ImGuiColorEditFlags_Float | misc_flags)
+
+        CImGui.Text("Color button with Picker:")
+        CImGui.SameLine()
+        ShowHelpMarker("With the ImGuiColorEditFlags_NoInputs flag you can hide all the slider/text inputs.\nWith the ImGuiColorEditFlags_NoLabel flag you can pass a non-empty label which will only be used for the tooltip and picker popup.")
+        CImGui.ColorEdit4("MyColor##3", color, CImGui.ImGuiColorEditFlags_NoInputs | CImGui.ImGuiColorEditFlags_NoLabel | misc_flags)
+        CImGui.Text("Color button with Custom Picker Popup:")
+
+        # generate a dummy default palette. The palette will persist and can be edited.
+        if saved_palette_init
+            for n = 0:length(saved_palette)-1
+                tmp = saved_palette[n+1]
+                x, y, z = tmp.x, tmp.y, tmp.z
+                @c CImGui.ColorConvertHSVtoRGB(n/31, 0.8, 0.8, &x, &y, &z)
+                tmp = saved_palette[n+1]
+                saved_palette[n+1] = ImVec4(x, y, z, 1.0) # alpha
+            end
+            saved_palette_init = false
+        end
+
+        open_popup = CImGui.ColorButton("MyColor##3b", ImVec4(color...), misc_flags)
+        CImGui.SameLine()
+        open_popup |= CImGui.Button("Palette")
+        if open_popup
+            CImGui.OpenPopup("mypicker")
+            backup_color = color
+        end
+
+        if CImGui.BeginPopup("mypicker")
+            CImGui.Text("MY CUSTOM COLOR PICKER WITH AN AMAZING PALETTE!")
+            CImGui.Separator()
+            CImGui.ColorPicker4("##picker", color, misc_flags | CImGui.ImGuiColorEditFlags_NoSidePreview | CImGui.ImGuiColorEditFlags_NoSmallPreview)
+            CImGui.SameLine()
+
+            CImGui.BeginGroup() # Lock X position
+            CImGui.Text("Current")
+            CImGui.ColorButton("##current", ImVec4(color...), CImGui.ImGuiColorEditFlags_NoPicker | CImGui.ImGuiColorEditFlags_AlphaPreviewHalf, (60,40))
+            CImGui.Text("Previous")
+            CImGui.ColorButton("##previous", ImVec4(backup_color...), CImGui.ImGuiColorEditFlags_NoPicker | CImGui.ImGuiColorEditFlags_AlphaPreviewHalf, (60,40)) && (color = backup_color;)
+            CImGui.Separator()
+            CImGui.Text("Palette")
+            for n = 0:length(saved_palette)-1
+                CImGui.PushID(n)
+                # (n % 8) != 0 && CImGui.SameLine(0.0, CImGui.GetStyle().ItemSpacing.y)
+                if CImGui.ColorButton("##palette", saved_palette[n+1], CImGui.ImGuiColorEditFlags_NoAlpha | CImGui.ImGuiColorEditFlags_NoPicker | CImGui.ImGuiColorEditFlags_NoTooltip, (20,20))
+                    tmp = saved_palette[n+1]
+                    x, y, z = tmp.z, tmp.y, tmp.z
+                    color = [x, y, z, color[4]] # preserve alpha!
+                end
+
+                # allow user to drop colors into each palette entry
+                # (Note that ColorButton is already a drag source by default, unless using ImGuiColorEditFlags_NoDragDrop)
+                if CImGui.BeginDragDropTarget()
+                    # if (const ImGuiPayload* payload = CImGui.AcceptDragDropPayload(CImGui.IMGUI_PAYLOAD_TYPE_COLOR_3F))
+                    #     memcpy((float*)&saved_palette[n], payload->Data, sizeof(float) * 3)
+                    # if (const ImGuiPayload* payload = CImGui.AcceptDragDropPayload(CImGui.IMGUI_PAYLOAD_TYPE_COLOR_4F))
+                    #     memcpy((float*)&saved_palette[n], payload->Data, sizeof(float) * 4)
+                    CImGui.EndDragDropTarget()
+                end
+                CImGui.PopID()
+            end
+            CImGui.EndGroup()
+            CImGui.EndPopup()
+        end
+
+        CImGui.Text("Color button only:")
+        CImGui.ColorButton("MyColor##3c", ImVec4(color...), misc_flags, (80,80))
+
+        CImGui.Text("Color picker:")
+        @cstatic alpha=true alpha_bar=true side_preview=true ref_color=true ref_color_v=Cfloat[1.0,0.0,1.0,0.5] inputs_mode=Cint(2) picker_mode=Cint(0) begin
+            @c CImGui.Checkbox("With Alpha", &alpha)
+            @c CImGui.Checkbox("With Alpha Bar", &alpha_bar)
+            @c CImGui.Checkbox("With Side Preview", &side_preview)
+            if side_preview
+                CImGui.SameLine()
+                @c CImGui.Checkbox("With Ref Color", &ref_color)
+                if ref_color
+                    CImGui.SameLine()
+                    CImGui.ColorEdit4("##RefColor", pointer(ref_color_v), CImGui.ImGuiColorEditFlags_NoInputs | misc_flags)
+                end
+            end
+            @c CImGui.Combo("Inputs Mode", &inputs_mode, "All Inputs\0No Inputs\0RGB Input\0HSV Input\0HEX Input\0");
+            @c CImGui.Combo("Picker Mode", &picker_mode, "Auto/Current\0Hue bar + SV rect\0Hue wheel + SV triangle\0");
+            CImGui.SameLine()
+            ShowHelpMarker("User can right-click the picker to change mode.")
+            flags = misc_flags
+            !alpha && (flags |= CImGui.ImGuiColorEditFlags_NoAlpha;) # this is by default if you call ColorPicker3() instead of ColorPicker4()
+            alpha_bar && (flags |= CImGui.ImGuiColorEditFlags_AlphaBar;)
+            !side_preview && (flags |= CImGui.ImGuiColorEditFlags_NoSidePreview;)
+            picker_mode == 1 && (flags |= CImGui.ImGuiColorEditFlags_PickerHueBar;)
+            picker_mode == 2 && (flags |= CImGui.ImGuiColorEditFlags_PickerHueWheel;)
+            inputs_mode == 1 && (flags |= CImGui.ImGuiColorEditFlags_NoInputs;)
+            inputs_mode == 2 && (flags |= CImGui.ImGuiColorEditFlags_RGB;)
+            inputs_mode == 3 && (flags |= CImGui.ImGuiColorEditFlags_HSV;)
+            inputs_mode == 4 && (flags |= CImGui.ImGuiColorEditFlags_HEX;)
+            CImGui.ColorPicker4("MyColor##4", color, flags, ref_color ? pointer(ref_color_v) : C_NULL)
+        end
+        CImGui.Text("Programmatically set defaults:")
+        CImGui.SameLine()
+        ShowHelpMarker("SetColorEditOptions() is designed to allow you to set boot-time default.\nWe don't have Push/Pop functions because you can force options on a per-widget basis if needed, and the user can change non-forced ones with the options menu.\nWe don't have a getter to avoid encouraging you to persistently save values that aren't forward-compatible.")
+        if CImGui.Button("Default: Uint8 + HSV + Hue Bar")
+            CImGui.SetColorEditOptions(CImGui.ImGuiColorEditFlags_Uint8 | CImGui.ImGuiColorEditFlags_HSV | CImGui.ImGuiColorEditFlags_PickerHueBar)
+        end
+        if CImGui.Button("Default: Float + HDR + Hue Wheel")
+            CImGui.SetColorEditOptions(CImGui.ImGuiColorEditFlags_Float | CImGui.ImGuiColorEditFlags_HDR | CImGui.ImGuiColorEditFlags_PickerHueWheel)
+        end
+end # @cstatic
+        CImGui.TreePop()
+    end
 
     if CImGui.TreeNode("Range Widgets")
         @cstatic _begin=Cfloat(10) _end=Cfloat(90) begin_i=Cint(100) end_i=Cint(1000) begin
@@ -851,149 +838,131 @@ end
         CImGui.TreePop()
     end
 
-    # if (CImGui.TreeNode("Vertical Sliders"))
-    # {
-    #     const float spacing = 4;
-    #     CImGui.PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
-    #
-    #     static int int_value = 0;
-    #     CImGui.VSliderInt("##int", ImVec2(18,160), &int_value, 0, 5);
-    #     CImGui.SameLine();
-    #
-    #     static float values[7] = { 0.0f, 0.60f, 0.35f, 0.9f, 0.70f, 0.20f, 0.0f };
-    #     CImGui.PushID("set1");
-    #     for (int i = 0; i < 7; i++)
-    #     {
-    #         if (i > 0) CImGui.SameLine();
-    #         CImGui.PushID(i);
-    #         CImGui.PushStyleColor(ImGuiCol_FrameBg, (ImVec4)ImColor::HSV(i/7.0f, 0.5f, 0.5f));
-    #         CImGui.PushStyleColor(ImGuiCol_FrameBgHovered, (ImVec4)ImColor::HSV(i/7.0f, 0.6f, 0.5f));
-    #         CImGui.PushStyleColor(ImGuiCol_FrameBgActive, (ImVec4)ImColor::HSV(i/7.0f, 0.7f, 0.5f));
-    #         CImGui.PushStyleColor(ImGuiCol_SliderGrab, (ImVec4)ImColor::HSV(i/7.0f, 0.9f, 0.9f));
-    #         CImGui.VSliderFloat("##v", ImVec2(18,160), &values[i], 0.0f, 1.0f, "");
-    #         if (CImGui.IsItemActive() || CImGui.IsItemHovered())
-    #             CImGui.SetTooltip("%.3f", values[i]);
-    #         CImGui.PopStyleColor(4);
-    #         CImGui.PopID();
-    #     }
-    #     CImGui.PopID();
-    #
-    #     CImGui.SameLine();
-    #     CImGui.PushID("set2");
-    #     static float values2[4] = { 0.20f, 0.80f, 0.40f, 0.25f };
-    #     const int rows = 3;
-    #     const ImVec2 small_slider_size(18, (160.0f-(rows-1)*spacing)/rows);
-    #     for (int nx = 0; nx < 4; nx++)
-    #     {
-    #         if (nx > 0) CImGui.SameLine();
-    #         CImGui.BeginGroup();
-    #         for (int ny = 0; ny < rows; ny++)
-    #         {
-    #             CImGui.PushID(nx*rows+ny);
-    #             CImGui.VSliderFloat("##v", small_slider_size, &values2[nx], 0.0f, 1.0f, "");
-    #             if (CImGui.IsItemActive() || CImGui.IsItemHovered())
-    #                 CImGui.SetTooltip("%.3f", values2[nx]);
-    #             CImGui.PopID();
-    #         }
-    #         CImGui.EndGroup();
-    #     }
-    #     CImGui.PopID();
-    #
-    #     CImGui.SameLine();
-    #     CImGui.PushID("set3");
-    #     for (int i = 0; i < 4; i++)
-    #     {
-    #         if (i > 0) CImGui.SameLine();
-    #         CImGui.PushID(i);
-    #         CImGui.PushStyleVar(ImGuiStyleVar_GrabMinSize, 40);
-    #         CImGui.VSliderFloat("##v", ImVec2(40,160), &values[i], 0.0f, 1.0f, "%.2f\nsec");
-    #         CImGui.PopStyleVar();
-    #         CImGui.PopID();
-    #     }
-    #     CImGui.PopID();
-    #     CImGui.PopStyleVar();
-    #     CImGui.TreePop();
-    # }
-    #
-    # if (CImGui.TreeNode("Drag and Drop"))
-    # {
-    #     {
-    #         // ColorEdit widgets automatically act as drag source and drag target.
-    #         // They are using standardized payload strings IMGUI_PAYLOAD_TYPE_COLOR_3F and IMGUI_PAYLOAD_TYPE_COLOR_4F to allow your own widgets
-    #         // to use colors in their drag and drop interaction. Also see the demo in Color Picker -> Palette demo.
-    #         CImGui.BulletText("Drag and drop in standard widgets");
-    #         CImGui.Indent();
-    #         static float col1[3] = { 1.0f,0.0f,0.2f };
-    #         static float col2[4] = { 0.4f,0.7f,0.0f,0.5f };
-    #         CImGui.ColorEdit3("color 1", col1);
-    #         CImGui.ColorEdit4("color 2", col2);
-    #         CImGui.Unindent();
-    #     }
-    #
-    #     {
-    #         CImGui.BulletText("Drag and drop to copy/swap items");
-    #         CImGui.Indent();
-    #         enum Mode
-    #         {
-    #             Mode_Copy,
-    #             Mode_Move,
-    #             Mode_Swap
-    #         };
-    #         static int mode = 0;
-    #         if (CImGui.RadioButton("Copy", mode == Mode_Copy)) { mode = Mode_Copy; } CImGui.SameLine();
-    #         if (CImGui.RadioButton("Move", mode == Mode_Move)) { mode = Mode_Move; } CImGui.SameLine();
-    #         if (CImGui.RadioButton("Swap", mode == Mode_Swap)) { mode = Mode_Swap; }
-    #         static const char* names[9] = { "Bobby", "Beatrice", "Betty", "Brianna", "Barry", "Bernard", "Bibi", "Blaine", "Bryn" };
-    #         for (int n = 0; n < IM_ARRAYSIZE(names); n++)
-    #         {
-    #             CImGui.PushID(n);
-    #             if ((n % 3) != 0)
-    #                 CImGui.SameLine();
-    #             CImGui.Button(names[n], ImVec2(60,60));
-    #
-    #             // Our buttons are both drag sources and drag targets here!
-    #             if (CImGui.BeginDragDropSource(ImGuiDragDropFlags_None))
-    #             {
-    #                 CImGui.SetDragDropPayload("DND_DEMO_CELL", &n, sizeof(int));        // Set payload to carry the index of our item (could be anything)
-    #                 if (mode == Mode_Copy) { CImGui.Text("Copy %s", names[n]); }        // Display preview (could be anything, e.g. when dragging an image we could decide to display the filename and a small preview of the image, etc.)
-    #                 if (mode == Mode_Move) { CImGui.Text("Move %s", names[n]); }
-    #                 if (mode == Mode_Swap) { CImGui.Text("Swap %s", names[n]); }
-    #                 CImGui.EndDragDropSource();
-    #             }
-    #             if (CImGui.BeginDragDropTarget())
-    #             {
-    #                 if (const ImGuiPayload* payload = CImGui.AcceptDragDropPayload("DND_DEMO_CELL"))
-    #                 {
-    #                     IM_ASSERT(payload->DataSize == sizeof(int));
-    #                     int payload_n = *(const int*)payload->Data;
-    #                     if (mode == Mode_Copy)
-    #                     {
-    #                         names[n] = names[payload_n];
-    #                     }
-    #                     if (mode == Mode_Move)
-    #                     {
-    #                         names[n] = names[payload_n];
-    #                         names[payload_n] = "";
-    #                     }
-    #                     if (mode == Mode_Swap)
-    #                     {
-    #                         const char* tmp = names[n];
-    #                         names[n] = names[payload_n];
-    #                         names[payload_n] = tmp;
-    #                     }
-    #                 }
-    #                 CImGui.EndDragDropTarget();
-    #             }
-    #             CImGui.PopID();
-    #         }
-    #         CImGui.Unindent();
-    #     }
-    #
-    #     CImGui.TreePop();
-    # }
-    #
-    # if (CImGui.TreeNode("Querying Status (Active/Focused/Hovered etc.)"))
-    # {
+    if CImGui.TreeNode("Vertical Sliders")
+        spacing = 4
+        CImGui.PushStyleVar(CImGui.ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing))
+
+        @cstatic int_value=Cint(0) begin
+            @c CImGui.VSliderInt("##int", ImVec2(18,160), &int_value, 0, 5)
+            CImGui.SameLine()
+        end
+
+@cstatic values=Cfloat[0.0, 0.60, 0.35, 0.9, 0.70, 0.20, 0.0] values2=Cfloat[0.20, 0.80, 0.40, 0.25] begin
+        CImGui.PushID("set1")
+        for i = 0:7-1
+            i > 0 && CImGui.SameLine()
+            CImGui.PushID(i)
+            # CImGui.PushStyleColor(CImGui.ImGuiCol_FrameBg, (ImVec4)ImColor::HSV(i/7.0, 0.5, 0.5))
+            # CImGui.PushStyleColor(CImGui.ImGuiCol_FrameBgHovered, (ImVec4)ImColor::HSV(i/7.0, 0.6, 0.5))
+            # CImGui.PushStyleColor(CImGui.ImGuiCol_FrameBgActive, (ImVec4)ImColor::HSV(i/7.0, 0.7, 0.5))
+            # CImGui.PushStyleColor(CImGui.ImGuiCol_SliderGrab, (ImVec4)ImColor::HSV(i/7.0, 0.9, 0.9))
+            CImGui.VSliderFloat("##v", (18,160), pointer(values)+i*sizeof(Cfloat), 0.0, 1.0, "")
+            if CImGui.IsItemActive() || CImGui.IsItemHovered()
+                CImGui.SetTooltip(@sprintf("%.3f", values[i+1]))
+            end
+            # CImGui.PopStyleColor(4)
+            CImGui.PopID()
+        end
+        CImGui.PopID()
+
+        CImGui.SameLine()
+        CImGui.PushID("set2")
+
+        rows = Cint(3)
+        small_slider_size = ImVec2(18, (160.0-(rows-1)*spacing)/rows)
+        for nx = 0:4-1
+            nx > 0 && CImGui.SameLine()
+            CImGui.BeginGroup()
+            for ny = 0:rows-1
+                CImGui.PushID(nx*rows+ny)
+                CImGui.VSliderFloat("##v", small_slider_size, pointer(values2)+nx*sizeof(Cfloat), 0.0, 1.0, "")
+                if CImGui.IsItemActive() || CImGui.IsItemHovered()
+                    CImGui.SetTooltip(@sprintf("%.3f", values2[nx+1]))
+                end
+                CImGui.PopID()
+            end
+            CImGui.EndGroup()
+        end
+        CImGui.PopID()
+
+        CImGui.SameLine()
+        CImGui.PushID("set3")
+        for i = 0:4-1
+            i > 0 && CImGui.SameLine()
+            CImGui.PushID(i)
+            CImGui.PushStyleVar(CImGui.ImGuiStyleVar_GrabMinSize, 40)
+            CImGui.VSliderFloat("##v", ImVec2(40,160), pointer(values)+i*sizeof(Cfloat), 0.0, 1.0, "%.2f\nsec")
+            CImGui.PopStyleVar()
+            CImGui.PopID()
+        end
+        CImGui.PopID()
+        CImGui.PopStyleVar()
+end # @cstatic
+        CImGui.TreePop()
+    end
+
+    if CImGui.TreeNode("Drag and Drop")
+        # ColorEdit widgets automatically act as drag source and drag target.
+        # They are using standardized payload strings IMGUI_PAYLOAD_TYPE_COLOR_3F and IMGUI_PAYLOAD_TYPE_COLOR_4F to allow your own widgets
+        # to use colors in their drag and drop interaction. Also see the demo in Color Picker -> Palette demo.
+        CImGui.BulletText("Drag and drop in standard widgets")
+        CImGui.Indent()
+        @cstatic col1=Cfloat[1.0,0.0,0.2] col2=Cfloat[0.4,0.7,0.0,0.5] begin
+            CImGui.ColorEdit3("color 1", col1)
+            CImGui.ColorEdit4("color 2", col2)
+            CImGui.Unindent()
+        end
+
+        @cstatic mode=Cint(0) names=["Bobby", "Beatrice", "Betty", "Brianna", "Barry", "Bernard", "Bibi", "Blaine", "Bryn"] begin
+            CImGui.BulletText("Drag and drop to copy/swap items")
+            CImGui.Indent()
+            Mode_Copy, Mode_Move, Mode_Swap = 0, 1, 2
+            CImGui.RadioButton("Copy", mode == Mode_Copy) && (mode = Mode_Copy;)
+            CImGui.SameLine()
+            CImGui.RadioButton("Move", mode == Mode_Move) && (mode = Mode_Move;)
+            CImGui.SameLine()
+            CImGui.RadioButton("Swap", mode == Mode_Swap) && (mode = Mode_Swap;)
+            for n = 0:length(names)-1
+                CImGui.PushID(n)
+                (n % 3) != 0 && CImGui.SameLine()
+                CImGui.Button(names[n+1], (60,60))
+
+                # our buttons are both drag sources and drag targets here!
+                if CImGui.BeginDragDropSource(CImGui.ImGuiDragDropFlags_None)
+                    @c CImGui.SetDragDropPayload("DND_DEMO_CELL", &n, sizeof(Cint)) # set payload to carry the index of our item (could be anything)
+                    mode == Mode_Copy && CImGui.Text("Copy $(names[n+1])") # display preview (could be anything, e.g. when dragging an image we could decide to display the filename and a small preview of the image, etc.)
+                    mode == Mode_Move && CImGui.Text("Move $(names[n+1])")
+                    mode == Mode_Swap && CImGui.Text("Swap $(names[n+1])")
+                    CImGui.EndDragDropSource()
+                end
+                if CImGui.BeginDragDropTarget()
+                    payload = CImGui.AcceptDragDropPayload("DND_DEMO_CELL")
+                    if payload != C_NULL
+                        # IM_ASSERT(payload->DataSize == sizeof(int));
+                        # int payload_n = *(const int*)payload->Data;
+                        if mode == Mode_Copy
+                            # names[n+1] = names[payload_n]
+                        end
+                        if mode == Mode_Move
+                            # names[n+1] = names[payload_n]
+                            # names[payload_n] = ""
+                        end
+                        if mode == Mode_Swap
+                            tmp = names[n+1]
+                            # names[n] = names[payload_n]
+                            # names[payload_n] = tmp
+                        end
+                    end
+                    CImGui.EndDragDropTarget()
+                end
+                CImGui.PopID()
+            end
+            CImGui.Unindent()
+        end # @cstatic
+        CImGui.TreePop()
+    end
+
+    if CImGui.TreeNode("Querying Status (Active/Focused/Hovered etc.)")
     #     // Display the value of IsItemHovered() and other common item state functions. Note that the flags can be combined.
     #     // (because BulletText is an item itself and that would affect the output of IsItemHovered() we pass all state in a single call to simplify the code).
     #     static int item_type = 1;
@@ -1108,6 +1077,6 @@ end
     #         CImGui.End();
     #     }
     #
-    #     CImGui.TreePop();
-    # }
+        CImGui.TreePop()
+    end
 end

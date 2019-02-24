@@ -631,15 +631,15 @@ function igDragInt(label, v, v_speed, v_min, v_max, format)
 end
 
 function igDragInt2(label, v, v_speed, v_min, v_max, format)
-    ccall((:igDragInt2, libcimgui), Bool, (Cstring, NTuple{2, Cint}, Cfloat, Cint, Cint, Cstring), label, v, v_speed, v_min, v_max, format)
+    ccall((:igDragInt2, libcimgui), Bool, (Cstring, Ptr{Cint}, Cfloat, Cint, Cint, Cstring), label, v, v_speed, v_min, v_max, format)
 end
 
 function igDragInt3(label, v, v_speed, v_min, v_max, format)
-    ccall((:igDragInt3, libcimgui), Bool, (Cstring, NTuple{3, Cint}, Cfloat, Cint, Cint, Cstring), label, v, v_speed, v_min, v_max, format)
+    ccall((:igDragInt3, libcimgui), Bool, (Cstring, Ptr{Cint}, Cfloat, Cint, Cint, Cstring), label, v, v_speed, v_min, v_max, format)
 end
 
 function igDragInt4(label, v, v_speed, v_min, v_max, format)
-    ccall((:igDragInt4, libcimgui), Bool, (Cstring, NTuple{4, Cint}, Cfloat, Cint, Cint, Cstring), label, v, v_speed, v_min, v_max, format)
+    ccall((:igDragInt4, libcimgui), Bool, (Cstring, Ptr{Cint}, Cfloat, Cint, Cint, Cstring), label, v, v_speed, v_min, v_max, format)
 end
 
 function igDragIntRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max)

@@ -12,10 +12,10 @@ include(joinpath(@__DIR__, "app_simple_overlay.jl"))
 include(joinpath(@__DIR__, "app_window_titles.jl"))
 include(joinpath(@__DIR__, "app_custom_rendering.jl"))
 include(joinpath(@__DIR__, "demo_helper.jl"))
+include(joinpath(@__DIR__, "demo_widgets.jl"))
 include(joinpath(@__DIR__, "demo_layout.jl"))
 include(joinpath(@__DIR__, "demo_popups.jl"))
 include(joinpath(@__DIR__, "demo_columns.jl"))
-# include(joinpath(@__DIR__, "demo_widgets.jl"))
 include(joinpath(@__DIR__, "demo_misc.jl"))
 
 let
@@ -232,7 +232,7 @@ global function ShowDemoWindow(p_open::Ref{Bool})
     end
 
     # all demo contents
-    # ShowDemoWindowWidgets()
+    ShowDemoWindowWidgets()
     ShowDemoWindowLayout()
     ShowDemoWindowPopups()
     ShowDemoWindowColumns()

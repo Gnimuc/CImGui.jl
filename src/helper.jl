@@ -15,6 +15,8 @@ Base.:⊻(a::T, b::T) where {T<:Cenum{UInt32}} = UInt32(a) ⊻ UInt32(b)
 Base.:⊻(a::T, b::UInt32) where {T<:Cenum{UInt32}} = UInt32(a) ⊻ b
 Base.:⊻(a::UInt32, b::T) where {T<:Cenum{UInt32}} = b ⊻ a
 
+Base.:~(x::Cenum{UInt32}) = ~UInt32(x)
+
 Base.:⊻(a::T, b::Integer) where {T<:Cenum{UInt32}} = UInt32(a) ⊻ UInt32(b)
 Base.:⊻(a::Integer, b::T) where {T<:Cenum{UInt32}} = UInt32(b) ⊻ UInt32(a)
 

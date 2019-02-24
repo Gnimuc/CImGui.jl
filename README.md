@@ -8,3 +8,4 @@
 ```julia
 pkg> dev https://github.com/Gnimuc/CImGui.jl.git
 ```
+you might also need to `dev https://github.com/Gnimuc/CSyntax.jl`

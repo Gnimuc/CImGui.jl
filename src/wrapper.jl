@@ -1050,8 +1050,15 @@ with an arrow shape.
 """
 ArrowButton(str_id, dir) = igArrowButton(str_id, dir)
 
-# TODO: igImage(user_texture_id, size, uv0, uv1, tint_col, border_col)
-# TODO: igImageButton(user_texture_id, size, uv0, uv1, frame_padding, bg_col, tint_col)
+"""
+    Image(user_texture_id, size, uv0=(0,0), uv1=(1,1), tint_col=(1,1,1,1), border_col=(0,0,0,0))
+"""
+Image(user_texture_id, size, uv0=ImVec2(0,0), uv1=ImVec2(1,1), tint_col=ImVec4(1,1,1,1), border_col=ImVec4(0,0,0,0)) = igImage(user_texture_id, size, uv0, uv1, tint_col, border_col)
+
+"""
+    ImageButton(user_texture_id, size, uv0=(0,0), uv1=(1,1), frame_padding=-1, bg_col=(0,0,0,0), tint_col=(1,1,1,1)) -> Bool
+"""
+ImageButton(user_texture_id, size, uv0=ImVec2(0,0), uv1=ImVec2(1,1), frame_padding=-1, bg_col=ImVec4(0,0,0,0), tint_col=ImVec4(1,1,1,1)) = igImageButton(user_texture_id, size, uv0, uv1, frame_padding, bg_col, tint_col)
 
 """
     Checkbox(label, v) -> Bool
@@ -1124,9 +1131,9 @@ Separate items with `\0` within a string, end item-list with `\0\0`. e.g. `One\0
 Combo(label, current_item, items_separated_by_zeros, popup_max_height_in_items=-1) = igComboStr(label, current_item, items_separated_by_zeros, popup_max_height_in_items)
 
 """
-    Combo(label, current_item, items_getter::Ptr{Cvoid}, data::Ptr{Cvoid}, items_count, popup_max_height_in_items=-1) -> Bool
+    Combo(label, current_item, items_getter::Union{Ptr,Base.CFunction}, data, items_count, popup_max_height_in_items=-1) -> Bool
 """
-Combo(label, current_item, items_getter::Ptr{Cvoid}, data::Ptr{Cvoid}, items_count, popup_max_height_in_items=-1) = igComboFnPtr(label, current_item, items_getter, data, items_count, popup_max_height_in_items)
+Combo(label, current_item, items_getter::Union{Ptr,Base.CFunction}, data, items_count, popup_max_height_in_items=-1) = igComboFnPtr(label, current_item, items_getter, data, items_count, popup_max_height_in_items)
 
 ###################################### Widgets: Drags ######################################
 """
@@ -2769,6 +2776,16 @@ Append(handle::Ptr{ImGuiTextBuffer}, str, str_end=C_NULL) = ImGuiTextBuffer_appe
 #     C/C++ code to Julia.
 # """
 # Appendf(handle::Ptr{ImGuiTextBuffer}, formatted_text) = ImGuiTextBuffer_appendf(handle, formatted_text)
+
+########################################## ImColor #########################################
+"""
+    HSV(h, s, v, a=1.0) -> ImVec4
+"""
+function HSV(h, s, v, a=1.0)
+    out_r, out_g, out_b = Cfloat(0), Cfloat(0), Cfloat(0)
+    @c igColorConvertHSVtoRGB(h, s, v, &out_r, &out_g, &out_b)
+    return ImVec4(out_r, out_g, out_b, a)
+end
 
 ##################################### ImGuiListClipper #####################################
 """

@@ -582,6 +582,270 @@ function ImGuiIO_Set_NavInputsDownDurationPrev(io, i, x)
     ccall((:ImGuiIO_Set_NavInputsDownDurationPrev, libcimgui_helper), Cvoid, (Ptr{ImGuiIO}, Cint, Cfloat), io, i, x)
 end
 
+function ImGuiStyle_Get_Alpha(s)
+    ccall((:ImGuiStyle_Get_Alpha, libcimgui_helper), Cfloat, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_WindowPadding(s)
+    ccall((:ImGuiStyle_Get_WindowPadding, libcimgui_helper), ImVec2, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_WindowRounding(s)
+    ccall((:ImGuiStyle_Get_WindowRounding, libcimgui_helper), Cfloat, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_WindowBorderSize(s)
+    ccall((:ImGuiStyle_Get_WindowBorderSize, libcimgui_helper), Cfloat, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_WindowMinSize(s)
+    ccall((:ImGuiStyle_Get_WindowMinSize, libcimgui_helper), ImVec2, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_WindowTitleAlign(s)
+    ccall((:ImGuiStyle_Get_WindowTitleAlign, libcimgui_helper), ImVec2, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_ChildRounding(s)
+    ccall((:ImGuiStyle_Get_ChildRounding, libcimgui_helper), Cfloat, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_ChildBorderSize(s)
+    ccall((:ImGuiStyle_Get_ChildBorderSize, libcimgui_helper), Cfloat, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_PopupRounding(s)
+    ccall((:ImGuiStyle_Get_PopupRounding, libcimgui_helper), Cfloat, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_PopupBorderSize(s)
+    ccall((:ImGuiStyle_Get_PopupBorderSize, libcimgui_helper), Cfloat, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_FramePadding(s)
+    ccall((:ImGuiStyle_Get_FramePadding, libcimgui_helper), ImVec2, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_FrameRounding(s)
+    ccall((:ImGuiStyle_Get_FrameRounding, libcimgui_helper), Cfloat, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_FrameBorderSize(s)
+    ccall((:ImGuiStyle_Get_FrameBorderSize, libcimgui_helper), Cfloat, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_ItemSpacing(s)
+    ccall((:ImGuiStyle_Get_ItemSpacing, libcimgui_helper), ImVec2, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_ItemInnerSpacing(s)
+    ccall((:ImGuiStyle_Get_ItemInnerSpacing, libcimgui_helper), ImVec2, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_TouchExtraPadding(s)
+    ccall((:ImGuiStyle_Get_TouchExtraPadding, libcimgui_helper), ImVec2, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_IndentSpacing(s)
+    ccall((:ImGuiStyle_Get_IndentSpacing, libcimgui_helper), Cfloat, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_ColumnsMinSpacing(s)
+    ccall((:ImGuiStyle_Get_ColumnsMinSpacing, libcimgui_helper), Cfloat, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_ScrollbarSize(s)
+    ccall((:ImGuiStyle_Get_ScrollbarSize, libcimgui_helper), Cfloat, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_ScrollbarRounding(s)
+    ccall((:ImGuiStyle_Get_ScrollbarRounding, libcimgui_helper), Cfloat, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_GrabMinSize(s)
+    ccall((:ImGuiStyle_Get_GrabMinSize, libcimgui_helper), Cfloat, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_GrabRounding(s)
+    ccall((:ImGuiStyle_Get_GrabRounding, libcimgui_helper), Cfloat, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_TabRounding(s)
+    ccall((:ImGuiStyle_Get_TabRounding, libcimgui_helper), Cfloat, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_TabBorderSize(s)
+    ccall((:ImGuiStyle_Get_TabBorderSize, libcimgui_helper), Cfloat, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_ButtonTextAlign(s)
+    ccall((:ImGuiStyle_Get_ButtonTextAlign, libcimgui_helper), ImVec2, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_SelectableTextAlign(s)
+    ccall((:ImGuiStyle_Get_SelectableTextAlign, libcimgui_helper), ImVec2, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_DisplayWindowPadding(s)
+    ccall((:ImGuiStyle_Get_DisplayWindowPadding, libcimgui_helper), ImVec2, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_DisplaySafeAreaPadding(s)
+    ccall((:ImGuiStyle_Get_DisplaySafeAreaPadding, libcimgui_helper), ImVec2, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_MouseCursorScale(s)
+    ccall((:ImGuiStyle_Get_MouseCursorScale, libcimgui_helper), Cfloat, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_AntiAliasedLines(s)
+    ccall((:ImGuiStyle_Get_AntiAliasedLines, libcimgui_helper), Bool, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_AntiAliasedFill(s)
+    ccall((:ImGuiStyle_Get_AntiAliasedFill, libcimgui_helper), Bool, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_CurveTessellationTol(s)
+    ccall((:ImGuiStyle_Get_CurveTessellationTol, libcimgui_helper), Cfloat, (Ptr{ImGuiStyle},), s)
+end
+
+function ImGuiStyle_Get_Colors(s, i)
+    ccall((:ImGuiStyle_Get_Colors, libcimgui_helper), ImVec4, (Ptr{ImGuiStyle}, Cint), s, i)
+end
+
+function ImGuiStyle_Set_Alpha(s, v)
+    ccall((:ImGuiStyle_Set_Alpha, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Cfloat), s, v)
+end
+
+function ImGuiStyle_Set_WindowPadding(s, v)
+    ccall((:ImGuiStyle_Set_WindowPadding, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, ImVec2), s, v)
+end
+
+function ImGuiStyle_Set_WindowRounding(s, v)
+    ccall((:ImGuiStyle_Set_WindowRounding, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Cfloat), s, v)
+end
+
+function ImGuiStyle_Set_WindowBorderSize(s, v)
+    ccall((:ImGuiStyle_Set_WindowBorderSize, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Cfloat), s, v)
+end
+
+function ImGuiStyle_Set_WindowMinSize(s, v)
+    ccall((:ImGuiStyle_Set_WindowMinSize, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, ImVec2), s, v)
+end
+
+function ImGuiStyle_Set_WindowTitleAlign(s, v)
+    ccall((:ImGuiStyle_Set_WindowTitleAlign, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, ImVec2), s, v)
+end
+
+function ImGuiStyle_Set_ChildRounding(s, v)
+    ccall((:ImGuiStyle_Set_ChildRounding, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Cfloat), s, v)
+end
+
+function ImGuiStyle_Set_ChildBorderSize(s, v)
+    ccall((:ImGuiStyle_Set_ChildBorderSize, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Cfloat), s, v)
+end
+
+function ImGuiStyle_Set_PopupRounding(s, v)
+    ccall((:ImGuiStyle_Set_PopupRounding, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Cfloat), s, v)
+end
+
+function ImGuiStyle_Set_PopupBorderSize(s, v)
+    ccall((:ImGuiStyle_Set_PopupBorderSize, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Cfloat), s, v)
+end
+
+function ImGuiStyle_Set_FramePadding(s, v)
+    ccall((:ImGuiStyle_Set_FramePadding, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, ImVec2), s, v)
+end
+
+function ImGuiStyle_Set_FrameRounding(s, v)
+    ccall((:ImGuiStyle_Set_FrameRounding, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Cfloat), s, v)
+end
+
+function ImGuiStyle_Set_FrameBorderSize(s, v)
+    ccall((:ImGuiStyle_Set_FrameBorderSize, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Cfloat), s, v)
+end
+
+function ImGuiStyle_Set_ItemSpacing(s, v)
+    ccall((:ImGuiStyle_Set_ItemSpacing, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, ImVec2), s, v)
+end
+
+function ImGuiStyle_Set_ItemInnerSpacing(s, v)
+    ccall((:ImGuiStyle_Set_ItemInnerSpacing, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, ImVec2), s, v)
+end
+
+function ImGuiStyle_Set_TouchExtraPadding(s, v)
+    ccall((:ImGuiStyle_Set_TouchExtraPadding, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, ImVec2), s, v)
+end
+
+function ImGuiStyle_Set_IndentSpacing(s, v)
+    ccall((:ImGuiStyle_Set_IndentSpacing, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Cfloat), s, v)
+end
+
+function ImGuiStyle_Set_ColumnsMinSpacing(s, v)
+    ccall((:ImGuiStyle_Set_ColumnsMinSpacing, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Cfloat), s, v)
+end
+
+function ImGuiStyle_Set_ScrollbarSize(s, v)
+    ccall((:ImGuiStyle_Set_ScrollbarSize, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Cfloat), s, v)
+end
+
+function ImGuiStyle_Set_ScrollbarRounding(s, v)
+    ccall((:ImGuiStyle_Set_ScrollbarRounding, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Cfloat), s, v)
+end
+
+function ImGuiStyle_Set_GrabMinSize(s, v)
+    ccall((:ImGuiStyle_Set_GrabMinSize, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Cfloat), s, v)
+end
+
+function ImGuiStyle_Set_GrabRounding(s, v)
+    ccall((:ImGuiStyle_Set_GrabRounding, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Cfloat), s, v)
+end
+
+function ImGuiStyle_Set_TabRounding(s, v)
+    ccall((:ImGuiStyle_Set_TabRounding, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Cfloat), s, v)
+end
+
+function ImGuiStyle_Set_TabBorderSize(s, v)
+    ccall((:ImGuiStyle_Set_TabBorderSize, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Cfloat), s, v)
+end
+
+function ImGuiStyle_Set_ButtonTextAlign(s, v)
+    ccall((:ImGuiStyle_Set_ButtonTextAlign, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, ImVec2), s, v)
+end
+
+function ImGuiStyle_Set_SelectableTextAlign(s, v)
+    ccall((:ImGuiStyle_Set_SelectableTextAlign, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, ImVec2), s, v)
+end
+
+function ImGuiStyle_Set_DisplayWindowPadding(s, v)
+    ccall((:ImGuiStyle_Set_DisplayWindowPadding, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, ImVec2), s, v)
+end
+
+function ImGuiStyle_Set_DisplaySafeAreaPadding(s, v)
+    ccall((:ImGuiStyle_Set_DisplaySafeAreaPadding, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, ImVec2), s, v)
+end
+
+function ImGuiStyle_Set_MouseCursorScale(s, v)
+    ccall((:ImGuiStyle_Set_MouseCursorScale, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Cfloat), s, v)
+end
+
+function ImGuiStyle_Set_AntiAliasedLines(s, v)
+    ccall((:ImGuiStyle_Set_AntiAliasedLines, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Bool), s, v)
+end
+
+function ImGuiStyle_Set_AntiAliasedFill(s, v)
+    ccall((:ImGuiStyle_Set_AntiAliasedFill, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Bool), s, v)
+end
+
+function ImGuiStyle_Set_CurveTessellationTol(s, v)
+    ccall((:ImGuiStyle_Set_CurveTessellationTol, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Cfloat), s, v)
+end
+
+function ImGuiStyle_Set_Colors(s, i, v)
+    ccall((:ImGuiStyle_Set_Colors, libcimgui_helper), Cvoid, (Ptr{ImGuiStyle}, Cint, ImVec4), s, i, v)
+end
+
 function ImDrawData_Get_Valid(data)
     ccall((:ImDrawData_Get_Valid, libcimgui_helper), Bool, (Ptr{ImDrawData},), data)
 end
@@ -664,4 +928,48 @@ end
 
 function ImGuiSizeCallbackData_Set_DesiredSize(data, x)
     ccall((:ImGuiSizeCallbackData_Set_DesiredSize, libcimgui_helper), Cvoid, (Ptr{ImGuiSizeCallbackData}, ImVec2), data, x)
+end
+
+function ImFontAtlas_Get_Locked(f)
+    ccall((:ImFontAtlas_Get_Locked, libcimgui_helper), Bool, (Ptr{ImFontAtlas},), f)
+end
+
+function ImFontAtlas_Get_Flags(f)
+    ccall((:ImFontAtlas_Get_Flags, libcimgui_helper), ImFontAtlasFlags, (Ptr{ImFontAtlas},), f)
+end
+
+function ImFontAtlas_Get_TexID(f)
+    ccall((:ImFontAtlas_Get_TexID, libcimgui_helper), ImTextureID, (Ptr{ImFontAtlas},), f)
+end
+
+function ImFontAtlas_Get_TexDesiredWidth(f)
+    ccall((:ImFontAtlas_Get_TexDesiredWidth, libcimgui_helper), Cint, (Ptr{ImFontAtlas},), f)
+end
+
+function ImFontAtlas_Get_TexGlyphPadding(f)
+    ccall((:ImFontAtlas_Get_TexGlyphPadding, libcimgui_helper), Cint, (Ptr{ImFontAtlas},), f)
+end
+
+function ImFontAtlas_Get_TexPixelsAlpha8(f)
+    ccall((:ImFontAtlas_Get_TexPixelsAlpha8, libcimgui_helper), Ptr{Cuchar}, (Ptr{ImFontAtlas},), f)
+end
+
+function ImFontAtlas_Get_TexPixelsRGBA32(f)
+    ccall((:ImFontAtlas_Get_TexPixelsRGBA32, libcimgui_helper), Ptr{UInt32}, (Ptr{ImFontAtlas},), f)
+end
+
+function ImFontAtlas_Get_TexWidth(f)
+    ccall((:ImFontAtlas_Get_TexWidth, libcimgui_helper), Cint, (Ptr{ImFontAtlas},), f)
+end
+
+function ImFontAtlas_Get_TexHeight(f)
+    ccall((:ImFontAtlas_Get_TexHeight, libcimgui_helper), Cint, (Ptr{ImFontAtlas},), f)
+end
+
+function ImFontAtlas_Get_TexUvScale(f)
+    ccall((:ImFontAtlas_Get_TexUvScale, libcimgui_helper), ImVec2, (Ptr{ImFontAtlas},), f)
+end
+
+function ImFontAtlas_Get_TexUvWhitePixel(f)
+    ccall((:ImFontAtlas_Get_TexUvWhitePixel, libcimgui_helper), ImVec2, (Ptr{ImFontAtlas},), f)
 end

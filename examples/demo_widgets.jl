@@ -7,7 +7,7 @@ using CImGui: ImVec2, ImVec4, IM_COL32
     ShowDemoWindowWidgets()
 """
 function ShowDemoWindowWidgets()
-    !CImGui.CollapsingHeader("Widgets") && return
+    CImGui.CollapsingHeader("Widgets") || return
 
     if CImGui.TreeNode("Basic")
         @cstatic clicked=Cint(0) begin
@@ -30,11 +30,11 @@ function ShowDemoWindowWidgets()
         for i = 0:7-1
             i > 0 && CImGui.SameLine()
             CImGui.PushID(i)
-            # CImGui.PushStyleColor(CImGui.ImGuiCol_Button, (ImVec4)ImColor::HSV(i/7.0, 0.6, 0.6))
-            # CImGui.PushStyleColor(CImGui.ImGuiCol_ButtonHovered, (ImVec4)ImColor::HSV(i/7.0, 0.7, 0.7))
-            # CImGui.PushStyleColor(CImGui.ImGuiCol_ButtonActive, (ImVec4)ImColor::HSV(i/7.0, 0.8, 0.8))
+            CImGui.PushStyleColor(CImGui.ImGuiCol_Button, CImGui.HSV(i/7.0, 0.6, 0.6))
+            CImGui.PushStyleColor(CImGui.ImGuiCol_ButtonHovered, CImGui.HSV(i/7.0, 0.7, 0.7))
+            CImGui.PushStyleColor(CImGui.ImGuiCol_ButtonActive, CImGui.HSV(i/7.0, 0.8, 0.8))
             CImGui.Button("Click")
-            # CImGui.PopStyleColor(3)
+            CImGui.PopStyleColor(3)
             CImGui.PopID()
         end
 
@@ -45,10 +45,10 @@ function ShowDemoWindowWidgets()
 
         # arrow buttons with Repeater
         @cstatic counter=Cint(0) begin
-            # spacing = CImGui.GetStyle().ItemInnerSpacing.x
+            spacing = CImGui.GetStyle().ItemInnerSpacing.x
             CImGui.PushButtonRepeat(true)
             CImGui.ArrowButton("##left", CImGui.ImGuiDir_Left) && (counter-=1;)
-            # CImGui.SameLine(0.0, spacing)
+            CImGui.SameLine(0.0, spacing)
             CImGui.ArrowButton("##right", CImGui.ImGuiDir_Right) && (counter+=1;)
             CImGui.PopButtonRepeat()
             CImGui.SameLine()
@@ -141,12 +141,6 @@ function ShowDemoWindowWidgets()
         CImGui.TreePop()
     end
 
-    # TODO:
-    # Testing ImGuiOnceUponAFrame helper.
-    # static ImGuiOnceUponAFrame once;
-    # for (int i = 0; i < 5; i++)
-    #     if (once)
-    #         CImGui.Text("This will be displayed only once.");
     if CImGui.TreeNode("Trees")
         if CImGui.TreeNode("Basic trees")
             for i = 0:4
@@ -168,34 +162,34 @@ function ShowDemoWindowWidgets()
                 align_label_with_current_x_position && CImGui.Unindent(CImGui.GetTreeNodeToLabelSpacing())
             end
 
-@cstatic selection_mask=Cint(1 << 2) begin  # dumb representation of what may be user-side selection state. You may carry selection state inside or outside your objects in whatever format you see fit.
-            node_clicked = -1               # temporary storage of what node we have clicked to process selection at the end of the loop. May be a pointer to your own node type, etc.
-            CImGui.PushStyleVar(CImGui.ImGuiStyleVar_IndentSpacing, CImGui.GetFontSize()*3) # increase spacing to differentiate leaves from expanded contents.
-            for i = 0:5
-                # disable the default open on single-click behavior and pass in Selected flag according to our selection state.
-                node_flags = CImGui.ImGuiTreeNodeFlags_OpenOnArrow | CImGui.ImGuiTreeNodeFlags_OpenOnDoubleClick | ((selection_mask & (1 << i)) != 0 ? CImGui.ImGuiTreeNodeFlags_Selected : 0)
-                if i < 3
-                    # Node
-                    node_open = CImGui.TreeNodeEx(Ptr{Cvoid}(i), node_flags, "Selectable Node $i")
-                    CImGui.IsItemClicked() && (node_clicked = i;)
-                    node_open && (CImGui.Text("Blah blah\nBlah Blah"); CImGui.TreePop();)
-                else
-                    # Leaf: The only reason we have a TreeNode at all is to allow selection of the leaf. Otherwise we can use BulletText() or TreeAdvanceToLabelPos()+Text().
-                    node_flags |= CImGui.ImGuiTreeNodeFlags_Leaf | CImGui.ImGuiTreeNodeFlags_NoTreePushOnOpen # CImGui.ImGuiTreeNodeFlags_Bullet
-                    CImGui.TreeNodeEx(Ptr{Cvoid}(i), node_flags, "Selectable Leaf $i")
-                    CImGui.IsItemClicked() && (node_clicked = i;)
+            @cstatic selection_mask=Cint(1 << 2) begin  # dumb representation of what may be user-side selection state. You may carry selection state inside or outside your objects in whatever format you see fit.
+                node_clicked = -1  # temporary storage of what node we have clicked to process selection at the end of the loop. May be a pointer to your own node type, etc.
+                CImGui.PushStyleVar(CImGui.ImGuiStyleVar_IndentSpacing, CImGui.GetFontSize()*3) # increase spacing to differentiate leaves from expanded contents.
+                for i = 0:5
+                    # disable the default open on single-click behavior and pass in Selected flag according to our selection state.
+                    node_flags = CImGui.ImGuiTreeNodeFlags_OpenOnArrow | CImGui.ImGuiTreeNodeFlags_OpenOnDoubleClick | ((selection_mask & (1 << i)) != 0 ? CImGui.ImGuiTreeNodeFlags_Selected : 0)
+                    if i < 3
+                        # Node
+                        node_open = CImGui.TreeNodeEx(Ptr{Cvoid}(i), node_flags, "Selectable Node $i")
+                        CImGui.IsItemClicked() && (node_clicked = i;)
+                        node_open && (CImGui.Text("Blah blah\nBlah Blah"); CImGui.TreePop();)
+                    else
+                        # Leaf: The only reason we have a TreeNode at all is to allow selection of the leaf. Otherwise we can use BulletText() or TreeAdvanceToLabelPos()+Text().
+                        node_flags |= CImGui.ImGuiTreeNodeFlags_Leaf | CImGui.ImGuiTreeNodeFlags_NoTreePushOnOpen # CImGui.ImGuiTreeNodeFlags_Bullet
+                        CImGui.TreeNodeEx(Ptr{Cvoid}(i), node_flags, "Selectable Leaf $i")
+                        CImGui.IsItemClicked() && (node_clicked = i;)
+                    end
                 end
-            end
-            if node_clicked != -1
-                # update selection state. Process outside of tree loop to avoid visual inconsistencies during the clicking-frame.
-                if CImGui.GetIO().KeyCtrl
-                    selection_mask ⊻= 1 << node_clicked           # CTRL+click to toggle
-                else #if (!(selection_mask & (1 << node_clicked))) # Depending on selection behavior you want, this commented bit preserve selection when clicking on item that is part of the selection
-                    selection_mask = 1 << node_clicked            # Click to single-select
+                if node_clicked != -1
+                    # update selection state. Process outside of tree loop to avoid visual inconsistencies during the clicking-frame.
+                    if CImGui.GetIO().KeyCtrl
+                        selection_mask ⊻= 1 << node_clicked           # CTRL+click to toggle
+                    else #if (!(selection_mask & (1 << node_clicked))) # Depending on selection behavior you want, this commented bit preserve selection when clicking on item that is part of the selection
+                        selection_mask = 1 << node_clicked            # Click to single-select
+                    end
                 end
-            end
-            CImGui.PopStyleVar()
-end # @cstatic
+                CImGui.PopStyleVar()
+            end # @cstatic
             align_label_with_current_x_position && CImGui.Indent(CImGui.GetTreeNodeToLabelSpacing())
             CImGui.TreePop()
         end
@@ -243,26 +237,26 @@ end # @cstatic
             CImGui.TextWrapped("This text should automatically wrap on the edge of the window. The current implementation for text wrapping follows simple rules suitable for English and possibly other languages.")
             CImGui.Spacing()
 
-@cstatic wrap_width = Cfloat(200.0) begin
-            @c CImGui.SliderFloat("Wrap width", &wrap_width, -20, 600, "%.0f")
+            @cstatic wrap_width = Cfloat(200.0) begin
+                @c CImGui.SliderFloat("Wrap width", &wrap_width, -20, 600, "%.0f")
 
-            CImGui.Text("Test paragraph 1:")
-            pos = CImGui.GetCursorScreenPos()
-            draw_list = CImGui.GetWindowDrawList()
-            CImGui.AddRectFilled(draw_list, ImVec2(pos.x + wrap_width, pos.y), ImVec2(pos.x + wrap_width + 10, pos.y + CImGui.GetTextLineHeight()), IM_COL32(255,0,255,255))
-            CImGui.PushTextWrapPos(CImGui.GetCursorPos().x + wrap_width)
-            CImGui.Text("The lazy dog is a good dog. This paragraph is made to fit within $wrap_width pixels. Testing a 1 character word. The quick brown fox jumps over the lazy dog.")
-            CImGui.AddRect(draw_list, CImGui.GetItemRectMin(), CImGui.GetItemRectMax(), IM_COL32(255,255,0,255))
-            CImGui.PopTextWrapPos()
+                CImGui.Text("Test paragraph 1:")
+                pos = CImGui.GetCursorScreenPos()
+                draw_list = CImGui.GetWindowDrawList()
+                CImGui.AddRectFilled(draw_list, ImVec2(pos.x + wrap_width, pos.y), ImVec2(pos.x + wrap_width + 10, pos.y + CImGui.GetTextLineHeight()), IM_COL32(255,0,255,255))
+                CImGui.PushTextWrapPos(CImGui.GetCursorPos().x + wrap_width)
+                CImGui.Text("The lazy dog is a good dog. This paragraph is made to fit within $wrap_width pixels. Testing a 1 character word. The quick brown fox jumps over the lazy dog.")
+                CImGui.AddRect(draw_list, CImGui.GetItemRectMin(), CImGui.GetItemRectMax(), IM_COL32(255,255,0,255))
+                CImGui.PopTextWrapPos()
 
-            CImGui.Text("Test paragraph 2:")
-            pos = CImGui.GetCursorScreenPos()
-            CImGui.AddRectFilled(draw_list, ImVec2(pos.x + wrap_width, pos.y), ImVec2(pos.x + wrap_width + 10, pos.y + CImGui.GetTextLineHeight()), IM_COL32(255,0,255,255))
-            CImGui.PushTextWrapPos(CImGui.GetCursorPos().x + wrap_width)
-            CImGui.Text("aaaaaaaa bbbbbbbb, c cccccccc,dddddddd. d eeeeeeee   ffffffff. gggggggg!hhhhhhhh")
-            CImGui.AddRect(draw_list, CImGui.GetItemRectMin(), CImGui.GetItemRectMax(), IM_COL32(255,255,0,255))
-            CImGui.PopTextWrapPos()
-end
+                CImGui.Text("Test paragraph 2:")
+                pos = CImGui.GetCursorScreenPos()
+                CImGui.AddRectFilled(draw_list, ImVec2(pos.x + wrap_width, pos.y), ImVec2(pos.x + wrap_width + 10, pos.y + CImGui.GetTextLineHeight()), IM_COL32(255,0,255,255))
+                CImGui.PushTextWrapPos(CImGui.GetCursorPos().x + wrap_width)
+                CImGui.Text("aaaaaaaa bbbbbbbb, c cccccccc,dddddddd. d eeeeeeee   ffffffff. gggggggg!hhhhhhhh")
+                CImGui.AddRect(draw_list, CImGui.GetItemRectMin(), CImGui.GetItemRectMax(), IM_COL32(255,255,0,255))
+                CImGui.PopTextWrapPos()
+            end
             CImGui.TreePop()
         end
 
@@ -285,55 +279,64 @@ end
         CImGui.TreePop()
     end
 
-    # if (CImGui.TreeNode("Images"))
-    # {
-    #     ImGuiIO& io = CImGui.GetIO();
-    #     CImGui.TextWrapped("Below we are displaying the font texture (which is the only texture we have access to in this demo). Use the 'ImTextureID' type as storage to pass pointers or identifier to your own texture data. Hover the texture for a zoomed view!");
-    #
-    #     // Here we are grabbing the font texture because that's the only one we have access to inside the demo code.
-    #     // Remember that ImTextureID is just storage for whatever you want it to be, it is essentially a value that will be passed to the render function inside the ImDrawCmd structure.
-    #     // If you use one of the default imgui_impl_XXXX.cpp renderer, they all have comments at the top of their file to specify what they expect to be stored in ImTextureID.
-    #     // (for example, the imgui_impl_dx11.cpp renderer expect a 'ID3D11ShaderResourceView*' pointer. The imgui_impl_glfw_gl3.cpp renderer expect a GLuint OpenGL texture identifier etc.)
-    #     // If you decided that ImTextureID = MyEngineTexture*, then you can pass your MyEngineTexture* pointers to CImGui.Image(), and gather width/height through your own functions, etc.
-    #     // Using ShowMetricsWindow() as a "debugger" to inspect the draw data that are being passed to your render will help you debug issues if you are confused about this.
-    #     // Consider using the lower-level ImDrawList::AddImage() API, via CImGui.GetWindowDrawList()->AddImage().
-    #     ImTextureID my_tex_id = io.Fonts->TexID;
-    #     float my_tex_w = (float)io.Fonts->TexWidth;
-    #     float my_tex_h = (float)io.Fonts->TexHeight;
-    #
-    #     CImGui.Text("%.0fx%.0f", my_tex_w, my_tex_h);
-    #     ImVec2 pos = CImGui.GetCursorScreenPos();
-    #     CImGui.Image(my_tex_id, ImVec2(my_tex_w, my_tex_h), ImVec2(0,0), ImVec2(1,1), ImColor(255,255,255,255), ImColor(255,255,255,128));
-    #     if (CImGui.IsItemHovered())
-    #     {
-    #         CImGui.BeginTooltip();
-    #         float region_sz = 32.0f;
-    #         float region_x = io.MousePos.x - pos.x - region_sz * 0.5f; if (region_x < 0.0f) region_x = 0.0f; else if (region_x > my_tex_w - region_sz) region_x = my_tex_w - region_sz;
-    #         float region_y = io.MousePos.y - pos.y - region_sz * 0.5f; if (region_y < 0.0f) region_y = 0.0f; else if (region_y > my_tex_h - region_sz) region_y = my_tex_h - region_sz;
-    #         float zoom = 4.0f;
-    #         CImGui.Text("Min: (%.2f, %.2f)", region_x, region_y);
-    #         CImGui.Text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
-    #         ImVec2 uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h);
-    #         ImVec2 uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h);
-    #         CImGui.Image(my_tex_id, ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1, ImColor(255,255,255,255), ImColor(255,255,255,128));
-    #         CImGui.EndTooltip();
-    #     }
-    #     CImGui.TextWrapped("And now some textured buttons..");
-    #     static int pressed_count = 0;
-    #     for (int i = 0; i < 8; i++)
-    #     {
-    #         CImGui.PushID(i);
-    #         int frame_padding = -1 + i;     // -1 = uses default padding
-    #         if (CImGui.ImageButton(my_tex_id, ImVec2(32,32), ImVec2(0,0), ImVec2(32.0f/my_tex_w,32/my_tex_h), frame_padding, ImColor(0,0,0,255)))
-    #             pressed_count += 1;
-    #         CImGui.PopID();
-    #         CImGui.SameLine();
-    #     }
-    #     CImGui.NewLine();
-    #     CImGui.Text("Pressed %d times.", pressed_count);
-    #     CImGui.TreePop();
-    # }
-    #
+    if CImGui.TreeNode("Images")
+        io = CImGui.GetIO()
+        CImGui.TextWrapped("Below we are displaying the font texture (which is the only texture we have access to in this demo). Use the 'ImTextureID' type as storage to pass pointers or identifier to your own texture data. Hover the texture for a zoomed view!")
+
+        # Here we are grabbing the font texture because that's the only one we have access to inside the demo code.
+        # Remember that ImTextureID is just storage for whatever you want it to be, it is essentially a value that will be passed to the render function inside the ImDrawCmd structure.
+        # If you use one of the default imgui_impl_XXXX.cpp renderer, they all have comments at the top of their file to specify what they expect to be stored in ImTextureID.
+        # (for example, the imgui_impl_dx11.cpp renderer expect a 'ID3D11ShaderResourceView*' pointer. The imgui_impl_glfw_gl3.cpp renderer expect a GLuint OpenGL texture identifier etc.)
+        # If you decided that ImTextureID = MyEngineTexture*, then you can pass your MyEngineTexture* pointers to CImGui.Image(), and gather width/height through your own functions, etc.
+        # Using ShowMetricsWindow() as a "debugger" to inspect the draw data that are being passed to your render will help you debug issues if you are confused about this.
+        # Consider using the lower-level ImDrawList::AddImage() API, via CImGui.GetWindowDrawList()->AddImage().
+        my_tex_id = io.Fonts.TexID
+        my_tex_w = io.Fonts.TexWidth
+        my_tex_h = io.Fonts.TexHeight
+
+        CImGui.Text(@sprintf("%.0fx%.0f", my_tex_w, my_tex_h))
+        pos = CImGui.GetCursorScreenPos()
+        CImGui.Image(my_tex_id, ImVec2(my_tex_w, my_tex_h), (0,0), (1,1), (255,255,255,255), (255,255,255,128))
+        if CImGui.IsItemHovered()
+            CImGui.BeginTooltip()
+            region_sz = 32.0
+            region_x = io.MousePos.x - pos.x - region_sz * 0.5
+            if region_x < 0.0
+                region_x = 0.0
+            elseif region_x > my_tex_w - region_sz
+                region_x = my_tex_w - region_sz
+            end
+            region_y = io.MousePos.y - pos.y - region_sz * 0.5
+            if region_y < 0.0
+                region_y = 0.0
+            elseif region_y > my_tex_h - region_sz
+                region_y = my_tex_h - region_sz
+            end
+            zoom = 4.0
+            CImGui.Text(@sprintf("Min: (%.2f, %.2f)", region_x, region_y))
+            CImGui.Text(@sprintf("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz))
+            uv0 = ImVec2((region_x) / my_tex_w, (region_y) / my_tex_h)
+            uv1 = ImVec2((region_x + region_sz) / my_tex_w, (region_y + region_sz) / my_tex_h)
+            CImGui.Image(my_tex_id, ImVec2(region_sz * zoom, region_sz * zoom), uv0, uv1, (255,255,255,255), (255,255,255,128))
+            CImGui.EndTooltip()
+        end
+        CImGui.TextWrapped("And now some textured buttons..")
+        @cstatic pressed_count=Cint(0) begin
+            for i = 0:8-1
+                CImGui.PushID(i)
+                frame_padding = -1 + i     # -1 = uses default padding
+                if CImGui.ImageButton(my_tex_id, (32,32), (0,0), ImVec2(32.0/my_tex_w,32/my_tex_h), frame_padding, (0,0,0,255))
+                    pressed_count += 1
+                end
+                CImGui.PopID()
+                CImGui.SameLine()
+            end
+            CImGui.NewLine()
+            CImGui.Text("Pressed $pressed_count times.")
+        end
+        CImGui.TreePop()
+    end
+
     if CImGui.TreeNode("Combo")
         # expose flags as checkbox for the demo
         flags = @cstatic flags=Cint(0) begin
@@ -373,9 +376,14 @@ end
         end
 
         # simplified one-liner Combo() using an accessor function
-        # struct FuncHolder { static bool ItemGetter(void* data, int idx, const char** out_str) { *out_str = ((const char**)data)[idx]; return true; } };
-        # static int item_current_4 = 0;
-        # CImGui.Combo("combo 4 (function)", &item_current_4, &FuncHolder::ItemGetter, items, IM_ARRAYSIZE(items));
+        function ItemGetter(data::Ptr{Ptr{Cchar}}, idx::Cint, out_str::Ptr{Ptr{Cchar}})::Bool
+            unsafe_store!(out_str, unsafe_load(data, idx+1), idx+1)  # FIXME
+            return true
+        end
+        FuncHolder = @cfunction($ItemGetter, Bool, (Ptr{Ptr{Cchar}},Cint,Ptr{Ptr{Cchar}}))
+        @cstatic item_current_4=Cint(0) begin
+            @c CImGui.Combo("combo 4 (function)", &item_current_4, FuncHolder, items, length(items))
+        end
 
         CImGui.TreePop()
     end
@@ -485,67 +493,66 @@ end
         CImGui.TreePop()
     end
 
-    # if (CImGui.TreeNode("Filtered Text Input"))
-    # {
-    #     static char buf1[64] = ""; CImGui.InputText("default", buf1, 64);
-    #     static char buf2[64] = ""; CImGui.InputText("decimal", buf2, 64, ImGuiInputTextFlags_CharsDecimal);
-    #     static char buf3[64] = ""; CImGui.InputText("hexadecimal", buf3, 64, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase);
-    #     static char buf4[64] = ""; CImGui.InputText("uppercase", buf4, 64, ImGuiInputTextFlags_CharsUppercase);
-    #     static char buf5[64] = ""; CImGui.InputText("no blank", buf5, 64, ImGuiInputTextFlags_CharsNoBlank);
-    #     struct TextFilters { static int FilterImGuiLetters(ImGuiInputTextCallbackData* data) { if (data->EventChar < 256 && strchr("imgui", (char)data->EventChar)) return 0; return 1; } };
-    #     static char buf6[64] = ""; CImGui.InputText("\"imgui\" letters", buf6, 64, ImGuiInputTextFlags_CallbackCharFilter, TextFilters::FilterImGuiLetters);
-    #
-    #     CImGui.Text("Password input");
-    #     static char bufpass[64] = "password123";
-    #     CImGui.InputText("password", bufpass, 64, ImGuiInputTextFlags_Password | ImGuiInputTextFlags_CharsNoBlank);
-    #     CImGui.SameLine(); ShowHelpMarker("Display all characters as '*'.\nDisable clipboard cut and copy.\nDisable logging.\n");
-    #     CImGui.InputText("password (clear)", bufpass, 64, ImGuiInputTextFlags_CharsNoBlank);
-    #
-    #     CImGui.TreePop();
-    # }
-
-    if CImGui.TreeNode("Multi-line Text Input")
-        # note: we are using a fixed-sized buffer for simplicity here. See ImGuiInputTextFlags_CallbackResize
-        # and the code in misc/cpp/imgui_stdlib.h for how to setup InputText() for dynamically resizing strings.
-        @cstatic read_only=false (text="/*\n"*
-                                       " The Pentium F00F bug, shorthand for F0 0F C7 C8,\n"*
-                                       " more formally, the invalid operand with locked CMPXCHG8B\n"*
-                                       " instruction bug, is a design flaw in the majority of\n"*
-                                       " Intel Pentium, Pentium MMX, and Pentium OverDrive\n"*
-                                       " processors (all in the P5 microarchitecture).\n"*
-                                       "*/\n\n"*
-                                       "label:\n"*
-                                       "\tlock cmpxchg8b eax\n"*"\0"^(1024*16-249)) begin
-            ShowHelpMarker("You can use the ImGuiInputTextFlags_CallbackResize facility if you need to wire InputTextMultiline() to a dynamic string type. See misc/cpp/imgui_stdlib.h for an example. (This is not demonstrated in imgui_demo.cpp)")
-            @c CImGui.Checkbox("Read-only", &read_only)
-            flags = CImGui.ImGuiInputTextFlags_AllowTabInput | (read_only ? CImGui.ImGuiInputTextFlags_ReadOnly : 0)
-            CImGui.InputTextMultiline("##source", text, length(text), ImVec2(-1.0, CImGui.GetTextLineHeight() * 16), flags)
-            CImGui.TreePop()
-        end
-    end
-
+#     # if (CImGui.TreeNode("Filtered Text Input"))
+#     # {
+#     #     static char buf1[64] = ""; CImGui.InputText("default", buf1, 64);
+#     #     static char buf2[64] = ""; CImGui.InputText("decimal", buf2, 64, ImGuiInputTextFlags_CharsDecimal);
+#     #     static char buf3[64] = ""; CImGui.InputText("hexadecimal", buf3, 64, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase);
+#     #     static char buf4[64] = ""; CImGui.InputText("uppercase", buf4, 64, ImGuiInputTextFlags_CharsUppercase);
+#     #     static char buf5[64] = ""; CImGui.InputText("no blank", buf5, 64, ImGuiInputTextFlags_CharsNoBlank);
+#     #     struct TextFilters { static int FilterImGuiLetters(ImGuiInputTextCallbackData* data) { if (data->EventChar < 256 && strchr("imgui", (char)data->EventChar)) return 0; return 1; } };
+#     #     static char buf6[64] = ""; CImGui.InputText("\"imgui\" letters", buf6, 64, ImGuiInputTextFlags_CallbackCharFilter, TextFilters::FilterImGuiLetters);
+#     #
+#     #     CImGui.Text("Password input");
+#     #     static char bufpass[64] = "password123";
+#     #     CImGui.InputText("password", bufpass, 64, ImGuiInputTextFlags_Password | ImGuiInputTextFlags_CharsNoBlank);
+#     #     CImGui.SameLine(); ShowHelpMarker("Display all characters as '*'.\nDisable clipboard cut and copy.\nDisable logging.\n");
+#     #     CImGui.InputText("password (clear)", bufpass, 64, ImGuiInputTextFlags_CharsNoBlank);
+#     #
+#     #     CImGui.TreePop();
+#     # }
+#
+#     if CImGui.TreeNode("Multi-line Text Input")
+#         # note: we are using a fixed-sized buffer for simplicity here. See ImGuiInputTextFlags_CallbackResize
+#         # and the code in misc/cpp/imgui_stdlib.h for how to setup InputText() for dynamically resizing strings.
+#         @cstatic read_only=false (text="/*\n"*
+#                                        " The Pentium F00F bug, shorthand for F0 0F C7 C8,\n"*
+#                                        " more formally, the invalid operand with locked CMPXCHG8B\n"*
+#                                        " instruction bug, is a design flaw in the majority of\n"*
+#                                        " Intel Pentium, Pentium MMX, and Pentium OverDrive\n"*
+#                                        " processors (all in the P5 microarchitecture).\n"*
+#                                        "*/\n\n"*
+#                                        "label:\n"*
+#                                        "\tlock cmpxchg8b eax\n"*"\0"^(1024*16-249)) begin
+#             ShowHelpMarker("You can use the ImGuiInputTextFlags_CallbackResize facility if you need to wire InputTextMultiline() to a dynamic string type. See misc/cpp/imgui_stdlib.h for an example. (This is not demonstrated in imgui_demo.cpp)")
+#             @c CImGui.Checkbox("Read-only", &read_only)
+#             flags = CImGui.ImGuiInputTextFlags_AllowTabInput | (read_only ? CImGui.ImGuiInputTextFlags_ReadOnly : 0)
+#             CImGui.InputTextMultiline("##source", text, length(text), ImVec2(-1.0, CImGui.GetTextLineHeight() * 16), flags)
+#             CImGui.TreePop()
+#         end
+#     end
+#
     if CImGui.TreeNode("Plots Widgets")
-animate, _ = @cstatic animate=true arr=Cfloat[0.6, 0.1, 1.0, 0.5, 0.92, 0.1, 0.2] begin
-        @c CImGui.Checkbox("Animate", &animate)
-        CImGui.PlotLines("Frame Times", arr, length(arr))
+        animate, _ = @cstatic animate=true arr=Cfloat[0.6, 0.1, 1.0, 0.5, 0.92, 0.1, 0.2] begin
+            @c CImGui.Checkbox("Animate", &animate)
+            CImGui.PlotLines("Frame Times", arr, length(arr))
+            # create a dummy array of contiguous float values to plot
+            # Tip: If your float aren't contiguous but part of a structure, you can pass a pointer to your first float and the sizeof() of your structure in the Stride parameter.
+            @cstatic values=fill(Cfloat(0),90) values_offset=Cint(0) refresh_time=Cdouble(0) begin
+                (!animate || refresh_time == 0.0) && (refresh_time = CImGui.GetTime();)
 
-        # create a dummy array of contiguous float values to plot
-        # Tip: If your float aren't contiguous but part of a structure, you can pass a pointer to your first float and the sizeof() of your structure in the Stride parameter.
-        @cstatic values=fill(Cfloat(0),90) values_offset=Cint(0) refresh_time=Cdouble(0) begin
-            (!animate || refresh_time == 0.0) && (refresh_time = CImGui.GetTime();)
-
-            while refresh_time < CImGui.GetTime() # create dummy data at fixed 60 hz rate for the demo
-                @cstatic phase=Cfloat(0) begin
-                    values[values_offset+1] = cos(phase)
-                    values_offset = (values_offset+1) % length(values)
-                    phase += 0.10*values_offset
-                    refresh_time += 1.0/60.0
+                while refresh_time < CImGui.GetTime() # create dummy data at fixed 60 hz rate for the demo
+                    @cstatic phase=Cfloat(0) begin
+                        values[values_offset+1] = cos(phase)
+                        values_offset = (values_offset+1) % length(values)
+                        phase += 0.10*values_offset
+                        refresh_time += 1.0/60.0
+                    end
                 end
+                CImGui.PlotLines("Lines", values, length(values), values_offset, "avg 0.0", -1.0, 1.0, (0,80))
+                CImGui.PlotHistogram("Histogram", arr, length(arr), 0, C_NULL, 0.0, 1.0, (0,80))
             end
-            CImGui.PlotLines("Lines", values, length(values), values_offset, "avg 0.0", -1.0, 1.0, (0,80))
-            CImGui.PlotHistogram("Histogram", arr, length(arr), 0, C_NULL, 0.0, 1.0, (0,80))
-        end
-end # @cstatic
+        end # @cstatic
         # use functions to generate output
         # FIXME: This is rather awkward because current plot API only pass in indices. We probably want an API passing floats and user provide sample rate/count.
         Sin(::Ptr{Cvoid}, i::Cint) = Cfloat(sin(i * 0.1))
@@ -576,7 +583,7 @@ end # @cstatic
 
             # typically we would use ImVec2(-1.0,0.0) to use all available width, or ImVec2(width,0.0) for a specified width. ImVec2(0.0,0.0) uses ItemWidth.
             CImGui.ProgressBar(progress, ImVec2(0.0,0.0))
-            # CImGui.SameLine(0.0, CImGui.GetStyle().ItemInnerSpacing.x)
+            CImGui.SameLine(0.0, CImGui.GetStyle().ItemInnerSpacing.x)
             CImGui.Text("Progress Bar")
 
             progress_saturated = (progress < 0.0) ? 0.0 : (progress > 1.0) ? 1.0 : progress
@@ -587,134 +594,134 @@ end # @cstatic
     end
 
     if CImGui.TreeNode("Color/Picker Widgets")
-@cstatic color=Cfloat[114/255, 144/255, 154/255, 200/255] backup_color=Cfloat[0,0,0,0] saved_palette_init=true saved_palette=fill(ImVec4(0,0,0,0), 32) alpha_preview=true alpha_half_preview=false drag_and_drop=true options_menu=true hdr=false begin
-        @c CImGui.Checkbox("With Alpha Preview", &alpha_preview)
-        @c CImGui.Checkbox("With Half Alpha Preview", &alpha_half_preview)
-        @c CImGui.Checkbox("With Drag and Drop", &drag_and_drop)
-        @c CImGui.Checkbox("With Options Menu", &options_menu)
-        CImGui.SameLine()
-        ShowHelpMarker("Right-click on the individual color widget to show options.")
-        @c CImGui.Checkbox("With HDR", &hdr)
-        CImGui.SameLine()
-        ShowHelpMarker("Currently all this does is to lift the 0..1 limits on dragging widgets.")
-        misc_flags = (hdr ? CImGui.ImGuiColorEditFlags_HDR : 0) | (drag_and_drop ? 0 : CImGui.ImGuiColorEditFlags_NoDragDrop) | (alpha_half_preview ? CImGui.ImGuiColorEditFlags_AlphaPreviewHalf : (alpha_preview ? CImGui.ImGuiColorEditFlags_AlphaPreview : 0)) | (options_menu ? 0 : CImGui.ImGuiColorEditFlags_NoOptions)
-
-        CImGui.Text("Color widget:")
-        CImGui.SameLine()
-        ShowHelpMarker("Click on the colored square to open a color picker.\nCTRL+click on individual component to input value.\n")
-        CImGui.ColorEdit3("MyColor##1", color, misc_flags)
-
-        CImGui.Text("Color widget HSV with Alpha:")
-        CImGui.ColorEdit4("MyColor##2", color, CImGui.ImGuiColorEditFlags_HSV | misc_flags)
-
-        CImGui.Text("Color widget with Float Display:")
-        CImGui.ColorEdit4("MyColor##2f", color, CImGui.ImGuiColorEditFlags_Float | misc_flags)
-
-        CImGui.Text("Color button with Picker:")
-        CImGui.SameLine()
-        ShowHelpMarker("With the ImGuiColorEditFlags_NoInputs flag you can hide all the slider/text inputs.\nWith the ImGuiColorEditFlags_NoLabel flag you can pass a non-empty label which will only be used for the tooltip and picker popup.")
-        CImGui.ColorEdit4("MyColor##3", color, CImGui.ImGuiColorEditFlags_NoInputs | CImGui.ImGuiColorEditFlags_NoLabel | misc_flags)
-        CImGui.Text("Color button with Custom Picker Popup:")
-
-        # generate a dummy default palette. The palette will persist and can be edited.
-        if saved_palette_init
-            for n = 0:length(saved_palette)-1
-                tmp = saved_palette[n+1]
-                x, y, z = tmp.x, tmp.y, tmp.z
-                @c CImGui.ColorConvertHSVtoRGB(n/31, 0.8, 0.8, &x, &y, &z)
-                tmp = saved_palette[n+1]
-                saved_palette[n+1] = ImVec4(x, y, z, 1.0) # alpha
-            end
-            saved_palette_init = false
-        end
-
-        open_popup = CImGui.ColorButton("MyColor##3b", ImVec4(color...), misc_flags)
-        CImGui.SameLine()
-        open_popup |= CImGui.Button("Palette")
-        if open_popup
-            CImGui.OpenPopup("mypicker")
-            backup_color = color
-        end
-
-        if CImGui.BeginPopup("mypicker")
-            CImGui.Text("MY CUSTOM COLOR PICKER WITH AN AMAZING PALETTE!")
-            CImGui.Separator()
-            CImGui.ColorPicker4("##picker", color, misc_flags | CImGui.ImGuiColorEditFlags_NoSidePreview | CImGui.ImGuiColorEditFlags_NoSmallPreview)
+        @cstatic color=Cfloat[114/255, 144/255, 154/255, 200/255] backup_color=Cfloat[0,0,0,0] saved_palette_init=true saved_palette=fill(ImVec4(0,0,0,0), 32) alpha_preview=true alpha_half_preview=false drag_and_drop=true options_menu=true hdr=false begin
+            @c CImGui.Checkbox("With Alpha Preview", &alpha_preview)
+            @c CImGui.Checkbox("With Half Alpha Preview", &alpha_half_preview)
+            @c CImGui.Checkbox("With Drag and Drop", &drag_and_drop)
+            @c CImGui.Checkbox("With Options Menu", &options_menu)
             CImGui.SameLine()
+            ShowHelpMarker("Right-click on the individual color widget to show options.")
+            @c CImGui.Checkbox("With HDR", &hdr)
+            CImGui.SameLine()
+            ShowHelpMarker("Currently all this does is to lift the 0..1 limits on dragging widgets.")
+            misc_flags = (hdr ? CImGui.ImGuiColorEditFlags_HDR : 0) | (drag_and_drop ? 0 : CImGui.ImGuiColorEditFlags_NoDragDrop) | (alpha_half_preview ? CImGui.ImGuiColorEditFlags_AlphaPreviewHalf : (alpha_preview ? CImGui.ImGuiColorEditFlags_AlphaPreview : 0)) | (options_menu ? 0 : CImGui.ImGuiColorEditFlags_NoOptions)
 
-            CImGui.BeginGroup() # Lock X position
-            CImGui.Text("Current")
-            CImGui.ColorButton("##current", ImVec4(color...), CImGui.ImGuiColorEditFlags_NoPicker | CImGui.ImGuiColorEditFlags_AlphaPreviewHalf, (60,40))
-            CImGui.Text("Previous")
-            CImGui.ColorButton("##previous", ImVec4(backup_color...), CImGui.ImGuiColorEditFlags_NoPicker | CImGui.ImGuiColorEditFlags_AlphaPreviewHalf, (60,40)) && (color = backup_color;)
-            CImGui.Separator()
-            CImGui.Text("Palette")
-            for n = 0:length(saved_palette)-1
-                CImGui.PushID(n)
-                # (n % 8) != 0 && CImGui.SameLine(0.0, CImGui.GetStyle().ItemSpacing.y)
-                if CImGui.ColorButton("##palette", saved_palette[n+1], CImGui.ImGuiColorEditFlags_NoAlpha | CImGui.ImGuiColorEditFlags_NoPicker | CImGui.ImGuiColorEditFlags_NoTooltip, (20,20))
+            CImGui.Text("Color widget:")
+            CImGui.SameLine()
+            ShowHelpMarker("Click on the colored square to open a color picker.\nCTRL+click on individual component to input value.\n")
+            CImGui.ColorEdit3("MyColor##1", color, misc_flags)
+
+            CImGui.Text("Color widget HSV with Alpha:")
+            CImGui.ColorEdit4("MyColor##2", color, CImGui.ImGuiColorEditFlags_HSV | misc_flags)
+
+            CImGui.Text("Color widget with Float Display:")
+            CImGui.ColorEdit4("MyColor##2f", color, CImGui.ImGuiColorEditFlags_Float | misc_flags)
+
+            CImGui.Text("Color button with Picker:")
+            CImGui.SameLine()
+            ShowHelpMarker("With the ImGuiColorEditFlags_NoInputs flag you can hide all the slider/text inputs.\nWith the ImGuiColorEditFlags_NoLabel flag you can pass a non-empty label which will only be used for the tooltip and picker popup.")
+            CImGui.ColorEdit4("MyColor##3", color, CImGui.ImGuiColorEditFlags_NoInputs | CImGui.ImGuiColorEditFlags_NoLabel | misc_flags)
+            CImGui.Text("Color button with Custom Picker Popup:")
+
+            # generate a dummy default palette. The palette will persist and can be edited.
+            if saved_palette_init
+                for n = 0:length(saved_palette)-1
                     tmp = saved_palette[n+1]
-                    x, y, z = tmp.z, tmp.y, tmp.z
-                    color = [x, y, z, color[4]] # preserve alpha!
+                    x, y, z = tmp.x, tmp.y, tmp.z
+                    @c CImGui.ColorConvertHSVtoRGB(n/31, 0.8, 0.8, &x, &y, &z)
+                    tmp = saved_palette[n+1]
+                    saved_palette[n+1] = ImVec4(x, y, z, 1.0) # alpha
                 end
-
-                # allow user to drop colors into each palette entry
-                # (Note that ColorButton is already a drag source by default, unless using ImGuiColorEditFlags_NoDragDrop)
-                if CImGui.BeginDragDropTarget()
-                    # if (const ImGuiPayload* payload = CImGui.AcceptDragDropPayload(CImGui.IMGUI_PAYLOAD_TYPE_COLOR_3F))
-                    #     memcpy((float*)&saved_palette[n], payload->Data, sizeof(float) * 3)
-                    # if (const ImGuiPayload* payload = CImGui.AcceptDragDropPayload(CImGui.IMGUI_PAYLOAD_TYPE_COLOR_4F))
-                    #     memcpy((float*)&saved_palette[n], payload->Data, sizeof(float) * 4)
-                    CImGui.EndDragDropTarget()
-                end
-                CImGui.PopID()
+                saved_palette_init = false
             end
-            CImGui.EndGroup()
-            CImGui.EndPopup()
-        end
 
-        CImGui.Text("Color button only:")
-        CImGui.ColorButton("MyColor##3c", ImVec4(color...), misc_flags, (80,80))
-
-        CImGui.Text("Color picker:")
-        @cstatic alpha=true alpha_bar=true side_preview=true ref_color=true ref_color_v=Cfloat[1.0,0.0,1.0,0.5] inputs_mode=Cint(2) picker_mode=Cint(0) begin
-            @c CImGui.Checkbox("With Alpha", &alpha)
-            @c CImGui.Checkbox("With Alpha Bar", &alpha_bar)
-            @c CImGui.Checkbox("With Side Preview", &side_preview)
-            if side_preview
-                CImGui.SameLine()
-                @c CImGui.Checkbox("With Ref Color", &ref_color)
-                if ref_color
-                    CImGui.SameLine()
-                    CImGui.ColorEdit4("##RefColor", pointer(ref_color_v), CImGui.ImGuiColorEditFlags_NoInputs | misc_flags)
-                end
-            end
-            @c CImGui.Combo("Inputs Mode", &inputs_mode, "All Inputs\0No Inputs\0RGB Input\0HSV Input\0HEX Input\0");
-            @c CImGui.Combo("Picker Mode", &picker_mode, "Auto/Current\0Hue bar + SV rect\0Hue wheel + SV triangle\0");
+            open_popup = CImGui.ColorButton("MyColor##3b", ImVec4(color...), misc_flags)
             CImGui.SameLine()
-            ShowHelpMarker("User can right-click the picker to change mode.")
-            flags = misc_flags
-            !alpha && (flags |= CImGui.ImGuiColorEditFlags_NoAlpha;) # this is by default if you call ColorPicker3() instead of ColorPicker4()
-            alpha_bar && (flags |= CImGui.ImGuiColorEditFlags_AlphaBar;)
-            !side_preview && (flags |= CImGui.ImGuiColorEditFlags_NoSidePreview;)
-            picker_mode == 1 && (flags |= CImGui.ImGuiColorEditFlags_PickerHueBar;)
-            picker_mode == 2 && (flags |= CImGui.ImGuiColorEditFlags_PickerHueWheel;)
-            inputs_mode == 1 && (flags |= CImGui.ImGuiColorEditFlags_NoInputs;)
-            inputs_mode == 2 && (flags |= CImGui.ImGuiColorEditFlags_RGB;)
-            inputs_mode == 3 && (flags |= CImGui.ImGuiColorEditFlags_HSV;)
-            inputs_mode == 4 && (flags |= CImGui.ImGuiColorEditFlags_HEX;)
-            CImGui.ColorPicker4("MyColor##4", color, flags, ref_color ? pointer(ref_color_v) : C_NULL)
-        end
-        CImGui.Text("Programmatically set defaults:")
-        CImGui.SameLine()
-        ShowHelpMarker("SetColorEditOptions() is designed to allow you to set boot-time default.\nWe don't have Push/Pop functions because you can force options on a per-widget basis if needed, and the user can change non-forced ones with the options menu.\nWe don't have a getter to avoid encouraging you to persistently save values that aren't forward-compatible.")
-        if CImGui.Button("Default: Uint8 + HSV + Hue Bar")
-            CImGui.SetColorEditOptions(CImGui.ImGuiColorEditFlags_Uint8 | CImGui.ImGuiColorEditFlags_HSV | CImGui.ImGuiColorEditFlags_PickerHueBar)
-        end
-        if CImGui.Button("Default: Float + HDR + Hue Wheel")
-            CImGui.SetColorEditOptions(CImGui.ImGuiColorEditFlags_Float | CImGui.ImGuiColorEditFlags_HDR | CImGui.ImGuiColorEditFlags_PickerHueWheel)
-        end
-end # @cstatic
+            open_popup |= CImGui.Button("Palette")
+            if open_popup
+                CImGui.OpenPopup("mypicker")
+                backup_color = color
+            end
+
+            if CImGui.BeginPopup("mypicker")
+                CImGui.Text("MY CUSTOM COLOR PICKER WITH AN AMAZING PALETTE!")
+                CImGui.Separator()
+                CImGui.ColorPicker4("##picker", color, misc_flags | CImGui.ImGuiColorEditFlags_NoSidePreview | CImGui.ImGuiColorEditFlags_NoSmallPreview)
+                CImGui.SameLine()
+
+                CImGui.BeginGroup() # Lock X position
+                CImGui.Text("Current")
+                CImGui.ColorButton("##current", ImVec4(color...), CImGui.ImGuiColorEditFlags_NoPicker | CImGui.ImGuiColorEditFlags_AlphaPreviewHalf, (60,40))
+                CImGui.Text("Previous")
+                CImGui.ColorButton("##previous", ImVec4(backup_color...), CImGui.ImGuiColorEditFlags_NoPicker | CImGui.ImGuiColorEditFlags_AlphaPreviewHalf, (60,40)) && (color = backup_color;)
+                CImGui.Separator()
+                CImGui.Text("Palette")
+                for n = 0:length(saved_palette)-1
+                    CImGui.PushID(n)
+                    (n % 8) != 0 && CImGui.SameLine(0.0, CImGui.GetStyle().ItemSpacing.y)
+                    if CImGui.ColorButton("##palette", saved_palette[n+1], CImGui.ImGuiColorEditFlags_NoAlpha | CImGui.ImGuiColorEditFlags_NoPicker | CImGui.ImGuiColorEditFlags_NoTooltip, (20,20))
+                        tmp = saved_palette[n+1]
+                        x, y, z = tmp.z, tmp.y, tmp.z
+                        color = [x, y, z, color[4]] # preserve alpha!
+                    end
+
+                    # allow user to drop colors into each palette entry
+                    # (Note that ColorButton is already a drag source by default, unless using ImGuiColorEditFlags_NoDragDrop)
+                    if CImGui.BeginDragDropTarget()
+                        # if (const ImGuiPayload* payload = CImGui.AcceptDragDropPayload(CImGui.IMGUI_PAYLOAD_TYPE_COLOR_3F))
+                        #     memcpy((float*)&saved_palette[n], payload->Data, sizeof(float) * 3)
+                        # if (const ImGuiPayload* payload = CImGui.AcceptDragDropPayload(CImGui.IMGUI_PAYLOAD_TYPE_COLOR_4F))
+                        #     memcpy((float*)&saved_palette[n], payload->Data, sizeof(float) * 4)
+                        CImGui.EndDragDropTarget()
+                    end
+                    CImGui.PopID()
+                end
+                CImGui.EndGroup()
+                CImGui.EndPopup()
+            end
+
+            CImGui.Text("Color button only:")
+            CImGui.ColorButton("MyColor##3c", ImVec4(color...), misc_flags, (80,80))
+
+            CImGui.Text("Color picker:")
+            @cstatic alpha=true alpha_bar=true side_preview=true ref_color=true ref_color_v=Cfloat[1.0,0.0,1.0,0.5] inputs_mode=Cint(2) picker_mode=Cint(0) begin
+                @c CImGui.Checkbox("With Alpha", &alpha)
+                @c CImGui.Checkbox("With Alpha Bar", &alpha_bar)
+                @c CImGui.Checkbox("With Side Preview", &side_preview)
+                if side_preview
+                    CImGui.SameLine()
+                    @c CImGui.Checkbox("With Ref Color", &ref_color)
+                    if ref_color
+                        CImGui.SameLine()
+                        CImGui.ColorEdit4("##RefColor", pointer(ref_color_v), CImGui.ImGuiColorEditFlags_NoInputs | misc_flags)
+                    end
+                end
+                @c CImGui.Combo("Inputs Mode", &inputs_mode, "All Inputs\0No Inputs\0RGB Input\0HSV Input\0HEX Input\0");
+                @c CImGui.Combo("Picker Mode", &picker_mode, "Auto/Current\0Hue bar + SV rect\0Hue wheel + SV triangle\0");
+                CImGui.SameLine()
+                ShowHelpMarker("User can right-click the picker to change mode.")
+                flags = misc_flags
+                !alpha && (flags |= CImGui.ImGuiColorEditFlags_NoAlpha;) # this is by default if you call ColorPicker3() instead of ColorPicker4()
+                alpha_bar && (flags |= CImGui.ImGuiColorEditFlags_AlphaBar;)
+                !side_preview && (flags |= CImGui.ImGuiColorEditFlags_NoSidePreview;)
+                picker_mode == 1 && (flags |= CImGui.ImGuiColorEditFlags_PickerHueBar;)
+                picker_mode == 2 && (flags |= CImGui.ImGuiColorEditFlags_PickerHueWheel;)
+                inputs_mode == 1 && (flags |= CImGui.ImGuiColorEditFlags_NoInputs;)
+                inputs_mode == 2 && (flags |= CImGui.ImGuiColorEditFlags_RGB;)
+                inputs_mode == 3 && (flags |= CImGui.ImGuiColorEditFlags_HSV;)
+                inputs_mode == 4 && (flags |= CImGui.ImGuiColorEditFlags_HEX;)
+                CImGui.ColorPicker4("MyColor##4", color, flags, ref_color ? pointer(ref_color_v) : C_NULL)
+            end
+            CImGui.Text("Programmatically set defaults:")
+            CImGui.SameLine()
+            ShowHelpMarker("SetColorEditOptions() is designed to allow you to set boot-time default.\nWe don't have Push/Pop functions because you can force options on a per-widget basis if needed, and the user can change non-forced ones with the options menu.\nWe don't have a getter to avoid encouraging you to persistently save values that aren't forward-compatible.")
+            if CImGui.Button("Default: Uint8 + HSV + Hue Bar")
+                CImGui.SetColorEditOptions(CImGui.ImGuiColorEditFlags_Uint8 | CImGui.ImGuiColorEditFlags_HSV | CImGui.ImGuiColorEditFlags_PickerHueBar)
+            end
+            if CImGui.Button("Default: Float + HDR + Hue Wheel")
+                CImGui.SetColorEditOptions(CImGui.ImGuiColorEditFlags_Float | CImGui.ImGuiColorEditFlags_HDR | CImGui.ImGuiColorEditFlags_PickerHueWheel)
+            end
+        end # @cstatic
         CImGui.TreePop()
     end
 
@@ -847,57 +854,57 @@ end # @cstatic
             CImGui.SameLine()
         end
 
-@cstatic values=Cfloat[0.0, 0.60, 0.35, 0.9, 0.70, 0.20, 0.0] values2=Cfloat[0.20, 0.80, 0.40, 0.25] begin
-        CImGui.PushID("set1")
-        for i = 0:7-1
-            i > 0 && CImGui.SameLine()
-            CImGui.PushID(i)
-            # CImGui.PushStyleColor(CImGui.ImGuiCol_FrameBg, (ImVec4)ImColor::HSV(i/7.0, 0.5, 0.5))
-            # CImGui.PushStyleColor(CImGui.ImGuiCol_FrameBgHovered, (ImVec4)ImColor::HSV(i/7.0, 0.6, 0.5))
-            # CImGui.PushStyleColor(CImGui.ImGuiCol_FrameBgActive, (ImVec4)ImColor::HSV(i/7.0, 0.7, 0.5))
-            # CImGui.PushStyleColor(CImGui.ImGuiCol_SliderGrab, (ImVec4)ImColor::HSV(i/7.0, 0.9, 0.9))
-            CImGui.VSliderFloat("##v", (18,160), pointer(values)+i*sizeof(Cfloat), 0.0, 1.0, "")
-            if CImGui.IsItemActive() || CImGui.IsItemHovered()
-                CImGui.SetTooltip(@sprintf("%.3f", values[i+1]))
-            end
-            # CImGui.PopStyleColor(4)
-            CImGui.PopID()
-        end
-        CImGui.PopID()
-
-        CImGui.SameLine()
-        CImGui.PushID("set2")
-
-        rows = Cint(3)
-        small_slider_size = ImVec2(18, (160.0-(rows-1)*spacing)/rows)
-        for nx = 0:4-1
-            nx > 0 && CImGui.SameLine()
-            CImGui.BeginGroup()
-            for ny = 0:rows-1
-                CImGui.PushID(nx*rows+ny)
-                CImGui.VSliderFloat("##v", small_slider_size, pointer(values2)+nx*sizeof(Cfloat), 0.0, 1.0, "")
+        @cstatic values=Cfloat[0.0, 0.60, 0.35, 0.9, 0.70, 0.20, 0.0] values2=Cfloat[0.20, 0.80, 0.40, 0.25] begin
+            CImGui.PushID("set1")
+            for i = 0:7-1
+                i > 0 && CImGui.SameLine()
+                CImGui.PushID(i)
+                CImGui.PushStyleColor(CImGui.ImGuiCol_FrameBg, CImGui.HSV(i/7.0, 0.5, 0.5))
+                CImGui.PushStyleColor(CImGui.ImGuiCol_FrameBgHovered, CImGui.HSV(i/7.0, 0.6, 0.5))
+                CImGui.PushStyleColor(CImGui.ImGuiCol_FrameBgActive, CImGui.HSV(i/7.0, 0.7, 0.5))
+                CImGui.PushStyleColor(CImGui.ImGuiCol_SliderGrab, CImGui.HSV(i/7.0, 0.9, 0.9))
+                CImGui.VSliderFloat("##v", (18,160), pointer(values)+i*sizeof(Cfloat), 0.0, 1.0, "")
                 if CImGui.IsItemActive() || CImGui.IsItemHovered()
-                    CImGui.SetTooltip(@sprintf("%.3f", values2[nx+1]))
+                    CImGui.SetTooltip(@sprintf("%.3f", values[i+1]))
                 end
+                CImGui.PopStyleColor(4)
                 CImGui.PopID()
             end
-            CImGui.EndGroup()
-        end
-        CImGui.PopID()
-
-        CImGui.SameLine()
-        CImGui.PushID("set3")
-        for i = 0:4-1
-            i > 0 && CImGui.SameLine()
-            CImGui.PushID(i)
-            CImGui.PushStyleVar(CImGui.ImGuiStyleVar_GrabMinSize, 40)
-            CImGui.VSliderFloat("##v", ImVec2(40,160), pointer(values)+i*sizeof(Cfloat), 0.0, 1.0, "%.2f\nsec")
-            CImGui.PopStyleVar()
             CImGui.PopID()
-        end
-        CImGui.PopID()
-        CImGui.PopStyleVar()
-end # @cstatic
+
+            CImGui.SameLine()
+            CImGui.PushID("set2")
+
+            rows = Cint(3)
+            small_slider_size = ImVec2(18, (160.0-(rows-1)*spacing)/rows)
+            for nx = 0:4-1
+                nx > 0 && CImGui.SameLine()
+                CImGui.BeginGroup()
+                for ny = 0:rows-1
+                    CImGui.PushID(nx*rows+ny)
+                    CImGui.VSliderFloat("##v", small_slider_size, pointer(values2)+nx*sizeof(Cfloat), 0.0, 1.0, "")
+                    if CImGui.IsItemActive() || CImGui.IsItemHovered()
+                        CImGui.SetTooltip(@sprintf("%.3f", values2[nx+1]))
+                    end
+                    CImGui.PopID()
+                end
+                CImGui.EndGroup()
+            end
+            CImGui.PopID()
+
+            CImGui.SameLine()
+            CImGui.PushID("set3")
+            for i = 0:4-1
+                i > 0 && CImGui.SameLine()
+                CImGui.PushID(i)
+                CImGui.PushStyleVar(CImGui.ImGuiStyleVar_GrabMinSize, 40)
+                CImGui.VSliderFloat("##v", ImVec2(40,160), pointer(values)+i*sizeof(Cfloat), 0.0, 1.0, "%.2f\nsec")
+                CImGui.PopStyleVar()
+                CImGui.PopID()
+            end
+            CImGui.PopID()
+            CImGui.PopStyleVar()
+        end # @cstatic
         CImGui.TreePop()
     end
 

@@ -1,5 +1,5 @@
 name = "CImGui"
-uuid = "c2dd0200-1625-11e9-3ec3-afaada74b9d5"
+uuid = "5d785b6c-b76f-510e-a07c-3070796c7e87"
 authors = ["Gnimuc <qiyupei@gmail.com>"]
 version = "1.68.0"
 

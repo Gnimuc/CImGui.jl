@@ -1,7 +1,7 @@
 name = "CImGui"
 uuid = "c2dd0200-1625-11e9-3ec3-afaada74b9d5"
 authors = ["Gnimuc <qiyupei@gmail.com>"]
-version = "0.1.0"
+version = "1.68.0"
 
 [deps]
 BinaryProvider = "b99e7846-7c00-51b0-8f62-c81ae34c0232"

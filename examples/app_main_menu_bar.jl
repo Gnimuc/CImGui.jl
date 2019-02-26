@@ -73,12 +73,12 @@ function ShowExampleMenuFile()
             foreach(i->CImGui.Text("Scrolling Text $i"), 0:9)
         CImGui.EndChild()
 
-@cstatic f=Cfloat(0.5) n=Cint(0) b=true begin
-        @c CImGui.SliderFloat("Value", &f, 0.0, 1.0)
-        @c CImGui.InputFloat("Input", &f, 0.1)
-        @c CImGui.Combo("Combo", &n, "Yes\0No\0Maybe\0\0")
-        @c CImGui.Checkbox("Check", &b)
-end
+        @cstatic f=Cfloat(0.5) n=Cint(0) b=true begin
+            @c CImGui.SliderFloat("Value", &f, 0.0, 1.0)
+            @c CImGui.InputFloat("Input", &f, 0.1)
+            @c CImGui.Combo("Combo", &n, "Yes\0No\0Maybe\0\0")
+            @c CImGui.Checkbox("Check", &b)
+        end
         CImGui.EndMenu()
     end
     if CImGui.BeginMenu("Colors")

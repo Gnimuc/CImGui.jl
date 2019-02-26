@@ -23,7 +23,7 @@ function ShowDemoWindowMisc()
 
     if CImGui.CollapsingHeader("Inputs, Navigation & Focus")
         io = CImGui.GetIO()
-        
+
         CImGui.Text("WantCaptureMouse: $(io.WantCaptureMouse)")
         CImGui.Text("WantCaptureKeyboard: $(io.WantCaptureKeyboard)")
         CImGui.Text("WantTextInput: $(io.WantTextInput)")
@@ -138,21 +138,21 @@ function ShowDemoWindowMisc()
             focus_3 = CImGui.Button("Focus on 3");
             has_focus = Cint(0)
 
-@cstatic buf="click on a button to set focus"*"\0"^98 begin
-            focus_1 && CImGui.SetKeyboardFocusHere()
-            CImGui.InputText("1", buf, length(buf))
-            CImGui.IsItemActive() && (has_focus = 1;)
+            @cstatic buf="click on a button to set focus"*"\0"^98 begin
+                focus_1 && CImGui.SetKeyboardFocusHere()
+                CImGui.InputText("1", buf, length(buf))
+                CImGui.IsItemActive() && (has_focus = 1;)
 
-            focus_2 && CImGui.SetKeyboardFocusHere()
-            CImGui.InputText("2", buf, length(buf))
-            CImGui.IsItemActive() && (has_focus = 2;)
+                focus_2 && CImGui.SetKeyboardFocusHere()
+                CImGui.InputText("2", buf, length(buf))
+                CImGui.IsItemActive() && (has_focus = 2;)
 
-            CImGui.PushAllowKeyboardFocus(false)
-            focus_3 && CImGui.SetKeyboardFocusHere()
-            CImGui.InputText("3 (tab skip)", buf, length(buf))
-            CImGui.IsItemActive() && (has_focus = 3;)
-            CImGui.PopAllowKeyboardFocus()
-end
+                CImGui.PushAllowKeyboardFocus(false)
+                focus_3 && CImGui.SetKeyboardFocusHere()
+                CImGui.InputText("3 (tab skip)", buf, length(buf))
+                CImGui.IsItemActive() && (has_focus = 3;)
+                CImGui.PopAllowKeyboardFocus()
+            end
             if has_focus != 0
                 CImGui.Text("Item with focus: $has_focus")
             else
@@ -160,16 +160,16 @@ end
             end
 
             # use >= 0 parameter to SetKeyboardFocusHere() to focus an upcoming item
-@cstatic f3 = Cfloat[0.0, 0.0, 0.0] begin
-            focus_ahead = Cint(-1)
-            CImGui.Button("Focus on X") && (focus_ahead = 0;)
-            CImGui.SameLine()
-            CImGui.Button("Focus on Y") && (focus_ahead = 1;)
-            CImGui.SameLine()
-            CImGui.Button("Focus on Z") && (focus_ahead = 2;)
-            focus_ahead != -1 && CImGui.SetKeyboardFocusHere(focus_ahead)
-            CImGui.SliderFloat3("Float3", f3, 0.0, 1.0)
-end
+            @cstatic f3 = Cfloat[0.0, 0.0, 0.0] begin
+                focus_ahead = Cint(-1)
+                CImGui.Button("Focus on X") && (focus_ahead = 0;)
+                CImGui.SameLine()
+                CImGui.Button("Focus on Y") && (focus_ahead = 1;)
+                CImGui.SameLine()
+                CImGui.Button("Focus on Z") && (focus_ahead = 2;)
+                focus_ahead != -1 && CImGui.SetKeyboardFocusHere(focus_ahead)
+                CImGui.SliderFloat3("Float3", f3, 0.0, 1.0)
+            end
             CImGui.TextWrapped("NB: Cursor & selection are preserved when refocusing last used item in code.")
             CImGui.TreePop()
         end

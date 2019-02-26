@@ -16,15 +16,15 @@ function ShowExampleAppLayout(p_open::Ref{Bool})
             CImGui.EndMenuBar()
         end
 
-selected = @cstatic selected=1 begin
-        # left
-        CImGui.BeginChild("left pane", (150, 0), true)
-        for i = 1:100
-            CImGui.Selectable("MyObject $i", selected == i) && (selected = i;)
+        selected = @cstatic selected=1 begin
+            # left
+            CImGui.BeginChild("left pane", (150, 0), true)
+            for i = 1:100
+                CImGui.Selectable("MyObject $i", selected == i) && (selected = i;)
+            end
+            CImGui.EndChild()
+            CImGui.SameLine()
         end
-        CImGui.EndChild()
-        CImGui.SameLine()
-end
 
         # right
         CImGui.BeginGroup()

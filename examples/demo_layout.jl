@@ -3,52 +3,52 @@ function ShowDemoWindowLayout()
 
     if CImGui.TreeNode("Child windows")
         ShowHelpMarker("Use child windows to begin into a self-contained independent scrolling/clipping regions within a host window.")
-@cstatic disable_mouse_wheel=false disable_menu=false line=Cint(50) begin
-        @c CImGui.Checkbox("Disable Mouse Wheel", &disable_mouse_wheel)
-        @c CImGui.Checkbox("Disable Menu", &disable_menu)
+        @cstatic disable_mouse_wheel=false disable_menu=false line=Cint(50) begin
+            @c CImGui.Checkbox("Disable Mouse Wheel", &disable_mouse_wheel)
+            @c CImGui.Checkbox("Disable Menu", &disable_menu)
 
-        goto_line = CImGui.Button("Goto")
-        CImGui.SameLine()
-        CImGui.PushItemWidth(100)
-        goto_line |= @c CImGui.InputInt("##Line", &line, 0, 0, CImGui.ImGuiInputTextFlags_EnterReturnsTrue)
-        CImGui.PopItemWidth()
+            goto_line = CImGui.Button("Goto")
+            CImGui.SameLine()
+            CImGui.PushItemWidth(100)
+            goto_line |= @c CImGui.InputInt("##Line", &line, 0, 0, CImGui.ImGuiInputTextFlags_EnterReturnsTrue)
+            CImGui.PopItemWidth()
 
-        # child 1: no border, enable horizontal scrollbar
-        begin
-            window_flags = CImGui.ImGuiWindowFlags_HorizontalScrollbar | (disable_mouse_wheel ? CImGui.ImGuiWindowFlags_NoScrollWithMouse : 0)
-            CImGui.BeginChild("Child1", ImVec2(CImGui.GetWindowContentRegionWidth() * 0.5, 260), false, window_flags)
-            for i = 0:100-1
-                CImGui.Text(@sprintf("%04d: scrollable region", i))
-                (goto_line && line == i) && CImGui.SetScrollHereY()
-            end
-            (goto_line && line >= 100) && CImGui.SetScrollHereY()
-            CImGui.EndChild()
-        end
-
-        CImGui.SameLine()
-
-        # child 2: rounded border
-        begin
-            window_flags = (disable_mouse_wheel ? CImGui.ImGuiWindowFlags_NoScrollWithMouse : 0) | (disable_menu ? 0 : CImGui.ImGuiWindowFlags_MenuBar)
-            CImGui.PushStyleVar(CImGui.ImGuiStyleVar_ChildRounding, 5.0)
-            CImGui.BeginChild("Child2", ImVec2(0, 260), true, window_flags)
-            if !disable_menu && CImGui.BeginMenuBar()
-                if CImGui.BeginMenu("Menu")
-                    ShowExampleMenuFile()
-                    CImGui.EndMenu()
+            # child 1: no border, enable horizontal scrollbar
+            begin
+                window_flags = CImGui.ImGuiWindowFlags_HorizontalScrollbar | (disable_mouse_wheel ? CImGui.ImGuiWindowFlags_NoScrollWithMouse : 0)
+                CImGui.BeginChild("Child1", ImVec2(CImGui.GetWindowContentRegionWidth() * 0.5, 260), false, window_flags)
+                for i = 0:100-1
+                    CImGui.Text(@sprintf("%04d: scrollable region", i))
+                    (goto_line && line == i) && CImGui.SetScrollHereY()
                 end
-                CImGui.EndMenuBar()
+                (goto_line && line >= 100) && CImGui.SetScrollHereY()
+                CImGui.EndChild()
             end
-            CImGui.Columns(2)
-            for i = 0:100-1
-                buf = @sprintf("%03d", i)
-                CImGui.Button(buf, ImVec2(-1.0, 0.0))
-                CImGui.NextColumn()
+
+            CImGui.SameLine()
+
+            # child 2: rounded border
+            begin
+                window_flags = (disable_mouse_wheel ? CImGui.ImGuiWindowFlags_NoScrollWithMouse : 0) | (disable_menu ? 0 : CImGui.ImGuiWindowFlags_MenuBar)
+                CImGui.PushStyleVar(CImGui.ImGuiStyleVar_ChildRounding, 5.0)
+                CImGui.BeginChild("Child2", ImVec2(0, 260), true, window_flags)
+                if !disable_menu && CImGui.BeginMenuBar()
+                    if CImGui.BeginMenu("Menu")
+                        ShowExampleMenuFile()
+                        CImGui.EndMenu()
+                    end
+                    CImGui.EndMenuBar()
+                end
+                CImGui.Columns(2)
+                for i = 0:100-1
+                    buf = @sprintf("%03d", i)
+                    CImGui.Button(buf, ImVec2(-1.0, 0.0))
+                    CImGui.NextColumn()
+                end
+                CImGui.EndChild()
+                CImGui.PopStyleVar()
             end
-            CImGui.EndChild()
-            CImGui.PopStyleVar()
         end
-end
         CImGui.Separator()
 
         # Demonstrate a few extra things
@@ -236,45 +236,45 @@ end
 
         if CImGui.TreeNode("Advanced & Close Button")
             # expose a couple of the available flags. In most cases you may just call BeginTabBar() with no flags (0).
-@cstatic tab_bar_flags=Cint(CImGui.ImGuiTabBarFlags_Reorderable) begin
-            @c CImGui.CheckboxFlags("ImGuiTabBarFlags_Reorderable", &tab_bar_flags, CImGui.ImGuiTabBarFlags_Reorderable)
-            @c CImGui.CheckboxFlags("ImGuiTabBarFlags_AutoSelectNewTabs", &tab_bar_flags, CImGui.ImGuiTabBarFlags_AutoSelectNewTabs)
-            @c CImGui.CheckboxFlags("ImGuiTabBarFlags_TabListPopupButton", &tab_bar_flags, CImGui.ImGuiTabBarFlags_TabListPopupButton)
-            @c CImGui.CheckboxFlags("ImGuiTabBarFlags_NoCloseWithMiddleMouseButton", &tab_bar_flags, CImGui.ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)
-            if (tab_bar_flags & CImGui.ImGuiTabBarFlags_FittingPolicyMask_) == 0
-                tab_bar_flags |= CImGui.ImGuiTabBarFlags_FittingPolicyDefault_
-            end
-            result = @c CImGui.CheckboxFlags("ImGuiTabBarFlags_FittingPolicyResizeDown", &tab_bar_flags, CImGui.ImGuiTabBarFlags_FittingPolicyResizeDown)
-            if result != 0
-                tab_bar_flags &= ~(CImGui.ImGuiTabBarFlags_FittingPolicyMask_ ⊻ CImGui.ImGuiTabBarFlags_FittingPolicyResizeDown)
-            end
-            result = @c CImGui.CheckboxFlags("ImGuiTabBarFlags_FittingPolicyScroll", &tab_bar_flags, CImGui.ImGuiTabBarFlags_FittingPolicyScroll)
-            if result != 0
-                tab_bar_flags &= ~(CImGui.ImGuiTabBarFlags_FittingPolicyMask_ ⊻ CImGui.ImGuiTabBarFlags_FittingPolicyScroll)
-            end
-
-            # Tab Bar
-            names = ["Artichoke", "Beetroot", "Celery", "Daikon"]
-            @cstatic opened=[true, true, true, true] begin
-                # persistent user state
-                for n = 0:length(opened)-1
-                    n > 0 && CImGui.SameLine()
-                    CImGui.Checkbox(names[n+1], pointer(opened)+n*sizeof(Bool))
+            @cstatic tab_bar_flags=Cint(CImGui.ImGuiTabBarFlags_Reorderable) begin
+                @c CImGui.CheckboxFlags("ImGuiTabBarFlags_Reorderable", &tab_bar_flags, CImGui.ImGuiTabBarFlags_Reorderable)
+                @c CImGui.CheckboxFlags("ImGuiTabBarFlags_AutoSelectNewTabs", &tab_bar_flags, CImGui.ImGuiTabBarFlags_AutoSelectNewTabs)
+                @c CImGui.CheckboxFlags("ImGuiTabBarFlags_TabListPopupButton", &tab_bar_flags, CImGui.ImGuiTabBarFlags_TabListPopupButton)
+                @c CImGui.CheckboxFlags("ImGuiTabBarFlags_NoCloseWithMiddleMouseButton", &tab_bar_flags, CImGui.ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)
+                if (tab_bar_flags & CImGui.ImGuiTabBarFlags_FittingPolicyMask_) == 0
+                    tab_bar_flags |= CImGui.ImGuiTabBarFlags_FittingPolicyDefault_
+                end
+                result = @c CImGui.CheckboxFlags("ImGuiTabBarFlags_FittingPolicyResizeDown", &tab_bar_flags, CImGui.ImGuiTabBarFlags_FittingPolicyResizeDown)
+                if result != 0
+                    tab_bar_flags &= ~(CImGui.ImGuiTabBarFlags_FittingPolicyMask_ ⊻ CImGui.ImGuiTabBarFlags_FittingPolicyResizeDown)
+                end
+                result = @c CImGui.CheckboxFlags("ImGuiTabBarFlags_FittingPolicyScroll", &tab_bar_flags, CImGui.ImGuiTabBarFlags_FittingPolicyScroll)
+                if result != 0
+                    tab_bar_flags &= ~(CImGui.ImGuiTabBarFlags_FittingPolicyMask_ ⊻ CImGui.ImGuiTabBarFlags_FittingPolicyScroll)
                 end
 
-                # passing a bool* to BeginTabItem() is similar to passing one to Begin(): the underlying bool will be set to false when the tab is closed.
-                if CImGui.BeginTabBar("MyTabBar", tab_bar_flags)
+                # Tab Bar
+                names = ["Artichoke", "Beetroot", "Celery", "Daikon"]
+                @cstatic opened=[true, true, true, true] begin
+                    # persistent user state
                     for n = 0:length(opened)-1
-                        if opened[n+1] && CImGui.BeginTabItem(names[n+1], pointer(opened)+n*sizeof(Bool))
-                            CImGui.Text("This is the $(names[n+1]) tab!")
-                            n & 1 != 0 && CImGui.Text("I am an odd tab.")
-                            CImGui.EndTabItem()
-                        end
+                        n > 0 && CImGui.SameLine()
+                        CImGui.Checkbox(names[n+1], pointer(opened)+n*sizeof(Bool))
                     end
-                    CImGui.EndTabBar()
+
+                    # passing a bool* to BeginTabItem() is similar to passing one to Begin(): the underlying bool will be set to false when the tab is closed.
+                    if CImGui.BeginTabBar("MyTabBar", tab_bar_flags)
+                        for n = 0:length(opened)-1
+                            if opened[n+1] && CImGui.BeginTabItem(names[n+1], pointer(opened)+n*sizeof(Bool))
+                                CImGui.Text("This is the $(names[n+1]) tab!")
+                                n & 1 != 0 && CImGui.Text("I am an odd tab.")
+                                CImGui.EndTabItem()
+                            end
+                        end
+                        CImGui.EndTabBar()
+                    end
                 end
-            end
-end
+            end # @cstatic
             CImGui.Separator()
             CImGui.TreePop()
         end

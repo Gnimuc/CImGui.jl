@@ -10,30 +10,30 @@ function ShowDummyObject(prefix, uid)
     CImGui.Text("my sailor is rich")
     CImGui.NextColumn()
     if node_open
-@cstatic dummy_members=Cfloat[0.0, 0.0, 1.0, 3.1416, 100.0, 999.0, 0.0, 0.0] begin
-        for i = 0:8-1
-            CImGui.PushID(i) # use field index as identifier
-            if i < 2
-                ShowDummyObject("Child", 424242)
-            else
-                # here we use a TreeNode to highlight on hover (we could use e.g. Selectable as well)
-                CImGui.AlignTextToFramePadding()
-                flag = CImGui.ImGuiTreeNodeFlags_Leaf | CImGui.ImGuiTreeNodeFlags_NoTreePushOnOpen | CImGui.ImGuiTreeNodeFlags_Bullet
-                CImGui.TreeNodeEx("Field", flag, "Field_$i")
-                CImGui.NextColumn()
-                CImGui.PushItemWidth(-1)
-                if i >= 5
-                    CImGui.InputFloat("##value", pointer(dummy_members) + i * sizeof(Cfloat), 1.0)
+        @cstatic dummy_members=Cfloat[0.0, 0.0, 1.0, 3.1416, 100.0, 999.0, 0.0, 0.0] begin
+            for i = 0:8-1
+                CImGui.PushID(i) # use field index as identifier
+                if i < 2
+                    ShowDummyObject("Child", 424242)
                 else
-                    CImGui.DragFloat("##value", pointer(dummy_members) + i * sizeof(Cfloat), 0.01)
+                    # here we use a TreeNode to highlight on hover (we could use e.g. Selectable as well)
+                    CImGui.AlignTextToFramePadding()
+                    flag = CImGui.ImGuiTreeNodeFlags_Leaf | CImGui.ImGuiTreeNodeFlags_NoTreePushOnOpen | CImGui.ImGuiTreeNodeFlags_Bullet
+                    CImGui.TreeNodeEx("Field", flag, "Field_$i")
+                    CImGui.NextColumn()
+                    CImGui.PushItemWidth(-1)
+                    if i >= 5
+                        CImGui.InputFloat("##value", pointer(dummy_members) + i * sizeof(Cfloat), 1.0)
+                    else
+                        CImGui.DragFloat("##value", pointer(dummy_members) + i * sizeof(Cfloat), 0.01)
+                    end
+                    CImGui.PopItemWidth()
+                    CImGui.NextColumn()
                 end
-                CImGui.PopItemWidth()
-                CImGui.NextColumn()
+                CImGui.PopID()
             end
-            CImGui.PopID()
+            CImGui.TreePop()
         end
-        CImGui.TreePop()
-end
     end
     CImGui.PopID()
 end

@@ -34,19 +34,19 @@ function ShowDemoWindowColumns()
         CImGui.Separator()
         names = ["One", "Two", "Three"]
         paths = ["/path/one", "/path/two", "/path/three"]
-@cstatic selected=Cint(-1) begin
-        for i = 0:2
-            label = @sprintf "%04d" i
-            if CImGui.Selectable(label, selected == i, CImGui.ImGuiSelectableFlags_SpanAllColumns)
-                selected = i
+        @cstatic selected=Cint(-1) begin
+            for i = 0:2
+                label = @sprintf "%04d" i
+                if CImGui.Selectable(label, selected == i, CImGui.ImGuiSelectableFlags_SpanAllColumns)
+                    selected = i
+                end
+                hovered = CImGui.IsItemHovered()
+                CImGui.NextColumn()
+                CImGui.Text(names[i+1]); CImGui.NextColumn()
+                CImGui.Text(paths[i+1]); CImGui.NextColumn()
+                CImGui.Text("hovered"); CImGui.NextColumn()
             end
-            hovered = CImGui.IsItemHovered()
-            CImGui.NextColumn()
-            CImGui.Text(names[i+1]); CImGui.NextColumn()
-            CImGui.Text(paths[i+1]); CImGui.NextColumn()
-            CImGui.Text("hovered"); CImGui.NextColumn()
         end
-end
         CImGui.Columns(1)
         CImGui.Separator()
         CImGui.TreePop()

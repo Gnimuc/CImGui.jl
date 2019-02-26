@@ -28,38 +28,24 @@ function ShowDemoWindowPopups()
     if CImGui.TreeNode("Popups")
         CImGui.TextWrapped("When a popup is active, it inhibits interacting with windows that are behind the popup. Clicking outside the popup closes it.")
 
-@cstatic selected_fish=Cint(-1) names=["Bream", "Haddock", "Mackerel", "Pollock", "Tilefish"] toggles=[true, false, false, false, false] begin
-        # simple selection popup
-        # (If you want to show the current selection inside the Button itself, you may want to build a string using the "###" operator to preserve a constant ID with a variable label)
-        CImGui.Button("Select..") && CImGui.OpenPopup("my_select_popup")
-        CImGui.SameLine()
-        CImGui.TextUnformatted(selected_fish == -1 ? "<None>" : names[selected_fish])
-        if CImGui.BeginPopup("my_select_popup")
-            CImGui.Text("Aquarium")
-            CImGui.Separator()
-            for i = 1:length(names)
-                CImGui.Selectable(names[i]) && (selected_fish = i;)
-            end
-            CImGui.EndPopup()
-        end
-
-        # showing a menu with toggles
-        CImGui.Button("Toggle..") && CImGui.OpenPopup("my_toggle_popup")
-        if CImGui.BeginPopup("my_toggle_popup")
-            for i = 1:length(names)
-                CImGui.MenuItem(names[i], "", pointer(toggles)+(i-1)*sizeof(Bool))
-            end
-            if CImGui.BeginMenu("Sub-menu")
-                CImGui.MenuItem("Click me") && @info "Trigger `Click me` | find me here: $(@__FILE__) at line $(@__LINE__)"
-                CImGui.EndMenu()
+        @cstatic selected_fish=Cint(-1) names=["Bream", "Haddock", "Mackerel", "Pollock", "Tilefish"] toggles=[true, false, false, false, false] begin
+            # simple selection popup
+            # (If you want to show the current selection inside the Button itself, you may want to build a string using the "###" operator to preserve a constant ID with a variable label)
+            CImGui.Button("Select..") && CImGui.OpenPopup("my_select_popup")
+            CImGui.SameLine()
+            CImGui.TextUnformatted(selected_fish == -1 ? "<None>" : names[selected_fish])
+            if CImGui.BeginPopup("my_select_popup")
+                CImGui.Text("Aquarium")
+                CImGui.Separator()
+                for i = 1:length(names)
+                    CImGui.Selectable(names[i]) && (selected_fish = i;)
+                end
+                CImGui.EndPopup()
             end
 
-            CImGui.Separator()
-            CImGui.Text("Tooltip here")
-            CImGui.IsItemHovered() && CImGui.SetTooltip("I am a tooltip over a popup")
-
-            CImGui.Button("Stacked Popup") && CImGui.OpenPopup("another popup")
-            if CImGui.BeginPopup("another popup")
+            # showing a menu with toggles
+            CImGui.Button("Toggle..") && CImGui.OpenPopup("my_toggle_popup")
+            if CImGui.BeginPopup("my_toggle_popup")
                 for i = 1:length(names)
                     CImGui.MenuItem(names[i], "", pointer(toggles)+(i-1)*sizeof(Bool))
                 end
@@ -67,11 +53,25 @@ function ShowDemoWindowPopups()
                     CImGui.MenuItem("Click me") && @info "Trigger `Click me` | find me here: $(@__FILE__) at line $(@__LINE__)"
                     CImGui.EndMenu()
                 end
+
+                CImGui.Separator()
+                CImGui.Text("Tooltip here")
+                CImGui.IsItemHovered() && CImGui.SetTooltip("I am a tooltip over a popup")
+
+                CImGui.Button("Stacked Popup") && CImGui.OpenPopup("another popup")
+                if CImGui.BeginPopup("another popup")
+                    for i = 1:length(names)
+                        CImGui.MenuItem(names[i], "", pointer(toggles)+(i-1)*sizeof(Bool))
+                    end
+                    if CImGui.BeginMenu("Sub-menu")
+                        CImGui.MenuItem("Click me") && @info "Trigger `Click me` | find me here: $(@__FILE__) at line $(@__LINE__)"
+                        CImGui.EndMenu()
+                    end
+                    CImGui.EndPopup()
+                end
                 CImGui.EndPopup()
             end
-            CImGui.EndPopup()
-        end
-end # @cstatic
+        end # @cstatic
         # call the more complete ShowExampleMenuFile which we use in various places of this demo
         CImGui.Button("File Menu..") && CImGui.OpenPopup("my_file_popup")
         if CImGui.BeginPopup("my_file_popup")

@@ -16,7 +16,8 @@ IM_COL32(R,G,B,A) = (ImU32(A)<<IM_COL32_A_SHIFT) | (ImU32(B)<<IM_COL32_B_SHIFT) 
 const IM_COL32_WHITE       = IM_COL32(255,255,255,255)  # opaque white = 0xffffffff
 const IM_COL32_BLACK       = IM_COL32(0,0,0,255)        # opaque black
 const IM_COL32_BLACK_TRANS = IM_COL32(0,0,0,0)          # transparent black = 0x00000000
-
+const IMGUI_PAYLOAD_TYPE_COLOR_3F = "_COL3F"
+const IMGUI_PAYLOAD_TYPE_COLOR_4F = "_COL4F"
 const FLT_MAX = igGET_FLT_MAX()
 
 include("helper.jl")

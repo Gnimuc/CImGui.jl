@@ -1,7 +1,7 @@
 using CImGui
 using CImGui.CSyntax
 using CImGui.CSyntax.CStatic
-using CImGui: ImVec2, ImVec4, IM_COL32
+using CImGui: ImVec2, ImVec4, IM_COL32, ImS32, ImU32, ImS64, ImU64
 
 """
     ShowDemoWindowWidgets()
@@ -493,45 +493,54 @@ function ShowDemoWindowWidgets()
         CImGui.TreePop()
     end
 
-#     # if (CImGui.TreeNode("Filtered Text Input"))
-#     # {
-#     #     static char buf1[64] = ""; CImGui.InputText("default", buf1, 64);
-#     #     static char buf2[64] = ""; CImGui.InputText("decimal", buf2, 64, ImGuiInputTextFlags_CharsDecimal);
-#     #     static char buf3[64] = ""; CImGui.InputText("hexadecimal", buf3, 64, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase);
-#     #     static char buf4[64] = ""; CImGui.InputText("uppercase", buf4, 64, ImGuiInputTextFlags_CharsUppercase);
-#     #     static char buf5[64] = ""; CImGui.InputText("no blank", buf5, 64, ImGuiInputTextFlags_CharsNoBlank);
-#     #     struct TextFilters { static int FilterImGuiLetters(ImGuiInputTextCallbackData* data) { if (data->EventChar < 256 && strchr("imgui", (char)data->EventChar)) return 0; return 1; } };
-#     #     static char buf6[64] = ""; CImGui.InputText("\"imgui\" letters", buf6, 64, ImGuiInputTextFlags_CallbackCharFilter, TextFilters::FilterImGuiLetters);
-#     #
-#     #     CImGui.Text("Password input");
-#     #     static char bufpass[64] = "password123";
-#     #     CImGui.InputText("password", bufpass, 64, ImGuiInputTextFlags_Password | ImGuiInputTextFlags_CharsNoBlank);
-#     #     CImGui.SameLine(); ShowHelpMarker("Display all characters as '*'.\nDisable clipboard cut and copy.\nDisable logging.\n");
-#     #     CImGui.InputText("password (clear)", bufpass, 64, ImGuiInputTextFlags_CharsNoBlank);
-#     #
-#     #     CImGui.TreePop();
-#     # }
-#
-#     if CImGui.TreeNode("Multi-line Text Input")
-#         # note: we are using a fixed-sized buffer for simplicity here. See ImGuiInputTextFlags_CallbackResize
-#         # and the code in misc/cpp/imgui_stdlib.h for how to setup InputText() for dynamically resizing strings.
-#         @cstatic read_only=false (text="/*\n"*
-#                                        " The Pentium F00F bug, shorthand for F0 0F C7 C8,\n"*
-#                                        " more formally, the invalid operand with locked CMPXCHG8B\n"*
-#                                        " instruction bug, is a design flaw in the majority of\n"*
-#                                        " Intel Pentium, Pentium MMX, and Pentium OverDrive\n"*
-#                                        " processors (all in the P5 microarchitecture).\n"*
-#                                        "*/\n\n"*
-#                                        "label:\n"*
-#                                        "\tlock cmpxchg8b eax\n"*"\0"^(1024*16-249)) begin
-#             ShowHelpMarker("You can use the ImGuiInputTextFlags_CallbackResize facility if you need to wire InputTextMultiline() to a dynamic string type. See misc/cpp/imgui_stdlib.h for an example. (This is not demonstrated in imgui_demo.cpp)")
-#             @c CImGui.Checkbox("Read-only", &read_only)
-#             flags = CImGui.ImGuiInputTextFlags_AllowTabInput | (read_only ? CImGui.ImGuiInputTextFlags_ReadOnly : 0)
-#             CImGui.InputTextMultiline("##source", text, length(text), ImVec2(-1.0, CImGui.GetTextLineHeight() * 16), flags)
-#             CImGui.TreePop()
-#         end
-#     end
-#
+    if CImGui.TreeNode("Filtered Text Input")
+        @cstatic buf1="\0"^64 CImGui.InputText("default", buf1, 64)
+        @cstatic buf2="\0"^64 CImGui.InputText("decimal", buf2, 64, CImGui.ImGuiInputTextFlags_CharsDecimal)
+        @cstatic buf3="\0"^64 CImGui.InputText("hexadecimal", buf3, 64, CImGui.ImGuiInputTextFlags_CharsHexadecimal | CImGui.ImGuiInputTextFlags_CharsUppercase)
+        @cstatic buf4="\0"^64 CImGui.InputText("uppercase", buf4, 64, CImGui.ImGuiInputTextFlags_CharsUppercase)
+        @cstatic buf5="\0"^64 CImGui.InputText("no blank", buf5, 64, CImGui.ImGuiInputTextFlags_CharsNoBlank)
+
+        # FIXME
+        # function FilterImGuiLetters(Ptr{CImGui.ImGuiInputTextCallbackData} data)::Cint
+        #     if data->EventChar < 256 && strchr("imgui", (char)data->EventChar)
+        #         return 0
+        #     else
+        #         return 1
+        #     end
+        # end
+        # funcptr = @cfunction($FilterImGuiLetters, Cvoid, (Ptr{CImGui.ImGuiInputTextCallbackData},))
+        # @cstatic buf6="\0"^64 CImGui.InputText("\"imgui\" letters", buf6, 64, CImGui.ImGuiInputTextFlags_CallbackCharFilter, funcptr)
+
+        CImGui.Text("Password input")
+        @cstatic bufpass="password123"*"\0"^53 begin
+            CImGui.InputText("password", bufpass, 64, CImGui.ImGuiInputTextFlags_Password | CImGui.ImGuiInputTextFlags_CharsNoBlank)
+            CImGui.SameLine()
+            ShowHelpMarker("Display all characters as '*'.\nDisable clipboard cut and copy.\nDisable logging.\n")
+            CImGui.InputText("password (clear)", bufpass, 64, CImGui.ImGuiInputTextFlags_CharsNoBlank)
+        end
+        CImGui.TreePop()
+    end
+
+    if CImGui.TreeNode("Multi-line Text Input")
+        # note: we are using a fixed-sized buffer for simplicity here. See ImGuiInputTextFlags_CallbackResize
+        # and the code in misc/cpp/imgui_stdlib.h for how to setup InputText() for dynamically resizing strings.
+        @cstatic read_only=false (text="/*\n"*
+                                       " The Pentium F00F bug, shorthand for F0 0F C7 C8,\n"*
+                                       " more formally, the invalid operand with locked CMPXCHG8B\n"*
+                                       " instruction bug, is a design flaw in the majority of\n"*
+                                       " Intel Pentium, Pentium MMX, and Pentium OverDrive\n"*
+                                       " processors (all in the P5 microarchitecture).\n"*
+                                       "*/\n\n"*
+                                       "label:\n"*
+                                       "\tlock cmpxchg8b eax\n"*"\0"^(1024*16-249)) begin
+            ShowHelpMarker("You can use the ImGuiInputTextFlags_CallbackResize facility if you need to wire InputTextMultiline() to a dynamic string type. See misc/cpp/imgui_stdlib.h for an example. (This is not demonstrated in imgui_demo.cpp)")
+            @c CImGui.Checkbox("Read-only", &read_only)
+            flags = CImGui.ImGuiInputTextFlags_AllowTabInput | (read_only ? CImGui.ImGuiInputTextFlags_ReadOnly : 0)
+            CImGui.InputTextMultiline("##source", text, length(text), ImVec2(-1.0, CImGui.GetTextLineHeight() * 16), flags)
+            CImGui.TreePop()
+        end
+    end
+
     if CImGui.TreeNode("Plots Widgets")
         animate, _ = @cstatic animate=true arr=Cfloat[0.6, 0.1, 1.0, 0.5, 0.92, 0.1, 0.2] begin
             @c CImGui.Checkbox("Animate", &animate)
@@ -668,10 +677,24 @@ function ShowDemoWindowWidgets()
                     # allow user to drop colors into each palette entry
                     # (Note that ColorButton is already a drag source by default, unless using ImGuiColorEditFlags_NoDragDrop)
                     if CImGui.BeginDragDropTarget()
-                        # if (const ImGuiPayload* payload = CImGui.AcceptDragDropPayload(CImGui.IMGUI_PAYLOAD_TYPE_COLOR_3F))
-                        #     memcpy((float*)&saved_palette[n], payload->Data, sizeof(float) * 3)
-                        # if (const ImGuiPayload* payload = CImGui.AcceptDragDropPayload(CImGui.IMGUI_PAYLOAD_TYPE_COLOR_4F))
-                        #     memcpy((float*)&saved_palette[n], payload->Data, sizeof(float) * 4)
+                        payload = CImGui.AcceptDragDropPayload(CImGui.IMGUI_PAYLOAD_TYPE_COLOR_3F)
+                        if payload != C_NULL
+                            ptr = CImGui.Get(payload, :Data)
+                            x = unsafe_load(Ptr{Cfloat}(ptr), 1)
+                            y = unsafe_load(Ptr{Cfloat}(ptr), 2)
+                            z = unsafe_load(Ptr{Cfloat}(ptr), 3)
+                            w = saved_palette[n].w
+                            saved_palette[n+1] = ImVec4(x,y,z,w)
+                        end
+                        payload = CImGui.AcceptDragDropPayload(CImGui.IMGUI_PAYLOAD_TYPE_COLOR_4F)
+                        if payload != C_NULL
+                            ptr = CImGui.Get(payload, :Data)
+                            x = unsafe_load(Ptr{Cfloat}(ptr), 1)
+                            y = unsafe_load(Ptr{Cfloat}(ptr), 2)
+                            z = unsafe_load(Ptr{Cfloat}(ptr), 3)
+                            w = unsafe_load(Ptr{Cfloat}(ptr), 4)
+                            saved_palette[n+1] = ImVec4(x,y,z,w)
+                        end
                         CImGui.EndDragDropTarget()
                     end
                     CImGui.PopID()
@@ -733,90 +756,101 @@ function ShowDemoWindowWidgets()
         CImGui.TreePop()
     end
 
-    # if (CImGui.TreeNode("Data Types"))
-    # {
-    #     // The DragScalar/InputScalar/SliderScalar functions allow various data types: signed/unsigned int/long long and float/double
-    #     // To avoid polluting the public API with all possible combinations, we use the ImGuiDataType enum to pass the type,
-    #     // and passing all arguments by address.
-    #     // This is the reason the test code below creates local variables to hold "zero" "one" etc. for each types.
-    #     // In practice, if you frequently use a given type that is not covered by the normal API entry points, you can wrap it
-    #     // yourself inside a 1 line function which can take typed argument as value instead of void*, and then pass their address
-    #     // to the generic function. For example:
-    #     //   bool MySliderU64(const char *label, u64* value, u64 min = 0, u64 max = 0, const char* format = "%lld")
-    #     //   {
-    #     //      return SliderScalar(label, ImGuiDataType_U64, value, &min, &max, format);
-    #     //   }
-    #
-    #     // Limits (as helper variables that we can take the address of)
-    #     // Note that the SliderScalar function has a maximum usable range of half the natural type maximum, hence the /2 below.
-    #     #ifndef LLONG_MIN
-    #     ImS64 LLONG_MIN = -9223372036854775807LL - 1;
-    #     ImS64 LLONG_MAX = 9223372036854775807LL;
-    #     ImU64 ULLONG_MAX = (2ULL * 9223372036854775807LL + 1);
-    #     #endif
-    #     const ImS32   s32_zero = 0,   s32_one = 1,   s32_fifty = 50, s32_min = INT_MIN/2,   s32_max = INT_MAX/2,    s32_hi_a = INT_MAX/2 - 100,    s32_hi_b = INT_MAX/2;
-    #     const ImU32   u32_zero = 0,   u32_one = 1,   u32_fifty = 50, u32_min = 0,           u32_max = UINT_MAX/2,   u32_hi_a = UINT_MAX/2 - 100,   u32_hi_b = UINT_MAX/2;
-    #     const ImS64   s64_zero = 0,   s64_one = 1,   s64_fifty = 50, s64_min = LLONG_MIN/2, s64_max = LLONG_MAX/2,  s64_hi_a = LLONG_MAX/2 - 100,  s64_hi_b = LLONG_MAX/2;
-    #     const ImU64   u64_zero = 0,   u64_one = 1,   u64_fifty = 50, u64_min = 0,           u64_max = ULLONG_MAX/2, u64_hi_a = ULLONG_MAX/2 - 100, u64_hi_b = ULLONG_MAX/2;
-    #     const float   f32_zero = 0.f, f32_one = 1.f, f32_lo_a = -10000000000.0f, f32_hi_a = +10000000000.0f;
-    #     const double  f64_zero = 0.,  f64_one = 1.,  f64_lo_a = -1000000000000000.0, f64_hi_a = +1000000000000000.0;
-    #
-    #     // State
-    #     static ImS32  s32_v = -1;
-    #     static ImU32  u32_v = (ImU32)-1;
-    #     static ImS64  s64_v = -1;
-    #     static ImU64  u64_v = (ImU64)-1;
-    #     static float  f32_v = 0.123f;
-    #     static double f64_v = 90000.01234567890123456789;
-    #
-    #     const float drag_speed = 0.2f;
-    #     static bool drag_clamp = false;
-    #     CImGui.Text("Drags:");
-    #     CImGui.Checkbox("Clamp integers to 0..50", &drag_clamp); CImGui.SameLine(); ShowHelpMarker("As with every widgets in dear imgui, we never modify values unless there is a user interaction.\nYou can override the clamping limits by using CTRL+Click to input a value.");
-    #     CImGui.DragScalar("drag s32",       ImGuiDataType_S32,    &s32_v, drag_speed, drag_clamp ? &s32_zero : NULL, drag_clamp ? &s32_fifty : NULL);
-    #     CImGui.DragScalar("drag u32",       ImGuiDataType_U32,    &u32_v, drag_speed, drag_clamp ? &u32_zero : NULL, drag_clamp ? &u32_fifty : NULL, "%u ms");
-    #     CImGui.DragScalar("drag s64",       ImGuiDataType_S64,    &s64_v, drag_speed, drag_clamp ? &s64_zero : NULL, drag_clamp ? &s64_fifty : NULL);
-    #     CImGui.DragScalar("drag u64",       ImGuiDataType_U64,    &u64_v, drag_speed, drag_clamp ? &u64_zero : NULL, drag_clamp ? &u64_fifty : NULL);
-    #     CImGui.DragScalar("drag float",     ImGuiDataType_Float,  &f32_v, 0.005f,  &f32_zero, &f32_one, "%f", 1.0f);
-    #     CImGui.DragScalar("drag float ^2",  ImGuiDataType_Float,  &f32_v, 0.005f,  &f32_zero, &f32_one, "%f", 2.0f); CImGui.SameLine(); ShowHelpMarker("You can use the 'power' parameter to increase tweaking precision on one side of the range.");
-    #     CImGui.DragScalar("drag double",    ImGuiDataType_Double, &f64_v, 0.0005f, &f64_zero, NULL,     "%.10f grams", 1.0f);
-    #     CImGui.DragScalar("drag double ^2", ImGuiDataType_Double, &f64_v, 0.0005f, &f64_zero, &f64_one, "0 < %.10f < 1", 2.0f);
-    #
-    #     CImGui.Text("Sliders");
-    #     CImGui.SliderScalar("slider s32 low",     ImGuiDataType_S32,    &s32_v, &s32_zero, &s32_fifty,"%d");
-    #     CImGui.SliderScalar("slider s32 high",    ImGuiDataType_S32,    &s32_v, &s32_hi_a, &s32_hi_b, "%d");
-    #     CImGui.SliderScalar("slider s32 full",    ImGuiDataType_S32,    &s32_v, &s32_min,  &s32_max,  "%d");
-    #     CImGui.SliderScalar("slider u32 low",     ImGuiDataType_U32,    &u32_v, &u32_zero, &u32_fifty,"%u");
-    #     CImGui.SliderScalar("slider u32 high",    ImGuiDataType_U32,    &u32_v, &u32_hi_a, &u32_hi_b, "%u");
-    #     CImGui.SliderScalar("slider u32 full",    ImGuiDataType_U32,    &u32_v, &u32_min,  &u32_max,  "%u");
-    #     CImGui.SliderScalar("slider s64 low",     ImGuiDataType_S64,    &s64_v, &s64_zero, &s64_fifty,"%I64d");
-    #     CImGui.SliderScalar("slider s64 high",    ImGuiDataType_S64,    &s64_v, &s64_hi_a, &s64_hi_b, "%I64d");
-    #     CImGui.SliderScalar("slider s64 full",    ImGuiDataType_S64,    &s64_v, &s64_min,  &s64_max,  "%I64d");
-    #     CImGui.SliderScalar("slider u64 low",     ImGuiDataType_U64,    &u64_v, &u64_zero, &u64_fifty,"%I64u ms");
-    #     CImGui.SliderScalar("slider u64 high",    ImGuiDataType_U64,    &u64_v, &u64_hi_a, &u64_hi_b, "%I64u ms");
-    #     CImGui.SliderScalar("slider u64 full",    ImGuiDataType_U64,    &u64_v, &u64_min,  &u64_max,  "%I64u ms");
-    #     CImGui.SliderScalar("slider float low",   ImGuiDataType_Float,  &f32_v, &f32_zero, &f32_one);
-    #     CImGui.SliderScalar("slider float low^2", ImGuiDataType_Float,  &f32_v, &f32_zero, &f32_one,  "%.10f", 2.0f);
-    #     CImGui.SliderScalar("slider float high",  ImGuiDataType_Float,  &f32_v, &f32_lo_a, &f32_hi_a, "%e");
-    #     CImGui.SliderScalar("slider double low",  ImGuiDataType_Double, &f64_v, &f64_zero, &f64_one,  "%.10f grams", 1.0f);
-    #     CImGui.SliderScalar("slider double low^2",ImGuiDataType_Double, &f64_v, &f64_zero, &f64_one,  "%.10f", 2.0f);
-    #     CImGui.SliderScalar("slider double high", ImGuiDataType_Double, &f64_v, &f64_lo_a, &f64_hi_a, "%e grams", 1.0f);
-    #
-    #     static bool inputs_step = true;
-    #     CImGui.Text("Inputs");
-    #     CImGui.Checkbox("Show step buttons", &inputs_step);
-    #     CImGui.InputScalar("input s32",     ImGuiDataType_S32,    &s32_v, inputs_step ? &s32_one : NULL, NULL, "%d");
-    #     CImGui.InputScalar("input s32 hex", ImGuiDataType_S32,    &s32_v, inputs_step ? &s32_one : NULL, NULL, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
-    #     CImGui.InputScalar("input u32",     ImGuiDataType_U32,    &u32_v, inputs_step ? &u32_one : NULL, NULL, "%u");
-    #     CImGui.InputScalar("input u32 hex", ImGuiDataType_U32,    &u32_v, inputs_step ? &u32_one : NULL, NULL, "%08X", ImGuiInputTextFlags_CharsHexadecimal);
-    #     CImGui.InputScalar("input s64",     ImGuiDataType_S64,    &s64_v, inputs_step ? &s64_one : NULL);
-    #     CImGui.InputScalar("input u64",     ImGuiDataType_U64,    &u64_v, inputs_step ? &u64_one : NULL);
-    #     CImGui.InputScalar("input float",   ImGuiDataType_Float,  &f32_v, inputs_step ? &f32_one : NULL);
-    #     CImGui.InputScalar("input double",  ImGuiDataType_Double, &f64_v, inputs_step ? &f64_one : NULL);
-    #
-    #     CImGui.TreePop();
-    # }
-    #
+    # FIXME
+    # if CImGui.TreeNode("Data Types")
+        # The DragScalar/InputScalar/SliderScalar functions allow various data types: signed/unsigned int/long long and float/double
+        # To avoid polluting the public API with all possible combinations, we use the ImGuiDataType enum to pass the type,
+        # and passing all arguments by address.
+        # This is the reason the test code below creates local variables to hold "zero" "one" etc. for each types.
+        # In practice, if you frequently use a given type that is not covered by the normal API entry points, you can wrap it
+        # yourself inside a 1 line function which can take typed argument as value instead of void*, and then pass their address
+        # to the generic function. For example:
+        #   bool MySliderU64(const char *label, u64* value, u64 min = 0, u64 max = 0, const char* format = "%lld")
+        #   {
+        #      return SliderScalar(label, ImGuiDataType_U64, value, &min, &max, format);
+        #   }
+
+        # Limits (as helper variables that we can take the address of)
+        # Note that the SliderScalar function has a maximum usable range of half the natural type maximum, hence the /2 below.
+        # s32_zero = ImS32(0); s32_one = ImS32(1); s32_fifty = ImS32(50); s32_min = ImS32(typemin(Cint)/2);  s32_max = ImS32(1073741824);   s32_hi_a = ImS32(1073741724);   s32_hi_b = ImS32(1073741824)
+        # u32_zero = ImU32(0); u32_one = ImU32(1); u32_fifty = ImU32(50); u32_min = ImU32(0);                u32_max = ImU32(0x7fffffff);  u32_hi_a = ImU32(0x7fffffff - 100);  u32_hi_b = ImU32(0x7fffffff)
+        # s64_zero = ImS64(0); s64_one = ImS64(1); s64_fifty = ImS64(50); s64_min = ImS64(typemin(Int64)/2); s64_max = ImS64(typemax(Int64)/2);  s64_hi_a = ImS64(typemax(Int64)/2 - 100);  s64_hi_b = ImS64(typemax(Int64)/2)
+        # u64_zero = ImU64(0); u64_one = ImU64(1); u64_fifty = ImU64(50); u64_min = ImU64(0);                u64_max = ImU64(typemax(UInt64)/2); u64_hi_a = ImU64(typemax(UInt64)/2 - 100); u64_hi_b = ImU64(typemax(UInt64)/2)
+        # f32_zero = Cfloat(0); f32_one = Cfloat(1); f32_lo_a = Cfloat(-10000000000.0); f32_hi_a = Cfloat(10000000000.0);
+        # f64_zero = Cdouble(0); f64_one = Cdouble(1); f64_lo_a = Cdouble(-1000000000000000.0); f64_hi_a = Cdouble(1000000000000000.0);
+
+        # State
+        # drag_speed = Cfloat(0.2)
+        # @cstatic s32_v=ImS32(-1) u32_v=ImU32(0xffffffff) s64_v=ImS64(-1) u64_v=ImU64(0xffffffffffffffff) f32_v=Cfloat(0.123) f64_v=Cdouble(90000.01234567890123456789) drag_clamp=false begin
+        #     CImGui.Text("Drags:")
+        #     @c CImGui.Checkbox("Clamp integers to 0..50", &drag_clamp)
+        #     CImGui.SameLine()
+        #     ShowHelpMarker("As with every widgets in dear imgui, we never modify values unless there is a user interaction.\nYou can override the clamping limits by using CTRL+Click to input a value.")
+        #     if drag_clamp
+        #         @c CImGui.DragScalar("drag s32", CImGui.ImGuiDataType_S32, &s32_v, drag_speed, &s32_zero, &s32_fifty)
+        #         @c CImGui.DragScalar("drag u32", CImGui.ImGuiDataType_U32, &u32_v, drag_speed, &u32_zero, &u32_fifty, "%u ms")
+        #         @c CImGui.DragScalar("drag s64", CImGui.ImGuiDataType_S64, &s64_v, drag_speed, &s64_zero, &s64_fifty)
+        #         @c CImGui.DragScalar("drag u64", CImGui.ImGuiDataType_U64, &u64_v, drag_speed, &u64_zero, &u64_fifty)
+        #     else
+        #         @c CImGui.DragScalar("drag s32", CImGui.ImGuiDataType_S32, &s32_v, drag_speed, C_NULL, C_NULL)
+        #         @c CImGui.DragScalar("drag u32", CImGui.ImGuiDataType_U32, &u32_v, drag_speed, C_NULL, C_NULL, "%u ms")
+        #         @c CImGui.DragScalar("drag s64", CImGui.ImGuiDataType_S64, &s64_v, drag_speed, C_NULL, C_NULL)
+        #         @c CImGui.DragScalar("drag u64", CImGui.ImGuiDataType_U64, &u64_v, drag_speed, C_NULL, C_NULL)
+        #     end
+        #     @c CImGui.DragScalar("drag float", CImGui.ImGuiDataType_Float, &f32_v, 0.005, &f32_zero, &f32_one, "%f", 1.0)
+        #     @c CImGui.DragScalar("drag float ^2", CImGui.ImGuiDataType_Float, &f32_v, 0.005, &f32_zero, &f32_one, "%f", 2.0)
+        #     CImGui.SameLine()
+        #     ShowHelpMarker("You can use the 'power' parameter to increase tweaking precision on one side of the range.")
+        #     @c CImGui.DragScalar("drag double", CImGui.ImGuiDataType_Double, &f64_v, 0.0005, &f64_zero, C_NULL, "%.10f grams", 1.0)
+        #     @c CImGui.DragScalar("drag double ^2", CImGui.ImGuiDataType_Double, &f64_v, 0.0005, &f64_zero, &f64_one, "0 < %.10f < 1", 2.0)
+        #
+        #     CImGui.Text("Sliders")
+        #     @c CImGui.SliderScalar("slider s32 low",     CImGui.ImGuiDataType_S32,    &s32_v, &s32_zero, &s32_fifty,"%d")
+        #     @c CImGui.SliderScalar("slider s32 high",    CImGui.ImGuiDataType_S32,    &s32_v, &s32_hi_a, &s32_hi_b, "%d")
+        #     @c CImGui.SliderScalar("slider s32 full",    CImGui.ImGuiDataType_S32,    &s32_v, &s32_min,  &s32_max,  "%d")
+        #     @c CImGui.SliderScalar("slider u32 low",     CImGui.ImGuiDataType_U32,    &u32_v, &u32_zero, &u32_fifty,"%u")
+        #     @c CImGui.SliderScalar("slider u32 high",    CImGui.ImGuiDataType_U32,    &u32_v, &u32_hi_a, &u32_hi_b, "%u")
+        #     @c CImGui.SliderScalar("slider u32 full",    CImGui.ImGuiDataType_U32,    &u32_v, &u32_min,  &u32_max,  "%u")
+        #     @c CImGui.SliderScalar("slider s64 low",     CImGui.ImGuiDataType_S64,    &s64_v, &s64_zero, &s64_fifty,"%I64d")
+        #     @c CImGui.SliderScalar("slider s64 high",    CImGui.ImGuiDataType_S64,    &s64_v, &s64_hi_a, &s64_hi_b, "%I64d")
+        #     @c CImGui.SliderScalar("slider s64 full",    CImGui.ImGuiDataType_S64,    &s64_v, &s64_min,  &s64_max,  "%I64d")
+        #     @c CImGui.SliderScalar("slider u64 low",     CImGui.ImGuiDataType_U64,    &u64_v, &u64_zero, &u64_fifty,"%I64u ms")
+        #     @c CImGui.SliderScalar("slider u64 high",    CImGui.ImGuiDataType_U64,    &u64_v, &u64_hi_a, &u64_hi_b, "%I64u ms")
+        #     @c CImGui.SliderScalar("slider u64 full",    CImGui.ImGuiDataType_U64,    &u64_v, &u64_min,  &u64_max,  "%I64u ms")
+        #     @c CImGui.SliderScalar("slider float low",   CImGui.ImGuiDataType_Float,  &f32_v, &f32_zero, &f32_one)
+        #     @c CImGui.SliderScalar("slider float low^2", CImGui.ImGuiDataType_Float,  &f32_v, &f32_zero, &f32_one,  "%.10f", 2.0)
+        #     @c CImGui.SliderScalar("slider float high",  CImGui.ImGuiDataType_Float,  &f32_v, &f32_lo_a, &f32_hi_a, "%e")
+        #     @c CImGui.SliderScalar("slider double low",  CImGui.ImGuiDataType_Double, &f64_v, &f64_zero, &f64_one,  "%.10f grams", 1.0)
+        #     @c CImGui.SliderScalar("slider double low^2",CImGui.ImGuiDataType_Double, &f64_v, &f64_zero, &f64_one,  "%.10f", 2.0)
+        #     @c CImGui.SliderScalar("slider double high", CImGui.ImGuiDataType_Double, &f64_v, &f64_lo_a, &f64_hi_a, "%e grams", 1.0)
+        #
+        #     @cstatic inputs_step=true begin
+        #         CImGui.Text("Inputs")
+        #         @c CImGui.Checkbox("Show step buttons", &inputs_step)
+        #         if inputs_step
+        #             @c CImGui.InputScalar("input s32",     CImGui.ImGuiDataType_S32,    &s32_v, &s32_one, C_NULL, "%d")
+        #             @c CImGui.InputScalar("input s32 hex", CImGui.ImGuiDataType_S32,    &s32_v, &s32_one, C_NULL, C_NULL, "%08X", CImGui.ImGuiInputTextFlags_CharsHexadecimal)
+        #             @c CImGui.InputScalar("input u32",     CImGui.ImGuiDataType_U32,    &u32_v, &u32_one, C_NULL, C_NULL, "%u")
+        #             @c CImGui.InputScalar("input u32 hex", CImGui.ImGuiDataType_U32,    &u32_v, &u32_one, C_NULL, C_NULL, "%08X", CImGui.ImGuiInputTextFlags_CharsHexadecimal)
+        #             @c CImGui.InputScalar("input s64",     CImGui.ImGuiDataType_S64,    &s64_v, &s64_one, C_NULL)
+        #             @c CImGui.InputScalar("input u64",     CImGui.ImGuiDataType_U64,    &u64_v, &u64_one, C_NULL)
+        #             @c CImGui.InputScalar("input float",   CImGui.ImGuiDataType_Float,  &f32_v, &f32_one, C_NULL)
+        #             @c CImGui.InputScalar("input double",  CImGui.ImGuiDataType_Double, &f64_v, &f64_one, C_NULL)
+        #         else
+        #             @c CImGui.InputScalar("input s32",     CImGui.ImGuiDataType_S32,    &s32_v, &s32_one, C_NULL, C_NULL, "%d")
+        #             @c CImGui.InputScalar("input s32 hex", CImGui.ImGuiDataType_S32,    &s32_v, &s32_one, C_NULL, C_NULL, "%08X", CImGui.ImGuiInputTextFlags_CharsHexadecimal)
+        #             @c CImGui.InputScalar("input u32",     CImGui.ImGuiDataType_U32,    &u32_v, &u32_one, C_NULL, C_NULL, "%u")
+        #             @c CImGui.InputScalar("input u32 hex", CImGui.ImGuiDataType_U32,    &u32_v, &u32_one, C_NULL, C_NULL, "%08X", CImGui.ImGuiInputTextFlags_CharsHexadecimal)
+        #             @c CImGui.InputScalar("input s64",     CImGui.ImGuiDataType_S64,    &s64_v, &s64_one, C_NULL)
+        #             @c CImGui.InputScalar("input u64",     CImGui.ImGuiDataType_U64,    &u64_v, &u64_one, C_NULL)
+        #             @c CImGui.InputScalar("input float",   CImGui.ImGuiDataType_Float,  &f32_v, &f32_one, C_NULL)
+        #             @c CImGui.InputScalar("input double",  CImGui.ImGuiDataType_Double, &f64_v, &f64_one, C_NULL)
+        #         end
+        #     end
+        # end # @cstatic
+        # CImGui.TreePop()
+    # end
+
     if CImGui.TreeNode("Multi-component Widgets")
         @cstatic vec4f=Cfloat[0.10, 0.20, 0.30, 0.44] vec4i=Cint[1, 5, 100, 255] begin
             CImGui.InputFloat2("input float2", vec4f)
@@ -945,19 +979,19 @@ function ShowDemoWindowWidgets()
                 if CImGui.BeginDragDropTarget()
                     payload = CImGui.AcceptDragDropPayload("DND_DEMO_CELL")
                     if payload != C_NULL
-                        # IM_ASSERT(payload->DataSize == sizeof(int));
-                        # int payload_n = *(const int*)payload->Data;
+                        @assert CImGui.Get(payload, :DataSize) == sizeof(Cint)
+                        payload_n = unsafe_load(Ptr{Cint}(CImGui.Get(payload, :Data)))
                         if mode == Mode_Copy
-                            # names[n+1] = names[payload_n]
+                            names[n+1] = names[payload_n+1]
                         end
                         if mode == Mode_Move
-                            # names[n+1] = names[payload_n]
-                            # names[payload_n] = ""
+                            names[n+1] = names[payload_n+1]
+                            names[payload_n+1] = ""
                         end
                         if mode == Mode_Swap
                             tmp = names[n+1]
-                            # names[n] = names[payload_n]
-                            # names[payload_n] = tmp
+                            names[n+1] = names[payload_n+1]
+                            names[payload_n+1] = tmp
                         end
                     end
                     CImGui.EndDragDropTarget()
@@ -970,120 +1004,90 @@ function ShowDemoWindowWidgets()
     end
 
     if CImGui.TreeNode("Querying Status (Active/Focused/Hovered etc.)")
-    #     // Display the value of IsItemHovered() and other common item state functions. Note that the flags can be combined.
-    #     // (because BulletText is an item itself and that would affect the output of IsItemHovered() we pass all state in a single call to simplify the code).
-    #     static int item_type = 1;
-    #     static bool b = false;
-    #     static float col4f[4] = { 1.0f, 0.5, 0.0f, 1.0f };
-    #     CImGui.RadioButton("Text", &item_type, 0);
-    #     CImGui.RadioButton("Button", &item_type, 1);
-    #     CImGui.RadioButton("Checkbox", &item_type, 2);
-    #     CImGui.RadioButton("SliderFloat", &item_type, 3);
-    #     CImGui.RadioButton("ColorEdit4", &item_type, 4);
-    #     CImGui.RadioButton("ListBox", &item_type, 5);
-    #     CImGui.Separator();
-    #     bool ret = false;
-    #     if (item_type == 0) { CImGui.Text("ITEM: Text"); }                                              // Testing text items with no identifier/interaction
-    #     if (item_type == 1) { ret = CImGui.Button("ITEM: Button"); }                                    // Testing button
-    #     if (item_type == 2) { ret = CImGui.Checkbox("ITEM: Checkbox", &b); }                            // Testing checkbox
-    #     if (item_type == 3) { ret = CImGui.SliderFloat("ITEM: SliderFloat", &col4f[0], 0.0f, 1.0f); }   // Testing basic item
-    #     if (item_type == 4) { ret = CImGui.ColorEdit4("ITEM: ColorEdit4", col4f); }                     // Testing multi-component items (IsItemXXX flags are reported merged)
-    #     if (item_type == 5) { const char* items[] = { "Apple", "Banana", "Cherry", "Kiwi" }; static int current = 1; ret = CImGui.ListBox("ITEM: ListBox", &current, items, IM_ARRAYSIZE(items), IM_ARRAYSIZE(items)); }
-    #     CImGui.BulletText(
-    #         "Return value = %d\n"
-    #         "IsItemFocused() = %d\n"
-    #         "IsItemHovered() = %d\n"
-    #         "IsItemHovered(_AllowWhenBlockedByPopup) = %d\n"
-    #         "IsItemHovered(_AllowWhenBlockedByActiveItem) = %d\n"
-    #         "IsItemHovered(_AllowWhenOverlapped) = %d\n"
-    #         "IsItemHovered(_RectOnly) = %d\n"
-    #         "IsItemActive() = %d\n"
-    #         "IsItemEdited() = %d\n"
-    #         "IsItemActivated() = %d\n"
-    #         "IsItemDeactivated() = %d\n"
-    #         "IsItemDeactivatedEdit() = %d\n"
-    #         "IsItemVisible() = %d\n"
-    #         "GetItemRectMin() = (%.1f, %.1f)\n"
-    #         "GetItemRectMax() = (%.1f, %.1f)\n"
-    #         "GetItemRectSize() = (%.1f, %.1f)",
-    #         ret,
-    #         CImGui.IsItemFocused(),
-    #         CImGui.IsItemHovered(),
-    #         CImGui.IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup),
-    #         CImGui.IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem),
-    #         CImGui.IsItemHovered(ImGuiHoveredFlags_AllowWhenOverlapped),
-    #         CImGui.IsItemHovered(ImGuiHoveredFlags_RectOnly),
-    #         CImGui.IsItemActive(),
-    #         CImGui.IsItemEdited(),
-    #         CImGui.IsItemActivated(),
-    #         CImGui.IsItemDeactivated(),
-    #         CImGui.IsItemDeactivatedAfterEdit(),
-    #         CImGui.IsItemVisible(),
-    #         CImGui.GetItemRectMin().x, CImGui.GetItemRectMin().y,
-    #         CImGui.GetItemRectMax().x, CImGui.GetItemRectMax().y,
-    #         CImGui.GetItemRectSize().x, CImGui.GetItemRectSize().y
-    #     );
-    #
-    #     static bool embed_all_inside_a_child_window = false;
-    #     CImGui.Checkbox("Embed everything inside a child window (for additional testing)", &embed_all_inside_a_child_window);
-    #     if (embed_all_inside_a_child_window)
-    #         CImGui.BeginChild("outer_child", ImVec2(0, CImGui.GetFontSize() * 20), true);
-    #
-    #     // Testing IsWindowFocused() function with its various flags. Note that the flags can be combined.
-    #     CImGui.BulletText(
-    #         "IsWindowFocused() = %d\n"
-    #         "IsWindowFocused(_ChildWindows) = %d\n"
-    #         "IsWindowFocused(_ChildWindows|_RootWindow) = %d\n"
-    #         "IsWindowFocused(_RootWindow) = %d\n"
-    #         "IsWindowFocused(_AnyWindow) = %d\n",
-    #         CImGui.IsWindowFocused(),
-    #         CImGui.IsWindowFocused(ImGuiFocusedFlags_ChildWindows),
-    #         CImGui.IsWindowFocused(ImGuiFocusedFlags_ChildWindows | ImGuiFocusedFlags_RootWindow),
-    #         CImGui.IsWindowFocused(ImGuiFocusedFlags_RootWindow),
-    #         CImGui.IsWindowFocused(ImGuiFocusedFlags_AnyWindow));
-    #
-    #     // Testing IsWindowHovered() function with its various flags. Note that the flags can be combined.
-    #     CImGui.BulletText(
-    #         "IsWindowHovered() = %d\n"
-    #         "IsWindowHovered(_AllowWhenBlockedByPopup) = %d\n"
-    #         "IsWindowHovered(_AllowWhenBlockedByActiveItem) = %d\n"
-    #         "IsWindowHovered(_ChildWindows) = %d\n"
-    #         "IsWindowHovered(_ChildWindows|_RootWindow) = %d\n"
-    #         "IsWindowHovered(_RootWindow) = %d\n"
-    #         "IsWindowHovered(_AnyWindow) = %d\n",
-    #         CImGui.IsWindowHovered(),
-    #         CImGui.IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup),
-    #         CImGui.IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem),
-    #         CImGui.IsWindowHovered(ImGuiHoveredFlags_ChildWindows),
-    #         CImGui.IsWindowHovered(ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_RootWindow),
-    #         CImGui.IsWindowHovered(ImGuiHoveredFlags_RootWindow),
-    #         CImGui.IsWindowHovered(ImGuiHoveredFlags_AnyWindow));
-    #
-    #     CImGui.BeginChild("child", ImVec2(0, 50), true);
-    #     CImGui.Text("This is another child window for testing the _ChildWindows flag.");
-    #     CImGui.EndChild();
-    #     if (embed_all_inside_a_child_window)
-    #         CImGui.EndChild();
-    #
-    #     // Calling IsItemHovered() after begin returns the hovered status of the title bar.
-    #     // This is useful in particular if you want to create a context menu (with BeginPopupContextItem) associated to the title bar of a window.
-    #     static bool test_window = false;
-    #     CImGui.Checkbox("Hovered/Active tests after Begin() for title bar testing", &test_window);
-    #     if (test_window)
-    #     {
-    #         CImGui.Begin("Title bar Hovered/Active tests", &test_window);
-    #         if (CImGui.BeginPopupContextItem()) // <-- This is using IsItemHovered()
-    #         {
-    #             if (CImGui.MenuItem("Close")) { test_window = false; }
-    #             CImGui.EndPopup();
-    #         }
-    #         CImGui.Text(
-    #             "IsItemHovered() after begin = %d (== is title bar hovered)\n"
-    #             "IsItemActive() after begin = %d (== is window being clicked/moved)\n",
-    #             CImGui.IsItemHovered(), CImGui.IsItemActive());
-    #         CImGui.End();
-    #     }
-    #
+        # Display the value of IsItemHovered() and other common item state functions. Note that the flags can be combined.
+        # (because BulletText is an item itself and that would affect the output of IsItemHovered() we pass all state in a single call to simplify the code).
+        @cstatic item_type=Cint(1) b=false col4f=Cfloat[1.0, 0.5, 0.0, 1.0] begin
+            @c CImGui.RadioButton("Text", &item_type, 0)
+            @c CImGui.RadioButton("Button", &item_type, 1)
+            @c CImGui.RadioButton("Checkbox", &item_type, 2)
+            @c CImGui.RadioButton("SliderFloat", &item_type, 3)
+            @c CImGui.RadioButton("ColorEdit4", &item_type, 4)
+            @c CImGui.RadioButton("ListBox", &item_type, 5)
+            @c CImGui.Separator()
+            ret = false;
+            item_type == 0 && CImGui.Text("ITEM: Text") # testing text items with no identifier/interaction
+            item_type == 1 && (ret = CImGui.Button("ITEM: Button");) # testing button
+            item_type == 2 && (ret = @c CImGui.Checkbox("ITEM: Checkbox", &b);) # testing checkbox
+            item_type == 3 && (ret = CImGui.SliderFloat("ITEM: SliderFloat", pointer(col4f), 0.0, 1.0);) # testing basic item
+            item_type == 4 && (ret = CImGui.ColorEdit4("ITEM: ColorEdit4", col4f);) # testing multi-component items (IsItemXXX flags are reported merged)
+            @cstatic current=Cint(1) begin
+                if item_type == 5
+                    items = ["Apple", "Banana", "Cherry", "Kiwi"]
+                    ret = @c CImGui.ListBox("ITEM: ListBox", &current, items, length(items), length(items))
+                end
+            end
+            CImGui.BulletText(
+                "Return value = $ret\n"*
+                "IsItemFocused() = $(CImGui.IsItemFocused())\n"*
+                "IsItemHovered() = $(CImGui.IsItemHovered())\n"*
+                "IsItemHovered(_AllowWhenBlockedByPopup) = $(CImGui.IsItemHovered(CImGui.ImGuiHoveredFlags_AllowWhenBlockedByPopup))\n"*
+                "IsItemHovered(_AllowWhenBlockedByActiveItem) = $(CImGui.IsItemHovered(CImGui.ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))\n"*
+                "IsItemHovered(_AllowWhenOverlapped) = $(CImGui.IsItemHovered(CImGui.ImGuiHoveredFlags_AllowWhenOverlapped))\n"*
+                "IsItemHovered(_RectOnly) = $(CImGui.IsItemHovered(CImGui.ImGuiHoveredFlags_RectOnly))\n"*
+                "IsItemActive() = $(CImGui.IsItemActive())\n"*
+                "IsItemEdited() = $(CImGui.IsItemEdited())\n"*
+                "IsItemActivated() = $(CImGui.IsItemActivated())\n"*
+                "IsItemDeactivated() = $(CImGui.IsItemDeactivated())\n"*
+                "IsItemDeactivatedEdit() = $(CImGui.IsItemDeactivatedAfterEdit())\n"*
+                "IsItemVisible() = $(CImGui.IsItemVisible())\n"*
+                "GetItemRectMin() = ($(CImGui.GetItemRectMin().x), $(CImGui.GetItemRectMin().y))\n"*
+                "GetItemRectMax() = ($(CImGui.GetItemRectMax().x), $(CImGui.GetItemRectMax().y))\n"*
+                "GetItemRectSize() = ($(CImGui.GetItemRectSize().x), $(CImGui.GetItemRectSize().y))")
+        end
+
+        @cstatic embed_all_inside_a_child_window=false begin
+            @c CImGui.Checkbox("Embed everything inside a child window (for additional testing)", &embed_all_inside_a_child_window)
+            embed_all_inside_a_child_window && CImGui.BeginChild("outer_child", ImVec2(0, CImGui.GetFontSize() * 20), true)
+
+            # testing IsWindowFocused() function with its various flags. Note that the flags can be combined.
+            CImGui.BulletText(
+                "IsWindowFocused() = $(CImGui.IsWindowFocused())\n"*
+                "IsWindowFocused(_ChildWindows) = $(CImGui.IsWindowFocused(CImGui.ImGuiFocusedFlags_ChildWindows))\n"*
+                "IsWindowFocused(_ChildWindows|_RootWindow) = $(CImGui.IsWindowFocused(CImGui.ImGuiFocusedFlags_ChildWindows | CImGui.ImGuiFocusedFlags_RootWindow))\n"*
+                "IsWindowFocused(_RootWindow) = $(CImGui.IsWindowFocused(CImGui.ImGuiFocusedFlags_RootWindow))\n"*
+                "IsWindowFocused(_AnyWindow) = $(CImGui.IsWindowFocused(CImGui.ImGuiFocusedFlags_AnyWindow))\n")
+
+            # testing IsWindowHovered() function with its various flags. Note that the flags can be combined.
+            CImGui.BulletText(
+                "IsWindowHovered() = $(CImGui.IsWindowHovered())\n"*
+                "IsWindowHovered(_AllowWhenBlockedByPopup) = $(CImGui.IsWindowHovered(CImGui.ImGuiHoveredFlags_AllowWhenBlockedByPopup))\n"*
+                "IsWindowHovered(_AllowWhenBlockedByActiveItem) = $(CImGui.IsWindowHovered(CImGui.ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))\n"*
+                "IsWindowHovered(_ChildWindows) = $(CImGui.IsWindowHovered(CImGui.ImGuiHoveredFlags_ChildWindows))\n"*
+                "IsWindowHovered(_ChildWindows|_RootWindow) = $(CImGui.IsWindowHovered(CImGui.ImGuiHoveredFlags_ChildWindows | CImGui.ImGuiHoveredFlags_RootWindow))\n"*
+                "IsWindowHovered(_RootWindow) = $(CImGui.IsWindowHovered(CImGui.ImGuiHoveredFlags_RootWindow))\n"*
+                "IsWindowHovered(_AnyWindow) = $(CImGui.IsWindowHovered(CImGui.ImGuiHoveredFlags_AnyWindow))\n")
+
+            CImGui.BeginChild("child", (0, 50), true)
+            CImGui.Text("This is another child window for testing the _ChildWindows flag.")
+            CImGui.EndChild()
+            embed_all_inside_a_child_window && CImGui.EndChild()
+        end
+
+        # calling IsItemHovered() after begin returns the hovered status of the title bar.
+        # this is useful in particular if you want to create a context menu (with BeginPopupContextItem) associated to the title bar of a window.
+        @cstatic test_window=false begin
+            @c CImGui.Checkbox("Hovered/Active tests after Begin() for title bar testing", &test_window)
+            if test_window
+                @c CImGui.Begin("Title bar Hovered/Active tests", &test_window)
+                if CImGui.BeginPopupContextItem() # <-- this is using IsItemHovered()
+                    CImGui.MenuItem("Close") && (test_window = false;)
+                    CImGui.EndPopup()
+                end
+                CImGui.Text("IsItemHovered() after begin = $(CImGui.IsItemHovered()) (== is title bar hovered)\n"*
+                            "IsItemActive() after begin = $(CImGui.IsItemActive()) (== is window being clicked/moved)\n")
+                CImGui.End()
+            end
+        end
         CImGui.TreePop()
     end
 end

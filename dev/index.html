@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Introduction · CImGui.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link href="assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>CImGui.jl</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li class="current"><a class="toctext" href>Introduction</a><ul class="internal"><li><a class="toctext" href="#Installation-1">Installation</a></li><li><a class="toctext" href="#Quick-Start-1">Quick Start</a></li></ul></li><li><a class="toctext" href="api/">API Reference</a></li></ul></nav><article id="docs"><header><nav><ul><li><a href>Introduction</a></li></ul><a class="edit-page" href="https://github.com/Gnimuc/CImGui.jl/blob/master/docs/src/index.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Introduction</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="CImGui-1" href="#CImGui-1">CImGui</a></h1><h2><a class="nav-anchor" id="Installation-1" href="#Installation-1">Installation</a></h2><pre><code class="language-julia">pkg&gt; add https://github.com/Gnimuc/CImGui.jl.git</code></pre><p>you might also need to <code>dev https://github.com/Gnimuc/CSyntax.jl</code></p><h2><a class="nav-anchor" id="Quick-Start-1" href="#Quick-Start-1">Quick Start</a></h2><ol><li>Run <code>demo/demo.jl</code> to test whether the GLFW+OpenGL backend works on your machine.</li><li>Run <code>examples/demo.jl</code> and browse demos in the <code>examples</code> folder to learn how to use the API.</li><li>Press <code>? CImGui.xxx</code> to fetch docs.</li></ol><pre><code class="language-none">help?&gt; CImGui.Begin
+  Begin(name, p_open=C_NULL, flags=0) -&gt; Bool
+
+  Push window to the stack and start appending to it.
+
+  Usage
+  –––––––
+
+    •    you may append multiple times to the same window during the same frame.
+
+    •    passing p_open != C_NULL shows a window-closing widget in the upper-right corner of
+        the window, which clicking will set the boolean to false when clicked.
+
+    •    Begin return false to indicate the window is collapsed or fully clipped, so you may
+        early out and omit submitting anything to the window.
+
+  │ Note
+  │
+  │  Always call a matching End for each Begin call, regardless of its return value. This
+  │  is due to legacy reason and is inconsistent with most other functions (such as
+  │  BeginMenu/EndMenu, BeginPopup/EndPopup, etc.) where the EndXXX call should only be
+  │  called if the corresponding BeginXXX function returned true.
+
+  ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  Begin(handle::Ptr{ImGuiTextBuffer}) -&gt; Cstring
+
+  ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  Begin(handle::Ptr{ImGuiListClipper}, items_count, items_height=-1.0)
+
+  Automatically called by constructor if you passed items_count or by Step in Step 1.</code></pre><footer><hr/><a class="next" href="api/"><span class="direction">Next</span><span class="title">API Reference</span></a></footer></article></body></html>

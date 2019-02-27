@@ -13,7 +13,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Introduction",
     "title": "CImGui",
     "category": "section",
-    "text": "This package provides a Julia language wrapper for cimgui: a thin c-api wrapper programmatically generated for the excellent C++ immediate mode gui Dear ImGui. Dear ImGui is mainly for creating content creation tools and visualization or debug tools.  Browse Gallery to get an idea of its use cases.(Image: demo)"
+    "text": "This package provides a Julia language wrapper for cimgui: a thin c-api wrapper programmatically generated for the excellent C++ immediate mode gui Dear ImGui. Dear ImGui is mainly for creating content creation tools and visualization / debug tools. You could browse Gallery to get an idea of its use cases.(Image: demo)"
 },
 
 {
@@ -29,7 +29,31 @@ var documenterSearchIndex = {"docs": [
     "page": "Introduction",
     "title": "Usage",
     "category": "section",
-    "text": "TODO..."
+    "text": "The API provided in this package is as close as possible to the original C++ API. When translating C++ code to Julia, please follow the tips below:Replace ImGui:: to CImGui.;\nusing LibCImGui to import all of the ImGuiXXX types into the current namespace;\nMember function calling should be translated in Julia style: fonts.AddFont(cfg) => CImGui.Add(fonts, cfg);\nPrefer to define colors as Vector{Cfloat} instead of CImGui.ImVec4;\nCSyntax.jl provides two useful macros: @c for translating C\'s & operator on immutables and @cstatic-block for emulating C\'s static keyword;\npointer arithmetic: &A[n] should be translated to pointer(A) + n * sizeof(T)As mentioned before, this package aims to provide the same user experience as the original C++ API, so any high-level abstraction should go into a more high-level package."
+},
+
+{
+    "location": "#LibCImGui-1",
+    "page": "Introduction",
+    "title": "LibCImGui",
+    "category": "section",
+    "text": "LibCImGui is a thin wrapper over cimgui. It\'s one-to-one mapped to the original cimgui APIs. By using CImGui.LibCImGui, all of the ImGui-prefixed types, enums and ig-prefixed functions are imported into the current namespace."
+},
+
+{
+    "location": "#Backend-1",
+    "page": "Introduction",
+    "title": "Backend",
+    "category": "section",
+    "text": "The default backend is based on ModernGL and GLFW which are stable and under actively maintained. Other popular backends like SFML and SDL could be added in the future if someone would invest time to make these packages work in post Julia 1.0 era."
+},
+
+{
+    "location": "#License-1",
+    "page": "Introduction",
+    "title": "License",
+    "category": "section",
+    "text": "Only the Julia code in this repo is released under MIT license. Other assets such as those fonts in the fonts folder are released under their own license."
 },
 
 {

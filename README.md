@@ -3,8 +3,10 @@
 [![Build Status](https://travis-ci.com/Gnimuc/CImGui.jl.svg?branch=master)](https://travis-ci.com/Gnimuc/CImGui.jl)
 [![Build Status](https://ci.appveyor.com/api/projects/status/github/Gnimuc/CImGui.jl?svg=true)](https://ci.appveyor.com/project/Gnimuc/CImGui-jl)
 [![Codecov](https://codecov.io/gh/Gnimuc/CImGui.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/Gnimuc/CImGui.jl)
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://Gnimuc.github.io/CImGui.jl/stable)
+[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://Gnimuc.github.io/CImGui.jl/dev)
 
-This package is a thin wrapper over [cimgui](https://github.com/cimgui/cimgui) which is a thin c-api wrapper programmatically generated for the excellent C++ immediate mode gui [Dear ImGui](https://github.com/ocornut/imgui).
+This package provides a Julia language wrapper for [cimgui](https://github.com/cimgui/cimgui): a thin c-api wrapper programmatically generated for the excellent C++ immediate mode gui [Dear ImGui](https://github.com/ocornut/imgui). 
 
 ![demo](demo/demo.png)
 

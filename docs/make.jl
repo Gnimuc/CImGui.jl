@@ -14,7 +14,4 @@ makedocs(
 deploydocs(
     repo = "github.com/Gnimuc/CImGui.jl.git",
     target = "build",
-    devbranch = "master",
-    devurl = "dev",
-    versions = ["stable" => "v^", "v#.#", devurl => devurl]
 )

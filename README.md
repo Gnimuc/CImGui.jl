@@ -6,20 +6,25 @@
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://Gnimuc.github.io/CImGui.jl/stable)
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://Gnimuc.github.io/CImGui.jl/dev)
 
-This package provides a Julia language wrapper for [cimgui](https://github.com/cimgui/cimgui): a thin c-api wrapper programmatically generated for the excellent C++ immediate mode gui [Dear ImGui](https://github.com/ocornut/imgui). 
+This package provides a Julia language wrapper for [cimgui](https://github.com/cimgui/cimgui): a thin c-api wrapper programmatically generated for the excellent C++ immediate mode gui [Dear ImGui](https://github.com/ocornut/imgui). Dear ImGui is mainly for creating content creation tools and visualization or debug tools.  Browse [Gallery](https://github.com/ocornut/imgui/issues/2265)
+to get an idea of its use cases.
 
 ![demo](demo/demo.png)
 
 ## Installation
 ```julia
-pkg> add https://github.com/Gnimuc/CImGui.jl.git
+pkg> add CImGui
 ```
-you might also need to `dev https://github.com/Gnimuc/CSyntax.jl`
+You need to temporally use the following commands until https://github.com/JuliaLang/METADATA.jl/pull/21734 and https://github.com/JuliaLang/METADATA.jl/pull/21628 are merged into METADATA.
+```
+pkg> dev https://github.com/Gnimuc/CSyntax.jl
+pkg> dev https://github.com/Gnimuc/CImGui.jl.git
+```
 
 ## Quick Start
-1. Run `demo/demo.jl` to test whether the GLFW+OpenGL backend works on your machine.
+1. Run `demo/demo.jl` to test whether the default backend works on your machine.
 2. Run `examples/demo.jl` and browse demos in the `examples` folder to learn how to use the API.
-3. Press `? CImGui.xxx` to fetch docs.
+3. Press `? CImGui.xxx` to retrieve docs.
 ```
 help?> CImGui.Begin
   Begin(name, p_open=C_NULL, flags=0) -> Bool

@@ -235,7 +235,6 @@ See the output of `CImGui.GetFlags(CImGui.ImGuiFocusedFlags_)` for options:
 using CImGui, Markdown
 CImGui.ShowFlags(CImGui.ImGuiFocusedFlags_) |> Markdown.parse
 ```
-
 """
 IsWindowFocused(flags=0) = igIsWindowFocused(flags)
 

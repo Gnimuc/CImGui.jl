@@ -13,7 +13,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Introduction",
     "title": "CImGui",
     "category": "section",
-    "text": ""
+    "text": "This package provides a Julia language wrapper for cimgui: a thin c-api wrapper programmatically generated for the excellent C++ immediate mode gui Dear ImGui. Dear ImGui is mainly for creating content creation tools and visualization or debug tools.  Browse Gallery to get an idea of its use cases.(Image: demo)"
 },
 
 {
@@ -21,15 +21,15 @@ var documenterSearchIndex = {"docs": [
     "page": "Introduction",
     "title": "Installation",
     "category": "section",
-    "text": "pkg> add https://github.com/Gnimuc/CImGui.jl.gityou might also need to dev https://github.com/Gnimuc/CSyntax.jl"
+    "text": "pkg> add CImGui"
 },
 
 {
-    "location": "#Quick-Start-1",
+    "location": "#Usage-1",
     "page": "Introduction",
-    "title": "Quick Start",
+    "title": "Usage",
     "category": "section",
-    "text": "Run demo/demo.jl to test whether the GLFW+OpenGL backend works on your machine.\nRun examples/demo.jl and browse demos in the examples folder to learn how to use the API.\nPress ? CImGui.xxx to fetch docs.help?> CImGui.Begin\n  Begin(name, p_open=C_NULL, flags=0) -> Bool\n\n  Push window to the stack and start appending to it.\n\n  Usage\n  –––––––\n\n    •    you may append multiple times to the same window during the same frame.\n\n    •    passing p_open != C_NULL shows a window-closing widget in the upper-right corner of\n        the window, which clicking will set the boolean to false when clicked.\n\n    •    Begin return false to indicate the window is collapsed or fully clipped, so you may\n        early out and omit submitting anything to the window.\n\n  │ Note\n  │\n  │  Always call a matching End for each Begin call, regardless of its return value. This\n  │  is due to legacy reason and is inconsistent with most other functions (such as\n  │  BeginMenu/EndMenu, BeginPopup/EndPopup, etc.) where the EndXXX call should only be\n  │  called if the corresponding BeginXXX function returned true.\n\n  ────────────────────────────────────────────────────────────────────────────────────────────────\n\n  Begin(handle::Ptr{ImGuiTextBuffer}) -> Cstring\n\n  ────────────────────────────────────────────────────────────────────────────────────────────────\n\n  Begin(handle::Ptr{ImGuiListClipper}, items_count, items_height=-1.0)\n\n  Automatically called by constructor if you passed items_count or by Step in Step 1."
+    "text": "TODO..."
 },
 
 {
@@ -245,7 +245,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API Reference",
     "title": "CImGui.AddText",
     "category": "function",
-    "text": "AddText(handle::Ptr{ImDrawList}, font::Ptr{ImFont}, font_size, pos, col, text_begin, text_end=C_NULL, wrap_width=0.0, cpu_fine_clip_rect=C_NULL)\n\n\n\n\n\n"
+    "text": "AddText(handle::Ptr{ImDrawList}, pos, col, text_begin, text_end=C_NULL)\n\n\n\n\n\n"
 },
 
 {
@@ -253,7 +253,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API Reference",
     "title": "CImGui.AddText",
     "category": "function",
-    "text": "AddText(handle::Ptr{ImDrawList}, pos, col, text_begin, text_end=C_NULL)\n\n\n\n\n\n"
+    "text": "AddText(handle::Ptr{ImDrawList}, font::Ptr{ImFont}, font_size, pos, col, text_begin, text_end=C_NULL, wrap_width=0.0, cpu_fine_clip_rect=C_NULL)\n\n\n\n\n\n"
 },
 
 {

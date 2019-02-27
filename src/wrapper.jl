@@ -42,7 +42,7 @@ GetIO() = igGetIO()
 Return a handle of `ImGuiStyle` which is for accessing the `Style` structure (colors, sizes).
 
 !!! note
-    Always use [`PushStyleCol`](@ref), [`PushStyleVar`](@ref) to modify style mid-frame.
+    Always use [`PushStyleColor`](@ref), [`PushStyleVar`](@ref) to modify style mid-frame.
 """
 GetStyle() = igGetStyle()
 
@@ -159,7 +159,7 @@ StyleColorsLight() = igStyleColorsLight(C_NULL)
 
 ########################################## Windows #########################################
 """
-    Begin(name, p_open::=C_NULL, flags=0) -> Bool
+    Begin(name, p_open=C_NULL, flags=0) -> Bool
 Push window to the stack and start appending to it.
 
 ### Usage
@@ -232,9 +232,10 @@ Is current window focused? or its root/child, depending on flags.
 See the output of `CImGui.GetFlags(CImGui.ImGuiFocusedFlags_)` for options:
 
 ```@eval
-using CImGui
-CImGui.ShowFlags(CImGui.ImGuiFocusedFlags_)
+using CImGui, Markdown
+CImGui.ShowFlags(CImGui.ImGuiFocusedFlags_) |> Markdown.parse
 ```
+
 """
 IsWindowFocused(flags=0) = igIsWindowFocused(flags)
 
@@ -244,8 +245,8 @@ Is current window hovered (and typically: not blocked by a popup/modal)?
 See the output of `CImGui.GetFlags(CImGui.ImGuiHoveredFlags_)` for options:
 
 ```@eval
-using CImGui
-CImGui.ShowFlags(CImGui.ImGuiHoveredFlags_)
+using CImGui, Markdown
+CImGui.ShowFlags(CImGui.ImGuiHoveredFlags_) |> Markdown.parse
 ```
 
 !!! note
@@ -1459,21 +1460,21 @@ TreeNodeEx(ptr_id::Ptr, flags, formatted_text) = igTreeNodeExPtr(ptr_id, flags, 
 
 """
     TreePush(str_id)
-[`Indent`](@ref) + [`PushId`](@ref). Already called by [`TreeNode`](@ref) when returning true,
+[`Indent`](@ref) + [`PushID`](@ref). Already called by [`TreeNode`](@ref) when returning true,
 but you can call [`TreePush`](@ref)/[`TreePop`](@ref) yourself if desired.
 """
 TreePush(str_id) = igTreePushStr(str_id)
 
 """
     TreePush(ptr_id::Ptr=C_NULL)
-[`Indent`](@ref) + [`PushId`](@ref). Already called by [`TreeNode`](@ref) when returning true,
+[`Indent`](@ref) + [`PushID`](@ref). Already called by [`TreeNode`](@ref) when returning true,
 but you can call [`TreePush`](@ref)/[`TreePop`](@ref) yourself if desired.
 """
 TreePush(ptr_id::Ptr=C_NULL) = igTreePushPtr(ptr_id)
 
 """
     TreePop()
-[`Unindent`](@ref) + [`PopId`](@ref).
+[`Unindent`](@ref) + [`PopID`](@ref).
 """
 TreePop() = igTreePop()
 
@@ -1989,8 +1990,8 @@ Is the last item hovered? (and usable, aka not blocked by a popup, etc.).
 See the output of `CImGui.GetFlags(CImGui.ImGuiHoveredFlags_)` for options:
 
 ```@eval
-using CImGui
-CImGui.ShowFlags(CImGui.ImGuiHoveredFlags_)
+using CImGui, Markdown
+CImGui.ShowFlags(CImGui.ImGuiHoveredFlags_) |> Markdown.parse
 ```
 
 See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.

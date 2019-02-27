@@ -25,7 +25,14 @@ Base.:⊻(a::Integer, b::T) where {T<:Cenum{UInt32}} = UInt32(b) ⊻ UInt32(a)
 Base.:(:)(a::T, b::Cenum) where {T<:Integer} = a:T(b)
 Base.:(:)(a::Cenum, b::T) where {T<:Integer} = T(a):b
 
-ShowFlags(::Type{T}) where {T<:Cenum} = foreach(x->println(x), zip(enum_names(T), enum_values(T)))
+function ShowFlags(::Type{T}) where {T<:Cenum}
+    io = IOBuffer()
+    s = "```\n"
+    for (n,v) in zip(enum_names(T), enum_values(T))
+        s *= string(n)*" $v \n"
+    end
+    s*"\n```"
+end
 GetFlags(::Type{T}) where {T<:Cenum} = zip(enum_names(T), enum_values(T)) |> collect
 
 # simple unsafe destruction helper

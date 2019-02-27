@@ -1,13 +1,4 @@
 # CImGui
-
-[![Build Status](https://travis-ci.com/Gnimuc/CImGui.jl.svg?branch=master)](https://travis-ci.com/Gnimuc/CImGui.jl)
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/Gnimuc/CImGui.jl?svg=true)](https://ci.appveyor.com/project/Gnimuc/CImGui-jl)
-[![Codecov](https://codecov.io/gh/Gnimuc/CImGui.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/Gnimuc/CImGui.jl)
-
-This package is a thin wrapper over [cimgui](https://github.com/cimgui/cimgui) which is a thin c-api wrapper programmatically generated for the excellent C++ immediate mode gui [Dear ImGui](https://github.com/ocornut/imgui).
-
-![demo](demo/demo.png)
-
 ## Installation
 ```julia
 pkg> add https://github.com/Gnimuc/CImGui.jl.git
@@ -52,6 +43,3 @@ help?> CImGui.Begin
 
   Automatically called by constructor if you passed items_count or by Step in Step 1.
 ```
-
-## License
-Only the Julia code in this repo is released under MIT license. Other assets such as those fonts in the `fonts` folder are released under their own license.

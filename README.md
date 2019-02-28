@@ -15,9 +15,8 @@ to get an idea of its use cases.
 ```julia
 pkg> add CImGui
 ```
-You need to temporally use the following commands until https://github.com/JuliaLang/METADATA.jl/pull/21734 and https://github.com/JuliaLang/METADATA.jl/pull/21628 are merged into METADATA.
+You need to temporally use the following command to install the package until it's registered.
 ```
-pkg> dev https://github.com/Gnimuc/CSyntax.jl
 pkg> dev https://github.com/Gnimuc/CImGui.jl.git
 ```
 
@@ -54,15 +53,15 @@ help?> CImGui.Begin
 The API provided in this package is as close as possible to the original C++ API. When translating C++ code to Julia, please follow the tips below:
 - Replace `ImGui::` to `CImGui.`;
 - `using LibCImGui` to import all of the `ImGuiXXX` types into the current namespace;
-- Member function calling should be translated in Julia style: `fonts.AddFont(cfg)` => `CImGui.Add(fonts, cfg)`;
+- Member function calling should be translated in Julia style: `fonts.AddFont(cfg)` => `CImGui.AddFont(fonts, cfg)`;
 - Prefer to define colors as `Vector{Cfloat}` instead of `CImGui.ImVec4`;
 - [CSyntax.jl](https://github.com/Gnimuc/CSyntax.jl) provides two useful macros: `@c` for translating C's `&` operator on immutables and `@cstatic`-block for emulating C's `static` keyword;
-- pointer arithmetic: `&A[n]` should be translated to `pointer(A) + n * sizeof(T)`
+- pointer arithmetic: `&A[n]` should be translated to `pointer(A) + n * sizeof(T)` where `n` counts from 0.
 
 As mentioned before, this package aims to provide the same user experience as the original C++ API, so any high-level abstraction should go into a more high-level package.
 
 ### LibCImGui
-LibCImGui is a thin wrapper over cimgui. It's one-to-one mapped to the original cimgui APIs. By using CImGui.LibCImGui, all of the ImGui-prefixed types, enums and ig-prefixed functions are imported into the current namespace.
+LibCImGui is a thin wrapper over cimgui. It's one-to-one mapped to the original cimgui APIs. By using CImGui.LibCImGui, all of the ImGui-prefixed types, enums and ig-prefixed functions will be imported into the current namespace. It's mainly for people who prefer to use original cimgui's interface.
 
 ### Backend
 The default backend is based on [ModernGL](https://github.com/JuliaGL/ModernGL.jl) and [GLFW](https://github.com/JuliaGL/GLFW.jl) which are stable and under actively maintained. Other popular backends like [SFML](https://github.com/zyedidia/SFML.jl) and [SDL](https://github.com/ariejdl/SDL.jl) could be added in the future if someone would invest time to make these packages work in post Julia 1.0 era.

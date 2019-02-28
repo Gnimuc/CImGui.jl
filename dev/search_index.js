@@ -13,7 +13,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Introduction",
     "title": "CImGui",
     "category": "section",
-    "text": "This package provides a Julia language wrapper for cimgui: a thin c-api wrapper programmatically generated for the excellent C++ immediate mode gui Dear ImGui. Dear ImGui is mainly for creating content creation tools and visualization / debug tools. You could browse Gallery to get an idea of its use cases.(Image: demo)"
+    "text": "This package provides a Julia language wrapper for cimgui: a thin c-api wrapper programmatically generated for the excellent C++ immediate mode gui Dear ImGui. Dear ImGui is mainly for creating content creation tools and visualization / debug tools. You could browse Gallery to get an idea of its use cases."
 },
 
 {

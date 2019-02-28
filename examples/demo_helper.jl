@@ -44,7 +44,7 @@ Access from ImGui Demo -> Help -> About
 function ShowAboutWindow(p_open::Ref{Bool})
     CImGui.Begin("About Dear ImGui", p_open, CImGui.ImGuiWindowFlags_AlwaysAutoResize) || (CImGui.End(); return)
 
-    CImGui.Text("Dear ImGui %s", CImGui.GetVersion())
+    CImGui.Text("Dear ImGui $(CImGui.IMGUI_VERSION)")
     CImGui.Separator()
     CImGui.Text("By Omar Cornut and all dear imgui contributors.")
     CImGui.Text("Dear ImGui is licensed under the MIT License, see LICENSE for more information.")
@@ -56,7 +56,7 @@ function ShowAboutWindow(p_open::Ref{Bool})
         style = CImGui.GetStyle()
 
         copy_to_clipboard = CImGui.Button("Copy to clipboard")
-        CImGui.BeginChildFrame(CImGui.GetID("cfginfos"), ImVec2(0, CImGui.GetTextLineHeightWithSpacing() * 18), CImGui.WindowFlags_NoMove)
+        CImGui.BeginChildFrame(CImGui.GetID("cfginfos"), ImVec2(0, CImGui.GetTextLineHeightWithSpacing() * 18), CImGui.ImGuiWindowFlags_NoMove)
         copy_to_clipboard && CImGui.LogToClipboard()
 
         CImGui.Text("Dear ImGui $(CImGui.IMGUI_VERSION)")
@@ -100,4 +100,3 @@ function ShowAboutWindow(p_open::Ref{Bool})
 end
     CImGui.End()
 end
-

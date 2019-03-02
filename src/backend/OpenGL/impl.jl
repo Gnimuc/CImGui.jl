@@ -296,6 +296,7 @@ function ImGui_ImplOpenGL3_CreateDeviceObjects()
         }"""
 
     fragment_shader_glsl_410_core = """
+        #version $g_GlslVersion
         in vec2 Frag_UV;
         in vec4 Frag_Color;
         uniform sampler2D Texture;

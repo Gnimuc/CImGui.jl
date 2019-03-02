@@ -58,6 +58,10 @@ CImGui.StyleColorsDark()
 # CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Roboto-Medium.ttf"), 16)
 # @assert default_font != C_NULL
 
+# creat texture for image drawing
+img_width, img_height = 256, 256
+image_id = ImGui_ImplOpenGL3_CreateImageTexture(img_width, img_height)
+
 # setup Platform/Renderer bindings
 ImGui_ImplGlfw_InitForOpenGL(window, true)
 ImGui_ImplOpenGL3_Init(glsl_version)
@@ -66,6 +70,7 @@ demo_open = true
 clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
 while !GLFW.WindowShouldClose(window)
     global demo_open # oh my global scope
+    global image_id, img_width, img_height
 
     GLFW.PollEvents()
     # start the Dear ImGui frame
@@ -74,6 +79,13 @@ while !GLFW.WindowShouldClose(window)
     CImGui.NewFrame()
 
     demo_open && @c ShowDemoWindow(&demo_open)
+
+    # show image example
+    CImGui.Begin("Image Demo")
+    image = rand(GLubyte, 4, img_width, img_height)
+    ImGui_ImplOpenGL3_UpdateImageTexture(image_id, image, img_width, img_height)
+    CImGui.Image(Ptr{Cvoid}(image_id), (img_width, img_height))
+    CImGui.End()
 
     # rendering
     CImGui.Render()

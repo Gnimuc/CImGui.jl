@@ -385,6 +385,7 @@ function ImGui_ImplOpenGL3_DestroyDeviceObjects()
     global g_ShaderHandle
     global g_VertHandle
     global g_FragHandle
+    global g_ImageTexture
     g_VboHandle != 0 && @c glDeleteBuffers(1, &g_VboHandle)
     g_ElementsHandle != 0 && @c glDeleteBuffers(1, &g_ElementsHandle)
     g_VboHandle = g_ElementsHandle = GLuint(0)
@@ -402,4 +403,36 @@ function ImGui_ImplOpenGL3_DestroyDeviceObjects()
     g_ShaderHandle = 0
 
     ImGui_ImplOpenGL3_DestroyFontsTexture()
+    for (k,v) in g_ImageTexture
+        ImGui_ImplOpenGL3_DestroyImageTexture(v)
+    end
+end
+
+function ImGui_ImplOpenGL3_CreateImageTexture(image_width, image_height; format=GL_RGBA, type=GL_UNSIGNED_BYTE)
+    global g_ImageTexture
+
+    id = GLuint(0)
+    @c glGenTextures(1, &id)
+    glBindTexture(GL_TEXTURE_2D, id)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0)
+    glTexImage2D(GL_TEXTURE_2D, 0, format, GLsizei(image_width), GLsizei(image_height), 0, format, type, C_NULL)
+    g_ImageTexture[id] = id
+
+    return Int(id)
+end
+
+function ImGui_ImplOpenGL3_UpdateImageTexture(id, image_data, image_width, image_height; format=GL_RGBA, type=GL_UNSIGNED_BYTE)
+    global g_ImageTexture
+    glBindTexture(GL_TEXTURE_2D, g_ImageTexture[id])
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GLsizei(image_width), GLsizei(image_height), format, type, image_data)
+end
+
+function ImGui_ImplOpenGL3_DestroyImageTexture(id)
+    global g_ImageTexture
+    id = g_ImageTexture[id]
+    @c glDeleteTextures(1, &id)
+    delete!(g_ImageTexture, id)
+    return true
 end

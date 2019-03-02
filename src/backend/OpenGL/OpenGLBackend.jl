@@ -12,6 +12,7 @@ export ImGui_ImplOpenGL3_NewFrame
 export ImGui_ImplOpenGL3_RenderDrawData
 export ImGui_ImplOpenGL3_CreateFontsTexture, ImGui_ImplOpenGL3_DestroyFontsTexture
 export ImGui_ImplOpenGL3_CreateDeviceObjects, ImGui_ImplOpenGL3_DestroyDeviceObjects
+export ImGui_ImplOpenGL3_CreateImageTexture, ImGui_ImplOpenGL3_UpdateImageTexture, ImGui_ImplOpenGL3_DestroyImageTexture
 
 function __init__()
     global g_GlslVersion = 130
@@ -26,6 +27,7 @@ function __init__()
     global g_AttribLocationColor = GLint(0)
     global g_VboHandle = GLuint(0)
     global g_ElementsHandle = GLuint(0)
+    global g_ImageTexture = Dict{Int,GLuint}()
 end
 
 end # module

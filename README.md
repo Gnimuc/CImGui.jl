@@ -15,10 +15,6 @@ to get an idea of its use cases.
 ```julia
 pkg> add CImGui
 ```
-You need to temporally use the following command to install the package until it's registered. Note you might also need to manually fetch the latest master and run `pkg> build CImGui` again. The version number should be `1.68.0`.
-```
-pkg> dev https://github.com/Gnimuc/CImGui.jl.git
-```
 
 ## Quick Start
 1. Run `demo/demo.jl` to test whether the default backend works on your machine.

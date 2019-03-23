@@ -330,7 +330,7 @@ struct ImGuiIO
     KeyAlt::Bool
     KeySuper::Bool
     KeysDown::NTuple{512, Bool}
-    NavInputs::NTuple{21, Cfloat}
+    NavInputs::NTuple{22, Cfloat}
     WantCaptureMouse::Bool
     WantCaptureKeyboard::Bool
     WantTextInput::Bool
@@ -358,8 +358,8 @@ struct ImGuiIO
     MouseDragMaxDistanceSqr::NTuple{5, Cfloat}
     KeysDownDuration::NTuple{512, Cfloat}
     KeysDownDurationPrev::NTuple{512, Cfloat}
-    NavInputsDownDuration::NTuple{21, Cfloat}
-    NavInputsDownDurationPrev::NTuple{21, Cfloat}
+    NavInputsDownDuration::NTuple{22, Cfloat}
+    NavInputsDownDurationPrev::NTuple{22, Cfloat}
     InputQueueCharacters::ImVector_ImWchar
 end
 
@@ -499,6 +499,10 @@ const ImGuiTreeNodeFlags = Cint
 const ImGuiWindowFlags = Cint
 const ImGuiInputTextCallback = Ptr{Cvoid}
 const ImGuiSizeCallback = Ptr{Cvoid}
+const ImS8 = UInt8
+const ImU8 = Cuchar
+const ImS16 = Int16
+const ImU16 = UInt16
 const ImS32 = Cint
 const ImS64 = Int64
 const ImU64 = UInt64
@@ -651,13 +655,17 @@ end
     ImGuiDragDropFlags_AcceptPeekOnly = 3072,
 )
 @cenum(ImGuiDataType_,
-    ImGuiDataType_S32 = 0,
-    ImGuiDataType_U32 = 1,
-    ImGuiDataType_S64 = 2,
-    ImGuiDataType_U64 = 3,
-    ImGuiDataType_Float = 4,
-    ImGuiDataType_Double = 5,
-    ImGuiDataType_COUNT = 6,
+    ImGuiDataType_S8 = 0,
+    ImGuiDataType_U8 = 1,
+    ImGuiDataType_S16 = 2,
+    ImGuiDataType_U16 = 3,
+    ImGuiDataType_S32 = 4,
+    ImGuiDataType_U32 = 5,
+    ImGuiDataType_S64 = 6,
+    ImGuiDataType_U64 = 7,
+    ImGuiDataType_Float = 8,
+    ImGuiDataType_Double = 9,
+    ImGuiDataType_COUNT = 10,
 )
 @cenum(ImGuiDir_{Int32},
     ImGuiDir_None = -1,
@@ -709,11 +717,12 @@ end
     ImGuiNavInput_TweakSlow = 14,
     ImGuiNavInput_TweakFast = 15,
     ImGuiNavInput_KeyMenu_ = 16,
-    ImGuiNavInput_KeyLeft_ = 17,
-    ImGuiNavInput_KeyRight_ = 18,
-    ImGuiNavInput_KeyUp_ = 19,
-    ImGuiNavInput_KeyDown_ = 20,
-    ImGuiNavInput_COUNT = 21,
+    ImGuiNavInput_KeyTab_ = 17,
+    ImGuiNavInput_KeyLeft_ = 18,
+    ImGuiNavInput_KeyRight_ = 19,
+    ImGuiNavInput_KeyUp_ = 20,
+    ImGuiNavInput_KeyDown_ = 21,
+    ImGuiNavInput_COUNT = 22,
     ImGuiNavInput_InternalStart_ = 16,
 )
 @cenum(ImGuiConfigFlags_,
@@ -825,17 +834,20 @@ end
     ImGuiColorEditFlags_AlphaPreview = 131072,
     ImGuiColorEditFlags_AlphaPreviewHalf = 262144,
     ImGuiColorEditFlags_HDR = 524288,
-    ImGuiColorEditFlags_RGB = 1048576,
-    ImGuiColorEditFlags_HSV = 2097152,
-    ImGuiColorEditFlags_HEX = 4194304,
+    ImGuiColorEditFlags_DisplayRGB = 1048576,
+    ImGuiColorEditFlags_DisplayHSV = 2097152,
+    ImGuiColorEditFlags_DisplayHex = 4194304,
     ImGuiColorEditFlags_Uint8 = 8388608,
     ImGuiColorEditFlags_Float = 16777216,
     ImGuiColorEditFlags_PickerHueBar = 33554432,
     ImGuiColorEditFlags_PickerHueWheel = 67108864,
-    ImGuiColorEditFlags__InputsMask = 7340032,
+    ImGuiColorEditFlags_InputRGB = 134217728,
+    ImGuiColorEditFlags_InputHSV = 268435456,
+    ImGuiColorEditFlags__OptionsDefault = 177209344,
+    ImGuiColorEditFlags__DisplayMask = 7340032,
     ImGuiColorEditFlags__DataTypeMask = 25165824,
     ImGuiColorEditFlags__PickerMask = 100663296,
-    ImGuiColorEditFlags__OptionsDefault = 42991616,
+    ImGuiColorEditFlags__InputMask = 402653184,
 )
 @cenum(ImGuiMouseCursor_{Int32},
     ImGuiMouseCursor_None = -1,

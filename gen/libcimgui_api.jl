@@ -711,11 +711,15 @@ function igVSliderScalar(label, size, data_type, v, v_min, v_max, format, power)
 end
 
 function igInputText(label, buf, buf_size, flags, callback, user_data)
-    ccall((:igInputText, libcimgui), Bool, (Cstring, Ptr{UInt8}, Csize_t, ImGuiInputTextFlags, ImGuiInputTextCallback, Ptr{Cvoid}), label, buf, buf_size, flags, callback, user_data)
+    ccall((:igInputText, libcimgui), Bool, (Cstring, Cstring, Csize_t, ImGuiInputTextFlags, ImGuiInputTextCallback, Ptr{Cvoid}), label, buf, buf_size, flags, callback, user_data)
 end
 
 function igInputTextMultiline(label, buf, buf_size, size, flags, callback, user_data)
-    ccall((:igInputTextMultiline, libcimgui), Bool, (Cstring, Ptr{UInt8}, Csize_t, ImVec2, ImGuiInputTextFlags, ImGuiInputTextCallback, Ptr{Cvoid}), label, buf, buf_size, size, flags, callback, user_data)
+    ccall((:igInputTextMultiline, libcimgui), Bool, (Cstring, Cstring, Csize_t, ImVec2, ImGuiInputTextFlags, ImGuiInputTextCallback, Ptr{Cvoid}), label, buf, buf_size, size, flags, callback, user_data)
+end
+
+function igInputTextWithHint(label, hint, buf, buf_size, flags, callback, user_data)
+    ccall((:igInputTextWithHint, libcimgui), Bool, (Cstring, Cstring, Cstring, Csize_t, ImGuiInputTextFlags, ImGuiInputTextCallback, Ptr{Cvoid}), label, hint, buf, buf_size, flags, callback, user_data)
 end
 
 function igInputFloat(label, v, step, step_fast, format, flags)
@@ -1038,16 +1042,16 @@ function igSetTabItemClosed(tab_or_docked_window_label)
     ccall((:igSetTabItemClosed, libcimgui), Cvoid, (Cstring,), tab_or_docked_window_label)
 end
 
-function igLogToTTY(max_depth)
-    ccall((:igLogToTTY, libcimgui), Cvoid, (Cint,), max_depth)
+function igLogToTTY(auto_open_depth)
+    ccall((:igLogToTTY, libcimgui), Cvoid, (Cint,), auto_open_depth)
 end
 
-function igLogToFile(max_depth, filename)
-    ccall((:igLogToFile, libcimgui), Cvoid, (Cint, Cstring), max_depth, filename)
+function igLogToFile(auto_open_depth, filename)
+    ccall((:igLogToFile, libcimgui), Cvoid, (Cint, Cstring), auto_open_depth, filename)
 end
 
-function igLogToClipboard(max_depth)
-    ccall((:igLogToClipboard, libcimgui), Cvoid, (Cint,), max_depth)
+function igLogToClipboard(auto_open_depth)
+    ccall((:igLogToClipboard, libcimgui), Cvoid, (Cint,), auto_open_depth)
 end
 
 function igLogFinish()
@@ -1066,8 +1070,8 @@ function igBeginDragDropSource(flags)
     ccall((:igBeginDragDropSource, libcimgui), Bool, (ImGuiDragDropFlags,), flags)
 end
 
-function igSetDragDropPayload(type, data, size, cond)
-    ccall((:igSetDragDropPayload, libcimgui), Bool, (Cstring, Ptr{Cvoid}, Csize_t, ImGuiCond), type, data, size, cond)
+function igSetDragDropPayload(type, data, sz, cond)
+    ccall((:igSetDragDropPayload, libcimgui), Bool, (Cstring, Ptr{Cvoid}, Csize_t, ImGuiCond), type, data, sz, cond)
 end
 
 function igEndDragDropSource()
@@ -1186,8 +1190,12 @@ function igGetFrameCount()
     ccall((:igGetFrameCount, libcimgui), Cint, ())
 end
 
-function igGetOverlayDrawList()
-    ccall((:igGetOverlayDrawList, libcimgui), Ptr{ImDrawList}, ())
+function igGetBackgroundDrawList()
+    ccall((:igGetBackgroundDrawList, libcimgui), Ptr{ImDrawList}, ())
+end
+
+function igGetForegroundDrawList()
+    ccall((:igGetForegroundDrawList, libcimgui), Ptr{ImDrawList}, ())
 end
 
 function igGetDrawListSharedData()
@@ -2032,6 +2040,10 @@ end
 
 function ImFontAtlas_GetGlyphRangesThai(self)
     ccall((:ImFontAtlas_GetGlyphRangesThai, libcimgui), Ptr{ImWchar}, (Ptr{ImFontAtlas},), self)
+end
+
+function ImFontAtlas_GetGlyphRangesVietnamese(self)
+    ccall((:ImFontAtlas_GetGlyphRangesVietnamese, libcimgui), Ptr{ImWchar}, (Ptr{ImFontAtlas},), self)
 end
 
 function CustomRect_CustomRect()

@@ -7,7 +7,8 @@ const CIMGUI_H = joinpath(@__DIR__, "..", "deps", "usr", "include", "cimgui.h") 
 ctx = DefaultContext()
 
 # parse headers
-parse_headers!(ctx, [CIMGUI_H], includes=[LLVM_INCLUDE])
+stdlibs = @static Sys.isapple() ? ["-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk/usr/include"] : [""]
+parse_headers!(ctx, [CIMGUI_H], args=stdlibs, includes=[LLVM_INCLUDE])
 
 # settings
 ctx.libname = "libcimgui"

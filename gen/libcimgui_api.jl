@@ -2075,7 +2075,7 @@ function ImFontAtlas_CalcCustomRectUV(self, rect, out_uv_min, out_uv_max)
 end
 
 function ImFontAtlas_GetMouseCursorTexData(self, cursor, out_offset, out_size, out_uv_border, out_uv_fill)
-    ccall((:ImFontAtlas_GetMouseCursorTexData, libcimgui), Bool, (Ptr{ImFontAtlas}, ImGuiMouseCursor, Ptr{ImVec2}, Ptr{ImVec2}, NTuple{2, ImVec2}, NTuple{2, ImVec2}), self, cursor, out_offset, out_size, out_uv_border, out_uv_fill)
+    ccall((:ImFontAtlas_GetMouseCursorTexData, libcimgui), Bool, (Ptr{ImFontAtlas}, ImGuiMouseCursor, Ptr{ImVec2}, Ptr{ImVec2}, Ptr{ImVec2}, Ptr{ImVec2}), self, cursor, out_offset, out_size, out_uv_border, out_uv_fill)
 end
 
 function ImFont_ImFont()

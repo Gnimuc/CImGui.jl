@@ -177,8 +177,9 @@ function ImGui_ImplGlfw_UpdateMouseCursor()
     return nothing
 end
 
-function ImGui_ImplGlfw_NewFrame()
+function ImGui_ImplGlfw_NewFrame(window::GLFW.Window)
     global g_Time
+    global g_Window = window
     io = GetIO()
     @assert ImFontAtlas_IsBuilt(io.Fonts) "Font atlas not built! It is generally built by the renderer back-end. Missing call to renderer _NewFrame() function? e.g. ImGui_ImplOpenGL3_NewFrame()."
 

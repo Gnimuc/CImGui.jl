@@ -27,7 +27,7 @@ ImGui_ImplOpenGL3_Shutdown() = ImGui_ImplOpenGL3_DestroyDeviceObjects()
 
 function ImGui_ImplOpenGL3_NewFrame()
     global g_FontTexture
-    g_FontTexture == 0 && ImGui_ImplOpenGL3_CreateDeviceObjects()
+    ImGui_ImplOpenGL3_CreateDeviceObjects()
 end
 
 function ImGui_ImplOpenGL3_RenderDrawData(draw_data)

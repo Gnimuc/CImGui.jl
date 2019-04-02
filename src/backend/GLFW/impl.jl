@@ -59,6 +59,57 @@ function ImGui_ImplGlfw_Init(window::GLFW.Window, install_callbacks::Bool, clien
     return true;
 end
 
+function ImGui_ImplGlfw_MouseButtonCallback(window::GLFW.Window, button::Cint, action::GLFW.Action, mods::Cint)
+    if isdefined((@__MODULE__), :g_PrevUserCallbackMousebutton)
+        g_PrevUserCallbackMousebutton(window, button, action, mods)
+    end
+
+    if (action == GLFW.PRESS && button >= 0 && button < length(g_MouseJustPressed))
+        g_MouseJustPressed[button] = true
+    end
+end
+
+function ImGui_ImplGlfw_ScrollCallback(window::GLFW.Window, xoffset::Cdouble, yoffset::Cdouble)
+    if isdefined((@__MODULE__), :g_PrevUserCallbackScroll)
+        g_PrevUserCallbackScroll(window, xoffset, yoffset)
+    end
+
+    io = GetIO()
+    io.MouseWheelH += Cfloat(xoffset)
+    io.MouseWheel += Cfloat(yoffset)
+end
+
+function ImGui_ImplGlfw_KeyCallback(window::GLFW.Window, key::GLFW.Key, scancode::Cint, action::GLFW.Action, mods::Cint)
+    if isdefined((@__MODULE__), g_PrevUserCallbackKey)
+        g_PrevUserCallbackKey(window, key, scancode, action, mods)
+    end
+
+    io = GetIO()
+    if (action == GLFW.PRESS)
+        io.KeysDown[key] = true
+    end
+    if (action == GLFW.RELEASE)
+        io.KeysDown[key] = false
+    end
+
+    # Modifiers are not reliable across systems
+    io.KeyCtrl = io.KeysDown[UInt64(GLFW.KEY_LEFT_CONTROL)] || io.KeysDown[UInt64(GLFW.KEY_RIGHT_CONTROL)]
+    io.KeyShift = io.KeysDown[UInt64(GLFW.KEY_LEFT_SHIFT)] || io.KeysDown[UInt64(GLFW.KEY_RIGHT_SHIFT)]
+    io.KeyAlt = io.KeysDown[UInt64(GLFW.KEY_LEFT_ALT)] || io.KeysDown[UInt64(GLFW.KEY_RIGHT_ALT)]
+    io.KeySuper = io.KeysDown[UInt64(GLFW.KEY_LEFT_SUPER)] || io.KeysDown[UInt64(GLFW.KEY_RIGHT_SUPER)]
+end
+
+function ImGui_ImplGlfw_CharCallback(window::GLFW.Window, c::Cuint)
+    if isdefined((@__MODULE__), g_PrevUserCallbackChar != NULL)
+        g_PrevUserCallbackChar(window, c)
+    end
+
+    io = GetIO()
+    if (c > 0 && c < 0x10000)
+        io.AddInputCharacter(Cushort(c))
+    end
+end
+
 function ImGui_ImplGlfw_InitForOpenGL(window::GLFW.Window, install_callbacks::Bool)
     ImGui_ImplGlfw_Init(window, install_callbacks, GlfwClientApi_OpenGL)
 end

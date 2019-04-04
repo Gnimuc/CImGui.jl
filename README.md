@@ -60,7 +60,7 @@ As mentioned before, this package aims to provide the same user experience as th
 LibCImGui is a thin wrapper over cimgui. It's one-to-one mapped to the original cimgui APIs. By using CImGui.LibCImGui, all of the ImGui-prefixed types, enums and ig-prefixed functions will be imported into the current namespace. It's mainly for people who prefer to use original cimgui's interface.
 
 ### Backend
-The default backend is based on [ModernGL](https://github.com/JuliaGL/ModernGL.jl) and [GLFW](https://github.com/JuliaGL/GLFW.jl) which are stable and under actively maintained. Other popular backends like [SFML](https://github.com/zyedidia/SFML.jl) and [SDL](https://github.com/ariejdl/SDL.jl) could be added in the future if someone would invest time to make these packages work in post Julia 1.0 era.
+The default backend is based on [ModernGL](https://github.com/JuliaGL/ModernGL.jl) and [GLFW](https://github.com/JuliaGL/GLFW.jl) which are stable and under actively maintained. Other popular backends like [SFML](https://github.com/zyedidia/SFML.jl) and [SDL](https://github.com/ariejdl/SDL.jl) could be added in the future if someone should invest time to make these packages work in post Julia 1.0 era.
 
 ## License
 Only the Julia code in this repo is released under MIT license. Other assets such as those fonts in the `fonts` folder are released under their own license.

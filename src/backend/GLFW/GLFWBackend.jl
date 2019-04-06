@@ -7,6 +7,10 @@ using CImGui: FLT_MAX, AddInputCharacter
 using CImGui: GetIO, Set_KeyMap, Set_KeysDown, Get_KeysDown, Set_MouseDown, GetMouseCursor
 
 include("callbacks.jl")
+export SetCustomMouseButtonCallback
+export SetCustomScrollCallback
+export SetCustomKeyCallback
+export SetCustomCharCallback
 
 include("impl.jl")
 export GlfwClientApi, GlfwClientApi_Unknown, GlfwClientApi_OpenGL, GlfwClientApi_Vulkan
@@ -23,6 +27,10 @@ function __init__()
     global g_MouseCursors = [GLFW.Cursor(C_NULL) for i = 1:ImGuiMouseCursor_COUNT]
     global g_ImplGlfw_GetClipboardText = dlsym(dlopen(GLFW.lib), :glfwGetClipboardString)
     global g_ImplGlfw_SetClipboardText = dlsym(dlopen(GLFW.lib), :glfwSetClipboardString)
+    global g_PrevUserCallbackMousebutton = C_NULL
+    global g_PrevUserCallbackScroll = C_NULL
+    global g_PrevUserCallbackKey = C_NULL
+    global g_PrevUserCallbackChar = C_NULL
 end
 
 end # module

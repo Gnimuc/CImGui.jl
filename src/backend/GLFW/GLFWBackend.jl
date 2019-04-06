@@ -27,10 +27,10 @@ function __init__()
     global g_MouseCursors = [GLFW.Cursor(C_NULL) for i = 1:ImGuiMouseCursor_COUNT]
     global g_ImplGlfw_GetClipboardText = dlsym(dlopen(GLFW.lib), :glfwGetClipboardString)
     global g_ImplGlfw_SetClipboardText = dlsym(dlopen(GLFW.lib), :glfwSetClipboardString)
-    global g_PrevUserCallbackMousebutton = C_NULL
-    global g_PrevUserCallbackScroll = C_NULL
-    global g_PrevUserCallbackKey = C_NULL
-    global g_PrevUserCallbackChar = C_NULL
+    global g_CustomCallbackMousebutton = C_NULL
+    global g_CustomCallbackScroll = C_NULL
+    global g_CustomCallbackKey = C_NULL
+    global g_CustomCallbackChar = C_NULL
 end
 
 end # module

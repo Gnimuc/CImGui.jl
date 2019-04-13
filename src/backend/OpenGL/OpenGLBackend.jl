@@ -16,7 +16,7 @@ export ImGui_ImplOpenGL3_CreateImageTexture, ImGui_ImplOpenGL3_UpdateImageTextur
 
 function __init__()
     global g_GlslVersion = 130
-    global g_FontTexture = GLuint(0)
+    global g_FontTextures = GLuint[]
     global g_ShaderHandle = GLuint(0)
     global g_VertHandle = GLuint(0)
     global g_FragHandle = GLuint(0)

@@ -25,11 +25,7 @@ end
 
 ImGui_ImplOpenGL3_Shutdown() = ImGui_ImplOpenGL3_DestroyDeviceObjects()
 
-function ImGui_ImplOpenGL3_NewFrame(multicontext=false)
-    global g_FontTexture
-    multicontext && ImGui_ImplOpenGL3_CreateDeviceObjects()
-    !multicontext && g_FontTexture == 0 && ImGui_ImplOpenGL3_CreateDeviceObjects()
-end
+ImGui_ImplOpenGL3_NewFrame() = !ImFontAtlas_IsBuilt(GetIO().Fonts) && ImGui_ImplOpenGL3_CreateDeviceObjects()
 
 function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
     # avoid rendering when minimized, scale coordinates for retina displays
@@ -190,8 +186,7 @@ function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
 end
 
 function ImGui_ImplOpenGL3_CreateFontsTexture()
-    global g_FontTexture
-
+    global g_FontTextures
     # build texture atlas
     fonts = igGetIO().Fonts
     pixels = Ptr{Cuchar}(C_NULL)
@@ -201,15 +196,17 @@ function ImGui_ImplOpenGL3_CreateFontsTexture()
     # upload texture to graphics system
     last_texture = GLint(0)
     @c glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture)
-    @c glGenTextures(1, &g_FontTexture)
-    glBindTexture(GL_TEXTURE_2D, g_FontTexture)
+    new_texture = GLuint(0)
+    @c glGenTextures(1, &new_texture)
+    glBindTexture(GL_TEXTURE_2D, new_texture)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+    push!(g_FontTextures, new_texture)
 
     # store our identifier
-    SetTexID(fonts, ImTextureID(Int(g_FontTexture)))
+    SetTexID(fonts, ImTextureID(Int(new_texture)))
     # restore state
     glBindTexture(GL_TEXTURE_2D, last_texture)
 
@@ -217,12 +214,9 @@ function ImGui_ImplOpenGL3_CreateFontsTexture()
 end
 
 function ImGui_ImplOpenGL3_DestroyFontsTexture()
-    global g_FontTexture
-    if g_FontTexture != 0
-        @c glDeleteTextures(1, &g_FontTexture)
-        SetTexID(GetIO().Fonts, ImTextureID(0))
-        g_FontTexture = GLuint(0)
-    end
+    global g_FontTextures
+    glDeleteTextures(length(g_FontTextures), g_FontTextures)
+    empty!(g_FontTextures)
 end
 
 function ImGui_ImplOpenGL3_CreateDeviceObjects()

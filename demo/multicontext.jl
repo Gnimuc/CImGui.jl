@@ -60,7 +60,7 @@ while window1_open || window2_open
         CImGui.SetCurrentContext(ctx1)
         GLFW.PollEvents()
         # append ctx1's frame
-        ImGui_ImplOpenGL3_NewFrame(true)
+        ImGui_ImplOpenGL3_NewFrame()
         ImGui_ImplGlfw_NewFrame(window1)
         CImGui.NewFrame()
         # show the big demo window
@@ -83,7 +83,7 @@ while window1_open || window2_open
         CImGui.SetCurrentContext(ctx2)
         GLFW.PollEvents()
         # append ctx2's frame
-        ImGui_ImplOpenGL3_NewFrame(true)
+        ImGui_ImplOpenGL3_NewFrame()
         ImGui_ImplGlfw_NewFrame(window2)
         CImGui.NewFrame()
         # show a simple window that we create ourselves.

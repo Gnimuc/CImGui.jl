@@ -711,15 +711,15 @@ function igVSliderScalar(label, size, data_type, v, v_min, v_max, format, power)
 end
 
 function igInputText(label, buf, buf_size, flags, callback, user_data)
-    ccall((:igInputText, libcimgui), Bool, (Cstring, Cstring, Csize_t, ImGuiInputTextFlags, ImGuiInputTextCallback, Ptr{Cvoid}), label, buf, buf_size, flags, callback, user_data)
+    ccall((:igInputText, libcimgui), Bool, (Cstring, Ptr{UInt8}, Csize_t, ImGuiInputTextFlags, ImGuiInputTextCallback, Ptr{Cvoid}), label, buf, buf_size, flags, callback, user_data)
 end
 
 function igInputTextMultiline(label, buf, buf_size, size, flags, callback, user_data)
-    ccall((:igInputTextMultiline, libcimgui), Bool, (Cstring, Cstring, Csize_t, ImVec2, ImGuiInputTextFlags, ImGuiInputTextCallback, Ptr{Cvoid}), label, buf, buf_size, size, flags, callback, user_data)
+    ccall((:igInputTextMultiline, libcimgui), Bool, (Cstring, Ptr{UInt8}, Csize_t, ImVec2, ImGuiInputTextFlags, ImGuiInputTextCallback, Ptr{Cvoid}), label, buf, buf_size, size, flags, callback, user_data)
 end
 
 function igInputTextWithHint(label, hint, buf, buf_size, flags, callback, user_data)
-    ccall((:igInputTextWithHint, libcimgui), Bool, (Cstring, Cstring, Cstring, Csize_t, ImGuiInputTextFlags, ImGuiInputTextCallback, Ptr{Cvoid}), label, hint, buf, buf_size, flags, callback, user_data)
+    ccall((:igInputTextWithHint, libcimgui), Bool, (Cstring, Cstring, Ptr{UInt8}, Csize_t, ImGuiInputTextFlags, ImGuiInputTextCallback, Ptr{Cvoid}), label, hint, buf, buf_size, flags, callback, user_data)
 end
 
 function igInputFloat(label, v, step, step_fast, format, flags)

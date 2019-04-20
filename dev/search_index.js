@@ -269,7 +269,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API Reference",
     "title": "CImGui.AddText",
     "category": "function",
-    "text": "AddText(handle::Ptr{ImDrawList}, pos, col, text_begin, text_end=C_NULL)\n\n\n\n\n\n"
+    "text": "AddText(handle::Ptr{ImDrawList}, font::Ptr{ImFont}, font_size, pos, col, text_begin, text_end=C_NULL, wrap_width=0.0, cpu_fine_clip_rect=C_NULL)\n\n\n\n\n\n"
 },
 
 {
@@ -277,7 +277,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API Reference",
     "title": "CImGui.AddText",
     "category": "function",
-    "text": "AddText(handle::Ptr{ImDrawList}, font::Ptr{ImFont}, font_size, pos, col, text_begin, text_end=C_NULL, wrap_width=0.0, cpu_fine_clip_rect=C_NULL)\n\n\n\n\n\n"
+    "text": "AddText(handle::Ptr{ImDrawList}, pos, col, text_begin, text_end=C_NULL)\n\n\n\n\n\n"
 },
 
 {

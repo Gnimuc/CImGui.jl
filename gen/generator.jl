@@ -1,14 +1,12 @@
 using Clang
 
-# do not forget to add #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS in the top of the header
 const CIMGUI_H = joinpath(@__DIR__, "..", "deps", "usr", "include", "cimgui.h") |> normpath
 
 # create a work context
 ctx = DefaultContext()
 
 # parse headers
-stdlibs = @static Sys.isapple() ? ["-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk/usr/include"] : [""]
-parse_headers!(ctx, [CIMGUI_H], args=stdlibs, includes=[LLVM_INCLUDE])
+parse_headers!(ctx, [CIMGUI_H], args=[map(x->"-I"*x, find_std_headers())..., "-DCIMGUI_DEFINE_ENUMS_AND_STRUCTS"], includes=[LLVM_INCLUDE])
 
 # settings
 ctx.libname = "libcimgui"
@@ -38,7 +36,7 @@ for trans_unit in ctx.trans_units
         wrap!(ctx, child)
     end
     @info "writing $(api_file)"
-    println(api_stream, "# Julia wrapper for header: $header")
+    println(api_stream, "# Julia wrapper for header: $(basename(header))")
     println(api_stream, "# Automatically generated using Clang.jl\n")
     print_buffer(api_stream, ctx.api_buffer)
     empty!(ctx.api_buffer)  # clean up api_buffer for the next header

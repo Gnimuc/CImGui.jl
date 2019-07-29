@@ -1,4 +1,4 @@
-# Julia wrapper for header: /Users/gnimuc/.julia/dev/CImGui/deps/usr/include/helper.h
+# Julia wrapper for header: helper.h
 # Automatically generated using Clang.jl
 
 

@@ -1,7 +1,8 @@
 module CImGui
 
 using CSyntax
-using CSyntax.CEnum: Cenum, enum_names, enum_values
+using CSyntax.CEnum
+using CSyntax.CEnum: Cenum, name_value_pairs
 
 include("LibCImGui.jl")
 using .LibCImGui

@@ -36,7 +36,7 @@ for trans_unit in ctx.trans_units
         wrap!(ctx, child)
     end
     @info "writing $(api_file)"
-    println(api_stream, "# Julia wrapper for header: $header")
+    println(api_stream, "# Julia wrapper for header: $(basename(header))")
     println(api_stream, "# Automatically generated using Clang.jl\n")
     print_buffer(api_stream, ctx.api_buffer)
     empty!(ctx.api_buffer)  # clean up api_buffer for the next header

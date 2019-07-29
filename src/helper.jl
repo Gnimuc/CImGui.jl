@@ -7,33 +7,19 @@ Base.convert(::Type{ImVec4}, x::ImU32) = ColorConvertU32ToFloat4(x)
 Base.convert(::Type{ImU32}, x::ImVec4) = ColorConvertFloat4ToU32(x)
 
 # TODO: put these in CEnum.jl
-Base.:|(a::T, b::Integer) where {T<:Cenum{UInt32}} = UInt32(a) | UInt32(b)
-Base.:|(a::Integer, b::T) where {T<:Cenum{UInt32}} = UInt32(b) | UInt32(a)
-
-Base.:&(a::T, b::Integer) where {T<:Cenum{UInt32}} = UInt32(a) & UInt32(b)
-Base.:&(a::Integer, b::T) where {T<:Cenum{UInt32}} = UInt32(b) & UInt32(a)
-
-Base.:⊻(a::T, b::T) where {T<:Cenum{UInt32}} = UInt32(a) ⊻ UInt32(b)
-Base.:⊻(a::T, b::UInt32) where {T<:Cenum{UInt32}} = UInt32(a) ⊻ b
-Base.:⊻(a::UInt32, b::T) where {T<:Cenum{UInt32}} = b ⊻ a
-
 Base.:~(x::Cenum{UInt32}) = ~UInt32(x)
-
-Base.:⊻(a::T, b::Integer) where {T<:Cenum{UInt32}} = UInt32(a) ⊻ UInt32(b)
-Base.:⊻(a::Integer, b::T) where {T<:Cenum{UInt32}} = UInt32(b) ⊻ UInt32(a)
-
 Base.:(:)(a::T, b::Cenum) where {T<:Integer} = a:T(b)
 Base.:(:)(a::Cenum, b::T) where {T<:Integer} = T(a):b
 
 function ShowFlags(::Type{T}) where {T<:Cenum}
     io = IOBuffer()
     s = "```\n"
-    for (n,v) in zip(enum_names(T), enum_values(T))
+    for (n,v) in name_value_pairs(T)
         s *= string(n)*" $v \n"
     end
     s*"\n```"
 end
-GetFlags(::Type{T}) where {T<:Cenum} = zip(enum_names(T), enum_values(T)) |> collect
+GetFlags(::Type{T}) where {T<:Cenum} = name_value_pairs(T) |> collect
 
 # simple unsafe destruction helper
 function UnsafeGetPtr(x::Ptr{T}, name::Symbol) where {T}

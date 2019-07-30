@@ -11,6 +11,7 @@ Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 ModernGL = "66fc600b-dfda-50eb-8b99-91cfa97b1301"
 
 [compat]
+GLFW = "~2.3"
 CSyntax = ">= 0.2.0"
 BinaryProvider = ">= 0.3.0"
 julia = "1.0"

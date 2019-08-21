@@ -1,7 +1,7 @@
 name = "CImGui"
 uuid = "5d785b6c-b76f-510e-a07c-3070796c7e87"
 authors = ["Gnimuc <qiyupei@gmail.com>"]
-version = "1.69.2"
+version = "1.69.3"
 
 [deps]
 BinaryProvider = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
@@ -11,10 +11,10 @@ Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 ModernGL = "66fc600b-dfda-50eb-8b99-91cfa97b1301"
 
 [compat]
-GLFW = "~2.3"
+GLFW = "^3"
 CSyntax = ">= 0.2.0"
 BinaryProvider = ">= 0.3.0"
-julia = "1.0"
+julia = "^1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

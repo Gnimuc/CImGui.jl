@@ -142,7 +142,7 @@ function ImGui_ImplGlfw_NewFrame(window::Union{GLFW.Window,Nothing}=nothing)
     io.DisplayFramebufferScale = ImVec2(w_scale, h_scale)
 
     # setup time step
-    current_time = ccall((:glfwGetTime, GLFW.lib), Cdouble, ())
+    current_time = ccall((:glfwGetTime, GLFW.libglfw), Cdouble, ())
     io.DeltaTime = g_Time > 0.0 ? Cfloat(current_time - g_Time) : Cfloat(1.0/60.0)
     g_Time = current_time
 

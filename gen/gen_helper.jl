@@ -6,7 +6,7 @@ const HELPER_H = joinpath(@__DIR__, "..", "deps", "usr", "include", "helper.h") 
 ctx = DefaultContext()
 
 # parse headers
-parse_headers!(ctx, [HELPER_H], includes=[LLVM_INCLUDE])
+parse_headers!(ctx, [HELPER_H], args=map(x->"-I"*x, find_std_headers()), includes=[LLVM_INCLUDE])
 
 # settings
 ctx.libname = "libcimgui_helper"

@@ -19,6 +19,17 @@ struct ImColor_Simple
     Value::ImVec4_Simple
 end
 
+const ImGuiID = UInt32
+
+struct ImGuiStoragePair
+    key::ImGuiID
+end
+
+struct ImGuiTextRange
+    b::Cstring
+    e::Cstring
+end
+
 struct ImVec2
     x::Cfloat
     y::Cfloat
@@ -66,10 +77,10 @@ struct ImVector_ImFontPtr{ImFont_}
     Data::Ptr{Ptr{ImFont_}}
 end
 
-struct ImVector_CustomRect{CustomRect_}
+struct ImVector_ImFontAtlasCustomRect{_ImFontAtlasCustomRect}
     Size::Cint
     Capacity::Cint
-    Data::Ptr{CustomRect_}
+    Data::Ptr{_ImFontAtlasCustomRect}
 end
 
 struct ImFontConfig{ImFont_}
@@ -112,7 +123,7 @@ struct ImFontAtlas
     TexUvScale::ImVec2
     TexUvWhitePixel::ImVec2
     Fonts::ImVector_ImFontPtr
-    CustomRects::ImVector_CustomRect
+    CustomRects::ImVector_ImFontAtlasCustomRect
     ConfigData::ImVector_ImFontConfig
     CustomRectIds::NTuple{1, Cint}
 end
@@ -136,7 +147,7 @@ struct ImFont
     DirtyLookupTables::Bool
 end
 
-struct CustomRect
+struct ImFontAtlasCustomRect
     ID::UInt32
     Width::UInt16
     Height::UInt16
@@ -147,17 +158,6 @@ struct CustomRect
     Font::Ptr{ImFont}
 end
 
-const ImGuiID = UInt32
-
-struct Pair
-    key::ImGuiID
-end
-
-struct TextRange
-    b::Cstring
-    e::Cstring
-end
-
 struct ImVec4
     x::Cfloat
     y::Cfloat
@@ -165,15 +165,15 @@ struct ImVec4
     w::Cfloat
 end
 
-struct ImVector_TextRange
+struct ImVector_ImGuiTextRange
     Size::Cint
     Capacity::Cint
-    Data::Ptr{TextRange}
+    Data::Ptr{ImGuiTextRange}
 end
 
 struct ImGuiTextFilter
     InputBuf::NTuple{256, UInt8}
-    Filters::ImVector_TextRange
+    Filters::ImVector_ImGuiTextRange
     CountGrep::Cint
 end
 
@@ -187,6 +187,8 @@ struct ImGuiTextBuffer
     Buf::ImVector_char
 end
 
+const ImGuiDir = Cint
+
 struct ImGuiStyle
     Alpha::Cfloat
     WindowPadding::ImVec2
@@ -194,6 +196,7 @@ struct ImGuiStyle
     WindowBorderSize::Cfloat
     WindowMinSize::ImVec2
     WindowTitleAlign::ImVec2
+    WindowMenuButtonPosition::ImGuiDir
     ChildRounding::Cfloat
     ChildBorderSize::Cfloat
     PopupRounding::Cfloat
@@ -212,6 +215,7 @@ struct ImGuiStyle
     GrabRounding::Cfloat
     TabRounding::Cfloat
     TabBorderSize::Cfloat
+    ColorButtonPosition::ImGuiDir
     ButtonTextAlign::ImVec2
     SelectableTextAlign::ImVec2
     DisplayWindowPadding::ImVec2
@@ -223,14 +227,14 @@ struct ImGuiStyle
     Colors::NTuple{48, ImVec4}
 end
 
-struct ImVector_Pair
+struct ImVector_ImGuiStoragePair
     Size::Cint
     Capacity::Cint
-    Data::Ptr{Pair}
+    Data::Ptr{ImGuiStoragePair}
 end
 
 struct ImGuiStorage
-    Data::ImVector_Pair
+    Data::ImVector_ImGuiStoragePair
 end
 
 struct ImGuiSizeCallbackData
@@ -296,7 +300,7 @@ struct ImGuiIO
     MouseDoubleClickTime::Cfloat
     MouseDoubleClickMaxDist::Cfloat
     MouseDragThreshold::Cfloat
-    KeyMap::NTuple{21, Cint}
+    KeyMap::NTuple{22, Cint}
     KeyRepeatDelay::Cfloat
     KeyRepeatRate::Cfloat
     UserData::Ptr{Cvoid}
@@ -352,6 +356,7 @@ struct ImGuiIO
     MouseDoubleClicked::NTuple{5, Bool}
     MouseReleased::NTuple{5, Bool}
     MouseDownOwned::NTuple{5, Bool}
+    MouseDownWasDoubleClick::NTuple{5, Bool}
     MouseDownDuration::NTuple{5, Cfloat}
     MouseDownDurationPrev::NTuple{5, Cfloat}
     MouseDragMaxDistanceAbs::NTuple{5, ImVec2}
@@ -369,17 +374,17 @@ struct ImColor
     Value::ImVec4
 end
 
-struct ImVector_int
+const ImU32 = UInt32
+
+struct ImVector_ImU32
     Size::Cint
     Capacity::Cint
-    Data::Ptr{Cint}
+    Data::Ptr{ImU32}
 end
 
 struct ImFontGlyphRangesBuilder
-    UsedChars::ImVector_int
+    UsedChars::ImVector_ImU32
 end
-
-const ImU32 = UInt32
 
 struct ImDrawVert
     pos::ImVec2
@@ -387,13 +392,14 @@ struct ImDrawVert
     col::ImU32
 end
 
-const ImDrawListSharedData = Cvoid
 const ImDrawCallback = Ptr{Cvoid}
 
 struct ImDrawCmd
     ElemCount::UInt32
     ClipRect::ImVec4
     TextureId::ImTextureID
+    VtxOffset::UInt32
+    IdxOffset::UInt32
     UserCallback::ImDrawCallback
     UserCallbackData::Ptr{Cvoid}
 end
@@ -411,6 +417,25 @@ struct ImVector_ImDrawIdx
     Capacity::Cint
     Data::Ptr{ImDrawIdx}
 end
+
+struct ImDrawChannel
+    _CmdBuffer::ImVector_ImDrawCmd
+    _IdxBuffer::ImVector_ImDrawIdx
+end
+
+struct ImVector_ImDrawChannel
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImDrawChannel}
+end
+
+struct ImDrawListSplitter
+    _Current::Cint
+    _Count::Cint
+    _Channels::ImVector_ImDrawChannel
+end
+
+const ImDrawListSharedData = Cvoid
 
 struct ImVector_ImDrawVert
     Size::Cint
@@ -438,17 +463,6 @@ struct ImVector_ImVec2
     Data::Ptr{ImVec2}
 end
 
-struct ImDrawChannel
-    CmdBuffer::ImVector_ImDrawCmd
-    IdxBuffer::ImVector_ImDrawIdx
-end
-
-struct ImVector_ImDrawChannel
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImDrawChannel}
-end
-
 struct ImDrawList
     CmdBuffer::ImVector_ImDrawCmd
     IdxBuffer::ImVector_ImDrawIdx
@@ -456,15 +470,14 @@ struct ImDrawList
     Flags::ImDrawListFlags
     _Data::Ptr{ImDrawListSharedData}
     _OwnerName::Cstring
+    _VtxCurrentOffset::UInt32
     _VtxCurrentIdx::UInt32
     _VtxWritePtr::Ptr{ImDrawVert}
     _IdxWritePtr::Ptr{ImDrawIdx}
     _ClipRectStack::ImVector_ImVec4
     _TextureIdStack::ImVector_ImTextureID
     _Path::ImVector_ImVec2
-    _ChannelsCurrent::Cint
-    _ChannelsCount::Cint
-    _Channels::ImVector_ImDrawChannel
+    _Splitter::ImDrawListSplitter
 end
 
 struct ImDrawData
@@ -481,13 +494,11 @@ end
 const ImGuiCol = Cint
 const ImGuiCond = Cint
 const ImGuiDataType = Cint
-const ImGuiDir = Cint
 const ImGuiNavInput = Cint
 const ImGuiMouseCursor = Cint
 const ImGuiStyleVar = Cint
 const ImDrawCornerFlags = Cint
 const ImGuiColorEditFlags = Cint
-const ImGuiColumnsFlags = Cint
 const ImGuiComboFlags = Cint
 const ImGuiDragDropFlags = Cint
 const ImGuiFocusedFlags = Cint
@@ -568,6 +579,7 @@ end
     ImGuiInputTextFlags_CharsScientific = 131072
     ImGuiInputTextFlags_CallbackResize = 262144
     ImGuiInputTextFlags_Multiline = 1048576
+    ImGuiInputTextFlags_NoMarkEdited = 2097152
 end
 
 @cenum ImGuiTreeNodeFlags_::UInt32 begin
@@ -703,13 +715,14 @@ end
     ImGuiKey_Space = 12
     ImGuiKey_Enter = 13
     ImGuiKey_Escape = 14
-    ImGuiKey_A = 15
-    ImGuiKey_C = 16
-    ImGuiKey_V = 17
-    ImGuiKey_X = 18
-    ImGuiKey_Y = 19
-    ImGuiKey_Z = 20
-    ImGuiKey_COUNT = 21
+    ImGuiKey_KeyPadEnter = 15
+    ImGuiKey_A = 16
+    ImGuiKey_C = 17
+    ImGuiKey_V = 18
+    ImGuiKey_X = 19
+    ImGuiKey_Y = 20
+    ImGuiKey_Z = 21
+    ImGuiKey_COUNT = 22
 end
 
 @cenum ImGuiNavInput_::UInt32 begin
@@ -756,6 +769,7 @@ end
     ImGuiBackendFlags_HasGamepad = 1
     ImGuiBackendFlags_HasMouseCursors = 2
     ImGuiBackendFlags_HasSetMousePos = 4
+    ImGuiBackendFlags_RendererHasVtxOffset = 8
 end
 
 @cenum ImGuiCol_::UInt32 begin
@@ -889,6 +903,7 @@ end
 end
 
 @cenum ImDrawCornerFlags_::UInt32 begin
+    ImDrawCornerFlags_None = 0
     ImDrawCornerFlags_TopLeft = 1
     ImDrawCornerFlags_TopRight = 2
     ImDrawCornerFlags_BotLeft = 4
@@ -904,6 +919,7 @@ end
     ImDrawListFlags_None = 0
     ImDrawListFlags_AntiAliasedLines = 1
     ImDrawListFlags_AntiAliasedFill = 2
+    ImDrawListFlags_AllowVtxOffset = 4
 end
 
 @cenum ImFontAtlasFlags_::UInt32 begin

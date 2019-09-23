@@ -77,10 +77,10 @@ struct ImVector_ImFontPtr{ImFont_}
     Data::Ptr{Ptr{ImFont_}}
 end
 
-struct ImVector_CustomRect{CustomRect_}
+struct ImVector_ImFontAtlasCustomRect{_ImFontAtlasCustomRect}
     Size::Cint
     Capacity::Cint
-    Data::Ptr{CustomRect_}
+    Data::Ptr{_ImFontAtlasCustomRect}
 end
 
 struct ImFontConfig{ImFont_}

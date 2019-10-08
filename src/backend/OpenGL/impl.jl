@@ -19,6 +19,7 @@
 function ImGui_ImplOpenGL3_Init(glsl_version::Integer=130)
     io = GetIO()
     io.BackendRendererName = "imgui_impl_opengl3"
+    io.BackendFlags = io.BackendFlags | ImGuiBackendFlags_RendererHasVtxOffset;
     global g_GlslVersion = glsl_version
     return true
 end
@@ -159,7 +160,7 @@ function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
                     # bind texture, draw
                     glBindTexture(GL_TEXTURE_2D, UInt(pcmd.TextureId))
                     format = sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT
-                    glDrawElements(GL_TRIANGLES, GLsizei(elem_count), format, Ptr{Cvoid}(idx_buffer_offset))
+                    glDrawElements(GL_TRIANGLES, GLsizei(elem_count), format, Ptr{Cvoid}(idx_buffer_offset * sizeof(ImDrawIdx)))
                 end
             end
             idx_buffer_offset += elem_count * sizeof(ImDrawIdx)

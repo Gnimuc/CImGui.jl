@@ -1742,44 +1742,44 @@ function ImDrawList_GetClipRectMax(self)
     ccall((:ImDrawList_GetClipRectMax, libcimgui), ImVec2, (Ptr{ImDrawList},), self)
 end
 
-function ImDrawList_AddLine(self, a, b, col, thickness)
-    ccall((:ImDrawList_AddLine, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImVec2, ImU32, Cfloat), self, a, b, col, thickness)
+function ImDrawList_AddLine(self, p1, p2, col, thickness)
+    ccall((:ImDrawList_AddLine, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImVec2, ImU32, Cfloat), self, p1, p2, col, thickness)
 end
 
-function ImDrawList_AddRect(self, a, b, col, rounding, rounding_corners, thickness)
-    ccall((:ImDrawList_AddRect, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImVec2, ImU32, Cfloat, ImDrawCornerFlags, Cfloat), self, a, b, col, rounding, rounding_corners, thickness)
+function ImDrawList_AddRect(self, p_min, p_max, col, rounding, rounding_corners, thickness)
+    ccall((:ImDrawList_AddRect, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImVec2, ImU32, Cfloat, ImDrawCornerFlags, Cfloat), self, p_min, p_max, col, rounding, rounding_corners, thickness)
 end
 
-function ImDrawList_AddRectFilled(self, a, b, col, rounding, rounding_corners)
-    ccall((:ImDrawList_AddRectFilled, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImVec2, ImU32, Cfloat, ImDrawCornerFlags), self, a, b, col, rounding, rounding_corners)
+function ImDrawList_AddRectFilled(self, p_min, p_max, col, rounding, rounding_corners)
+    ccall((:ImDrawList_AddRectFilled, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImVec2, ImU32, Cfloat, ImDrawCornerFlags), self, p_min, p_max, col, rounding, rounding_corners)
 end
 
-function ImDrawList_AddRectFilledMultiColor(self, a, b, col_upr_left, col_upr_right, col_bot_right, col_bot_left)
-    ccall((:ImDrawList_AddRectFilledMultiColor, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImVec2, ImU32, ImU32, ImU32, ImU32), self, a, b, col_upr_left, col_upr_right, col_bot_right, col_bot_left)
+function ImDrawList_AddRectFilledMultiColor(self, p_min, p_max, col_upr_left, col_upr_right, col_bot_right, col_bot_left)
+    ccall((:ImDrawList_AddRectFilledMultiColor, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImVec2, ImU32, ImU32, ImU32, ImU32), self, p_min, p_max, col_upr_left, col_upr_right, col_bot_right, col_bot_left)
 end
 
-function ImDrawList_AddQuad(self, a, b, c, d, col, thickness)
-    ccall((:ImDrawList_AddQuad, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImVec2, ImVec2, ImVec2, ImU32, Cfloat), self, a, b, c, d, col, thickness)
+function ImDrawList_AddQuad(self, p1, p2, p3, p4, col, thickness)
+    ccall((:ImDrawList_AddQuad, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImVec2, ImVec2, ImVec2, ImU32, Cfloat), self, p1, p2, p3, p4, col, thickness)
 end
 
-function ImDrawList_AddQuadFilled(self, a, b, c, d, col)
-    ccall((:ImDrawList_AddQuadFilled, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImVec2, ImVec2, ImVec2, ImU32), self, a, b, c, d, col)
+function ImDrawList_AddQuadFilled(self, p1, p2, p3, p4, col)
+    ccall((:ImDrawList_AddQuadFilled, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImVec2, ImVec2, ImVec2, ImU32), self, p1, p2, p3, p4, col)
 end
 
-function ImDrawList_AddTriangle(self, a, b, c, col, thickness)
-    ccall((:ImDrawList_AddTriangle, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImVec2, ImVec2, ImU32, Cfloat), self, a, b, c, col, thickness)
+function ImDrawList_AddTriangle(self, p1, p2, p3, col, thickness)
+    ccall((:ImDrawList_AddTriangle, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImVec2, ImVec2, ImU32, Cfloat), self, p1, p2, p3, col, thickness)
 end
 
-function ImDrawList_AddTriangleFilled(self, a, b, c, col)
-    ccall((:ImDrawList_AddTriangleFilled, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImVec2, ImVec2, ImU32), self, a, b, c, col)
+function ImDrawList_AddTriangleFilled(self, p1, p2, p3, col)
+    ccall((:ImDrawList_AddTriangleFilled, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImVec2, ImVec2, ImU32), self, p1, p2, p3, col)
 end
 
-function ImDrawList_AddCircle(self, centre, radius, col, num_segments, thickness)
-    ccall((:ImDrawList_AddCircle, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, Cfloat, ImU32, Cint, Cfloat), self, centre, radius, col, num_segments, thickness)
+function ImDrawList_AddCircle(self, center, radius, col, num_segments, thickness)
+    ccall((:ImDrawList_AddCircle, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, Cfloat, ImU32, Cint, Cfloat), self, center, radius, col, num_segments, thickness)
 end
 
-function ImDrawList_AddCircleFilled(self, centre, radius, col, num_segments)
-    ccall((:ImDrawList_AddCircleFilled, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, Cfloat, ImU32, Cint), self, centre, radius, col, num_segments)
+function ImDrawList_AddCircleFilled(self, center, radius, col, num_segments)
+    ccall((:ImDrawList_AddCircleFilled, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, Cfloat, ImU32, Cint), self, center, radius, col, num_segments)
 end
 
 function ImDrawList_AddText(self, pos, col, text_begin, text_end)
@@ -1788,18 +1788,6 @@ end
 
 function ImDrawList_AddTextFontPtr(self, font, font_size, pos, col, text_begin, text_end, wrap_width, cpu_fine_clip_rect)
     ccall((:ImDrawList_AddTextFontPtr, libcimgui), Cvoid, (Ptr{ImDrawList}, Ptr{ImFont}, Cfloat, ImVec2, ImU32, Cstring, Cstring, Cfloat, Ptr{ImVec4}), self, font, font_size, pos, col, text_begin, text_end, wrap_width, cpu_fine_clip_rect)
-end
-
-function ImDrawList_AddImage(self, user_texture_id, a, b, uv_a, uv_b, col)
-    ccall((:ImDrawList_AddImage, libcimgui), Cvoid, (Ptr{ImDrawList}, ImTextureID, ImVec2, ImVec2, ImVec2, ImVec2, ImU32), self, user_texture_id, a, b, uv_a, uv_b, col)
-end
-
-function ImDrawList_AddImageQuad(self, user_texture_id, a, b, c, d, uv_a, uv_b, uv_c, uv_d, col)
-    ccall((:ImDrawList_AddImageQuad, libcimgui), Cvoid, (Ptr{ImDrawList}, ImTextureID, ImVec2, ImVec2, ImVec2, ImVec2, ImVec2, ImVec2, ImVec2, ImVec2, ImU32), self, user_texture_id, a, b, c, d, uv_a, uv_b, uv_c, uv_d, col)
-end
-
-function ImDrawList_AddImageRounded(self, user_texture_id, a, b, uv_a, uv_b, col, rounding, rounding_corners)
-    ccall((:ImDrawList_AddImageRounded, libcimgui), Cvoid, (Ptr{ImDrawList}, ImTextureID, ImVec2, ImVec2, ImVec2, ImVec2, ImU32, Cfloat, ImDrawCornerFlags), self, user_texture_id, a, b, uv_a, uv_b, col, rounding, rounding_corners)
 end
 
 function ImDrawList_AddPolyline(self, points, num_points, col, closed, thickness)
@@ -1812,6 +1800,18 @@ end
 
 function ImDrawList_AddBezierCurve(self, pos0, cp0, cp1, pos1, col, thickness, num_segments)
     ccall((:ImDrawList_AddBezierCurve, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImVec2, ImVec2, ImVec2, ImU32, Cfloat, Cint), self, pos0, cp0, cp1, pos1, col, thickness, num_segments)
+end
+
+function ImDrawList_AddImage(self, user_texture_id, p_min, p_max, uv_min, uv_max, col)
+    ccall((:ImDrawList_AddImage, libcimgui), Cvoid, (Ptr{ImDrawList}, ImTextureID, ImVec2, ImVec2, ImVec2, ImVec2, ImU32), self, user_texture_id, p_min, p_max, uv_min, uv_max, col)
+end
+
+function ImDrawList_AddImageQuad(self, user_texture_id, p1, p2, p3, p4, uv1, uv2, uv3, uv4, col)
+    ccall((:ImDrawList_AddImageQuad, libcimgui), Cvoid, (Ptr{ImDrawList}, ImTextureID, ImVec2, ImVec2, ImVec2, ImVec2, ImVec2, ImVec2, ImVec2, ImVec2, ImU32), self, user_texture_id, p1, p2, p3, p4, uv1, uv2, uv3, uv4, col)
+end
+
+function ImDrawList_AddImageRounded(self, user_texture_id, p_min, p_max, uv_min, uv_max, col, rounding, rounding_corners)
+    ccall((:ImDrawList_AddImageRounded, libcimgui), Cvoid, (Ptr{ImDrawList}, ImTextureID, ImVec2, ImVec2, ImVec2, ImVec2, ImU32, Cfloat, ImDrawCornerFlags), self, user_texture_id, p_min, p_max, uv_min, uv_max, col, rounding, rounding_corners)
 end
 
 function ImDrawList_PathClear(self)
@@ -1834,12 +1834,12 @@ function ImDrawList_PathStroke(self, col, closed, thickness)
     ccall((:ImDrawList_PathStroke, libcimgui), Cvoid, (Ptr{ImDrawList}, ImU32, Bool, Cfloat), self, col, closed, thickness)
 end
 
-function ImDrawList_PathArcTo(self, centre, radius, a_min, a_max, num_segments)
-    ccall((:ImDrawList_PathArcTo, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, Cfloat, Cfloat, Cfloat, Cint), self, centre, radius, a_min, a_max, num_segments)
+function ImDrawList_PathArcTo(self, center, radius, a_min, a_max, num_segments)
+    ccall((:ImDrawList_PathArcTo, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, Cfloat, Cfloat, Cfloat, Cint), self, center, radius, a_min, a_max, num_segments)
 end
 
-function ImDrawList_PathArcToFast(self, centre, radius, a_min_of_12, a_max_of_12)
-    ccall((:ImDrawList_PathArcToFast, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, Cfloat, Cint, Cint), self, centre, radius, a_min_of_12, a_max_of_12)
+function ImDrawList_PathArcToFast(self, center, radius, a_min_of_12, a_max_of_12)
+    ccall((:ImDrawList_PathArcToFast, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, Cfloat, Cint, Cint), self, center, radius, a_min_of_12, a_max_of_12)
 end
 
 function ImDrawList_PathBezierCurveTo(self, p1, p2, p3, num_segments)

@@ -19,6 +19,7 @@
 function ImGui_ImplOpenGL3_Init(glsl_version::Integer=130)
     io = GetIO()
     io.BackendRendererName = "imgui_impl_opengl3"
+    io.BackendFlags = io.BackendFlags | ImGuiBackendFlags_RendererHasVtxOffset
     global g_GlslVersion = glsl_version
     return true
 end
@@ -117,7 +118,6 @@ function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
 
     # render command lists
     for n = 0:draw_data.CmdListsCount-1
-        idx_buffer_offset = Csize_t(0)
         cmd_list = ImDrawData_Get_CmdLists(draw_data, n)
         vtx_buffer = ImDrawList_Get_VtxBuffer(cmd_list)
         idx_buffer = ImDrawList_Get_IdxBuffer(cmd_list)
@@ -159,10 +159,9 @@ function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
                     # bind texture, draw
                     glBindTexture(GL_TEXTURE_2D, UInt(pcmd.TextureId))
                     format = sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT
-                    glDrawElements(GL_TRIANGLES, GLsizei(elem_count), format, Ptr{Cvoid}(idx_buffer_offset))
+                    glDrawElementsBaseVertex(GL_TRIANGLES, GLsizei(elem_count), format, Ptr{Cvoid}(pcmd.IdxOffset * sizeof(ImDrawIdx)), GLint(pcmd.VtxOffset))
                 end
             end
-            idx_buffer_offset += elem_count * sizeof(ImDrawIdx)
         end
     end
     @c glDeleteVertexArrays(1, &vao_handle)

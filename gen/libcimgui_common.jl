@@ -100,6 +100,7 @@ struct ImFontConfig{ImFont_}
     MergeMode::Bool
     RasterizerFlags::UInt32
     RasterizerMultiply::Cfloat
+    EllipsisChar::ImWchar
     Name::NTuple{40, UInt8}
     DstFont::Ptr{ImFont_}
 end
@@ -140,6 +141,7 @@ struct ImFont
     ConfigData::Ptr{ImFontConfig}
     ConfigDataCount::Int16
     FallbackChar::ImWchar
+    EllipsisChar::ImWchar
     Scale::Cfloat
     Ascent::Cfloat
     Descent::Cfloat
@@ -314,6 +316,7 @@ struct ImGuiIO
     ConfigInputTextCursorBlink::Bool
     ConfigWindowsResizeFromEdges::Bool
     ConfigWindowsMoveFromTitleBarOnly::Bool
+    ConfigWindowsMemoryCompactTimer::Cfloat
     BackendPlatformName::Cstring
     BackendRendererName::Cstring
     BackendPlatformUserData::Ptr{Cvoid}
@@ -595,6 +598,8 @@ end
     ImGuiTreeNodeFlags_Leaf = 256
     ImGuiTreeNodeFlags_Bullet = 512
     ImGuiTreeNodeFlags_FramePadding = 1024
+    ImGuiTreeNodeFlags_SpanAvailWidth = 2048
+    ImGuiTreeNodeFlags_SpanFullWidth = 4096
     ImGuiTreeNodeFlags_NavLeftJumpsBackHere = 8192
     ImGuiTreeNodeFlags_CollapsingHeader = 26
 end
@@ -605,6 +610,7 @@ end
     ImGuiSelectableFlags_SpanAllColumns = 2
     ImGuiSelectableFlags_AllowDoubleClick = 4
     ImGuiSelectableFlags_Disabled = 8
+    ImGuiSelectableFlags_AllowItemOverlap = 16
 end
 
 @cenum ImGuiComboFlags_::UInt32 begin

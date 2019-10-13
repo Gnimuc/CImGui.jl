@@ -902,6 +902,14 @@ function ImDrawCmd_Get_TextureId(cmd)
     ccall((:ImDrawCmd_Get_TextureId, libcimgui_helper), ImTextureID, (Ptr{ImDrawCmd},), cmd)
 end
 
+function ImDrawCmd_Get_VtxOffset(cmd)
+    ccall((:ImDrawCmd_Get_VtxOffset, libcimgui_helper), UInt32, (Ptr{ImDrawCmd},), cmd)
+end
+
+function ImDrawCmd_Get_IdxOffset(cmd)
+    ccall((:ImDrawCmd_Get_IdxOffset, libcimgui_helper), UInt32, (Ptr{ImDrawCmd},), cmd)
+end
+
 function ImDrawCmd_Get_UserCallback(cmd)
     ccall((:ImDrawCmd_Get_UserCallback, libcimgui_helper), ImDrawCallback, (Ptr{ImDrawCmd},), cmd)
 end

@@ -226,6 +226,7 @@ function Base.getproperty(data::Ptr{ImDrawData}, x::Symbol)
     x == :DisplayPos && return ImDrawData_Get_DisplayPos(data)
     x == :DisplaySize && return ImDrawData_Get_DisplaySize(data)
     x == :FramebufferScale && return ImDrawData_Get_FramebufferScale(data)
+    throw(ArgumentError("field $x is not supported to be used like this, please use `Get_$x` instead."))
 end
 
 # emulate cmd.xxx
@@ -233,8 +234,11 @@ function Base.getproperty(cmd::Ptr{ImDrawCmd}, x::Symbol)
     x == :ElemCount && return ImDrawCmd_Get_ElemCount(cmd)
     x == :ClipRect && return ImDrawCmd_Get_ClipRect(cmd)
     x == :TextureId && return ImDrawCmd_Get_TextureId(cmd)
+    x == :VtxOffset && return ImDrawCmd_Get_VtxOffset(cmd)
+    x == :IdxOffset && return ImDrawCmd_Get_IdxOffset(cmd)
     x == :UserCallback && return ImDrawCmd_Get_UserCallback(cmd)
     x == :UserCallbackData && return ImDrawCmd_Get_UserCallbackData(cmd)
+    throw(ArgumentError("field $x is not supported to be used like this, please use `Get_$x` instead."))
 end
 
 # emulate io.Fonts->.xxx

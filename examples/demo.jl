@@ -66,43 +66,44 @@ image_id = ImGui_ImplOpenGL3_CreateImageTexture(img_width, img_height)
 ImGui_ImplGlfw_InitForOpenGL(window, true)
 ImGui_ImplOpenGL3_Init(glsl_version)
 
-demo_open = true
-clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
-while !GLFW.WindowShouldClose(window)
-    global demo_open # oh my global scope
-    global image_id, img_width, img_height
+try
+    demo_open = true
+    clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
+    while !GLFW.WindowShouldClose(window)
+        GLFW.PollEvents()
+        # start the Dear ImGui frame
+        ImGui_ImplOpenGL3_NewFrame()
+        ImGui_ImplGlfw_NewFrame()
+        CImGui.NewFrame()
 
-    GLFW.PollEvents()
-    # start the Dear ImGui frame
-    ImGui_ImplOpenGL3_NewFrame()
-    ImGui_ImplGlfw_NewFrame()
-    CImGui.NewFrame()
+        demo_open && @c ShowDemoWindow(&demo_open)
 
-    demo_open && @c ShowDemoWindow(&demo_open)
+        # show image example
+        CImGui.Begin("Image Demo")
+        image = rand(GLubyte, 4, img_width, img_height)
+        ImGui_ImplOpenGL3_UpdateImageTexture(image_id, image, img_width, img_height)
+        CImGui.Image(Ptr{Cvoid}(image_id), (img_width, img_height))
+        CImGui.End()
 
-    # show image example
-    CImGui.Begin("Image Demo")
-    image = rand(GLubyte, 4, img_width, img_height)
-    ImGui_ImplOpenGL3_UpdateImageTexture(image_id, image, img_width, img_height)
-    CImGui.Image(Ptr{Cvoid}(image_id), (img_width, img_height))
-    CImGui.End()
+        # rendering
+        CImGui.Render()
+        GLFW.MakeContextCurrent(window)
+        display_w, display_h = GLFW.GetFramebufferSize(window)
+        glViewport(0, 0, display_w, display_h)
+        glClearColor(clear_color...)
+        glClear(GL_COLOR_BUFFER_BIT)
+        ImGui_ImplOpenGL3_RenderDrawData(CImGui.GetDrawData())
 
-    # rendering
-    CImGui.Render()
-    GLFW.MakeContextCurrent(window)
-    display_w, display_h = GLFW.GetFramebufferSize(window)
-    glViewport(0, 0, display_w, display_h)
-    glClearColor(clear_color...)
-    glClear(GL_COLOR_BUFFER_BIT)
-    ImGui_ImplOpenGL3_RenderDrawData(CImGui.GetDrawData())
-
-    GLFW.MakeContextCurrent(window)
-    GLFW.SwapBuffers(window)
+        GLFW.MakeContextCurrent(window)
+        GLFW.SwapBuffers(window)
+    end
+catch e
+    @error "Error in renderloop!" exception=e
+    Base.show_backtrace(stderr, catch_backtrace())
+finally
+    ImGui_ImplOpenGL3_Shutdown()
+    ImGui_ImplGlfw_Shutdown()
+    CImGui.DestroyContext(ctx)
+    GLFW.HideWindow(window)
+    GLFW.DestroyWindow(window)
 end
-
-# cleanup
-ImGui_ImplOpenGL3_Shutdown()
-ImGui_ImplGlfw_Shutdown()
-CImGui.DestroyContext(ctx)
-
-GLFW.DestroyWindow(window)

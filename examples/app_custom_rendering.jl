@@ -1,8 +1,8 @@
 using CImGui
 using CImGui: ImVec2, ImVec4, IM_COL32, ImU32
-using CSyntax
-using CSyntax.CFor
-using CSyntax.CStatic
+using CImGui.CSyntax
+using CImGui.CSyntax.CFor
+using CImGui.CSyntax.CStatic
 
 
 """

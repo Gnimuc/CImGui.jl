@@ -61,67 +61,65 @@ CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Roboto-Medium.ttf"), 16)
 ImGui_ImplGlfw_InitForOpenGL(window, true)
 ImGui_ImplOpenGL3_Init(glsl_version)
 
-show_demo_window = true
-show_another_window = false
-clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
-while !GLFW.WindowShouldClose(window)
-    # oh my global scope
-    global show_demo_window
-    global show_another_window
-    global clear_color
+try
+    show_demo_window = true
+    show_another_window = false
+    clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
+    while !GLFW.WindowShouldClose(window)
+        GLFW.PollEvents()
+        # start the Dear ImGui frame
+        ImGui_ImplOpenGL3_NewFrame()
+        ImGui_ImplGlfw_NewFrame()
+        CImGui.NewFrame()
 
-    GLFW.PollEvents()
-    # start the Dear ImGui frame
-    ImGui_ImplOpenGL3_NewFrame()
-    ImGui_ImplGlfw_NewFrame()
-    CImGui.NewFrame()
+        # show the big demo window
+        show_demo_window && @c CImGui.ShowDemoWindow(&show_demo_window)
 
-    # show the big demo window
-    show_demo_window && @c CImGui.ShowDemoWindow(&show_demo_window)
+        # show a simple window that we create ourselves.
+        # we use a Begin/End pair to created a named window.
+        @cstatic f=Cfloat(0.0) counter=Cint(0) begin
+            CImGui.Begin("Hello, world!")  # create a window called "Hello, world!" and append into it.
+            CImGui.Text("This is some useful text.")  # display some text
+            @c CImGui.Checkbox("Demo Window", &show_demo_window)  # edit bools storing our window open/close state
+            @c CImGui.Checkbox("Another Window", &show_another_window)
 
-    # show a simple window that we create ourselves.
-    # we use a Begin/End pair to created a named window.
-    @cstatic f=Cfloat(0.0) counter=Cint(0) begin
-        CImGui.Begin("Hello, world!")  # create a window called "Hello, world!" and append into it.
-        CImGui.Text("This is some useful text.")  # display some text
-        @c CImGui.Checkbox("Demo Window", &show_demo_window)  # edit bools storing our window open/close state
-        @c CImGui.Checkbox("Another Window", &show_another_window)
+            @c CImGui.SliderFloat("float", &f, 0, 1)  # edit 1 float using a slider from 0 to 1
+            CImGui.ColorEdit3("clear color", clear_color)  # edit 3 floats representing a color
+            CImGui.Button("Button") && (counter += 1)
 
-        @c CImGui.SliderFloat("float", &f, 0, 1)  # edit 1 float using a slider from 0 to 1
-        CImGui.ColorEdit3("clear color", clear_color)  # edit 3 floats representing a color
-        CImGui.Button("Button") && (counter += 1)
+            CImGui.SameLine()
+            CImGui.Text("counter = $counter")
+            CImGui.Text(@sprintf("Application average %.3f ms/frame (%.1f FPS)", 1000 / CImGui.GetIO().Framerate, CImGui.GetIO().Framerate))
 
-        CImGui.SameLine()
-        CImGui.Text("counter = $counter")
-        CImGui.Text(@sprintf("Application average %.3f ms/frame (%.1f FPS)", 1000 / CImGui.GetIO().Framerate, CImGui.GetIO().Framerate))
+            CImGui.End()
+        end
 
-        CImGui.End()
+        # show another simple window.
+        if show_another_window
+            @c CImGui.Begin("Another Window", &show_another_window)  # pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+            CImGui.Text("Hello from another window!")
+            CImGui.Button("Close Me") && (show_another_window = false;)
+            CImGui.End()
+        end
+
+        # rendering
+        CImGui.Render()
+        GLFW.MakeContextCurrent(window)
+        display_w, display_h = GLFW.GetFramebufferSize(window)
+        glViewport(0, 0, display_w, display_h)
+        glClearColor(clear_color...)
+        glClear(GL_COLOR_BUFFER_BIT)
+        ImGui_ImplOpenGL3_RenderDrawData(CImGui.GetDrawData())
+
+        GLFW.MakeContextCurrent(window)
+        GLFW.SwapBuffers(window)
     end
-
-    # show another simple window.
-    if show_another_window
-        @c CImGui.Begin("Another Window", &show_another_window)  # pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        CImGui.Text("Hello from another window!")
-        CImGui.Button("Close Me") && (show_another_window = false;)
-        CImGui.End()
-    end
-
-    # rendering
-    CImGui.Render()
-    GLFW.MakeContextCurrent(window)
-    display_w, display_h = GLFW.GetFramebufferSize(window)
-    glViewport(0, 0, display_w, display_h)
-    glClearColor(clear_color...)
-    glClear(GL_COLOR_BUFFER_BIT)
-    ImGui_ImplOpenGL3_RenderDrawData(CImGui.GetDrawData())
-
-    GLFW.MakeContextCurrent(window)
-    GLFW.SwapBuffers(window)
+catch e
+    @error "Error in renderloop!" exception=e
+    Base.show_backtrace(stderr, catch_backtrace())
+finally
+    ImGui_ImplOpenGL3_Shutdown()
+    ImGui_ImplGlfw_Shutdown()
+    CImGui.DestroyContext(ctx)
+    GLFW.DestroyWindow(window)
 end
-
-# cleanup
-ImGui_ImplOpenGL3_Shutdown()
-ImGui_ImplGlfw_Shutdown()
-CImGui.DestroyContext(ctx)
-
-GLFW.DestroyWindow(window)

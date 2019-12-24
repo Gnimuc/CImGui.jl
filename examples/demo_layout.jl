@@ -91,10 +91,10 @@ function ShowDemoWindowLayout()
             @c CImGui.DragFloat("float##2", &f)
             CImGui.PopItemWidth()
 
-            CImGui.Text("PushItemWidth(GetContentRegionAvailWidth() * 0.5)")
+            CImGui.Text("PushItemWidth(GetContentRegionAvail().x * 0.5)")
             CImGui.SameLine()
             ShowHelpMarker("Half of available width.\n(~ right-cursor_pos)\n(works within a column set)")
-            CImGui.PushItemWidth(CImGui.GetContentRegionAvailWidth() * 0.5)
+            CImGui.PushItemWidth(CImGui.GetContentRegionAvail().x * 0.5)
             @c CImGui.DragFloat("float##3", &f)
             CImGui.PopItemWidth()
 

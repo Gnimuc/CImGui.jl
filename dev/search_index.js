@@ -773,7 +773,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API Reference",
     "title": "CImGui.Combo",
     "category": "function",
-    "text": "Combo(label, current_item, items_getter::Union{Ptr,Base.CFunction}, data, items_count, popup_max_height_in_items=-1) -> Bool\n\n\n\n\n\n"
+    "text": "Combo(label, current_item, items_separated_by_zeros, popup_max_height_in_items=-1) -> Bool\n\nSeparate items with   within a string, end item-list with   . e.g. One Two Three \n\n\n\n\n\n"
 },
 
 {
@@ -781,7 +781,7 @@ var documenterSearchIndex = {"docs": [
     "page": "API Reference",
     "title": "CImGui.Combo",
     "category": "function",
-    "text": "Combo(label, current_item, items_separated_by_zeros, popup_max_height_in_items=-1) -> Bool\n\nSeparate items with   within a string, end item-list with   . e.g. One Two Three \n\n\n\n\n\n"
+    "text": "Combo(label, current_item, items_getter::Union{Ptr,Base.CFunction}, data, items_count, popup_max_height_in_items=-1) -> Bool\n\n\n\n\n\n"
 },
 
 {

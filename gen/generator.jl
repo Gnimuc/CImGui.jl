@@ -1,6 +1,7 @@
 using Clang
+using CImGui_jll
 
-const CIMGUI_H = joinpath(@__DIR__, "..", "deps", "usr", "include", "cimgui.h") |> normpath
+const CIMGUI_H = joinpath(dirname(CImGui_jll.libcimgui_path), "..", "include", "cimgui.h") |> normpath
 
 # create a work context
 ctx = DefaultContext()

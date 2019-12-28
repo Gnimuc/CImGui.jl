@@ -337,7 +337,7 @@ struct ImGuiIO
     KeyAlt::Bool
     KeySuper::Bool
     KeysDown::NTuple{512, Bool}
-    NavInputs::NTuple{22, Cfloat}
+    NavInputs::NTuple{21, Cfloat}
     WantCaptureMouse::Bool
     WantCaptureKeyboard::Bool
     WantTextInput::Bool
@@ -366,8 +366,8 @@ struct ImGuiIO
     MouseDragMaxDistanceSqr::NTuple{5, Cfloat}
     KeysDownDuration::NTuple{512, Cfloat}
     KeysDownDurationPrev::NTuple{512, Cfloat}
-    NavInputsDownDuration::NTuple{22, Cfloat}
-    NavInputsDownDurationPrev::NTuple{22, Cfloat}
+    NavInputsDownDuration::NTuple{21, Cfloat}
+    NavInputsDownDurationPrev::NTuple{21, Cfloat}
     InputQueueCharacters::ImVector_ImWchar
 end
 
@@ -749,12 +749,11 @@ end
     ImGuiNavInput_TweakSlow = 14
     ImGuiNavInput_TweakFast = 15
     ImGuiNavInput_KeyMenu_ = 16
-    ImGuiNavInput_KeyTab_ = 17
-    ImGuiNavInput_KeyLeft_ = 18
-    ImGuiNavInput_KeyRight_ = 19
-    ImGuiNavInput_KeyUp_ = 20
-    ImGuiNavInput_KeyDown_ = 21
-    ImGuiNavInput_COUNT = 22
+    ImGuiNavInput_KeyLeft_ = 17
+    ImGuiNavInput_KeyRight_ = 18
+    ImGuiNavInput_KeyUp_ = 19
+    ImGuiNavInput_KeyDown_ = 20
+    ImGuiNavInput_COUNT = 21
     ImGuiNavInput_InternalStart_ = 16
 end
 

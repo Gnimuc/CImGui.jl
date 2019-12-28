@@ -1,17 +1,7 @@
 module LibCImGui
 
-import Libdl
-
-# Load in `deps.jl`, complaining if it does not exist
-const depsjl_path = joinpath(@__DIR__, "..", "deps", "deps.jl")
-if !isfile(depsjl_path)
-    error("CImGui was not build properly. Please run Pkg.build(\"CImGui\").")
-end
-include(depsjl_path)
-# Module initialization function
-function __init__()
-    check_deps()
-end
+using CImGui_jll
+export CImGui_jll
 
 using CSyntax.CEnum
 

@@ -13,5 +13,4 @@ makedocs(
 
 deploydocs(
     repo = "github.com/Gnimuc/CImGui.jl.git",
-    target = "build",
 )

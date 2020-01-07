@@ -14,20 +14,18 @@ export ImGui_ImplOpenGL3_CreateFontsTexture, ImGui_ImplOpenGL3_DestroyFontsTextu
 export ImGui_ImplOpenGL3_CreateDeviceObjects, ImGui_ImplOpenGL3_DestroyDeviceObjects
 export ImGui_ImplOpenGL3_CreateImageTexture, ImGui_ImplOpenGL3_UpdateImageTexture, ImGui_ImplOpenGL3_DestroyImageTexture
 
-function __init__()
-    global g_GlslVersion = 130
-    global g_FontTextures = GLuint[]
-    global g_ShaderHandle = GLuint(0)
-    global g_VertHandle = GLuint(0)
-    global g_FragHandle = GLuint(0)
-    global g_AttribLocationTex = GLint(0)
-    global g_AttribLocationProjMtx = GLint(0)
-    global g_AttribLocationPosition = GLint(0)
-    global g_AttribLocationUV = GLint(0)
-    global g_AttribLocationColor = GLint(0)
-    global g_VboHandle = GLuint(0)
-    global g_ElementsHandle = GLuint(0)
-    global g_ImageTexture = Dict{Int,GLuint}()
-end
+const g_GlslVersion = Ref(130)
+const g_FontTextures = GLuint[]
+const g_ShaderHandle = Ref(GLuint(0))
+const g_VertHandle = Ref(GLuint(0))
+const g_FragHandle = Ref(GLuint(0))
+const g_AttribLocationTex = Ref(GLint(0))
+const g_AttribLocationProjMtx = Ref(GLint(0))
+const g_AttribLocationPosition = Ref(GLint(0))
+const g_AttribLocationUV = Ref(GLint(0))
+const g_AttribLocationColor = Ref(GLint(0))
+const g_VboHandle = Ref(GLuint(0))
+const g_ElementsHandle = Ref(GLuint(0))
+const g_ImageTexture = Dict{Int,GLuint}()
 
 end # module

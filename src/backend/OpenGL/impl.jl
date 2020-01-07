@@ -20,7 +20,7 @@ function ImGui_ImplOpenGL3_Init(glsl_version::Integer=130)
     io = GetIO()
     io.BackendRendererName = "imgui_impl_opengl3"
     io.BackendFlags = io.BackendFlags | ImGuiBackendFlags_RendererHasVtxOffset
-    global g_GlslVersion = glsl_version
+    g_GlslVersion[] = glsl_version
     return true
 end
 
@@ -56,7 +56,7 @@ function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
     last_enable_depth_test = glIsEnabled(GL_DEPTH_TEST)
     last_enable_scissor_test = glIsEnabled(GL_SCISSOR_TEST)
     clip_origin_lower_left = true
-    # if g_GlslVersion > 450
+    # if g_GlslVersion[] > 450
     #     last_clip_origin = GLint(0)
     #     @c glGetIntegerv(GL_CLIP_ORIGIN, &last_clip_origin)
     #     last_clip_origin == GL_UPPER_LEFT && (clip_origin_lower_left = false;)
@@ -89,28 +89,26 @@ function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
                                0.0, 0.0, -1.0, 0.0,
                                (R+L)/(L-R), (T+B)/(B-T), 0.0, 1.0]
 
-    global g_ShaderHandle; global g_AttribLocationTex; global g_AttribLocationProjMtx;
-    glUseProgram(g_ShaderHandle);
-    glUniform1i(g_AttribLocationTex, 0);
-    glUniformMatrix4fv(g_AttribLocationProjMtx, 1, GL_FALSE, ortho_projection)
+    glUseProgram(g_ShaderHandle[]);
+    glUniform1i(g_AttribLocationTex[], 0);
+    glUniformMatrix4fv(g_AttribLocationProjMtx[], 1, GL_FALSE, ortho_projection)
     glBindSampler(0, 0)
 
     # recreate the VAO every time
-    global g_VboHandle
     vao_handle = GLuint(0)
     @c glGenVertexArrays(1, &vao_handle)
     glBindVertexArray(vao_handle)
-    glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle)
-    glEnableVertexAttribArray(g_AttribLocationPosition)
-    glEnableVertexAttribArray(g_AttribLocationUV)
-    glEnableVertexAttribArray(g_AttribLocationColor)
+    glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle[])
+    glEnableVertexAttribArray(g_AttribLocationPosition[])
+    glEnableVertexAttribArray(g_AttribLocationUV[])
+    glEnableVertexAttribArray(g_AttribLocationColor[])
     idv_size = sizeof(ImDrawVert)
     pos_offset = fieldoffset(ImDrawVert, 1)
     uv_offset = fieldoffset(ImDrawVert, 2)
     col_offset = fieldoffset(ImDrawVert, 3)
-    glVertexAttribPointer(g_AttribLocationPosition, 2, GL_FLOAT, GL_FALSE, idv_size, Ptr{GLCvoid}(pos_offset))
-    glVertexAttribPointer(g_AttribLocationUV, 2, GL_FLOAT, GL_FALSE, idv_size, Ptr{GLCvoid}(uv_offset))
-    glVertexAttribPointer(g_AttribLocationColor, 4, GL_UNSIGNED_BYTE, GL_TRUE, idv_size, Ptr{GLCvoid}(col_offset))
+    glVertexAttribPointer(g_AttribLocationPosition[], 2, GL_FLOAT, GL_FALSE, idv_size, Ptr{GLCvoid}(pos_offset))
+    glVertexAttribPointer(g_AttribLocationUV[], 2, GL_FLOAT, GL_FALSE, idv_size, Ptr{GLCvoid}(uv_offset))
+    glVertexAttribPointer(g_AttribLocationColor[], 4, GL_UNSIGNED_BYTE, GL_TRUE, idv_size, Ptr{GLCvoid}(col_offset))
 
     # will project scissor/clipping rectangles into framebuffer space
     clip_off = draw_data.DisplayPos         # (0,0) unless using multi-viewports
@@ -121,10 +119,10 @@ function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
         cmd_list = ImDrawData_Get_CmdLists(draw_data, n)
         vtx_buffer = ImDrawList_Get_VtxBuffer(cmd_list)
         idx_buffer = ImDrawList_Get_IdxBuffer(cmd_list)
-        glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle)
+        glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle[])
         glBufferData(GL_ARRAY_BUFFER, vtx_buffer.Size * sizeof(ImDrawVert), Ptr{GLCvoid}(vtx_buffer.Data), GL_STREAM_DRAW)
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ElementsHandle)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ElementsHandle[])
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, idx_buffer.Size * sizeof(ImDrawIdx), Ptr{GLCvoid}(idx_buffer.Data), GL_STREAM_DRAW)
 
         cmd_buffer = ImDrawList_Get_CmdBuffer(cmd_list)
@@ -185,7 +183,6 @@ function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
 end
 
 function ImGui_ImplOpenGL3_CreateFontsTexture()
-    global g_FontTextures
     # build texture atlas
     fonts = igGetIO().Fonts
     pixels = Ptr{Cuchar}(C_NULL)
@@ -213,15 +210,13 @@ function ImGui_ImplOpenGL3_CreateFontsTexture()
 end
 
 function ImGui_ImplOpenGL3_DestroyFontsTexture()
-    global g_FontTextures
     glDeleteTextures(length(g_FontTextures), g_FontTextures)
     empty!(g_FontTextures)
 end
 
 function ImGui_ImplOpenGL3_CreateDeviceObjects()
-    global g_GlslVersion
     vertex_shader_glsl_120 = """
-        #version $g_GlslVersion
+        #version $(g_GlslVersion[])
         uniform mat4 ProjMtx;
         attribute vec2 Position;
         attribute vec2 UV;
@@ -236,7 +231,7 @@ function ImGui_ImplOpenGL3_CreateDeviceObjects()
         }"""
 
     vertex_shader_glsl_130 = """
-        #version $g_GlslVersion
+        #version $(g_GlslVersion[])
         uniform mat4 ProjMtx;
         in vec2 Position;
         in vec2 UV;
@@ -251,7 +246,7 @@ function ImGui_ImplOpenGL3_CreateDeviceObjects()
         }"""
 
     vertex_shader_glsl_410_core = """
-        #version $g_GlslVersion
+        #version $(g_GlslVersion[])
         layout (location = 0) in vec2 Position;
         layout (location = 1) in vec2 UV;
         layout (location = 2) in vec4 Color;
@@ -266,7 +261,7 @@ function ImGui_ImplOpenGL3_CreateDeviceObjects()
         }"""
 
     fragment_shader_glsl_120 = """
-        #version $g_GlslVersion
+        #version $(g_GlslVersion[])
         #ifdef GL_ES
             precision mediump float;
         #endif
@@ -279,7 +274,7 @@ function ImGui_ImplOpenGL3_CreateDeviceObjects()
         }"""
 
     fragment_shader_glsl_130 = """
-        #version $g_GlslVersion
+        #version $(g_GlslVersion[])
         uniform sampler2D Texture;
         in vec2 Frag_UV;
         in vec4 Frag_Color;
@@ -290,7 +285,7 @@ function ImGui_ImplOpenGL3_CreateDeviceObjects()
         }"""
 
     fragment_shader_glsl_410_core = """
-        #version $g_GlslVersion
+        #version $(g_GlslVersion[])
         in vec2 Frag_UV;
         in vec4 Frag_Color;
         uniform sampler2D Texture;
@@ -300,10 +295,10 @@ function ImGui_ImplOpenGL3_CreateDeviceObjects()
             Out_Color = Frag_Color * texture(Texture, Frag_UV.st);
         }"""
 
-    if g_GlslVersion < 130
+    if g_GlslVersion[] < 130
         vertex_shader = vertex_shader_glsl_120
         fragment_shader = fragment_shader_glsl_120
-    elseif g_GlslVersion == 410
+    elseif g_GlslVersion[] == 410
         vertex_shader = vertex_shader_glsl_410_core
         fragment_shader = fragment_shader_glsl_410_core
     else
@@ -317,52 +312,51 @@ function ImGui_ImplOpenGL3_CreateDeviceObjects()
     @c glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer)
     @c glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array)
 
-    global g_VertHandle = glCreateShader(GL_VERTEX_SHADER)
-    glShaderSource(g_VertHandle, 1, Ptr{GLchar}[pointer(vertex_shader)], C_NULL)
-    glCompileShader(g_VertHandle)
+    g_VertHandle[] = glCreateShader(GL_VERTEX_SHADER)
+    glShaderSource(g_VertHandle[], 1, Ptr{GLchar}[pointer(vertex_shader)], C_NULL)
+    glCompileShader(g_VertHandle[])
     status = GLint(-1)
-    @c glGetShaderiv(g_VertHandle, GL_COMPILE_STATUS, &status)
+    @c glGetShaderiv(g_VertHandle[], GL_COMPILE_STATUS, &status)
     if status != GL_TRUE
         max_length = GLsizei(0)
-        @c glGetShaderiv(g_VertHandle, GL_INFO_LOG_LENGTH, &max_length)
+        @c glGetShaderiv(g_VertHandle[], GL_INFO_LOG_LENGTH, &max_length)
         actual_length = GLsizei(0)
         log = Vector{GLchar}(undef, max_length)
-        @c glGetShaderInfoLog(g_VertHandle, max_length, &actual_length, log)
-        @error "[GL]: failed to compile vertex shader: $(g_VertHandle): $(String(log))"
+        @c glGetShaderInfoLog(g_VertHandle[], max_length, &actual_length, log)
+        @error "[GL]: failed to compile vertex shader: $(g_VertHandle[]): $(String(log))"
     end
 
-    global g_FragHandle = glCreateShader(GL_FRAGMENT_SHADER)
-    glShaderSource(g_FragHandle, 1, Ptr{GLchar}[pointer(fragment_shader)], C_NULL)
-    glCompileShader(g_FragHandle)
+    g_FragHandle[] = glCreateShader(GL_FRAGMENT_SHADER)
+    glShaderSource(g_FragHandle[], 1, Ptr{GLchar}[pointer(fragment_shader)], C_NULL)
+    glCompileShader(g_FragHandle[])
     status = GLint(-1)
-    @c glGetShaderiv(g_FragHandle, GL_COMPILE_STATUS, &status)
+    @c glGetShaderiv(g_FragHandle[], GL_COMPILE_STATUS, &status)
     if status != GL_TRUE
         max_length = GLsizei(0)
-        @c glGetShaderiv(g_FragHandle, GL_INFO_LOG_LENGTH, &max_length)
+        @c glGetShaderiv(g_FragHandle[], GL_INFO_LOG_LENGTH, &max_length)
         actual_length = GLsizei(0)
         log = Vector{GLchar}(undef, max_length)
-        @c glGetShaderInfoLog(g_FragHandle, max_length, &actual_length, log)
-        @error "[GL]: failed to compile fragment shader: $(g_FragHandle): $(String(log))"
+        @c glGetShaderInfoLog(g_FragHandle[], max_length, &actual_length, log)
+        @error "[GL]: failed to compile fragment shader: $(g_FragHandle[]): $(String(log))"
     end
 
-    global g_ShaderHandle = glCreateProgram()
-    glAttachShader(g_ShaderHandle, g_VertHandle)
-    glAttachShader(g_ShaderHandle, g_FragHandle)
-    glLinkProgram(g_ShaderHandle)
+    g_ShaderHandle[] = glCreateProgram()
+    glAttachShader(g_ShaderHandle[], g_VertHandle[])
+    glAttachShader(g_ShaderHandle[], g_FragHandle[])
+    glLinkProgram(g_ShaderHandle[])
     status = GLint(-1)
-    @c glGetProgramiv(g_ShaderHandle, GL_LINK_STATUS, &status)
+    @c glGetProgramiv(g_ShaderHandle[], GL_LINK_STATUS, &status)
     @assert status == GL_TRUE
 
-    global g_AttribLocationTex = glGetUniformLocation(g_ShaderHandle, "Texture")
-    global g_AttribLocationProjMtx = glGetUniformLocation(g_ShaderHandle, "ProjMtx")
-    global g_AttribLocationPosition = glGetAttribLocation(g_ShaderHandle, "Position")
-    global g_AttribLocationUV = glGetAttribLocation(g_ShaderHandle, "UV")
-    global g_AttribLocationColor = glGetAttribLocation(g_ShaderHandle, "Color")
+    g_AttribLocationTex[] = glGetUniformLocation(g_ShaderHandle[], "Texture")
+    g_AttribLocationProjMtx[] = glGetUniformLocation(g_ShaderHandle[], "ProjMtx")
+    g_AttribLocationPosition[] = glGetAttribLocation(g_ShaderHandle[], "Position")
+    g_AttribLocationUV[] = glGetAttribLocation(g_ShaderHandle[], "UV")
+    g_AttribLocationColor = glGetAttribLocation(g_ShaderHandle[], "Color")
 
     # create buffers
-    global g_VboHandle; global g_ElementsHandle;
-    @c glGenBuffers(1, &g_VboHandle)
-    @c glGenBuffers(1, &g_ElementsHandle)
+    @c glGenBuffers(1, &(g_VboHandle[]))
+    @c glGenBuffers(1, &(g_ElementsHandle[]))
 
     ImGui_ImplOpenGL3_CreateFontsTexture()
 
@@ -375,27 +369,21 @@ function ImGui_ImplOpenGL3_CreateDeviceObjects()
 end
 
 function ImGui_ImplOpenGL3_DestroyDeviceObjects()
-    global g_VboHandle
-    global g_ElementsHandle
-    global g_ShaderHandle
-    global g_VertHandle
-    global g_FragHandle
-    global g_ImageTexture
-    g_VboHandle != 0 && @c glDeleteBuffers(1, &g_VboHandle)
-    g_ElementsHandle != 0 && @c glDeleteBuffers(1, &g_ElementsHandle)
-    g_VboHandle = g_ElementsHandle = GLuint(0)
+    g_VboHandle[] != 0 && @c glDeleteBuffers(1, &(g_VboHandle[]))
+    g_ElementsHandle[] != 0 && @c glDeleteBuffers(1, &(g_ElementsHandle[]))
+    g_VboHandle[] = g_ElementsHandle[] = GLuint(0)
 
-    g_ShaderHandle != 0 && g_VertHandle != 0 && glDetachShader(g_ShaderHandle, g_VertHandle)
+    g_ShaderHandle[] != 0 && g_VertHandle != 0 && glDetachShader(g_ShaderHandle[], g_VertHandle[])
 
-    g_VertHandle != 0 && glDeleteShader(g_VertHandle)
-    g_VertHandle = 0
+    g_VertHandle[] != 0 && glDeleteShader(g_VertHandle[])
+    g_VertHandle[] = 0
 
-    g_ShaderHandle != 0 && g_FragHandle != 0 && glDetachShader(g_ShaderHandle, g_FragHandle)
-    g_FragHandle != 0 && glDeleteShader(g_FragHandle)
-    g_FragHandle = 0
+    g_ShaderHandle[] != 0 && g_FragHandle[] != 0 && glDetachShader(g_ShaderHandle[], g_FragHandle[])
+    g_FragHandle[] != 0 && glDeleteShader(g_FragHandle[])
+    g_FragHandle[] = 0
 
-    g_ShaderHandle != 0 && glDeleteProgram(g_ShaderHandle)
-    g_ShaderHandle = 0
+    g_ShaderHandle[] != 0 && glDeleteProgram(g_ShaderHandle[]),F
+    g_ShaderHandle[] = 0
 
     ImGui_ImplOpenGL3_DestroyFontsTexture()
     for (k,v) in g_ImageTexture
@@ -404,7 +392,6 @@ function ImGui_ImplOpenGL3_DestroyDeviceObjects()
 end
 
 function ImGui_ImplOpenGL3_CreateImageTexture(image_width, image_height; format=GL_RGBA, type=GL_UNSIGNED_BYTE)
-    global g_ImageTexture
 
     id = GLuint(0)
     @c glGenTextures(1, &id)
@@ -419,13 +406,11 @@ function ImGui_ImplOpenGL3_CreateImageTexture(image_width, image_height; format=
 end
 
 function ImGui_ImplOpenGL3_UpdateImageTexture(id, image_data, image_width, image_height; format=GL_RGBA, type=GL_UNSIGNED_BYTE)
-    global g_ImageTexture
     glBindTexture(GL_TEXTURE_2D, g_ImageTexture[id])
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, GLsizei(image_width), GLsizei(image_height), format, type, image_data)
 end
 
 function ImGui_ImplOpenGL3_DestroyImageTexture(id)
-    global g_ImageTexture
     id = g_ImageTexture[id]
     @c glDeleteTextures(1, &id)
     delete!(g_ImageTexture, id)

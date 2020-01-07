@@ -3,8 +3,8 @@ Base.convert(::Type{Cint}, x::GLFW.Key) = Cint(x)
 @enum GlfwClientApi GlfwClientApi_Unknown GlfwClientApi_OpenGL GlfwClientApi_Vulkan
 
 function ImGui_ImplGlfw_Init(window::GLFW.Window, install_callbacks::Bool, client_api::GlfwClientApi)
-    global g_Window = window
-    global g_Time = 0.0
+    g_Window[] = window
+    g_Time[] = 0.0
 
     # setup back-end capabilities flags
     io = GetIO()
@@ -35,9 +35,9 @@ function ImGui_ImplGlfw_Init(window::GLFW.Window, install_callbacks::Bool, clien
     Set_KeyMap(io, ImGuiKey_Y, GLFW.KEY_Y)
     Set_KeyMap(io, ImGuiKey_Z, GLFW.KEY_Z)
 
-    io.SetClipboardTextFn = g_ImplGlfw_SetClipboardText
-    io.GetClipboardTextFn = g_ImplGlfw_GetClipboardText
-    io.ClipboardUserData = Ptr{Cvoid}(g_Window.handle)
+    io.SetClipboardTextFn = g_ImplGlfw_SetClipboardText[]
+    io.GetClipboardTextFn = g_ImplGlfw_GetClipboardText[]
+    io.ClipboardUserData = Ptr{Cvoid}(g_Window[].handle)
 
     g_MouseCursors[ImGuiMouseCursor_Arrow+1] = GLFW.CreateStandardCursor(GLFW.ARROW_CURSOR)
     g_MouseCursors[ImGuiMouseCursor_TextInput+1] = GLFW.CreateStandardCursor(GLFW.IBEAM_CURSOR)
@@ -55,8 +55,8 @@ function ImGui_ImplGlfw_Init(window::GLFW.Window, install_callbacks::Bool, clien
         GLFW.SetCharCallback(window, ImGui_ImplGlfw_CharCallback)
     end
 
-    global g_ClientApi = client_api
-    return true;
+    g_ClientApi[] = client_api
+    return true
 end
 
 function ImGui_ImplGlfw_InitForOpenGL(window::GLFW.Window, install_callbacks::Bool)
@@ -68,23 +68,20 @@ function ImGui_ImplGlfw_InitForVulkan(window::GLFW.Window, install_callbacks::Bo
 end
 
 function ImGui_ImplGlfw_Shutdown()
-    global g_MouseCursors
     for cursor_n = 1:ImGuiMouseCursor_COUNT
         GLFW.DestroyCursor(g_MouseCursors[cursor_n])
         g_MouseCursors[cursor_n] = GLFW.Cursor(C_NULL)
     end
-    global g_ClientApi = GlfwClientApi_Unknown
+    g_ClientApi[] = GlfwClientApi_Unknown
 end
 
 function ImGui_ImplGlfw_UpdateMousePosAndButtons()
-    global g_Window
-    global g_MouseJustPressed
     # update buttons
     io = GetIO()
     for i = 1:length(g_MouseJustPressed)
         # if a mouse press event came, always pass it as "mouse held this frame",
         # so we don't miss click-release events that are shorter than 1 frame.
-        mousedown = g_MouseJustPressed[i] || GLFW.GetMouseButton(g_Window, GLFW.MouseButton(i-1))
+        mousedown = g_MouseJustPressed[i] || GLFW.GetMouseButton(g_Window[], GLFW.MouseButton(i-1))
         Set_MouseDown(io, i-1, mousedown)
         g_MouseJustPressed[i] = false
     end
@@ -92,50 +89,45 @@ function ImGui_ImplGlfw_UpdateMousePosAndButtons()
     # update mouse position
     mouse_pos_backup = io.MousePos
     io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX)
-    if GLFW.GetWindowAttrib(g_Window, GLFW.FOCUSED) != 0
+    if GLFW.GetWindowAttrib(g_Window[], GLFW.FOCUSED) != 0
         if io.WantSetMousePos
-            GLFW.SetCursorPos(g_Window, Cdouble(mouse_pos_backup.x), Cdouble(mouse_pos_backup.y))
+            GLFW.SetCursorPos(g_Window[], Cdouble(mouse_pos_backup.x), Cdouble(mouse_pos_backup.y))
         else
-            mouse_x, mouse_y = GLFW.GetCursorPos(g_Window)
+            mouse_x, mouse_y = GLFW.GetCursorPos(g_Window[])
             io.MousePos = ImVec2(Cfloat(mouse_x), Cfloat(mouse_y))
         end
     end
 end
 
 function ImGui_ImplGlfw_UpdateMouseCursor()
-    global g_Window
-    global g_MouseCursors
-
     io = GetIO()
     if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) != 0 ||
-        GLFW.GetInputMode(g_Window, GLFW.CURSOR) == GLFW.CURSOR_DISABLED
+        GLFW.GetInputMode(g_Window[], GLFW.CURSOR) == GLFW.CURSOR_DISABLED
         return nothing
     end
 
     imgui_cursor = GetMouseCursor()
     if imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor
         # hide OS mouse cursor if imgui is drawing it or if it wants no cursor
-        GLFW.SetInputMode(g_Window, GLFW.CURSOR, GLFW.CURSOR_HIDDEN)
+        GLFW.SetInputMode(g_Window[], GLFW.CURSOR, GLFW.CURSOR_HIDDEN)
     else
         # show OS mouse cursor
         cursor = g_MouseCursors[imgui_cursor+1]
-        GLFW.SetCursor(g_Window, cursor.handle != C_NULL ? g_MouseCursors[imgui_cursor+1] : g_MouseCursors[ImGuiMouseCursor_Arrow+1])
-        GLFW.SetInputMode(g_Window, GLFW.CURSOR, GLFW.CURSOR_NORMAL)
+        GLFW.SetCursor(g_Window[], cursor.handle != C_NULL ? g_MouseCursors[imgui_cursor+1] : g_MouseCursors[ImGuiMouseCursor_Arrow+1])
+        GLFW.SetInputMode(g_Window[], GLFW.CURSOR, GLFW.CURSOR_NORMAL)
     end
 
     return nothing
 end
 
 function ImGui_ImplGlfw_NewFrame(window::Union{GLFW.Window,Nothing}=nothing)
-    global g_Time
-    global g_Window
-    window != nothing && (g_Window = window;)
+    window !== nothing && (g_Window[] = window;)
     io = GetIO()
     @assert ImFontAtlas_IsBuilt(io.Fonts) "Font atlas not built! It is generally built by the renderer back-end. Missing call to renderer _NewFrame() function? e.g. ImGui_ImplOpenGL3_NewFrame()."
 
     # setup display size (every frame to accommodate for window resizing)
-    w, h = GLFW.GetWindowSize(g_Window)
-    display_w, display_h = GLFW.GetFramebufferSize(g_Window)
+    w, h = GLFW.GetWindowSize(g_Window[])
+    display_w, display_h = GLFW.GetFramebufferSize(g_Window[])
     io.DisplaySize = ImVec2(Cfloat(w), Cfloat(h))
     w_scale = w > 0 ? Cfloat(display_w / w) : 0f0
     h_scale = h > 0 ? Cfloat(display_h / h) : 0f0
@@ -143,8 +135,8 @@ function ImGui_ImplGlfw_NewFrame(window::Union{GLFW.Window,Nothing}=nothing)
 
     # setup time step
     current_time = ccall((:glfwGetTime, GLFW.libglfw), Cdouble, ())
-    io.DeltaTime = g_Time > 0.0 ? Cfloat(current_time - g_Time) : Cfloat(1.0/60.0)
-    g_Time = current_time
+    io.DeltaTime = g_Time[] > 0.0 ? Cfloat(current_time - g_Time[]) : Cfloat(1.0/60.0)
+    g_Time[] = current_time
 
     ImGui_ImplGlfw_UpdateMousePosAndButtons()
     ImGui_ImplGlfw_UpdateMouseCursor()

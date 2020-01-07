@@ -19,18 +19,21 @@ export ImGui_ImplGlfw_InitForOpenGL, ImGui_ImplGlfw_InitForVulkan
 export ImGui_ImplGlfw_Shutdown
 export ImGui_ImplGlfw_NewFrame
 
+const g_Window = Ref{GLFW.Window}()
+const g_ClientApi = Ref(GlfwClientApi_Unknown)
+const g_Time = Ref(0.0)
+const g_MouseJustPressed = [false, false, false, false, false]
+const g_MouseCursors = [GLFW.Cursor(C_NULL) for i = 1:ImGuiMouseCursor_COUNT]
+const g_ImplGlfw_GetClipboardText = Ref(C_NULL)
+const g_ImplGlfw_SetClipboardText = Ref(C_NULL)
+const g_CustomCallbackMousebutton = Ref(C_NULL)
+const g_CustomCallbackScroll = Ref(C_NULL)
+const g_CustomCallbackKey = Ref(C_NULL)
+const g_CustomCallbackChar = Ref(C_NULL)
+
 function __init__()
-    global g_Window = C_NULL
-    global g_ClientApi = GlfwClientApi_Unknown
-    global g_Time = 0.0
-    global g_MouseJustPressed = [false, false, false, false, false]
-    global g_MouseCursors = [GLFW.Cursor(C_NULL) for i = 1:ImGuiMouseCursor_COUNT]
-    global g_ImplGlfw_GetClipboardText = dlsym(dlopen(GLFW.libglfw), :glfwGetClipboardString)
-    global g_ImplGlfw_SetClipboardText = dlsym(dlopen(GLFW.libglfw), :glfwSetClipboardString)
-    global g_CustomCallbackMousebutton = C_NULL
-    global g_CustomCallbackScroll = C_NULL
-    global g_CustomCallbackKey = C_NULL
-    global g_CustomCallbackChar = C_NULL
+    g_ImplGlfw_GetClipboardText[] = dlsym(dlopen(GLFW.libglfw), :glfwGetClipboardString)
+    g_ImplGlfw_SetClipboardText[] = dlsym(dlopen(GLFW.libglfw), :glfwSetClipboardString)
 end
 
 end # module

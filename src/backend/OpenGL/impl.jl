@@ -382,7 +382,7 @@ function ImGui_ImplOpenGL3_DestroyDeviceObjects()
     g_FragHandle[] != 0 && glDeleteShader(g_FragHandle[])
     g_FragHandle[] = 0
 
-    g_ShaderHandle[] != 0 && glDeleteProgram(g_ShaderHandle[]),F
+    g_ShaderHandle[] != 0 && glDeleteProgram(g_ShaderHandle[])
     g_ShaderHandle[] = 0
 
     ImGui_ImplOpenGL3_DestroyFontsTexture()

@@ -352,7 +352,7 @@ function ImGui_ImplOpenGL3_CreateDeviceObjects()
     g_AttribLocationProjMtx[] = glGetUniformLocation(g_ShaderHandle[], "ProjMtx")
     g_AttribLocationPosition[] = glGetAttribLocation(g_ShaderHandle[], "Position")
     g_AttribLocationUV[] = glGetAttribLocation(g_ShaderHandle[], "UV")
-    g_AttribLocationColor = glGetAttribLocation(g_ShaderHandle[], "Color")
+    g_AttribLocationColor[] = glGetAttribLocation(g_ShaderHandle[], "Color")
 
     # create buffers
     @c glGenBuffers(1, &(g_VboHandle[]))

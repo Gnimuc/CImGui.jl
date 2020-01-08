@@ -28,40 +28,7 @@ ImGui_ImplOpenGL3_Shutdown() = ImGui_ImplOpenGL3_DestroyDeviceObjects()
 
 ImGui_ImplOpenGL3_NewFrame() = !ImFontAtlas_IsBuilt(GetIO().Fonts) && ImGui_ImplOpenGL3_CreateDeviceObjects()
 
-function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
-    # avoid rendering when minimized, scale coordinates for retina displays
-    fb_width = trunc(Cint, draw_data.DisplaySize.x * draw_data.FramebufferScale.x)
-    fb_height = trunc(Cint, draw_data.DisplaySize.y * draw_data.FramebufferScale.y)
-    (fb_width ≤ 0 || fb_height ≤ 0) && return nothing
-
-    # backup GL state
-    last_active_texture = GLint(0); @c glGetIntegerv(GL_ACTIVE_TEXTURE, &last_active_texture)
-    glActiveTexture(GL_TEXTURE0)
-    last_program = GLint(0); @c glGetIntegerv(GL_CURRENT_PROGRAM, &last_program)
-    last_texture = GLint(0); @c glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture)
-    last_sampler = GLint(0); @c glGetIntegerv(GL_SAMPLER_BINDING, &last_sampler)
-    last_array_buffer = GLint(0); @c glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer)
-    last_vertex_array = GLint(0); @c glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array)
-    last_polygon_mode = GLint[0,0]; glGetIntegerv(GL_POLYGON_MODE, last_polygon_mode)
-    last_viewport = GLint[0,0,0,0]; glGetIntegerv(GL_VIEWPORT, last_viewport)
-    last_scissor_box = GLint[0,0,0,0]; glGetIntegerv(GL_SCISSOR_BOX, last_scissor_box)
-    last_blend_src_rgb = GLint(0); @c glGetIntegerv(GL_BLEND_SRC_RGB, &last_blend_src_rgb)
-    last_blend_dst_rgb = GLint(0); @c glGetIntegerv(GL_BLEND_DST_RGB, &last_blend_dst_rgb)
-    last_blend_src_alpha = GLint(0); @c glGetIntegerv(GL_BLEND_SRC_ALPHA, &last_blend_src_alpha)
-    last_blend_dst_alpha = GLint(0); @c glGetIntegerv(GL_BLEND_DST_ALPHA, &last_blend_dst_alpha)
-    last_blend_equation_rgb = GLint(0); @c glGetIntegerv(GL_BLEND_EQUATION_RGB, &last_blend_equation_rgb)
-    last_blend_equation_alpha = GLint(0); @c glGetIntegerv(GL_BLEND_EQUATION_ALPHA, &last_blend_equation_alpha)
-    last_enable_blend = glIsEnabled(GL_BLEND)
-    last_enable_cull_face = glIsEnabled(GL_CULL_FACE)
-    last_enable_depth_test = glIsEnabled(GL_DEPTH_TEST)
-    last_enable_scissor_test = glIsEnabled(GL_SCISSOR_TEST)
-    clip_origin_lower_left = true
-    # if g_GlslVersion[] > 450
-    #     last_clip_origin = GLint(0)
-    #     @c glGetIntegerv(GL_CLIP_ORIGIN, &last_clip_origin)
-    #     last_clip_origin == GL_UPPER_LEFT && (clip_origin_lower_left = false;)
-    # end
-
+function ImGui_ImplOpenGL3_SetupRenderState(draw_data, fb_width::Cint, fb_height::Cint, vertex_array_object::GLuint)
     # setup render state:
     # - alpha-blending enabled
     # - no face culling
@@ -89,26 +56,61 @@ function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
                                0.0, 0.0, -1.0, 0.0,
                                (R+L)/(L-R), (T+B)/(B-T), 0.0, 1.0]
 
-    glUseProgram(g_ShaderHandle[]);
-    glUniform1i(g_AttribLocationTex[], 0);
+    glUseProgram(g_ShaderHandle[])
+    glUniform1i(g_AttribLocationTex[], 0)
     glUniformMatrix4fv(g_AttribLocationProjMtx[], 1, GL_FALSE, ortho_projection)
     glBindSampler(0, 0)
 
-    # recreate the VAO every time
-    vao_handle = GLuint(0)
-    @c glGenVertexArrays(1, &vao_handle)
-    glBindVertexArray(vao_handle)
+    glBindVertexArray(vertex_array_object)
     glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle[])
-    glEnableVertexAttribArray(g_AttribLocationPosition[])
-    glEnableVertexAttribArray(g_AttribLocationUV[])
-    glEnableVertexAttribArray(g_AttribLocationColor[])
-    idv_size = sizeof(ImDrawVert)
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ElementsHandle[])
+    glEnableVertexAttribArray(g_AttribLocationVtxPos[])
+    glEnableVertexAttribArray(g_AttribLocationVtxUV[])
+    glEnableVertexAttribArray(g_AttribLocationVtxColor[])
     pos_offset = fieldoffset(ImDrawVert, 1)
     uv_offset = fieldoffset(ImDrawVert, 2)
     col_offset = fieldoffset(ImDrawVert, 3)
-    glVertexAttribPointer(g_AttribLocationPosition[], 2, GL_FLOAT, GL_FALSE, idv_size, Ptr{GLCvoid}(pos_offset))
-    glVertexAttribPointer(g_AttribLocationUV[], 2, GL_FLOAT, GL_FALSE, idv_size, Ptr{GLCvoid}(uv_offset))
-    glVertexAttribPointer(g_AttribLocationColor[], 4, GL_UNSIGNED_BYTE, GL_TRUE, idv_size, Ptr{GLCvoid}(col_offset))
+    glVertexAttribPointer(g_AttribLocationVtxPos[],   2, GL_FLOAT,         GL_FALSE, sizeof(ImDrawVert), Ptr{GLCvoid}(pos_offset))
+    glVertexAttribPointer(g_AttribLocationVtxUV[],    2, GL_FLOAT,         GL_FALSE, sizeof(ImDrawVert), Ptr{GLCvoid}(uv_offset))
+    glVertexAttribPointer(g_AttribLocationVtxColor[], 4, GL_UNSIGNED_BYTE, GL_TRUE,  sizeof(ImDrawVert), Ptr{GLCvoid}(col_offset))
+end
+
+function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
+    # avoid rendering when minimized, scale coordinates for retina displays
+    fb_width = trunc(Cint, draw_data.DisplaySize.x * draw_data.FramebufferScale.x)
+    fb_height = trunc(Cint, draw_data.DisplaySize.y * draw_data.FramebufferScale.y)
+    (fb_width ≤ 0 || fb_height ≤ 0) && return nothing
+
+    # backup GL state
+    last_active_texture = GLint(0); @c glGetIntegerv(GL_ACTIVE_TEXTURE, &last_active_texture)
+    glActiveTexture(GL_TEXTURE0)
+    last_program = GLint(0); @c glGetIntegerv(GL_CURRENT_PROGRAM, &last_program)
+    last_texture = GLint(0); @c glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture)
+    last_sampler = GLint(0); @c glGetIntegerv(GL_SAMPLER_BINDING, &last_sampler)
+    last_array_buffer = GLint(0); @c glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer)
+    last_vertex_array_object = GLint(0); @c glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array_object)
+    last_polygon_mode = GLint[0,0]; glGetIntegerv(GL_POLYGON_MODE, last_polygon_mode)
+    last_viewport = GLint[0,0,0,0]; glGetIntegerv(GL_VIEWPORT, last_viewport)
+    last_scissor_box = GLint[0,0,0,0]; glGetIntegerv(GL_SCISSOR_BOX, last_scissor_box)
+    last_blend_src_rgb = GLint(0); @c glGetIntegerv(GL_BLEND_SRC_RGB, &last_blend_src_rgb)
+    last_blend_dst_rgb = GLint(0); @c glGetIntegerv(GL_BLEND_DST_RGB, &last_blend_dst_rgb)
+    last_blend_src_alpha = GLint(0); @c glGetIntegerv(GL_BLEND_SRC_ALPHA, &last_blend_src_alpha)
+    last_blend_dst_alpha = GLint(0); @c glGetIntegerv(GL_BLEND_DST_ALPHA, &last_blend_dst_alpha)
+    last_blend_equation_rgb = GLint(0); @c glGetIntegerv(GL_BLEND_EQUATION_RGB, &last_blend_equation_rgb)
+    last_blend_equation_alpha = GLint(0); @c glGetIntegerv(GL_BLEND_EQUATION_ALPHA, &last_blend_equation_alpha)
+    last_enable_blend = glIsEnabled(GL_BLEND)
+    last_enable_cull_face = glIsEnabled(GL_CULL_FACE)
+    last_enable_depth_test = glIsEnabled(GL_DEPTH_TEST)
+    last_enable_scissor_test = glIsEnabled(GL_SCISSOR_TEST)
+    clip_origin_lower_left = true
+    # if g_GlslVersion[] > 450
+    #     last_clip_origin = GLint(0)
+    #     @c glGetIntegerv(GL_CLIP_ORIGIN, &last_clip_origin)
+    #     last_clip_origin == GL_UPPER_LEFT && (clip_origin_lower_left = false;)
+    # end
+    vertex_array_object = GLuint(0)
+    @c glGenVertexArrays(1, &vertex_array_object)
+    ImGui_ImplOpenGL3_SetupRenderState(draw_data, fb_width, fb_height, vertex_array_object)
 
     # will project scissor/clipping rectangles into framebuffer space
     clip_off = draw_data.DisplayPos         # (0,0) unless using multi-viewports
@@ -119,10 +121,10 @@ function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
         cmd_list = ImDrawData_Get_CmdLists(draw_data, n)
         vtx_buffer = ImDrawList_Get_VtxBuffer(cmd_list)
         idx_buffer = ImDrawList_Get_IdxBuffer(cmd_list)
-        glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle[])
+        # glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle[])
         glBufferData(GL_ARRAY_BUFFER, vtx_buffer.Size * sizeof(ImDrawVert), Ptr{GLCvoid}(vtx_buffer.Data), GL_STREAM_DRAW)
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ElementsHandle[])
+        # glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ElementsHandle[])
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, idx_buffer.Size * sizeof(ImDrawIdx), Ptr{GLCvoid}(idx_buffer.Data), GL_STREAM_DRAW)
 
         cmd_buffer = ImDrawList_Get_CmdBuffer(cmd_list)
@@ -162,14 +164,14 @@ function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
             end
         end
     end
-    @c glDeleteVertexArrays(1, &vao_handle)
+    @c glDeleteVertexArrays(1, &vertex_array_object)
 
     # restore modified GL state
     glUseProgram(last_program)
     glBindTexture(GL_TEXTURE_2D, last_texture)
     glBindSampler(0, last_sampler)
     glActiveTexture(last_active_texture)
-    glBindVertexArray(last_vertex_array)
+    glBindVertexArray(last_vertex_array_object)
     glBindBuffer(GL_ARRAY_BUFFER, last_array_buffer)
     glBlendEquationSeparate(last_blend_equation_rgb, last_blend_equation_alpha)
     glBlendFuncSeparate(last_blend_src_rgb, last_blend_dst_rgb, last_blend_src_alpha, last_blend_dst_alpha)
@@ -198,7 +200,7 @@ function ImGui_ImplOpenGL3_CreateFontsTexture()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0)
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels)
     push!(g_FontTextures, new_texture)
 
     # store our identifier
@@ -307,10 +309,10 @@ function ImGui_ImplOpenGL3_CreateDeviceObjects()
     end
 
     # backup GL state
-    last_texture, last_array_buffer, last_vertex_array = GLint(0), GLint(0), GLint(0)
+    last_texture, last_array_buffer, last_vertex_array_object = GLint(0), GLint(0), GLint(0)
     @c glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture)
     @c glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &last_array_buffer)
-    @c glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array)
+    @c glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &last_vertex_array_object)
 
     g_VertHandle[] = glCreateShader(GL_VERTEX_SHADER)
     glShaderSource(g_VertHandle[], 1, Ptr{GLchar}[pointer(vertex_shader)], C_NULL)
@@ -350,9 +352,9 @@ function ImGui_ImplOpenGL3_CreateDeviceObjects()
 
     g_AttribLocationTex[] = glGetUniformLocation(g_ShaderHandle[], "Texture")
     g_AttribLocationProjMtx[] = glGetUniformLocation(g_ShaderHandle[], "ProjMtx")
-    g_AttribLocationPosition[] = glGetAttribLocation(g_ShaderHandle[], "Position")
-    g_AttribLocationUV[] = glGetAttribLocation(g_ShaderHandle[], "UV")
-    g_AttribLocationColor[] = glGetAttribLocation(g_ShaderHandle[], "Color")
+    g_AttribLocationVtxPos[] = glGetAttribLocation(g_ShaderHandle[], "Position")
+    g_AttribLocationVtxUV[] = glGetAttribLocation(g_ShaderHandle[], "UV")
+    g_AttribLocationVtxColor[] = glGetAttribLocation(g_ShaderHandle[], "Color")
 
     # create buffers
     @c glGenBuffers(1, &(g_VboHandle[]))
@@ -363,7 +365,7 @@ function ImGui_ImplOpenGL3_CreateDeviceObjects()
     # restore modified GL state
     glBindTexture(GL_TEXTURE_2D, last_texture)
     glBindBuffer(GL_ARRAY_BUFFER, last_array_buffer)
-    glBindVertexArray(last_vertex_array)
+    glBindVertexArray(last_vertex_array_object)
 
     return true;
 end

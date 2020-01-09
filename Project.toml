@@ -1,7 +1,7 @@
 name = "CImGui"
 uuid = "5d785b6c-b76f-510e-a07c-3070796c7e87"
 authors = ["Gnimuc <qiyupei@gmail.com>"]
-version = "1.74.1"
+version = "1.74.2"
 
 [deps]
 CImGui_jll = "7dd61d3b-0da5-5c94-bbf9-a0296c6e3925"

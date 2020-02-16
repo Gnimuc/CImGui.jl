@@ -1478,12 +1478,6 @@ TreePush(ptr_id::Ptr=C_NULL) = igTreePushPtr(ptr_id)
 TreePop() = igTreePop()
 
 """
-    TreeAdvanceToLabelPos()
-Advance cursor x position by [`GetTreeNodeToLabelSpacing`](@ref).
-"""
-TreeAdvanceToLabelPos() = igTreeAdvanceToLabelPos()
-
-"""
     GetTreeNodeToLabelSpacing()
 Horizontal distance preceding label when using `TreeNode*()` or `Bullet() == (g.FontSize + style.FramePadding.x*2)` for a regular unframed TreeNode.
 """

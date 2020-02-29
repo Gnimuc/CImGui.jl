@@ -238,6 +238,8 @@ CImGui.ShowFlags(CImGui.ImGuiFocusedFlags_) |> Markdown.parse
 """
 IsWindowFocused(flags=0) = igIsWindowFocused(flags)
 
+@deprecate IsAnyWindowFocused() IsWindowFocused(ImGuiFocusedFlags_AnyWindow)
+
 """
     IsWindowHovered(flags=0) -> Bool
 Is current window hovered (and typically: not blocked by a popup/modal)?
@@ -289,6 +291,8 @@ CImGui.ShowFlags(CImGui.ImGuiHoveredFlags_) |> Markdown.parse
 """
 IsWindowHovered(flags=0) = igIsWindowHovered(flags)
 
+@deprecate IsAnyWindowHovered() IsWindowHovered(ImGuiHoveredFlags_AnyWindow)
+
 """
     GetWindowDrawList() -> Ptr{ImDrawList}
 Return draw list associated to the window, to append your own drawing primitives.
@@ -333,10 +337,7 @@ Return `GetContentRegionMax() - GetCursorPos()`.
 """
 GetContentRegionAvail() = igGetContentRegionAvail()
 
-"""
-    GetContentRegionAvailWidth() -> Cfloat
-"""
-GetContentRegionAvailWidth() = igGetContentRegionAvailWidth()
+@deprecate GetContentRegionAvailWidth() GetContentRegionAvail().x
 
 """
     GetWindowContentRegionMin() -> ImVec2
@@ -521,6 +522,8 @@ When using to make a "default/current item" visible, consider using [`SetItemDef
 """
 SetScrollHereY(center_y_ratio=0.5) = igSetScrollHereY(center_y_ratio)
 
+@deprecate SetScrollHere(center_ratio) SetScrollHereY(center_ratio)
+
 """
     SetScrollFromPosY(local_y, center_y_ratio=0.5)
 Adjust scrolling amount to make given position valid. Use [`GetCursorPos`](@ref) or
@@ -622,6 +625,14 @@ PushItemWidth(item_width) = igPushItemWidth(item_width)
 See [`PushItemWidth`](@ref).
 """
 PopItemWidth() = igPopItemWidth()
+
+"""
+    SetNextItemWidth(item_width)
+Set width of the _next_ common large "item+label" widget.
+- `item_width > 0.0`: width in pixels
+- `item_width < 0.0`: align xx pixels to the right of window (so `-1.0` always align width to the right side)
+"""
+SetNextItemWidth(item_width) = igSetNextItemWidth(item_width)
 
 """
     CalcItemWidth() -> Cfloat
@@ -1303,6 +1314,11 @@ InputText(label, buf, buf_size, flags=0, callback=C_NULL, user_data=C_NULL) = ig
 InputTextMultiline(label, buf, buf_size, size=(0,0), flags=0, callback=C_NULL, user_data=C_NULL) = igInputTextMultiline(label, buf, buf_size, size, flags, callback, user_data)
 
 """
+    InputTextWithHint(label, hint, buf, buf_size, flags=0, callback=C_NULL, user_data=C_NULL) -> Bool
+"""
+InputTextWithHint(label, hint, buf, buf_size, flags=0, callback=C_NULL, user_data=C_NULL) = igInputTextWithHint(label, hint, buf, buf_size, flags, callback, user_data)
+
+"""
     InputFloat(label, v, step=0, step_fast=0, format="%.3f", flags=0) -> Bool
 """
 InputFloat(label, v, step=0, step_fast=0, format="%.3f", flags=0) = igInputFloat(label, v, step, step_fast, format, flags)
@@ -1483,11 +1499,7 @@ Horizontal distance preceding label when using `TreeNode*()` or `Bullet() == (g.
 """
 GetTreeNodeToLabelSpacing() = igGetTreeNodeToLabelSpacing()
 
-"""
-    SetNextTreeNodeOpen(is_open, cond=0)
-Set next [`TreeNode`](@ref)/[`CollapsingHeader`](@ref) open state.
-"""
-SetNextTreeNodeOpen(is_open, cond=0) = igSetNextTreeNodeOpen(is_open, cond)
+@deprecate TreeAdvanceToLabelPos() SetCursorPosX(GetCursorPosX() + GetTreeNodeToLabelSpacing())
 
 """
     CollapsingHeader(label, flags=ImGuiTreeNodeFlags_(0)) -> Bool
@@ -1501,6 +1513,14 @@ CollapsingHeader(label, flags=ImGuiTreeNodeFlags_(0)) = igCollapsingHeader(label
 When `p_open` isn't `C_NULL`, display an additional small close button on upper right of the header.
 """
 CollapsingHeader(label, p_open::Ref, flags=ImGuiTreeNodeFlags_(0)) = igCollapsingHeaderBoolPtr(label, p_open, flags)
+
+"""
+    SetNextItemOpen(is_open, cond=0)
+Set next TreeNode/CollapsingHeader open state.
+"""
+SetNextItemOpen(is_open, cond=0) = igSetNextItemOpen(is_open, cond)
+
+@deprecate SetNextTreeNodeOpen(open, cond=0) SetNextItemOpen(open, cond)
 
 ################################### Widgets: Selectables ###################################
 """
@@ -2054,6 +2074,14 @@ See Demo Window under "Widgets->Querying Status" for an interactive visualizatio
 """
 IsItemDeactivatedAfterEdit() = igIsItemDeactivatedAfterEdit()
 
+@deprecate IsItemDeactivatedAfterChange() IsItemDeactivatedAfterEdit()
+
+"""
+    IsItemToggledOpen() -> Bool
+See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
+"""
+IsItemToggledOpen() = igIsItemToggledOpen()
+
 """
     IsAnyItemHovered() -> Bool
 See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
@@ -2103,12 +2131,12 @@ SetItemAllowOverlap() = igSetItemAllowOverlap()
 
 ################################## Miscellaneous Utilities #################################
 """
-    RectVisible(size) -> Bool
-    RectVisible(x, y) -> Bool
+    IsRectVisible(size) -> Bool
+    IsRectVisible(x, y) -> Bool
 Test if rectangle (of given size, starting from cursor position) is visible / not clipped.
 """
-RectVisible(size) = igIsRectVisible(size)
-RectVisible(x, y) = RectVisible(ImVec2(x,y))
+IsRectVisible(size) = igIsRectVisible(size)
+IsRectVisible(x, y) = IsRectVisible(ImVec2(x,y))
 
 """
     IsRectVisibleVec2(rect_min::ImVec2, rect_max::ImVec2) -> Bool
@@ -2128,10 +2156,18 @@ GetTime() = igGetTime()
 GetFrameCount() = igGetFrameCount()
 
 """
-    GetOverlayDrawList() -> Ptr{ImDrawList}
-This draw list will be the last rendered one, useful to quickly draw overlays shapes/text.
+    GetBackgroundDrawList() -> Ptr{ImDrawList}
+This draw list will be the first rendering one. Useful to quickly draw shapes/text behind dear imgui contents.
 """
-GetOverlayDrawList() = igGetOverlayDrawList()
+GetBackgroundDrawList() = igGetBackgroundDrawList()
+
+"""
+    GetForegroundDrawList() -> Ptr{ImDrawList}
+this draw list will be the last rendered one. Useful to quickly draw shapes/text over dear imgui contents.
+"""
+GetForegroundDrawList() = igGetForegroundDrawList()
+
+@deprecate GetOverlayDrawList() GetForegroundDrawList()
 
 """
     GetDrawListSharedData() -> Ptr{ImDrawListSharedData}
@@ -2232,6 +2268,13 @@ is small enough that DeltaTime > RepeatRate
 GetKeyPressedAmount(key_index, repeat_delay, rate) = igGetKeyPressedAmount(key_index, repeat_delay, rate)
 
 """
+    CaptureKeyboardFromApp(capture=true)
+Manually override io.WantCaptureKeyboard flag next frame (said flag is entirely left for
+your application to handle). e.g. force capture keyboard when your widget is being hovered.
+"""
+CaptureKeyboardFromApp(capture=true) = igCaptureKeyboardFromApp(capture)
+
+"""
     IsMouseDown(button) -> Bool
 Is mouse button held (0=left, 1=right, 2=middle).
 """
@@ -2315,13 +2358,6 @@ GetMouseCursor() = igGetMouseCursor()
 Set desired cursor type.
 """
 SetMouseCursor(type) = igSetMouseCursor(type)
-
-"""
-    CaptureKeyboardFromApp(capture=true)
-Manually override io.WantCaptureKeyboard flag next frame (said flag is entirely left for
-your application to handle). e.g. force capture keyboard when your widget is being hovered.
-"""
-CaptureKeyboardFromApp(capture=true) = igCaptureKeyboardFromApp(capture)
 
 """
     CaptureMouseFromApp(capture=true)

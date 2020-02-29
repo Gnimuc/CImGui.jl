@@ -1,7 +1,7 @@
 name = "CImGui"
 uuid = "5d785b6c-b76f-510e-a07c-3070796c7e87"
 authors = ["Gnimuc <qiyupei@gmail.com>"]
-version = "1.74.2"
+version = "1.75.0"
 
 [deps]
 CImGui_jll = "7dd61d3b-0da5-5c94-bbf9-a0296c6e3925"
@@ -11,7 +11,7 @@ Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 ModernGL = "66fc600b-dfda-50eb-8b99-91cfa97b1301"
 
 [compat]
-CImGui_jll = "1.74.0"
+CImGui_jll = "~1.75.0"
 CSyntax = "0.3.0"
 GLFW = "3.2.0"
 ModernGL = "1.1.0"

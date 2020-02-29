@@ -1,5 +1,5 @@
 using Clang
-using CImGui_jll
+using CImGui.LibCImGui.CImGui_jll
 
 const HELPER_H = joinpath(dirname(CImGui_jll.libcimgui_path), "..", "include", "helper.h") |> normpath
 

@@ -142,11 +142,11 @@ struct ImFont
     ConfigDataCount::Int16
     FallbackChar::ImWchar
     EllipsisChar::ImWchar
+    DirtyLookupTables::Bool
     Scale::Cfloat
     Ascent::Cfloat
     Descent::Cfloat
     MetricsTotalSurface::Cint
-    DirtyLookupTables::Bool
 end
 
 struct ImFontAtlasCustomRect
@@ -226,6 +226,7 @@ struct ImGuiStyle
     AntiAliasedLines::Bool
     AntiAliasedFill::Bool
     CurveTessellationTol::Cfloat
+    CircleSegmentMaxError::Cfloat
     Colors::NTuple{48, ImVec4}
 end
 
@@ -262,12 +263,12 @@ struct ImGuiOnceUponAFrame
 end
 
 struct ImGuiListClipper
-    StartPosY::Cfloat
-    ItemsHeight::Cfloat
-    ItemsCount::Cint
-    StepNo::Cint
     DisplayStart::Cint
     DisplayEnd::Cint
+    ItemsCount::Cint
+    StepNo::Cint
+    ItemsHeight::Cfloat
+    StartPosY::Cfloat
 end
 
 const ImGuiInputTextFlags = Cint
@@ -498,6 +499,7 @@ const ImGuiCol = Cint
 const ImGuiCond = Cint
 const ImGuiDataType = Cint
 const ImGuiNavInput = Cint
+const ImGuiMouseButton = Cint
 const ImGuiMouseCursor = Cint
 const ImGuiStyleVar = Cint
 const ImDrawCornerFlags = Cint
@@ -887,6 +889,13 @@ end
     ImGuiColorEditFlags__InputMask = 402653184
 end
 
+@cenum ImGuiMouseButton_::UInt32 begin
+    ImGuiMouseButton_Left = 0
+    ImGuiMouseButton_Right = 1
+    ImGuiMouseButton_Middle = 2
+    ImGuiMouseButton_COUNT = 5
+end
+
 @cenum ImGuiMouseCursor_::Int32 begin
     ImGuiMouseCursor_None = -1
     ImGuiMouseCursor_Arrow = 0
@@ -897,7 +906,8 @@ end
     ImGuiMouseCursor_ResizeNESW = 5
     ImGuiMouseCursor_ResizeNWSE = 6
     ImGuiMouseCursor_Hand = 7
-    ImGuiMouseCursor_COUNT = 8
+    ImGuiMouseCursor_NotAllowed = 8
+    ImGuiMouseCursor_COUNT = 9
 end
 
 @cenum ImGuiCond_::UInt32 begin

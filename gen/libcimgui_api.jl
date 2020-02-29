@@ -723,7 +723,7 @@ function igInputText(label, buf, buf_size, flags, callback, user_data)
 end
 
 function igInputTextMultiline(label, buf, buf_size, size, flags, callback, user_data)
-    ccall((:igInputTextMultiline, libcimgui), Bool, (Cstring, Ptr{UInt8}, Csize_t, ImVec2, ImGuiInputTextFlags, ImGuiInputTextCallback, Ptr{Cvoid}), label, buf, buf_size, size, flags, callback, user_data)
+    ccall((:igInputTextMultiline, libcimgui), Bool, (Cstring, Cstring, Csize_t, ImVec2, ImGuiInputTextFlags, ImGuiInputTextCallback, Ptr{Cvoid}), label, buf, buf_size, size, flags, callback, user_data)
 end
 
 function igInputTextWithHint(label, hint, buf, buf_size, flags, callback, user_data)
@@ -963,15 +963,15 @@ function igBeginPopup(str_id, flags)
 end
 
 function igBeginPopupContextItem(str_id, mouse_button)
-    ccall((:igBeginPopupContextItem, libcimgui), Bool, (Cstring, Cint), str_id, mouse_button)
+    ccall((:igBeginPopupContextItem, libcimgui), Bool, (Cstring, ImGuiMouseButton), str_id, mouse_button)
 end
 
 function igBeginPopupContextWindow(str_id, mouse_button, also_over_items)
-    ccall((:igBeginPopupContextWindow, libcimgui), Bool, (Cstring, Cint, Bool), str_id, mouse_button, also_over_items)
+    ccall((:igBeginPopupContextWindow, libcimgui), Bool, (Cstring, ImGuiMouseButton, Bool), str_id, mouse_button, also_over_items)
 end
 
 function igBeginPopupContextVoid(str_id, mouse_button)
-    ccall((:igBeginPopupContextVoid, libcimgui), Bool, (Cstring, Cint), str_id, mouse_button)
+    ccall((:igBeginPopupContextVoid, libcimgui), Bool, (Cstring, ImGuiMouseButton), str_id, mouse_button)
 end
 
 function igBeginPopupModal(name, p_open, flags)
@@ -983,7 +983,7 @@ function igEndPopup()
 end
 
 function igOpenPopupOnItemClick(str_id, mouse_button)
-    ccall((:igOpenPopupOnItemClick, libcimgui), Bool, (Cstring, Cint), str_id, mouse_button)
+    ccall((:igOpenPopupOnItemClick, libcimgui), Bool, (Cstring, ImGuiMouseButton), str_id, mouse_button)
 end
 
 function igIsPopupOpen(str_id)
@@ -1127,7 +1127,7 @@ function igIsItemFocused()
 end
 
 function igIsItemClicked(mouse_button)
-    ccall((:igIsItemClicked, libcimgui), Bool, (Cint,), mouse_button)
+    ccall((:igIsItemClicked, libcimgui), Bool, (ImGuiMouseButton,), mouse_button)
 end
 
 function igIsItemVisible()
@@ -1266,28 +1266,24 @@ function igGetKeyPressedAmount(key_index, repeat_delay, rate)
     ccall((:igGetKeyPressedAmount, libcimgui), Cint, (Cint, Cfloat, Cfloat), key_index, repeat_delay, rate)
 end
 
-function igIsMouseDown(button)
-    ccall((:igIsMouseDown, libcimgui), Bool, (Cint,), button)
+function igCaptureKeyboardFromApp(want_capture_keyboard_value)
+    ccall((:igCaptureKeyboardFromApp, libcimgui), Cvoid, (Bool,), want_capture_keyboard_value)
 end
 
-function igIsAnyMouseDown()
-    ccall((:igIsAnyMouseDown, libcimgui), Bool, ())
+function igIsMouseDown(button)
+    ccall((:igIsMouseDown, libcimgui), Bool, (ImGuiMouseButton,), button)
 end
 
 function igIsMouseClicked(button, repeat)
-    ccall((:igIsMouseClicked, libcimgui), Bool, (Cint, Bool), button, repeat)
-end
-
-function igIsMouseDoubleClicked(button)
-    ccall((:igIsMouseDoubleClicked, libcimgui), Bool, (Cint,), button)
+    ccall((:igIsMouseClicked, libcimgui), Bool, (ImGuiMouseButton, Bool), button, repeat)
 end
 
 function igIsMouseReleased(button)
-    ccall((:igIsMouseReleased, libcimgui), Bool, (Cint,), button)
+    ccall((:igIsMouseReleased, libcimgui), Bool, (ImGuiMouseButton,), button)
 end
 
-function igIsMouseDragging(button, lock_threshold)
-    ccall((:igIsMouseDragging, libcimgui), Bool, (Cint, Cfloat), button, lock_threshold)
+function igIsMouseDoubleClicked(button)
+    ccall((:igIsMouseDoubleClicked, libcimgui), Bool, (ImGuiMouseButton,), button)
 end
 
 function igIsMouseHoveringRect(r_min, r_max, clip)
@@ -1298,6 +1294,10 @@ function igIsMousePosValid(mouse_pos)
     ccall((:igIsMousePosValid, libcimgui), Bool, (Ptr{ImVec2},), mouse_pos)
 end
 
+function igIsAnyMouseDown()
+    ccall((:igIsAnyMouseDown, libcimgui), Bool, ())
+end
+
 function igGetMousePos()
     ccall((:igGetMousePos, libcimgui), ImVec2, ())
 end
@@ -1306,24 +1306,24 @@ function igGetMousePosOnOpeningCurrentPopup()
     ccall((:igGetMousePosOnOpeningCurrentPopup, libcimgui), ImVec2, ())
 end
 
+function igIsMouseDragging(button, lock_threshold)
+    ccall((:igIsMouseDragging, libcimgui), Bool, (ImGuiMouseButton, Cfloat), button, lock_threshold)
+end
+
 function igGetMouseDragDelta(button, lock_threshold)
-    ccall((:igGetMouseDragDelta, libcimgui), ImVec2, (Cint, Cfloat), button, lock_threshold)
+    ccall((:igGetMouseDragDelta, libcimgui), ImVec2, (ImGuiMouseButton, Cfloat), button, lock_threshold)
 end
 
 function igResetMouseDragDelta(button)
-    ccall((:igResetMouseDragDelta, libcimgui), Cvoid, (Cint,), button)
+    ccall((:igResetMouseDragDelta, libcimgui), Cvoid, (ImGuiMouseButton,), button)
 end
 
 function igGetMouseCursor()
     ccall((:igGetMouseCursor, libcimgui), ImGuiMouseCursor, ())
 end
 
-function igSetMouseCursor(type)
-    ccall((:igSetMouseCursor, libcimgui), Cvoid, (ImGuiMouseCursor,), type)
-end
-
-function igCaptureKeyboardFromApp(want_capture_keyboard_value)
-    ccall((:igCaptureKeyboardFromApp, libcimgui), Cvoid, (Bool,), want_capture_keyboard_value)
+function igSetMouseCursor(cursor_type)
+    ccall((:igSetMouseCursor, libcimgui), Cvoid, (ImGuiMouseCursor,), cursor_type)
 end
 
 function igCaptureMouseFromApp(want_capture_mouse_value)
@@ -1778,6 +1778,14 @@ function ImDrawList_AddCircleFilled(self, center, radius, col, num_segments)
     ccall((:ImDrawList_AddCircleFilled, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, Cfloat, ImU32, Cint), self, center, radius, col, num_segments)
 end
 
+function ImDrawList_AddNgon(self, center, radius, col, num_segments, thickness)
+    ccall((:ImDrawList_AddNgon, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, Cfloat, ImU32, Cint, Cfloat), self, center, radius, col, num_segments, thickness)
+end
+
+function ImDrawList_AddNgonFilled(self, center, radius, col, num_segments)
+    ccall((:ImDrawList_AddNgonFilled, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, Cfloat, ImU32, Cint), self, center, radius, col, num_segments)
+end
+
 function ImDrawList_AddText(self, pos, col, text_begin, text_end)
     ccall((:ImDrawList_AddText, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImU32, Cstring, Cstring), self, pos, col, text_begin, text_end)
 end
@@ -1794,8 +1802,8 @@ function ImDrawList_AddConvexPolyFilled(self, points, num_points, col)
     ccall((:ImDrawList_AddConvexPolyFilled, libcimgui), Cvoid, (Ptr{ImDrawList}, Ptr{ImVec2}, Cint, ImU32), self, points, num_points, col)
 end
 
-function ImDrawList_AddBezierCurve(self, pos0, cp0, cp1, pos1, col, thickness, num_segments)
-    ccall((:ImDrawList_AddBezierCurve, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImVec2, ImVec2, ImVec2, ImU32, Cfloat, Cint), self, pos0, cp0, cp1, pos1, col, thickness, num_segments)
+function ImDrawList_AddBezierCurve(self, p1, p2, p3, p4, col, thickness, num_segments)
+    ccall((:ImDrawList_AddBezierCurve, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImVec2, ImVec2, ImVec2, ImU32, Cfloat, Cint), self, p1, p2, p3, p4, col, thickness, num_segments)
 end
 
 function ImDrawList_AddImage(self, user_texture_id, p_min, p_max, uv_min, uv_max, col)
@@ -1838,8 +1846,8 @@ function ImDrawList_PathArcToFast(self, center, radius, a_min_of_12, a_max_of_12
     ccall((:ImDrawList_PathArcToFast, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, Cfloat, Cint, Cint), self, center, radius, a_min_of_12, a_max_of_12)
 end
 
-function ImDrawList_PathBezierCurveTo(self, p1, p2, p3, num_segments)
-    ccall((:ImDrawList_PathBezierCurveTo, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImVec2, ImVec2, Cint), self, p1, p2, p3, num_segments)
+function ImDrawList_PathBezierCurveTo(self, p2, p3, p4, num_segments)
+    ccall((:ImDrawList_PathBezierCurveTo, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImVec2, ImVec2, Cint), self, p2, p3, p4, num_segments)
 end
 
 function ImDrawList_PathRect(self, rect_min, rect_max, rounding, rounding_corners)
@@ -1880,6 +1888,10 @@ end
 
 function ImDrawList_PrimReserve(self, idx_count, vtx_count)
     ccall((:ImDrawList_PrimReserve, libcimgui), Cvoid, (Ptr{ImDrawList}, Cint, Cint), self, idx_count, vtx_count)
+end
+
+function ImDrawList_PrimUnreserve(self, idx_count, vtx_count)
+    ccall((:ImDrawList_PrimUnreserve, libcimgui), Cvoid, (Ptr{ImDrawList}, Cint, Cint), self, idx_count, vtx_count)
 end
 
 function ImDrawList_PrimRect(self, a, b, col)
@@ -2315,11 +2327,11 @@ function igGetMousePosOnOpeningCurrentPopup_nonUDT2()
 end
 
 function igGetMouseDragDelta_nonUDT(pOut, button, lock_threshold)
-    ccall((:igGetMouseDragDelta_nonUDT, libcimgui), Cvoid, (Ptr{ImVec2}, Cint, Cfloat), pOut, button, lock_threshold)
+    ccall((:igGetMouseDragDelta_nonUDT, libcimgui), Cvoid, (Ptr{ImVec2}, ImGuiMouseButton, Cfloat), pOut, button, lock_threshold)
 end
 
 function igGetMouseDragDelta_nonUDT2(button, lock_threshold)
-    ccall((:igGetMouseDragDelta_nonUDT2, libcimgui), ImVec2_Simple, (Cint, Cfloat), button, lock_threshold)
+    ccall((:igGetMouseDragDelta_nonUDT2, libcimgui), ImVec2_Simple, (ImGuiMouseButton, Cfloat), button, lock_threshold)
 end
 
 function ImColor_HSV_nonUDT(pOut, self, h, s, v, a)

@@ -1,23 +1,7 @@
 # Automatically generated using Clang.jl
 
 
-# const CIMGUI_API = EXTERN
-
-struct ImVec2_Simple
-    x::Cfloat
-    y::Cfloat
-end
-
-struct ImVec4_Simple
-    x::Cfloat
-    y::Cfloat
-    z::Cfloat
-    w::Cfloat
-end
-
-struct ImColor_Simple
-    Value::ImVec4_Simple
-end
+# Skipping MacroDefinition: API __attribute__ ( ( __visibility__ ( "default" ) ) )
 
 const ImGuiID = UInt32
 
@@ -28,6 +12,25 @@ end
 struct ImGuiTextRange
     b::Cstring
     e::Cstring
+end
+
+struct ImGuiPtrOrIndex
+    Ptr::Ptr{Cvoid}
+    Index::Cint
+end
+
+struct ImGuiShrinkWidthItem
+    Index::Cint
+    Width::Cfloat
+end
+
+struct ImVec2ih
+    x::Int16
+    y::Int16
+end
+
+struct ImVec1
+    x::Cfloat
 end
 
 struct ImVec2
@@ -41,7 +44,8 @@ struct ImVector_float
     Data::Ptr{Cfloat}
 end
 
-const ImWchar = UInt16
+const ImWchar16 = UInt16
+const ImWchar = ImWchar16
 
 struct ImVector_ImWchar
     Size::Cint
@@ -50,7 +54,8 @@ struct ImVector_ImWchar
 end
 
 struct ImFontGlyph
-    Codepoint::ImWchar
+    Codepoint::UInt32
+    Visible::UInt32
     AdvanceX::Cfloat
     X0::Cfloat
     Y0::Cfloat
@@ -129,6 +134,8 @@ struct ImFontAtlas
     CustomRectIds::NTuple{1, Cint}
 end
 
+const ImU8 = Cuchar
+
 struct ImFont
     IndexAdvanceX::ImVector_float
     FallbackAdvanceX::Cfloat
@@ -147,6 +154,7 @@ struct ImFont
     Ascent::Cfloat
     Descent::Cfloat
     MetricsTotalSurface::Cint
+    Used4kPagesMap::NTuple{2, ImU8}
 end
 
 struct ImFontAtlasCustomRect
@@ -167,17 +175,377 @@ struct ImVec4
     w::Cfloat
 end
 
-struct ImVector_ImGuiTextRange
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImGuiTextRange}
+struct ImGuiWindowSettings
+    ID::ImGuiID
+    Pos::ImVec2ih
+    Size::ImVec2ih
+    Collapsed::Bool
 end
 
-struct ImGuiTextFilter
-    InputBuf::NTuple{256, UInt8}
-    Filters::ImVector_ImGuiTextRange
-    CountGrep::Cint
+const ImGuiItemStatusFlags = Cint
+
+struct ImRect
+    Min::ImVec2
+    Max::ImVec2
 end
+
+@cenum ImGuiNavLayer::UInt32 begin
+    ImGuiNavLayer_Main = 0
+    ImGuiNavLayer_Menu = 1
+    ImGuiNavLayer_COUNT = 2
+end
+
+
+struct ImGuiMenuColumns
+    Spacing::Cfloat
+    Width::Cfloat
+    NextWidth::Cfloat
+    Pos::NTuple{3, Cfloat}
+    NextWidths::NTuple{3, Cfloat}
+end
+
+const ImU32 = UInt32
+const ImGuiWindowFlags = Cint
+const ImS8 = UInt8
+const ImGuiDir = Cint
+const ImGuiCond = Cint
+
+struct ImVector_ImGuiID
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiID}
+end
+
+struct ImVector_ImGuiStoragePair
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiStoragePair}
+end
+
+struct ImGuiStorage
+    Data::ImVector_ImGuiStoragePair
+end
+
+const ImGuiColumnsFlags = Cint
+
+struct ImGuiColumnData
+    OffsetNorm::Cfloat
+    OffsetNormBeforeResize::Cfloat
+    Flags::ImGuiColumnsFlags
+    ClipRect::ImRect
+end
+
+struct ImVector_ImGuiColumnData
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiColumnData}
+end
+
+const ImDrawCallback = Ptr{Cvoid}
+
+struct ImDrawCmd
+    ElemCount::UInt32
+    ClipRect::ImVec4
+    TextureId::ImTextureID
+    VtxOffset::UInt32
+    IdxOffset::UInt32
+    UserCallback::ImDrawCallback
+    UserCallbackData::Ptr{Cvoid}
+end
+
+struct ImVector_ImDrawCmd
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImDrawCmd}
+end
+
+const ImDrawIdx = UInt16
+
+struct ImVector_ImDrawIdx
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImDrawIdx}
+end
+
+struct ImDrawChannel
+    _CmdBuffer::ImVector_ImDrawCmd
+    _IdxBuffer::ImVector_ImDrawIdx
+end
+
+struct ImVector_ImDrawChannel
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImDrawChannel}
+end
+
+struct ImDrawListSplitter
+    _Current::Cint
+    _Count::Cint
+    _Channels::ImVector_ImDrawChannel
+end
+
+struct ImGuiColumns
+    ID::ImGuiID
+    Flags::ImGuiColumnsFlags
+    IsFirstFrame::Bool
+    IsBeingResized::Bool
+    Current::Cint
+    Count::Cint
+    OffMinX::Cfloat
+    OffMaxX::Cfloat
+    LineMinY::Cfloat
+    LineMaxY::Cfloat
+    HostCursorPosY::Cfloat
+    HostCursorMaxPosX::Cfloat
+    HostClipRect::ImRect
+    HostWorkRect::ImRect
+    Columns::ImVector_ImGuiColumnData
+    Splitter::ImDrawListSplitter
+end
+
+struct ImVector_ImGuiColumns
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiColumns}
+end
+
+struct ImDrawVert
+    pos::ImVec2
+    uv::ImVec2
+    col::ImU32
+end
+
+struct ImVector_ImDrawVert
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImDrawVert}
+end
+
+const ImDrawListFlags = Cint
+
+struct ImDrawListSharedData
+    TexUvWhitePixel::ImVec2
+    Font::Ptr{ImFont}
+    FontSize::Cfloat
+    CurveTessellationTol::Cfloat
+    CircleSegmentMaxError::Cfloat
+    ClipRectFullscreen::ImVec4
+    InitialFlags::ImDrawListFlags
+    ArcFastVtx::NTuple{12, ImVec2}
+    CircleSegmentCounts::NTuple{64, ImU8}
+end
+
+struct ImVector_ImVec4
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImVec4}
+end
+
+struct ImVector_ImTextureID
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImTextureID}
+end
+
+struct ImVector_ImVec2
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImVec2}
+end
+
+struct ImDrawList
+    CmdBuffer::ImVector_ImDrawCmd
+    IdxBuffer::ImVector_ImDrawIdx
+    VtxBuffer::ImVector_ImDrawVert
+    Flags::ImDrawListFlags
+    _Data::Ptr{ImDrawListSharedData}
+    _OwnerName::Cstring
+    _VtxCurrentOffset::UInt32
+    _VtxCurrentIdx::UInt32
+    _VtxWritePtr::Ptr{ImDrawVert}
+    _IdxWritePtr::Ptr{ImDrawIdx}
+    _ClipRectStack::ImVector_ImVec4
+    _TextureIdStack::ImVector_ImTextureID
+    _Path::ImVector_ImVec2
+    _Splitter::ImDrawListSplitter
+end
+
+struct ImGuiWindow
+    Name::Cstring
+    ID::ImGuiID
+    Flags::ImGuiWindowFlags
+    Pos::ImVec2
+    Size::ImVec2
+    SizeFull::ImVec2
+    ContentSize::ImVec2
+    ContentSizeExplicit::ImVec2
+    WindowPadding::ImVec2
+    WindowRounding::Cfloat
+    WindowBorderSize::Cfloat
+    NameBufLen::Cint
+    MoveId::ImGuiID
+    ChildId::ImGuiID
+    Scroll::ImVec2
+    ScrollMax::ImVec2
+    ScrollTarget::ImVec2
+    ScrollTargetCenterRatio::ImVec2
+    ScrollbarSizes::ImVec2
+    ScrollbarX::Bool
+    ScrollbarY::Bool
+    Active::Bool
+    WasActive::Bool
+    WriteAccessed::Bool
+    Collapsed::Bool
+    WantCollapseToggle::Bool
+    SkipItems::Bool
+    Appearing::Bool
+    Hidden::Bool
+    IsFallbackWindow::Bool
+    HasCloseButton::Bool
+    ResizeBorderHeld::UInt8
+    BeginCount::Int16
+    BeginOrderWithinParent::Int16
+    BeginOrderWithinContext::Int16
+    PopupId::ImGuiID
+    AutoFitFramesX::ImS8
+    AutoFitFramesY::ImS8
+    AutoFitChildAxises::ImS8
+    AutoFitOnlyGrows::Bool
+    AutoPosLastDirection::ImGuiDir
+    HiddenFramesCanSkipItems::Cint
+    HiddenFramesCannotSkipItems::Cint
+    SetWindowPosAllowFlags::ImGuiCond
+    SetWindowSizeAllowFlags::ImGuiCond
+    SetWindowCollapsedAllowFlags::ImGuiCond
+    SetWindowPosVal::ImVec2
+    SetWindowPosPivot::ImVec2
+    IDStack::ImVector_ImGuiID
+    DC::ImGuiWindowTempData
+    OuterRectClipped::ImRect
+    InnerRect::ImRect
+    InnerClipRect::ImRect
+    WorkRect::ImRect
+    ClipRect::ImRect
+    ContentRegionRect::ImRect
+    LastFrameActive::Cint
+    LastTimeActive::Cfloat
+    ItemWidthDefault::Cfloat
+    StateStorage::ImGuiStorage
+    ColumnsStorage::ImVector_ImGuiColumns
+    FontWindowScale::Cfloat
+    SettingsOffset::Cint
+    DrawList::Ptr{ImDrawList}
+    DrawListInst::ImDrawList
+    ParentWindow::Ptr{ImGuiWindow}
+    RootWindow::Ptr{ImGuiWindow}
+    RootWindowForTitleBarHighlight::Ptr{ImGuiWindow}
+    RootWindowForNav::Ptr{ImGuiWindow}
+    NavLastChildNavWindow::Ptr{ImGuiWindow}
+    NavLastIds::NTuple{2, ImGuiID}
+    NavRectRel::NTuple{2, ImRect}
+    MemoryCompacted::Bool
+    MemoryDrawListIdxCapacity::Cint
+    MemoryDrawListVtxCapacity::Cint
+end
+
+struct ImVector_ImGuiWindowPtr
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{Ptr{ImGuiWindow}}
+end
+
+const ImGuiLayoutType = Cint
+const ImGuiItemFlags = Cint
+
+struct ImVector_ImGuiItemFlags
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiItemFlags}
+end
+
+struct ImGuiGroupData
+    BackupCursorPos::ImVec2
+    BackupCursorMaxPos::ImVec2
+    BackupIndent::ImVec1
+    BackupGroupOffset::ImVec1
+    BackupCurrLineSize::ImVec2
+    BackupCurrLineTextBaseOffset::Cfloat
+    BackupActiveIdIsAlive::ImGuiID
+    BackupActiveIdPreviousFrameIsAlive::Bool
+    EmitItem::Bool
+end
+
+struct ImVector_ImGuiGroupData
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiGroupData}
+end
+
+struct ImGuiWindowTempData
+    CursorPos::ImVec2
+    CursorPosPrevLine::ImVec2
+    CursorStartPos::ImVec2
+    CursorMaxPos::ImVec2
+    CurrLineSize::ImVec2
+    PrevLineSize::ImVec2
+    CurrLineTextBaseOffset::Cfloat
+    PrevLineTextBaseOffset::Cfloat
+    Indent::ImVec1
+    ColumnsOffset::ImVec1
+    GroupOffset::ImVec1
+    LastItemId::ImGuiID
+    LastItemStatusFlags::ImGuiItemStatusFlags
+    LastItemRect::ImRect
+    LastItemDisplayRect::ImRect
+    NavLayerCurrent::ImGuiNavLayer
+    NavLayerCurrentMask::Cint
+    NavLayerActiveMask::Cint
+    NavLayerActiveMaskNext::Cint
+    NavFocusScopeIdCurrent::ImGuiID
+    NavHideHighlightOneFrame::Bool
+    NavHasScroll::Bool
+    MenuBarAppending::Bool
+    MenuBarOffset::ImVec2
+    MenuColumns::ImGuiMenuColumns
+    TreeDepth::Cint
+    TreeJumpToParentOnPopMask::ImU32
+    ChildWindows::ImVector_ImGuiWindowPtr
+    StateStorage::Ptr{ImGuiStorage}
+    CurrentColumns::Ptr{ImGuiColumns}
+    LayoutType::ImGuiLayoutType
+    ParentLayoutType::ImGuiLayoutType
+    FocusCounterRegular::Cint
+    FocusCounterTabStop::Cint
+    ItemFlags::ImGuiItemFlags
+    ItemWidth::Cfloat
+    TextWrapPos::Cfloat
+    ItemFlagsStack::ImVector_ImGuiItemFlags
+    ItemWidthStack::ImVector_float
+    TextWrapPosStack::ImVector_float
+    GroupStack::ImVector_ImGuiGroupData
+    StackSizesBackup::NTuple{6, Int16}
+end
+
+const ImGuiTabItemFlags = Cint
+
+struct ImGuiTabItem
+    ID::ImGuiID
+    Flags::ImGuiTabItemFlags
+    LastFrameVisible::Cint
+    LastFrameSelected::Cint
+    NameOffset::Cint
+    Offset::Cfloat
+    Width::Cfloat
+    ContentWidth::Cfloat
+end
+
+struct ImVector_ImGuiTabItem
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiTabItem}
+end
+
+const ImGuiTabBarFlags = Cint
 
 struct ImVector_char
     Size::Cint
@@ -189,7 +557,203 @@ struct ImGuiTextBuffer
     Buf::ImVector_char
 end
 
-const ImGuiDir = Cint
+struct ImGuiTabBar
+    Tabs::ImVector_ImGuiTabItem
+    ID::ImGuiID
+    SelectedTabId::ImGuiID
+    NextSelectedTabId::ImGuiID
+    VisibleTabId::ImGuiID
+    CurrFrameVisible::Cint
+    PrevFrameVisible::Cint
+    BarRect::ImRect
+    LastTabContentHeight::Cfloat
+    OffsetMax::Cfloat
+    OffsetMaxIdeal::Cfloat
+    OffsetNextTab::Cfloat
+    ScrollingAnim::Cfloat
+    ScrollingTarget::Cfloat
+    ScrollingTargetDistToVisibility::Cfloat
+    ScrollingSpeed::Cfloat
+    Flags::ImGuiTabBarFlags
+    ReorderRequestTabId::ImGuiID
+    ReorderRequestDir::ImS8
+    WantLayout::Bool
+    VisibleTabWasSubmitted::Bool
+    LastTabItemIdx::Int16
+    FramePadding::ImVec2
+    TabsNames::ImGuiTextBuffer
+end
+
+const ImGuiStyleVar = Cint
+
+struct ImGuiStyleMod
+    VarIdx::ImGuiStyleVar
+end
+
+struct ImGuiSettingsHandler
+    TypeName::Cstring
+    TypeHash::ImGuiID
+    ReadOpenFn::Ptr{Cvoid}
+    ReadLineFn::Ptr{Cvoid}
+    WriteAllFn::Ptr{Cvoid}
+    UserData::Ptr{Cvoid}
+end
+
+struct ImGuiPopupData
+    PopupId::ImGuiID
+    Window::Ptr{ImGuiWindow}
+    SourceWindow::Ptr{ImGuiWindow}
+    OpenFrameCount::Cint
+    OpenParentId::ImGuiID
+    OpenPopupPos::ImVec2
+    OpenMousePos::ImVec2
+end
+
+const ImGuiNextItemDataFlags = Cint
+
+struct ImGuiNextItemData
+    Flags::ImGuiNextItemDataFlags
+    Width::Cfloat
+    FocusScopeId::ImGuiID
+    OpenCond::ImGuiCond
+    OpenVal::Bool
+end
+
+const ImGuiNextWindowDataFlags = Cint
+const ImGuiSizeCallback = Ptr{Cvoid}
+
+struct ImGuiNextWindowData
+    Flags::ImGuiNextWindowDataFlags
+    PosCond::ImGuiCond
+    SizeCond::ImGuiCond
+    CollapsedCond::ImGuiCond
+    PosVal::ImVec2
+    PosPivotVal::ImVec2
+    SizeVal::ImVec2
+    ContentSizeVal::ImVec2
+    CollapsedVal::Bool
+    SizeConstraintRect::ImRect
+    SizeCallback::ImGuiSizeCallback
+    SizeCallbackUserData::Ptr{Cvoid}
+    BgAlphaVal::Cfloat
+    MenuBarOffsetMinVal::ImVec2
+end
+
+struct ImGuiNavMoveResult
+    Window::Ptr{ImGuiWindow}
+    ID::ImGuiID
+    FocusScopeId::ImGuiID
+    DistBox::Cfloat
+    DistCenter::Cfloat
+    DistAxial::Cfloat
+    RectRel::ImRect
+end
+
+struct ImGuiItemHoveredDataBackup
+    LastItemId::ImGuiID
+    LastItemStatusFlags::ImGuiItemStatusFlags
+    LastItemRect::ImRect
+    LastItemDisplayRect::ImRect
+end
+
+struct StbUndoRecord
+    where::Cint
+    insert_length::Cint
+    delete_length::Cint
+    char_storage::Cint
+end
+
+struct StbUndoState
+    undo_rec::NTuple{99, StbUndoRecord}
+    undo_char::NTuple{999, ImWchar}
+    undo_point::Int16
+    redo_point::Int16
+    undo_char_point::Cint
+    redo_char_point::Cint
+end
+
+struct STB_TexteditState
+    cursor::Cint
+    select_start::Cint
+    select_end::Cint
+    insert_mode::Cuchar
+    cursor_at_end_of_line::Cuchar
+    initialized::Cuchar
+    has_preferred_x::Cuchar
+    single_line::Cuchar
+    padding1::Cuchar
+    padding2::Cuchar
+    padding3::Cuchar
+    preferred_x::Cfloat
+    undostate::StbUndoState
+end
+
+const ImGuiInputTextFlags = Cint
+const ImGuiInputTextCallback = Ptr{Cvoid}
+
+struct ImGuiInputTextState
+    ID::ImGuiID
+    CurLenW::Cint
+    CurLenA::Cint
+    TextW::ImVector_ImWchar
+    TextA::ImVector_char
+    InitialTextA::ImVector_char
+    TextAIsValid::Bool
+    BufCapacityA::Cint
+    ScrollX::Cfloat
+    Stb::STB_TexteditState
+    CursorAnim::Cfloat
+    CursorFollow::Bool
+    SelectedAllMouseLock::Bool
+    UserFlags::ImGuiInputTextFlags
+    UserCallback::ImGuiInputTextCallback
+    UserCallbackData::Ptr{Cvoid}
+end
+
+struct ImGuiDataTypeInfo
+    Size::Csize_t
+    PrintFmt::Cstring
+    ScanFmt::Cstring
+end
+
+const ImGuiCol = Cint
+
+struct ImGuiColorMod
+    Col::ImGuiCol
+    BackupValue::ImVec4
+end
+
+struct ImVector_ImDrawListPtr
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{Ptr{ImDrawList}}
+end
+
+struct ImDrawDataBuilder
+    Layers::NTuple{2, ImVector_ImDrawListPtr}
+end
+
+struct ImVector_ImU32
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImU32}
+end
+
+struct ImBitVector
+    Storage::ImVector_ImU32
+end
+
+struct ImVector_ImGuiTextRange
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiTextRange}
+end
+
+struct ImGuiTextFilter
+    InputBuf::NTuple{256, UInt8}
+    Filters::ImVector_ImGuiTextRange
+    CountGrep::Cint
+end
 
 struct ImGuiStyle
     Alpha::Cfloat
@@ -230,16 +794,6 @@ struct ImGuiStyle
     Colors::NTuple{48, ImVec4}
 end
 
-struct ImVector_ImGuiStoragePair
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImGuiStoragePair}
-end
-
-struct ImGuiStorage
-    Data::ImVector_ImGuiStoragePair
-end
-
 struct ImGuiSizeCallbackData
     UserData::Ptr{Cvoid}
     Pos::ImVec2
@@ -271,7 +825,6 @@ struct ImGuiListClipper
     StartPosY::Cfloat
 end
 
-const ImGuiInputTextFlags = Cint
 const ImGuiKey = Cint
 
 struct ImGuiInputTextCallbackData
@@ -291,6 +844,7 @@ end
 
 const ImGuiConfigFlags = Cint
 const ImGuiBackendFlags = Cint
+const ImGuiKeyModFlags = Cint
 
 struct ImGuiIO
     ConfigFlags::ImGuiConfigFlags
@@ -353,6 +907,7 @@ struct ImGuiIO
     MetricsActiveWindows::Cint
     MetricsActiveAllocations::Cint
     MouseDelta::ImVec2
+    KeyMods::ImGuiKeyModFlags
     MousePosPrev::ImVec2
     MouseClickedPos::NTuple{5, ImVec2}
     MouseClickedTime::NTuple{5, Cdouble}
@@ -369,120 +924,48 @@ struct ImGuiIO
     KeysDownDurationPrev::NTuple{512, Cfloat}
     NavInputsDownDuration::NTuple{21, Cfloat}
     NavInputsDownDurationPrev::NTuple{21, Cfloat}
+    InputQueueSurrogate::ImWchar16
     InputQueueCharacters::ImVector_ImWchar
 end
 
-const ImGuiContext = Cvoid
+const ImU64 = UInt64
 
-struct ImColor
-    Value::ImVec4
+@cenum ImGuiInputSource::UInt32 begin
+    ImGuiInputSource_None = 0
+    ImGuiInputSource_Mouse = 1
+    ImGuiInputSource_Nav = 2
+    ImGuiInputSource_NavKeyboard = 3
+    ImGuiInputSource_NavGamepad = 4
+    ImGuiInputSource_COUNT = 5
 end
 
-const ImU32 = UInt32
 
-struct ImVector_ImU32
+struct ImVector_ImGuiColorMod
     Size::Cint
     Capacity::Cint
-    Data::Ptr{ImU32}
+    Data::Ptr{ImGuiColorMod}
 end
 
-struct ImFontGlyphRangesBuilder
-    UsedChars::ImVector_ImU32
-end
-
-struct ImDrawVert
-    pos::ImVec2
-    uv::ImVec2
-    col::ImU32
-end
-
-const ImDrawCallback = Ptr{Cvoid}
-
-struct ImDrawCmd
-    ElemCount::UInt32
-    ClipRect::ImVec4
-    TextureId::ImTextureID
-    VtxOffset::UInt32
-    IdxOffset::UInt32
-    UserCallback::ImDrawCallback
-    UserCallbackData::Ptr{Cvoid}
-end
-
-struct ImVector_ImDrawCmd
+struct ImVector_ImGuiStyleMod
     Size::Cint
     Capacity::Cint
-    Data::Ptr{ImDrawCmd}
+    Data::Ptr{ImGuiStyleMod}
 end
 
-const ImDrawIdx = UInt16
-
-struct ImVector_ImDrawIdx
+struct ImVector_ImGuiPopupData
     Size::Cint
     Capacity::Cint
-    Data::Ptr{ImDrawIdx}
+    Data::Ptr{ImGuiPopupData}
 end
 
-struct ImDrawChannel
-    _CmdBuffer::ImVector_ImDrawCmd
-    _IdxBuffer::ImVector_ImDrawIdx
+const ImGuiNavMoveFlags = Cint
+
+@cenum ImGuiNavForward::UInt32 begin
+    ImGuiNavForward_None = 0
+    ImGuiNavForward_ForwardQueued = 1
+    ImGuiNavForward_ForwardActive = 2
 end
 
-struct ImVector_ImDrawChannel
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImDrawChannel}
-end
-
-struct ImDrawListSplitter
-    _Current::Cint
-    _Count::Cint
-    _Channels::ImVector_ImDrawChannel
-end
-
-const ImDrawListSharedData = Cvoid
-
-struct ImVector_ImDrawVert
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImDrawVert}
-end
-
-const ImDrawListFlags = Cint
-
-struct ImVector_ImVec4
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImVec4}
-end
-
-struct ImVector_ImTextureID
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImTextureID}
-end
-
-struct ImVector_ImVec2
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImVec2}
-end
-
-struct ImDrawList
-    CmdBuffer::ImVector_ImDrawCmd
-    IdxBuffer::ImVector_ImDrawIdx
-    VtxBuffer::ImVector_ImDrawVert
-    Flags::ImDrawListFlags
-    _Data::Ptr{ImDrawListSharedData}
-    _OwnerName::Cstring
-    _VtxCurrentOffset::UInt32
-    _VtxCurrentIdx::UInt32
-    _VtxWritePtr::Ptr{ImDrawVert}
-    _IdxWritePtr::Ptr{ImDrawIdx}
-    _ClipRectStack::ImVector_ImVec4
-    _TextureIdStack::ImVector_ImTextureID
-    _Path::ImVector_ImVec2
-    _Splitter::ImDrawListSplitter
-end
 
 struct ImDrawData
     Valid::Bool
@@ -495,38 +978,295 @@ struct ImDrawData
     FramebufferScale::ImVec2
 end
 
-const ImGuiCol = Cint
-const ImGuiCond = Cint
+const ImGuiMouseCursor = Cint
+const ImGuiDragDropFlags = Cint
+
+struct ImVector_unsigned_char
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{Cuchar}
+end
+
+struct ImVector_ImGuiTabBar
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiTabBar}
+end
+
+const ImPoolIdx = Cint
+
+struct ImPool_ImGuiTabBar
+    Buf::ImVector_ImGuiTabBar
+    Map::ImGuiStorage
+    FreeIdx::ImPoolIdx
+end
+
+struct ImVector_ImGuiPtrOrIndex
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiPtrOrIndex}
+end
+
+struct ImVector_ImGuiShrinkWidthItem
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiShrinkWidthItem}
+end
+
+const ImGuiColorEditFlags = Cint
+
+struct ImVector_ImGuiSettingsHandler
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiSettingsHandler}
+end
+
+struct ImVector_ImGuiWindowSettings
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiWindowSettings}
+end
+
+struct ImChunkStream_ImGuiWindowSettings
+    Buf::ImVector_ImGuiWindowSettings
+end
+
+@cenum ImGuiLogType::UInt32 begin
+    ImGuiLogType_None = 0
+    ImGuiLogType_TTY = 1
+    ImGuiLogType_File = 2
+    ImGuiLogType_Buffer = 3
+    ImGuiLogType_Clipboard = 4
+end
+
+
+const ImFileHandle = Ptr{FILE}
+
+struct ImGuiContext
+    Initialized::Bool
+    FontAtlasOwnedByContext::Bool
+    IO::ImGuiIO
+    Style::ImGuiStyle
+    Font::Ptr{ImFont}
+    FontSize::Cfloat
+    FontBaseSize::Cfloat
+    DrawListSharedData::ImDrawListSharedData
+    Time::Cdouble
+    FrameCount::Cint
+    FrameCountEnded::Cint
+    FrameCountRendered::Cint
+    WithinFrameScope::Bool
+    WithinFrameScopeWithImplicitWindow::Bool
+    WithinEndChild::Bool
+    Windows::ImVector_ImGuiWindowPtr
+    WindowsFocusOrder::ImVector_ImGuiWindowPtr
+    WindowsTempSortBuffer::ImVector_ImGuiWindowPtr
+    CurrentWindowStack::ImVector_ImGuiWindowPtr
+    WindowsById::ImGuiStorage
+    WindowsActiveCount::Cint
+    CurrentWindow::Ptr{ImGuiWindow}
+    HoveredWindow::Ptr{ImGuiWindow}
+    HoveredRootWindow::Ptr{ImGuiWindow}
+    MovingWindow::Ptr{ImGuiWindow}
+    WheelingWindow::Ptr{ImGuiWindow}
+    WheelingWindowRefMousePos::ImVec2
+    WheelingWindowTimer::Cfloat
+    HoveredId::ImGuiID
+    HoveredIdAllowOverlap::Bool
+    HoveredIdPreviousFrame::ImGuiID
+    HoveredIdTimer::Cfloat
+    HoveredIdNotActiveTimer::Cfloat
+    ActiveId::ImGuiID
+    ActiveIdIsAlive::ImGuiID
+    ActiveIdTimer::Cfloat
+    ActiveIdIsJustActivated::Bool
+    ActiveIdAllowOverlap::Bool
+    ActiveIdHasBeenPressedBefore::Bool
+    ActiveIdHasBeenEditedBefore::Bool
+    ActiveIdHasBeenEditedThisFrame::Bool
+    ActiveIdUsingNavDirMask::ImU32
+    ActiveIdUsingNavInputMask::ImU32
+    ActiveIdUsingKeyInputMask::ImU64
+    ActiveIdClickOffset::ImVec2
+    ActiveIdWindow::Ptr{ImGuiWindow}
+    ActiveIdSource::ImGuiInputSource
+    ActiveIdMouseButton::Cint
+    ActiveIdPreviousFrame::ImGuiID
+    ActiveIdPreviousFrameIsAlive::Bool
+    ActiveIdPreviousFrameHasBeenEditedBefore::Bool
+    ActiveIdPreviousFrameWindow::Ptr{ImGuiWindow}
+    LastActiveId::ImGuiID
+    LastActiveIdTimer::Cfloat
+    NextWindowData::ImGuiNextWindowData
+    NextItemData::ImGuiNextItemData
+    ColorModifiers::ImVector_ImGuiColorMod
+    StyleModifiers::ImVector_ImGuiStyleMod
+    FontStack::ImVector_ImFontPtr
+    OpenPopupStack::ImVector_ImGuiPopupData
+    BeginPopupStack::ImVector_ImGuiPopupData
+    NavWindow::Ptr{ImGuiWindow}
+    NavId::ImGuiID
+    NavFocusScopeId::ImGuiID
+    NavActivateId::ImGuiID
+    NavActivateDownId::ImGuiID
+    NavActivatePressedId::ImGuiID
+    NavInputId::ImGuiID
+    NavJustTabbedId::ImGuiID
+    NavJustMovedToId::ImGuiID
+    NavJustMovedToFocusScopeId::ImGuiID
+    NavJustMovedToKeyMods::ImGuiKeyModFlags
+    NavNextActivateId::ImGuiID
+    NavInputSource::ImGuiInputSource
+    NavScoringRect::ImRect
+    NavScoringCount::Cint
+    NavLayer::ImGuiNavLayer
+    NavIdTabCounter::Cint
+    NavIdIsAlive::Bool
+    NavMousePosDirty::Bool
+    NavDisableHighlight::Bool
+    NavDisableMouseHover::Bool
+    NavAnyRequest::Bool
+    NavInitRequest::Bool
+    NavInitRequestFromMove::Bool
+    NavInitResultId::ImGuiID
+    NavInitResultRectRel::ImRect
+    NavMoveFromClampedRefRect::Bool
+    NavMoveRequest::Bool
+    NavMoveRequestFlags::ImGuiNavMoveFlags
+    NavMoveRequestForward::ImGuiNavForward
+    NavMoveRequestKeyMods::ImGuiKeyModFlags
+    NavMoveDir::ImGuiDir
+    NavMoveDirLast::ImGuiDir
+    NavMoveClipDir::ImGuiDir
+    NavMoveResultLocal::ImGuiNavMoveResult
+    NavMoveResultLocalVisibleSet::ImGuiNavMoveResult
+    NavMoveResultOther::ImGuiNavMoveResult
+    NavWindowingTarget::Ptr{ImGuiWindow}
+    NavWindowingTargetAnim::Ptr{ImGuiWindow}
+    NavWindowingList::Ptr{ImGuiWindow}
+    NavWindowingTimer::Cfloat
+    NavWindowingHighlightAlpha::Cfloat
+    NavWindowingToggleLayer::Bool
+    FocusRequestCurrWindow::Ptr{ImGuiWindow}
+    FocusRequestNextWindow::Ptr{ImGuiWindow}
+    FocusRequestCurrCounterRegular::Cint
+    FocusRequestCurrCounterTabStop::Cint
+    FocusRequestNextCounterRegular::Cint
+    FocusRequestNextCounterTabStop::Cint
+    FocusTabPressed::Bool
+    DrawData::ImDrawData
+    DrawDataBuilder::ImDrawDataBuilder
+    DimBgRatio::Cfloat
+    BackgroundDrawList::ImDrawList
+    ForegroundDrawList::ImDrawList
+    MouseCursor::ImGuiMouseCursor
+    DragDropActive::Bool
+    DragDropWithinSource::Bool
+    DragDropWithinTarget::Bool
+    DragDropSourceFlags::ImGuiDragDropFlags
+    DragDropSourceFrameCount::Cint
+    DragDropMouseButton::Cint
+    DragDropPayload::ImGuiPayload
+    DragDropTargetRect::ImRect
+    DragDropTargetId::ImGuiID
+    DragDropAcceptFlags::ImGuiDragDropFlags
+    DragDropAcceptIdCurrRectSurface::Cfloat
+    DragDropAcceptIdCurr::ImGuiID
+    DragDropAcceptIdPrev::ImGuiID
+    DragDropAcceptFrameCount::Cint
+    DragDropPayloadBufHeap::ImVector_unsigned_char
+    DragDropPayloadBufLocal::NTuple{16, Cuchar}
+    CurrentTabBar::Ptr{ImGuiTabBar}
+    TabBars::ImPool_ImGuiTabBar
+    CurrentTabBarStack::ImVector_ImGuiPtrOrIndex
+    ShrinkWidthBuffer::ImVector_ImGuiShrinkWidthItem
+    LastValidMousePos::ImVec2
+    InputTextState::ImGuiInputTextState
+    InputTextPasswordFont::ImFont
+    TempInputId::ImGuiID
+    ColorEditOptions::ImGuiColorEditFlags
+    ColorEditLastHue::Cfloat
+    ColorEditLastSat::Cfloat
+    ColorEditLastColor::NTuple{3, Cfloat}
+    ColorPickerRef::ImVec4
+    DragCurrentAccumDirty::Bool
+    DragCurrentAccum::Cfloat
+    DragSpeedDefaultRatio::Cfloat
+    ScrollbarClickDeltaToGrabCenter::Cfloat
+    TooltipOverrideCount::Cint
+    ClipboardHandlerData::ImVector_char
+    MenusIdSubmittedThisFrame::ImVector_ImGuiID
+    PlatformImePos::ImVec2
+    PlatformImeLastPos::ImVec2
+    SettingsLoaded::Bool
+    SettingsDirtyTimer::Cfloat
+    SettingsIniData::ImGuiTextBuffer
+    SettingsHandlers::ImVector_ImGuiSettingsHandler
+    SettingsWindows::ImChunkStream_ImGuiWindowSettings
+    LogEnabled::Bool
+    LogType::ImGuiLogType
+    LogFile::ImFileHandle
+    LogBuffer::ImGuiTextBuffer
+    LogLinePosY::Cfloat
+    LogLineFirstItem::Bool
+    LogDepthRef::Cint
+    LogDepthToExpand::Cint
+    LogDepthToExpandDefault::Cint
+    DebugItemPickerActive::Bool
+    DebugItemPickerBreakId::ImGuiID
+    FramerateSecPerFrame::NTuple{120, Cfloat}
+    FramerateSecPerFrameIdx::Cint
+    FramerateSecPerFrameAccum::Cfloat
+    WantCaptureMouseNextFrame::Cint
+    WantCaptureKeyboardNextFrame::Cint
+    WantTextInputNextFrame::Cint
+    TempBuffer::NTuple{3073, UInt8}
+end
+
+struct ImColor
+    Value::ImVec4
+end
+
+struct ImFontGlyphRangesBuilder
+    UsedChars::ImVector_ImU32
+end
+
 const ImGuiDataType = Cint
 const ImGuiNavInput = Cint
 const ImGuiMouseButton = Cint
-const ImGuiMouseCursor = Cint
-const ImGuiStyleVar = Cint
 const ImDrawCornerFlags = Cint
-const ImGuiColorEditFlags = Cint
 const ImGuiComboFlags = Cint
-const ImGuiDragDropFlags = Cint
 const ImGuiFocusedFlags = Cint
 const ImGuiHoveredFlags = Cint
 const ImGuiSelectableFlags = Cint
-const ImGuiTabBarFlags = Cint
-const ImGuiTabItemFlags = Cint
 const ImGuiTreeNodeFlags = Cint
-const ImGuiWindowFlags = Cint
-const ImGuiInputTextCallback = Ptr{Cvoid}
-const ImGuiSizeCallback = Ptr{Cvoid}
-const ImS8 = UInt8
-const ImU8 = Cuchar
+const ImWchar32 = UInt32
 const ImS16 = Int16
 const ImU16 = UInt16
 const ImS32 = Cint
 const ImS64 = Int64
-const ImU64 = UInt64
+const ImGuiButtonFlags = Cint
+const ImGuiDragFlags = Cint
+const ImGuiNavHighlightFlags = Cint
+const ImGuiNavDirSourceFlags = Cint
+const ImGuiSeparatorFlags = Cint
+const ImGuiSliderFlags = Cint
+const ImGuiTextFlags = Cint
+const ImGuiTooltipFlags = Cint
 
 struct ImVector
     Size::Cint
     Capacity::Cint
     Data::Ptr{Cvoid}
+end
+
+struct StbTexteditRow
+    x0::Cfloat
+    x1::Cfloat
+    baseline_y_delta::Cfloat
+    ymin::Cfloat
+    ymax::Cfloat
+    num_chars::Cint
 end
 
 @cenum ImGuiWindowFlags_::UInt32 begin
@@ -733,6 +1473,14 @@ end
     ImGuiKey_COUNT = 22
 end
 
+@cenum ImGuiKeyModFlags_::UInt32 begin
+    ImGuiKeyModFlags_None = 0
+    ImGuiKeyModFlags_Ctrl = 1
+    ImGuiKeyModFlags_Shift = 2
+    ImGuiKeyModFlags_Alt = 4
+    ImGuiKeyModFlags_Super = 8
+end
+
 @cenum ImGuiNavInput_::UInt32 begin
     ImGuiNavInput_Activate = 0
     ImGuiNavInput_Cancel = 1
@@ -869,6 +1617,7 @@ end
     ImGuiColorEditFlags_NoLabel = 128
     ImGuiColorEditFlags_NoSidePreview = 256
     ImGuiColorEditFlags_NoDragDrop = 512
+    ImGuiColorEditFlags_NoBorder = 1024
     ImGuiColorEditFlags_AlphaBar = 65536
     ImGuiColorEditFlags_AlphaPreview = 131072
     ImGuiColorEditFlags_AlphaPreviewHalf = 262144
@@ -941,5 +1690,188 @@ end
     ImFontAtlasFlags_None = 0
     ImFontAtlasFlags_NoPowerOfTwoHeight = 1
     ImFontAtlasFlags_NoMouseCursors = 2
+end
+
+@cenum ImGuiButtonFlags_::UInt32 begin
+    ImGuiButtonFlags_None = 0
+    ImGuiButtonFlags_Repeat = 1
+    ImGuiButtonFlags_PressedOnClick = 2
+    ImGuiButtonFlags_PressedOnClickRelease = 4
+    ImGuiButtonFlags_PressedOnClickReleaseAnywhere = 8
+    ImGuiButtonFlags_PressedOnRelease = 16
+    ImGuiButtonFlags_PressedOnDoubleClick = 32
+    ImGuiButtonFlags_PressedOnDragDropHold = 64
+    ImGuiButtonFlags_FlattenChildren = 128
+    ImGuiButtonFlags_AllowItemOverlap = 256
+    ImGuiButtonFlags_DontClosePopups = 512
+    ImGuiButtonFlags_Disabled = 1024
+    ImGuiButtonFlags_AlignTextBaseLine = 2048
+    ImGuiButtonFlags_NoKeyModifiers = 4096
+    ImGuiButtonFlags_NoHoldingActiveId = 8192
+    ImGuiButtonFlags_NoNavFocus = 16384
+    ImGuiButtonFlags_NoHoveredOnFocus = 32768
+    ImGuiButtonFlags_MouseButtonLeft = 65536
+    ImGuiButtonFlags_MouseButtonRight = 131072
+    ImGuiButtonFlags_MouseButtonMiddle = 262144
+    ImGuiButtonFlags_MouseButtonMask_ = 458752
+    ImGuiButtonFlags_MouseButtonShift_ = 16
+    ImGuiButtonFlags_MouseButtonDefault_ = 65536
+    ImGuiButtonFlags_PressedOnMask_ = 126
+    ImGuiButtonFlags_PressedOnDefault_ = 4
+end
+
+@cenum ImGuiSliderFlags_::UInt32 begin
+    ImGuiSliderFlags_None = 0
+    ImGuiSliderFlags_Vertical = 1
+end
+
+@cenum ImGuiDragFlags_::UInt32 begin
+    ImGuiDragFlags_None = 0
+    ImGuiDragFlags_Vertical = 1
+end
+
+@cenum ImGuiColumnsFlags_::UInt32 begin
+    ImGuiColumnsFlags_None = 0
+    ImGuiColumnsFlags_NoBorder = 1
+    ImGuiColumnsFlags_NoResize = 2
+    ImGuiColumnsFlags_NoPreserveWidths = 4
+    ImGuiColumnsFlags_NoForceWithinWindow = 8
+    ImGuiColumnsFlags_GrowParentContentsSize = 16
+end
+
+@cenum ImGuiSelectableFlagsPrivate_::UInt32 begin
+    ImGuiSelectableFlags_NoHoldingActiveID = 1048576
+    ImGuiSelectableFlags_SelectOnClick = 2097152
+    ImGuiSelectableFlags_SelectOnRelease = 4194304
+    ImGuiSelectableFlags_SpanAvailWidth = 8388608
+    ImGuiSelectableFlags_DrawHoveredWhenHeld = 16777216
+    ImGuiSelectableFlags_SetNavIdOnHover = 33554432
+end
+
+@cenum ImGuiTreeNodeFlagsPrivate_::UInt32 begin
+    ImGuiTreeNodeFlags_ClipLabelForTrailingButton = 1048576
+end
+
+@cenum ImGuiSeparatorFlags_::UInt32 begin
+    ImGuiSeparatorFlags_None = 0
+    ImGuiSeparatorFlags_Horizontal = 1
+    ImGuiSeparatorFlags_Vertical = 2
+    ImGuiSeparatorFlags_SpanAllColumns = 4
+end
+
+@cenum ImGuiItemFlags_::UInt32 begin
+    ImGuiItemFlags_None = 0
+    ImGuiItemFlags_NoTabStop = 1
+    ImGuiItemFlags_ButtonRepeat = 2
+    ImGuiItemFlags_Disabled = 4
+    ImGuiItemFlags_NoNav = 8
+    ImGuiItemFlags_NoNavDefaultFocus = 16
+    ImGuiItemFlags_SelectableDontClosePopup = 32
+    ImGuiItemFlags_MixedValue = 64
+    ImGuiItemFlags_Default_ = 0
+end
+
+@cenum ImGuiItemStatusFlags_::UInt32 begin
+    ImGuiItemStatusFlags_None = 0
+    ImGuiItemStatusFlags_HoveredRect = 1
+    ImGuiItemStatusFlags_HasDisplayRect = 2
+    ImGuiItemStatusFlags_Edited = 4
+    ImGuiItemStatusFlags_ToggledSelection = 8
+    ImGuiItemStatusFlags_ToggledOpen = 16
+    ImGuiItemStatusFlags_HasDeactivated = 32
+    ImGuiItemStatusFlags_Deactivated = 64
+end
+
+@cenum ImGuiTextFlags_::UInt32 begin
+    ImGuiTextFlags_None = 0
+    ImGuiTextFlags_NoWidthForLargeClippedText = 1
+end
+
+@cenum ImGuiTooltipFlags_::UInt32 begin
+    ImGuiTooltipFlags_None = 0
+    ImGuiTooltipFlags_OverridePreviousTooltip = 1
+end
+
+@cenum ImGuiLayoutType_::UInt32 begin
+    ImGuiLayoutType_Horizontal = 0
+    ImGuiLayoutType_Vertical = 1
+end
+
+@cenum ImGuiAxis::Int32 begin
+    ImGuiAxis_None = -1
+    ImGuiAxis_X = 0
+    ImGuiAxis_Y = 1
+end
+
+@cenum ImGuiPlotType::UInt32 begin
+    ImGuiPlotType_Lines = 0
+    ImGuiPlotType_Histogram = 1
+end
+
+@cenum ImGuiInputReadMode::UInt32 begin
+    ImGuiInputReadMode_Down = 0
+    ImGuiInputReadMode_Pressed = 1
+    ImGuiInputReadMode_Released = 2
+    ImGuiInputReadMode_Repeat = 3
+    ImGuiInputReadMode_RepeatSlow = 4
+    ImGuiInputReadMode_RepeatFast = 5
+end
+
+@cenum ImGuiNavHighlightFlags_::UInt32 begin
+    ImGuiNavHighlightFlags_None = 0
+    ImGuiNavHighlightFlags_TypeDefault = 1
+    ImGuiNavHighlightFlags_TypeThin = 2
+    ImGuiNavHighlightFlags_AlwaysDraw = 4
+    ImGuiNavHighlightFlags_NoRounding = 8
+end
+
+@cenum ImGuiNavDirSourceFlags_::UInt32 begin
+    ImGuiNavDirSourceFlags_None = 0
+    ImGuiNavDirSourceFlags_Keyboard = 1
+    ImGuiNavDirSourceFlags_PadDPad = 2
+    ImGuiNavDirSourceFlags_PadLStick = 4
+end
+
+@cenum ImGuiNavMoveFlags_::UInt32 begin
+    ImGuiNavMoveFlags_None = 0
+    ImGuiNavMoveFlags_LoopX = 1
+    ImGuiNavMoveFlags_LoopY = 2
+    ImGuiNavMoveFlags_WrapX = 4
+    ImGuiNavMoveFlags_WrapY = 8
+    ImGuiNavMoveFlags_AllowCurrentNavId = 16
+    ImGuiNavMoveFlags_AlsoScoreVisibleSet = 32
+    ImGuiNavMoveFlags_ScrollToEdge = 64
+end
+
+@cenum ImGuiPopupPositionPolicy::UInt32 begin
+    ImGuiPopupPositionPolicy_Default = 0
+    ImGuiPopupPositionPolicy_ComboBox = 1
+end
+
+@cenum ImGuiNextWindowDataFlags_::UInt32 begin
+    ImGuiNextWindowDataFlags_None = 0
+    ImGuiNextWindowDataFlags_HasPos = 1
+    ImGuiNextWindowDataFlags_HasSize = 2
+    ImGuiNextWindowDataFlags_HasContentSize = 4
+    ImGuiNextWindowDataFlags_HasCollapsed = 8
+    ImGuiNextWindowDataFlags_HasSizeConstraint = 16
+    ImGuiNextWindowDataFlags_HasFocus = 32
+    ImGuiNextWindowDataFlags_HasBgAlpha = 64
+end
+
+@cenum ImGuiNextItemDataFlags_::UInt32 begin
+    ImGuiNextItemDataFlags_None = 0
+    ImGuiNextItemDataFlags_HasWidth = 1
+    ImGuiNextItemDataFlags_HasOpen = 2
+end
+
+@cenum ImGuiTabBarFlagsPrivate_::UInt32 begin
+    ImGuiTabBarFlags_DockNode = 1048576
+    ImGuiTabBarFlags_IsFocused = 2097152
+    ImGuiTabBarFlags_SaveSettings = 4194304
+end
+
+@cenum ImGuiTabItemFlagsPrivate_::UInt32 begin
+    ImGuiTabItemFlags_NoCloseButton = 1048576
 end
 

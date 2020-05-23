@@ -22,10 +22,8 @@ jobs:
             arch: x86
     steps:
       - uses: actions/checkout@v2
-      - run: sudo apt-get install xvfb
-        with:
-          version: ${{ matrix.version }}
-          arch: ubuntu-latest
+      - if: ${{ matrix.os == ubuntu-latest }}
+        run: sudo apt-get install xvfb
       - uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.version }}
@@ -40,10 +38,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: sudo apt-get install xvfb
-        with:
-          version: ${{ matrix.version }}
-          arch: ubuntu-latest
+      - if: ${{ matrix.os == ubuntu-latest }}
+        run: sudo apt-get install xvfb
       - uses: julia-actions/setup-julia@v1
         with:
           version: '1.4'

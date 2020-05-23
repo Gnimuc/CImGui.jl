@@ -22,12 +22,16 @@ jobs:
             arch: x86
     steps:
       - uses: actions/checkout@v2
+      - run: sudo apt-get install xvfb && Xvfb :99 &
+        if: matrix.os == 'ubuntu-latest'
       - uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
       - uses: julia-actions/julia-buildpkg@latest
       - uses: julia-actions/julia-runtest@latest
+        env:
+          DISPLAY: :99
       - uses: julia-actions/julia-uploadcodecov@latest
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -36,6 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - run: sudo apt-get install xvfb && Xvfb :99 &
       - uses: julia-actions/setup-julia@v1
         with:
           version: '1.4'
@@ -48,3 +53,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
+          DISPLAY: :99

@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - if: ${{ matrix.os == 'ubuntu-latest' }}
+      - if: ${{ matrix.os }} == ubuntu-latest
         run: sudo apt-get install xvfb
       - uses: julia-actions/setup-julia@v1
         with:

@@ -41,14 +41,14 @@ jobs:
       - uses: julia-actions/setup-julia@v1
         with:
           version: '1.4'
+      - run: |
+          julia --project=docs -e '
+            using Pkg
+            Pkg.develop(PackageSpec(path=pwd()))
+            Pkg.instantiate()'
       - uses: GabrielBB/xvfb-action@v1.2
         with:
-          - run: |
-              julia --project=docs -e '
-                using Pkg
-                Pkg.develop(PackageSpec(path=pwd()))
-                Pkg.instantiate()'
-          - run: julia --project=docs docs/make.jl
-            env:
-              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
+          run: julia --project=docs docs/make.jl
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}

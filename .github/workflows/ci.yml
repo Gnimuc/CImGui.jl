@@ -22,14 +22,14 @@ jobs:
             arch: x86
     steps:
       - uses: actions/checkout@v2
+      - name: gabrielbb/xvfb-action
+        uses: GabrielBB/xvfb-action@v1.2
       - uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
       - uses: julia-actions/julia-buildpkg@latest
       - uses: julia-actions/julia-runtest@latest
-        env:
-          DISPLAY: :0
       - uses: julia-actions/julia-uploadcodecov@latest
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -38,6 +38,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: gabrielbb/xvfb-action
+        uses: GabrielBB/xvfb-action@v1.2
       - uses: julia-actions/setup-julia@v1
         with:
           version: '1.4'
@@ -50,4 +52,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
-          DISPLAY: :0

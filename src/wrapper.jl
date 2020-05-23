@@ -206,7 +206,7 @@ Each axis can use a different mode, e.g. `ImVec2(0,400)`.
     functions (such as [`BeginMenu`](@ref)/[`EndMenu`](@ref), [`BeginPopup`](@ref)/[`EndPopup`](@ref), etc.)
     where the `EndXXX` call should only be called if the corresponding `BeginXXX` function returned true.
 """
-BeginChild(str_id, size=(0,0), border=false, flags=0) = igBeginChild(str_id, size, border, flags)
+BeginChild(str_id, size=(0,0), border=false, flags=0) = igBeginChildStr(str_id, size, border, flags)
 BeginChild(id::Integer, size=(0,0), border=false, flags=0) = igBeginChildID(id, size, border, flags)
 
 """
@@ -304,13 +304,21 @@ GetWindowDrawList() = igGetWindowDrawList()
 Return current window position in screen space (useful if you want to do your own drawing
 via the `ImDrawList` API.
 """
-GetWindowPos() = igGetWindowPos()
+function GetWindowPos()
+    x = Ref{ImVec2}()
+    igGetWindowPos(x)
+    return x[]
+end
 
 """
     GetWindowSize() -> ImVec2
 Return current window size.
 """
-GetWindowSize() = igGetWindowSize()
+function GetWindowSize()
+    x = Ref{ImVec2}()
+    igGetWindowSize(x)
+    return x[]
+end
 
 """
     GetWindowWidth() -> Cfloat
@@ -326,16 +334,24 @@ GetWindowHeight() = igGetWindowHeight()
 
 """
     GetContentRegionMax() -> ImVec2
-Current content boundaries (typically window boundaries including scrolling, or current column
-boundaries), in windows coordinates.
+Return current content boundaries (typically window boundaries including scrolling,
+or current column boundaries), in windows coordinates.
 """
-GetContentRegionMax() = igGetContentRegionMax()
+function GetContentRegionMax()
+    x = Ref{ImVec2}()
+    igGetContentRegionMax(x)
+    return x[]
+end
 
 """
     GetContentRegionAvail() -> ImVec2
-Return `GetContentRegionMax() - GetCursorPos()`.
+Return [`GetContentRegionMax`](@ref) - [`GetCursorPos`](@ref).
 """
-GetContentRegionAvail() = igGetContentRegionAvail()
+function GetContentRegionAvail()
+    x = Ref{ImVec2}()
+    igGetContentRegionAvail(x)
+    return x[]
+end
 
 @deprecate GetContentRegionAvailWidth() GetContentRegionAvail().x
 
@@ -343,12 +359,22 @@ GetContentRegionAvail() = igGetContentRegionAvail()
     GetWindowContentRegionMin() -> ImVec2
 Return content boundaries min (roughly (0,0)-Scroll), in window coordinates.
 """
-GetWindowContentRegionMin() = igGetWindowContentRegionMin()
+function GetWindowContentRegionMin()
+    x = Ref{ImVec2}()
+    igGetWindowContentRegionMin(x)
+    return x[]
+end
 
 """
     GetWindowContentRegionMax() -> ImVec2
+Return content boundaries max (roughly (0,0)+Size-Scroll) where Size can be
+override with [`SetNextWindowContentSize`](@ref), in window coordinates.
 """
-GetWindowContentRegionMax() = igGetWindowContentRegionMax()
+function GetWindowContentRegionMax()
+    x = Ref{ImVec2}()
+    igGetWindowContentRegionMax(x)
+    return x[]
+end
 
 """
     GetWindowContentRegionWidth() -> ImVec2
@@ -434,12 +460,12 @@ SetWindowCollapsed(collapsed, cond=0) = igSetWindowCollapsedBool(collapsed, cond
 
 """
     SetWindowFocus()
-Set current window to be focused / front-most.
+Set current window to be focused / top-most.
 
 !!! warning "Not recommended!"
     This function is not recommended! Prefer using [`SetNextWindowFocus`](@ref).
 """
-SetWindowFocus() = igSetWindowFocus()
+SetWindowFocus() = igSetWindowFocusNil()
 
 """
     SetWindowFontScale(scale)
@@ -503,13 +529,13 @@ GetScrollMaxY() = igGetScrollMaxY()
     SetScrollX(scroll_x)
 Set scrolling amount [0..GetScrollMaxX()].
 """
-SetScrollX(scroll_x) = igSetScrollX(scroll_x)
+SetScrollX(scroll_x) = igSetScrollXFloat(scroll_x)
 
 """
     SetScrollY(scroll_y)
 Set scrolling amount [0..GetScrollMaxY()].
 """
-SetScrollY(scroll_y) = igSetScrollY(scroll_y)
+SetScrollY(scroll_y) = igSetScrollYFloat(scroll_y)
 
 """
     SetScrollHereY(center_y_ratio=0.5)
@@ -525,11 +551,18 @@ SetScrollHereY(center_y_ratio=0.5) = igSetScrollHereY(center_y_ratio)
 @deprecate SetScrollHere(center_ratio) SetScrollHereY(center_ratio)
 
 """
-    SetScrollFromPosY(local_y, center_y_ratio=0.5)
-Adjust scrolling amount to make given position valid. Use [`GetCursorPos`](@ref) or
-[`GetCursorStartPos`](@ref)+offset to get valid positions.
+    SetScrollFromPosX(local_y, center_y_ratio=0.5)
+Adjust scrolling amount to make given position visible.
+Generally [`GetCursorStartPos`](@ref) + offset to compute a valid position.
 """
-SetScrollFromPosY(local_y, center_y_ratio=0.5) = igSetScrollFromPosY(local_y, center_y_ratio)
+SetScrollFromPosX(local_y, center_y_ratio=0.5) = igSetScrollFromPosXFloat(local_y, center_y_ratio)
+
+"""
+    SetScrollFromPosY(local_y, center_y_ratio=0.5)
+Adjust scrolling amount to make given position visible.
+Generally [`GetCursorStartPos`](@ref) + offset to compute a valid position.
+"""
+SetScrollFromPosY(local_y, center_y_ratio=0.5) = igSetScrollFromPosYFloat(local_y, center_y_ratio)
 
 ################################ Parameters stacks (shared) ################################
 """
@@ -549,7 +582,7 @@ PopFont() = igPopFont()
     PushStyleColor(idx, col::Integer)
 See also [`GetStyleColorVec4`](@ref), [`TextColored`](@ref), [`TextDisabled`](@ref).
 """
-PushStyleColor(idx, col) = igPushStyleColor(idx, col)
+PushStyleColor(idx, col) = igPushStyleColorVec4(idx, col)
 PushStyleColor(idx, col::Integer) = igPushStyleColorU32(idx, col)
 
 """
@@ -595,7 +628,11 @@ GetFontSize() = igGetFontSize()
     GetFontTexUvWhitePixel() -> ImVec2
 Get UV coordinate for a while pixel, useful to draw custom shapes via the `ImDrawList` API.
 """
-GetFontTexUvWhitePixel() = igGetFontTexUvWhitePixel()
+function GetFontTexUvWhitePixel()
+    x = Ref{ImVec2}()
+    igGetFontTexUvWhitePixel(x)
+    return x[]
+end
 
 """
     GetColorU32(r, g, b, a) -> ImU32
@@ -604,7 +641,7 @@ GetFontTexUvWhitePixel() = igGetFontTexUvWhitePixel()
     GetColorU32(idx::Integer, alpha_mul=1.0) -> ImU32
 Retrieve given style color with style alpha applied and optional extra alpha multiplier.
 """
-GetColorU32(idx::Integer, alpha_mul=1.0) = igGetColorU32(idx, alpha_mul)
+GetColorU32(idx::Integer, alpha_mul=1.0) = igGetColorU32Col(idx, alpha_mul)
 GetColorU32(col::ImVec4) = igGetColorU32Vec4(col)
 GetColorU32(r, g, b, a) = GetColorU32(ImVec4(r,g,b,a))
 GetColorU32(col::ImU32) = igGetColorU32U32(col)
@@ -745,7 +782,11 @@ EndGroup() = igEndGroup()
     GetCursorPos() -> ImVec2
 Return cursor position which is relative to window position.
 """
-GetCursorPos() = igGetCursorPos()
+function GetCursorPos()
+    x = Ref{ImVec2}()
+    igGetCursorPos(x)
+    return x[]
+end
 
 """
     GetCursorPosX() -> Cfloat
@@ -776,16 +817,24 @@ SetCursorPosY(local_y) = igSetCursorPosY(local_y)
 
 """
     GetCursorStartPos() -> ImVec2
-Return initial cursor position.
+Return initial cursor position in window coordinates.
 """
-GetCursorStartPos() = igGetCursorStartPos()
+function GetCursorStartPos()
+    x = Ref{ImVec2}()
+    igGetCursorStartPos(x)
+    return x[]
+end
 
 """
     GetCursorScreenPos() -> ImVec2
 Return cursor position in absolute screen coordinates [0..io.DisplaySize].
 This is useful to work with `ImDrawList` API.
 """
-GetCursorScreenPos() = igGetCursorScreenPos()
+function GetCursorScreenPos()
+    x = Ref{ImVec2}()
+    igGetCursorScreenPos(x)
+    return x[]
+end
 
 """
     SetCursorScreenPos(pos)
@@ -940,7 +989,7 @@ Push identifier into the ID stack. IDs are hash of the entire stack!
             node open/closed state differently. See what makes more sense in your situation!
 """
 PushID(str_id::AbstractString) = igPushIDStr(str_id)
-PushID(str_id_begin::AbstractString, str_id_end::AbstractString) = igPushIDRange(str_id_begin, str_id_end)
+PushID(str_id_begin::AbstractString, str_id_end::AbstractString) = igPushIDStrStr(str_id_begin, str_id_end)
 PushID(ptr_id::Ptr) = igPushIDPtr(ptr_id)
 PushID(int_id::Integer) = igPushIDInt(int_id)
 
@@ -958,7 +1007,7 @@ Calculate unique ID (hash of whole ID stack + given parameter). e.g. if you want
 into `ImGuiStorage` yourself.
 """
 GetID(str_id::AbstractString) = igGetIDStr(str_id)
-GetID(str_id_begin::AbstractString, str_id_end::AbstractString) = igGetIDRange(str_id_begin, str_id_end)
+GetID(str_id_begin::AbstractString, str_id_end::AbstractString) = igGetIDStrStr(str_id_begin, str_id_end)
 GetID(ptr_id::Ptr) = igGetIDPtr(ptr_id)
 
 ####################################### Widgets: Text ######################################
@@ -1133,7 +1182,7 @@ EndCombo() = igEndCombo()
 The old [`Combo`](@ref) api are helpers over [`BeginCombo`](@ref)/[`EndCombo`](@ref) which
 are kept available for convenience purpose.
 """
-Combo(label, current_item, items::Vector, items_count, popup_max_height_in_items=-1) = igCombo(label, current_item, items, items_count, popup_max_height_in_items)
+Combo(label, current_item, items::Vector, items_count, popup_max_height_in_items=-1) = igComboStr_arr(label, current_item, items, items_count, popup_max_height_in_items)
 
 """
     Combo(label, current_item, items_separated_by_zeros, popup_max_height_in_items=-1) -> Bool
@@ -1506,7 +1555,7 @@ GetTreeNodeToLabelSpacing() = igGetTreeNodeToLabelSpacing()
 If returning `true` the header is open. Doesn't indent nor push on ID stack.
 User doesn't have to call [`TreePop`](@ref).
 """
-CollapsingHeader(label, flags=ImGuiTreeNodeFlags_(0)) = igCollapsingHeader(label, flags)
+CollapsingHeader(label, flags=ImGuiTreeNodeFlags_(0)) = igCollapsingHeaderTreeNodeFlags(label, flags)
 
 """
     CollapsingHeader(label, p_open::Ref, flags=ImGuiTreeNodeFlags_(0)) -> Bool
@@ -1532,7 +1581,7 @@ Return true if is clicked, so you can modify your selection state:
 - `size.y == 0.0`: use label height
 - `size.y > 0.0`: specify height
 """
-Selectable(label, selected::Bool=false, flags=0, size=ImVec2(0,0)) = igSelectable(label, selected, flags, size)
+Selectable(label, selected::Bool=false, flags=0, size=ImVec2(0,0)) = igSelectableBool(label, selected, flags, size)
 Selectable(label, p_selected::Ref, flags=0, size=ImVec2(0,0)) = igSelectableBoolPtr(label, p_selected, flags, size)
 
 #################################### Widgets: List Boxes ###################################
@@ -1566,7 +1615,7 @@ ListBoxFooter() = igListBoxFooter()
     PlotLines(label, values, values_count::Integer, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=(0,0), stride=sizeof(Cfloat))
     PlotLines(label, values_getter::Ptr, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=(0,0))
 """
-PlotLines(label, values, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0), stride=sizeof(Cfloat)) = igPlotLines(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
+PlotLines(label, values, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0), stride=sizeof(Cfloat)) = igPlotLinesFloatPtr(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
 PlotLines(label, values_getter, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0)) = igPlotLinesFnPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
 
 """
@@ -1741,7 +1790,7 @@ OpenPopupOnItemClick(str_id=C_NULL, mouse_button=1) = igOpenPopupOnItemClick(str
     IsPopupOpen(str_id) -> Bool
 Return true if the popup is open.
 """
-IsPopupOpen(str_id) = igIsPopupOpen(str_id)
+IsPopupOpen(str_id) = igIsPopupOpenStr(str_id)
 
 """
     CloseCurrentPopup()
@@ -2105,21 +2154,33 @@ IsAnyItemFocused() = igIsAnyItemFocused()
 Return bounding rectangle of last item, in screen space.
 See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
 """
-GetItemRectMin() = igGetItemRectMin()
+function GetItemRectMin()
+    x = Ref{ImVec2}()
+    igGetItemRectMin(x)
+    return x[]
+end
 
 """
     GetItemRectMax() -> ImVec2
 Return bounding rectangle of last item, in screen space.
 See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
 """
-GetItemRectMax() = igGetItemRectMax()
+function GetItemRectMax()
+    x = Ref{ImVec2}()
+    igGetItemRectMax(x)
+    return x[]
+end
 
 """
     GetItemRectSize() -> ImVec2
 Return size of last item, in screen space.
 See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
 """
-GetItemRectSize() = igGetItemRectSize()
+function GetItemRectSize()
+    x = Ref{ImVec2}()
+    igGetItemRectSize(x)
+    return x[]
+end
 
 """
     SetItemAllowOverlap()
@@ -2135,7 +2196,7 @@ SetItemAllowOverlap() = igSetItemAllowOverlap()
     IsRectVisible(x, y) -> Bool
 Test if rectangle (of given size, starting from cursor position) is visible / not clipped.
 """
-IsRectVisible(size) = igIsRectVisible(size)
+IsRectVisible(size) = igIsRectVisibleNil(size)
 IsRectVisible(x, y) = IsRectVisible(ImVec2(x,y))
 
 """
@@ -2165,7 +2226,7 @@ GetBackgroundDrawList() = igGetBackgroundDrawList()
     GetForegroundDrawList() -> Ptr{ImDrawList}
 this draw list will be the last rendered one. Useful to quickly draw shapes/text over dear imgui contents.
 """
-GetForegroundDrawList() = igGetForegroundDrawList()
+GetForegroundDrawList() = igGetForegroundDrawListNil()
 
 @deprecate GetOverlayDrawList() GetForegroundDrawList()
 
@@ -2195,7 +2256,11 @@ GetStateStorage() = igGetStateStorage()
 """
     CalcTextSize(text, text_end=C_NULL, hide_text_after_double_hash=false, wrap_width=-1) -> ImVec2
 """
-CalcTextSize(text, text_end=C_NULL, hide_text_after_double_hash=false, wrap_width=-1) = igCalcTextSize(text, text_end, hide_text_after_double_hash, wrap_width)
+function CalcTextSize(text, text_end=C_NULL, hide_text_after_double_hash=false, wrap_width=-1)
+    x = Ref{ImVec2}()
+    igCalcTextSize(x, text, text_end, hide_text_after_double_hash, wrap_width)
+    return x[]
+end
 
 """
     CalcListClipping(items_count, items_height, out_items_display_start, out_items_display_end)
@@ -2222,7 +2287,11 @@ EndChildFrame() = igEndChildFrame()
     ColorConvertU32ToFloat4(in) -> ImVec4
 Convert `ImU32` color to `ImVec4`. You could use `Base.convert(::Type{ImVec4}, x::ImU32)` instead.
 """
-ColorConvertU32ToFloat4(in) = igColorConvertU32ToFloat4(in)
+function ColorConvertU32ToFloat4(in)
+    x = Ref{ImVec4}()
+    igColorConvertU32ToFloat4(x, in)
+    return x[]
+end
 
 """
     ColorConvertFloat4ToU32(in) -> ImU32
@@ -2327,19 +2396,31 @@ IsMousePosValid(mouse_pos=C_NULL) = igIsMousePosValid(mouse_pos)
     GetMousePos() -> ImVec2
 Shortcut to ImGui::GetIO().MousePos provided by user, to be consistent with other calls.
 """
-GetMousePos() = igGetMousePos()
+function GetMousePos()
+    x = Ref{ImVec2}()
+    igGetMousePos(x)
+    return x[]
+end
 
 """
     GetMousePosOnOpeningCurrentPopup() -> ImVec2
 Retrieve backup of mouse position at the time of opening popup we have [`BeginPopup`](@ref) into.
 """
-GetMousePosOnOpeningCurrentPopup() = igGetMousePosOnOpeningCurrentPopup()
+function GetMousePosOnOpeningCurrentPopup()
+    x = Ref{ImVec2}()
+    igGetMousePosOnOpeningCurrentPopup(x)
+    return x[]
+end
 
 """
     GetMouseDragDelta(button=0, lock_threshold=-1.0) -> ImVec2
 Dragging amount since clicking. if lock_threshold < -1.0f uses io.MouseDraggingThreshold.
 """
-GetMouseDragDelta(button=0, lock_threshold=-1.0) = igGetMouseDragDelta(button, lock_threshold)
+function GetMouseDragDelta(button=0, lock_threshold=-1.0)
+    x = Ref{ImVec2}()
+    igGetMouseDragDelta(x, button, lock_threshold)
+    return x[]
+end
 
 """
     ResetMouseDragDelta(button=0)
@@ -2453,12 +2534,20 @@ PopTextureID(handle::Ptr{ImDrawList}) = ImDrawList_PopTextureID(handle)
 """
     GetClipRectMin(handle::Ptr{ImDrawList}) -> ImVec2
 """
-GetClipRectMin(handle::Ptr{ImDrawList}) = ImDrawList_GetClipRectMin(handle)
+function GetClipRectMin(handle::Ptr{ImDrawList})
+    x = Ref{ImVec2}()
+    ImDrawList_GetClipRectMin(x, handle)
+    return x[]
+end
 
 """
     GetClipRectMax(handle::Ptr{ImDrawList}) -> ImVec2
 """
-GetClipRectMax(handle::Ptr{ImDrawList}) = ImDrawList_GetClipRectMax(handle)
+function GetClipRectMax(handle::Ptr{ImDrawList})
+    x = Ref{ImVec2}()
+    ImDrawList_GetClipRectMax(x, handle)
+    return x[]
+end
 
 """
     AddLine(handle::Ptr{ImDrawList}, a, b, col, thickness=1.0)
@@ -2520,7 +2609,7 @@ AddCircleFilled(handle::Ptr{ImDrawList}, centre, radius, col, num_segments=12) =
 """
     AddText(handle::Ptr{ImDrawList}, pos, col, text_begin, text_end=C_NULL)
 """
-AddText(handle::Ptr{ImDrawList}, pos, col, text_begin, text_end=C_NULL) = ImDrawList_AddText(handle, pos, col, text_begin, text_end)
+AddText(handle::Ptr{ImDrawList}, pos, col, text_begin, text_end=C_NULL) = ImDrawList_AddTextVec2(handle, pos, col, text_begin, text_end)
 
 """
     AddText(handle::Ptr{ImDrawList}, font::Ptr{ImFont}, font_size, pos, col, text_begin, text_end=C_NULL, wrap_width=0.0, cpu_fine_clip_rect=C_NULL)

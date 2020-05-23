@@ -376,14 +376,14 @@ function ShowDemoWindowWidgets()
         end
 
         # simplified one-liner Combo() using an accessor function
-        function ItemGetter(data::Ptr{Ptr{Cchar}}, idx::Cint, out_str::Ptr{Ptr{Cchar}})::Bool
-            unsafe_store!(out_str, unsafe_load(data, idx+1), idx+1)  # FIXME
-            return true
-        end
-        FuncHolder = @cfunction($ItemGetter, Bool, (Ptr{Ptr{Cchar}},Cint,Ptr{Ptr{Cchar}}))
-        @cstatic item_current_4=Cint(0) begin
-            @c CImGui.Combo("combo 4 (function)", &item_current_4, FuncHolder, items, length(items))
-        end
+        # function ItemGetter(data::Ptr{Ptr{Cchar}}, idx::Cint, out_str::Ptr{Ptr{Cchar}})::Bool
+        #     unsafe_store!(out_str, unsafe_load(data, idx+1), idx+1)  # FIXME
+        #     return true
+        # end
+        # FuncHolder = @cfunction($ItemGetter, Bool, (Ptr{Ptr{Cchar}},Cint,Ptr{Ptr{Cchar}}))
+        # @cstatic item_current_4=Cint(0) begin
+        #     @c CImGui.Combo("combo 4 (function)", &item_current_4, FuncHolder, items, length(items))
+        # end
 
         CImGui.TreePop()
     end

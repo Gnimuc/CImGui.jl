@@ -719,11 +719,11 @@ function igInputText(label, buf, buf_size, flags, callback, user_data)
 end
 
 function igInputTextMultiline(label, buf, buf_size, size, flags, callback, user_data)
-    ccall((:igInputTextMultiline, libcimgui), Bool, (Cstring, Cstring, Csize_t, ImVec2, ImGuiInputTextFlags, ImGuiInputTextCallback, Ptr{Cvoid}), label, buf, buf_size, size, flags, callback, user_data)
+    ccall((:igInputTextMultiline, libcimgui), Bool, (Cstring, Ptr{UInt8}, Csize_t, ImVec2, ImGuiInputTextFlags, ImGuiInputTextCallback, Ptr{Cvoid}), label, buf, buf_size, size, flags, callback, user_data)
 end
 
 function igInputTextWithHint(label, hint, buf, buf_size, flags, callback, user_data)
-    ccall((:igInputTextWithHint, libcimgui), Bool, (Cstring, Cstring, Ptr{UInt8}, Csize_t, ImGuiInputTextFlags, ImGuiInputTextCallback, Ptr{Cvoid}), label, hint, buf, buf_size, flags, callback, user_data)
+    ccall((:igInputTextWithHint, libcimgui), Bool, (Cstring, Ptr{UInt8}, Ptr{UInt8}, Csize_t, ImGuiInputTextFlags, ImGuiInputTextCallback, Ptr{Cvoid}), label, hint, buf, buf_size, flags, callback, user_data)
 end
 
 function igInputFloat(label, v, step, step_fast, format, flags)
@@ -798,8 +798,24 @@ function igTreeNodeStr(label)
     ccall((:igTreeNodeStr, libcimgui), Bool, (Cstring,), label)
 end
 
+function igTreeNodeStrStr(str_id, text)
+    ccall((:igTreeNodeStrStr, libcimgui), Bool, (Cstring, Cstring), str_id, text)
+end
+
+function igTreeNodePtr(ptr_id, text)
+    ccall((:igTreeNodePtr, libcimgui), Bool, (Ptr{Cvoid}, Cstring), ptr_id, text)
+end
+
 function igTreeNodeExStr(label, flags)
     ccall((:igTreeNodeExStr, libcimgui), Bool, (Cstring, ImGuiTreeNodeFlags), label, flags)
+end
+
+function igTreeNodeExStrStr(str_id, flags, text)
+    ccall((:igTreeNodeExStrStr, libcimgui), Bool, (Cstring, ImGuiTreeNodeFlags, Cstring), str_id, flags, text)
+end
+
+function igTreeNodeExPtr(ptr_id, flags, text)
+    ccall((:igTreeNodeExPtr, libcimgui), Bool, (Ptr{Cvoid}, ImGuiTreeNodeFlags, Cstring), ptr_id, flags, text)
 end
 
 function igTreePushStr(str_id)

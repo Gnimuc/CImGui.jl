@@ -2,7 +2,8 @@
 
 
 # Skipping MacroDefinition: API __attribute__ ( ( __visibility__ ( "default" ) ) )
-
+const ImGuiLayoutType = Cint
+const ImGuiItemFlags = Cint
 const ImGuiID = UInt32
 
 struct ImGuiStoragePair
@@ -370,6 +371,83 @@ struct ImDrawList
     _Splitter::ImDrawListSplitter
 end
 
+
+
+struct ImVector_ImGuiItemFlags
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiItemFlags}
+end
+
+struct ImVector_ImGuiWindowPtr
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{Ptr{Cvoid}} # Ptr{Ptr{ImGuiWindow}}
+end
+
+struct ImGuiGroupData
+    BackupCursorPos::ImVec2
+    BackupCursorMaxPos::ImVec2
+    BackupIndent::ImVec1
+    BackupGroupOffset::ImVec1
+    BackupCurrLineSize::ImVec2
+    BackupCurrLineTextBaseOffset::Cfloat
+    BackupActiveIdIsAlive::ImGuiID
+    BackupActiveIdPreviousFrameIsAlive::Bool
+    EmitItem::Bool
+end
+
+struct ImVector_ImGuiGroupData
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiGroupData}
+end
+
+struct ImGuiWindowTempData
+    CursorPos::ImVec2
+    CursorPosPrevLine::ImVec2
+    CursorStartPos::ImVec2
+    CursorMaxPos::ImVec2
+    CurrLineSize::ImVec2
+    PrevLineSize::ImVec2
+    CurrLineTextBaseOffset::Cfloat
+    PrevLineTextBaseOffset::Cfloat
+    Indent::ImVec1
+    ColumnsOffset::ImVec1
+    GroupOffset::ImVec1
+    LastItemId::ImGuiID
+    LastItemStatusFlags::ImGuiItemStatusFlags
+    LastItemRect::ImRect
+    LastItemDisplayRect::ImRect
+    NavLayerCurrent::ImGuiNavLayer
+    NavLayerCurrentMask::Cint
+    NavLayerActiveMask::Cint
+    NavLayerActiveMaskNext::Cint
+    NavFocusScopeIdCurrent::ImGuiID
+    NavHideHighlightOneFrame::Bool
+    NavHasScroll::Bool
+    MenuBarAppending::Bool
+    MenuBarOffset::ImVec2
+    MenuColumns::ImGuiMenuColumns
+    TreeDepth::Cint
+    TreeJumpToParentOnPopMask::ImU32
+    ChildWindows::ImVector_ImGuiWindowPtr
+    StateStorage::Ptr{ImGuiStorage}
+    CurrentColumns::Ptr{ImGuiColumns}
+    LayoutType::ImGuiLayoutType
+    ParentLayoutType::ImGuiLayoutType
+    FocusCounterRegular::Cint
+    FocusCounterTabStop::Cint
+    ItemFlags::ImGuiItemFlags
+    ItemWidth::Cfloat
+    TextWrapPos::Cfloat
+    ItemFlagsStack::ImVector_ImGuiItemFlags
+    ItemWidthStack::ImVector_float
+    TextWrapPosStack::ImVector_float
+    GroupStack::ImVector_ImGuiGroupData
+    StackSizesBackup::NTuple{6, Int16}
+end
+
 struct ImGuiWindow
     Name::Cstring
     ID::ImGuiID
@@ -446,84 +524,6 @@ struct ImGuiWindow
     MemoryCompacted::Bool
     MemoryDrawListIdxCapacity::Cint
     MemoryDrawListVtxCapacity::Cint
-end
-
-struct ImVector_ImGuiWindowPtr
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{Ptr{ImGuiWindow}}
-end
-
-const ImGuiLayoutType = Cint
-const ImGuiItemFlags = Cint
-
-struct ImVector_ImGuiItemFlags
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImGuiItemFlags}
-end
-
-struct ImGuiGroupData
-    BackupCursorPos::ImVec2
-    BackupCursorMaxPos::ImVec2
-    BackupIndent::ImVec1
-    BackupGroupOffset::ImVec1
-    BackupCurrLineSize::ImVec2
-    BackupCurrLineTextBaseOffset::Cfloat
-    BackupActiveIdIsAlive::ImGuiID
-    BackupActiveIdPreviousFrameIsAlive::Bool
-    EmitItem::Bool
-end
-
-struct ImVector_ImGuiGroupData
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImGuiGroupData}
-end
-
-struct ImGuiWindowTempData
-    CursorPos::ImVec2
-    CursorPosPrevLine::ImVec2
-    CursorStartPos::ImVec2
-    CursorMaxPos::ImVec2
-    CurrLineSize::ImVec2
-    PrevLineSize::ImVec2
-    CurrLineTextBaseOffset::Cfloat
-    PrevLineTextBaseOffset::Cfloat
-    Indent::ImVec1
-    ColumnsOffset::ImVec1
-    GroupOffset::ImVec1
-    LastItemId::ImGuiID
-    LastItemStatusFlags::ImGuiItemStatusFlags
-    LastItemRect::ImRect
-    LastItemDisplayRect::ImRect
-    NavLayerCurrent::ImGuiNavLayer
-    NavLayerCurrentMask::Cint
-    NavLayerActiveMask::Cint
-    NavLayerActiveMaskNext::Cint
-    NavFocusScopeIdCurrent::ImGuiID
-    NavHideHighlightOneFrame::Bool
-    NavHasScroll::Bool
-    MenuBarAppending::Bool
-    MenuBarOffset::ImVec2
-    MenuColumns::ImGuiMenuColumns
-    TreeDepth::Cint
-    TreeJumpToParentOnPopMask::ImU32
-    ChildWindows::ImVector_ImGuiWindowPtr
-    StateStorage::Ptr{ImGuiStorage}
-    CurrentColumns::Ptr{ImGuiColumns}
-    LayoutType::ImGuiLayoutType
-    ParentLayoutType::ImGuiLayoutType
-    FocusCounterRegular::Cint
-    FocusCounterTabStop::Cint
-    ItemFlags::ImGuiItemFlags
-    ItemWidth::Cfloat
-    TextWrapPos::Cfloat
-    ItemFlagsStack::ImVector_ImGuiItemFlags
-    ItemWidthStack::ImVector_float
-    TextWrapPosStack::ImVector_float
-    GroupStack::ImVector_ImGuiGroupData
-    StackSizesBackup::NTuple{6, Int16}
 end
 
 const ImGuiTabItemFlags = Cint
@@ -1040,7 +1040,7 @@ end
 end
 
 
-const ImFileHandle = Ptr{FILE}
+const ImFileHandle = Ptr{Libc.FILE}
 
 struct ImGuiContext
     Initialized::Bool
@@ -1874,4 +1874,3 @@ end
 @cenum ImGuiTabItemFlagsPrivate_::UInt32 begin
     ImGuiTabItemFlags_NoCloseButton = 1048576
 end
-

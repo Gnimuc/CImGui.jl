@@ -22,14 +22,16 @@ jobs:
             arch: x86
     steps:
       - uses: actions/checkout@v2
+      - run: sudo apt-get install xvfb
+        with:
+          version: ${{ matrix.version }}
+          arch: ubuntu-latest
       - uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
       - uses: julia-actions/julia-buildpkg@latest
-      - uses: GabrielBB/xvfb-action@v1.2
-        with:
-          uses: julia-actions/julia-runtest@latest
+      - uses: julia-actions/julia-runtest@latest
       - uses: julia-actions/julia-uploadcodecov@latest
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -38,6 +40,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - run: sudo apt-get install xvfb
+        with:
+          version: ${{ matrix.version }}
+          arch: ubuntu-latest
       - uses: julia-actions/setup-julia@v1
         with:
           version: '1.4'
@@ -46,9 +52,7 @@ jobs:
             using Pkg
             Pkg.develop(PackageSpec(path=pwd()))
             Pkg.instantiate()'
-      - uses: GabrielBB/xvfb-action@v1.2
-        with:
-          run: julia --project=docs docs/make.jl
+      - run: julia --project=docs docs/make.jl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}

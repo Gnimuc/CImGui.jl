@@ -25,6 +25,12 @@ struct ImGuiShrinkWidthItem
     Width::Cfloat
 end
 
+const ImU8 = Cuchar
+
+struct ImGuiDataTypeTempStorage
+    Data::NTuple{8, ImU8}
+end
+
 struct ImVec2ih
     x::Int16
     y::Int16
@@ -135,8 +141,6 @@ struct ImFontAtlas
     CustomRectIds::NTuple{1, Cint}
 end
 
-const ImU8 = Cuchar
-
 struct ImFont
     IndexAdvanceX::ImVector_float
     FallbackAdvanceX::Cfloat
@@ -159,11 +163,11 @@ struct ImFont
 end
 
 struct ImFontAtlasCustomRect
-    ID::UInt32
     Width::UInt16
     Height::UInt16
     X::UInt16
     Y::UInt16
+    GlyphID::UInt32
     GlyphAdvanceX::Cfloat
     GlyphOffset::ImVec2
     Font::Ptr{ImFont}
@@ -181,6 +185,7 @@ struct ImGuiWindowSettings
     Pos::ImVec2ih
     Size::ImVec2ih
     Collapsed::Bool
+    WantApply::Bool
 end
 
 const ImGuiItemStatusFlags = Cint
@@ -245,11 +250,11 @@ end
 const ImDrawCallback = Ptr{Cvoid}
 
 struct ImDrawCmd
-    ElemCount::UInt32
     ClipRect::ImVec4
     TextureId::ImTextureID
     VtxOffset::UInt32
     IdxOffset::UInt32
+    ElemCount::UInt32
     UserCallback::ImDrawCallback
     UserCallbackData::Ptr{Cvoid}
 end
@@ -298,7 +303,8 @@ struct ImGuiColumns
     LineMaxY::Cfloat
     HostCursorPosY::Cfloat
     HostCursorMaxPosX::Cfloat
-    HostClipRect::ImRect
+    HostInitialClipRect::ImRect
+    HostBackupClipRect::ImRect
     HostWorkRect::ImRect
     Columns::ImVector_ImGuiColumnData
     Splitter::ImDrawListSplitter
@@ -361,13 +367,13 @@ struct ImDrawList
     Flags::ImDrawListFlags
     _Data::Ptr{ImDrawListSharedData}
     _OwnerName::Cstring
-    _VtxCurrentOffset::UInt32
     _VtxCurrentIdx::UInt32
     _VtxWritePtr::Ptr{ImDrawVert}
     _IdxWritePtr::Ptr{ImDrawIdx}
     _ClipRectStack::ImVector_ImVec4
     _TextureIdStack::ImVector_ImTextureID
     _Path::ImVector_ImVec2
+    _CmdHeader::ImDrawCmd
     _Splitter::ImDrawListSplitter
 end
 
@@ -593,8 +599,11 @@ end
 struct ImGuiSettingsHandler
     TypeName::Cstring
     TypeHash::ImGuiID
+    ClearAllFn::Ptr{Cvoid}
+    ReadInitFn::Ptr{Cvoid}
     ReadOpenFn::Ptr{Cvoid}
     ReadLineFn::Ptr{Cvoid}
+    ApplyAllFn::Ptr{Cvoid}
     WriteAllFn::Ptr{Cvoid}
     UserData::Ptr{Cvoid}
 end
@@ -631,6 +640,7 @@ struct ImGuiNextWindowData
     PosPivotVal::ImVec2
     SizeVal::ImVec2
     ContentSizeVal::ImVec2
+    ScrollVal::ImVec2
     CollapsedVal::Bool
     SizeConstraintRect::ImRect
     SizeCallback::ImGuiSizeCallback
@@ -781,6 +791,7 @@ struct ImGuiStyle
     GrabRounding::Cfloat
     TabRounding::Cfloat
     TabBorderSize::Cfloat
+    TabMinWidthForUnselectedCloseButton::Cfloat
     ColorButtonPosition::ImGuiDir
     ButtonTextAlign::ImVec2
     SelectableTextAlign::ImVec2
@@ -924,6 +935,7 @@ struct ImGuiIO
     KeysDownDurationPrev::NTuple{512, Cfloat}
     NavInputsDownDuration::NTuple{21, Cfloat}
     NavInputsDownDurationPrev::NTuple{21, Cfloat}
+    PenPressure::Cfloat
     InputQueueSurrogate::ImWchar16
     InputQueueCharacters::ImVector_ImWchar
 end
@@ -1058,6 +1070,9 @@ struct ImGuiContext
     WithinFrameScope::Bool
     WithinFrameScopeWithImplicitWindow::Bool
     WithinEndChild::Bool
+    TestEngineHookItems::Bool
+    TestEngineHookIdInfo::ImGuiID
+    TestEngine::Ptr{Cvoid}
     Windows::ImVector_ImGuiWindowPtr
     WindowsFocusOrder::ImVector_ImGuiWindowPtr
     WindowsTempSortBuffer::ImVector_ImGuiWindowPtr
@@ -1141,9 +1156,11 @@ struct ImGuiContext
     NavMoveResultLocal::ImGuiNavMoveResult
     NavMoveResultLocalVisibleSet::ImGuiNavMoveResult
     NavMoveResultOther::ImGuiNavMoveResult
+    NavWrapRequestWindow::Ptr{ImGuiWindow}
+    NavWrapRequestFlags::ImGuiNavMoveFlags
     NavWindowingTarget::Ptr{ImGuiWindow}
     NavWindowingTargetAnim::Ptr{ImGuiWindow}
-    NavWindowingList::Ptr{ImGuiWindow}
+    NavWindowingListWindow::Ptr{ImGuiWindow}
     NavWindowingTimer::Cfloat
     NavWindowingHighlightAlpha::Cfloat
     NavWindowingToggleLayer::Bool
@@ -1174,6 +1191,7 @@ struct ImGuiContext
     DragDropAcceptIdCurr::ImGuiID
     DragDropAcceptIdPrev::ImGuiID
     DragDropAcceptFrameCount::Cint
+    DragDropHoldJustPressedId::ImGuiID
     DragDropPayloadBufHeap::ImVector_unsigned_char
     DragDropPayloadBufLocal::NTuple{16, Cuchar}
     CurrentTabBar::Ptr{ImGuiTabBar}
@@ -1238,6 +1256,7 @@ const ImDrawCornerFlags = Cint
 const ImGuiComboFlags = Cint
 const ImGuiFocusedFlags = Cint
 const ImGuiHoveredFlags = Cint
+const ImGuiPopupFlags = Cint
 const ImGuiSelectableFlags = Cint
 const ImGuiTreeNodeFlags = Cint
 const ImWchar32 = UInt32
@@ -1346,6 +1365,20 @@ end
     ImGuiTreeNodeFlags_CollapsingHeader = 26
 end
 
+@cenum ImGuiPopupFlags_::UInt32 begin
+    ImGuiPopupFlags_None = 0
+    ImGuiPopupFlags_MouseButtonLeft = 0
+    ImGuiPopupFlags_MouseButtonRight = 1
+    ImGuiPopupFlags_MouseButtonMiddle = 2
+    ImGuiPopupFlags_MouseButtonMask_ = 31
+    ImGuiPopupFlags_MouseButtonDefault_ = 1
+    ImGuiPopupFlags_NoOpenOverExistingPopup = 32
+    ImGuiPopupFlags_NoOpenOverItems = 64
+    ImGuiPopupFlags_AnyPopupId = 128
+    ImGuiPopupFlags_AnyPopupLevel = 256
+    ImGuiPopupFlags_AnyPopup = 384
+end
+
 @cenum ImGuiSelectableFlags_::UInt32 begin
     ImGuiSelectableFlags_None = 0
     ImGuiSelectableFlags_DontClosePopups = 1
@@ -1387,6 +1420,7 @@ end
     ImGuiTabItemFlags_SetSelected = 2
     ImGuiTabItemFlags_NoCloseWithMiddleMouseButton = 4
     ImGuiTabItemFlags_NoPushId = 8
+    ImGuiTabItemFlags_NoTooltip = 16
 end
 
 @cenum ImGuiFocusedFlags_::UInt32 begin
@@ -1660,6 +1694,7 @@ end
 end
 
 @cenum ImGuiCond_::UInt32 begin
+    ImGuiCond_None = 0
     ImGuiCond_Always = 1
     ImGuiCond_Once = 2
     ImGuiCond_FirstUseEver = 4
@@ -1690,6 +1725,29 @@ end
     ImFontAtlasFlags_None = 0
     ImFontAtlasFlags_NoPowerOfTwoHeight = 1
     ImFontAtlasFlags_NoMouseCursors = 2
+end
+
+@cenum ImGuiItemFlags_::UInt32 begin
+    ImGuiItemFlags_None = 0
+    ImGuiItemFlags_NoTabStop = 1
+    ImGuiItemFlags_ButtonRepeat = 2
+    ImGuiItemFlags_Disabled = 4
+    ImGuiItemFlags_NoNav = 8
+    ImGuiItemFlags_NoNavDefaultFocus = 16
+    ImGuiItemFlags_SelectableDontClosePopup = 32
+    ImGuiItemFlags_MixedValue = 64
+    ImGuiItemFlags_Default_ = 0
+end
+
+@cenum ImGuiItemStatusFlags_::UInt32 begin
+    ImGuiItemStatusFlags_None = 0
+    ImGuiItemStatusFlags_HoveredRect = 1
+    ImGuiItemStatusFlags_HasDisplayRect = 2
+    ImGuiItemStatusFlags_Edited = 4
+    ImGuiItemStatusFlags_ToggledSelection = 8
+    ImGuiItemStatusFlags_ToggledOpen = 16
+    ImGuiItemStatusFlags_HasDeactivated = 32
+    ImGuiItemStatusFlags_Deactivated = 64
 end
 
 @cenum ImGuiButtonFlags_::UInt32 begin
@@ -1730,15 +1788,6 @@ end
     ImGuiDragFlags_Vertical = 1
 end
 
-@cenum ImGuiColumnsFlags_::UInt32 begin
-    ImGuiColumnsFlags_None = 0
-    ImGuiColumnsFlags_NoBorder = 1
-    ImGuiColumnsFlags_NoResize = 2
-    ImGuiColumnsFlags_NoPreserveWidths = 4
-    ImGuiColumnsFlags_NoForceWithinWindow = 8
-    ImGuiColumnsFlags_GrowParentContentsSize = 16
-end
-
 @cenum ImGuiSelectableFlagsPrivate_::UInt32 begin
     ImGuiSelectableFlags_NoHoldingActiveID = 1048576
     ImGuiSelectableFlags_SelectOnClick = 2097152
@@ -1757,29 +1806,6 @@ end
     ImGuiSeparatorFlags_Horizontal = 1
     ImGuiSeparatorFlags_Vertical = 2
     ImGuiSeparatorFlags_SpanAllColumns = 4
-end
-
-@cenum ImGuiItemFlags_::UInt32 begin
-    ImGuiItemFlags_None = 0
-    ImGuiItemFlags_NoTabStop = 1
-    ImGuiItemFlags_ButtonRepeat = 2
-    ImGuiItemFlags_Disabled = 4
-    ImGuiItemFlags_NoNav = 8
-    ImGuiItemFlags_NoNavDefaultFocus = 16
-    ImGuiItemFlags_SelectableDontClosePopup = 32
-    ImGuiItemFlags_MixedValue = 64
-    ImGuiItemFlags_Default_ = 0
-end
-
-@cenum ImGuiItemStatusFlags_::UInt32 begin
-    ImGuiItemStatusFlags_None = 0
-    ImGuiItemStatusFlags_HoveredRect = 1
-    ImGuiItemStatusFlags_HasDisplayRect = 2
-    ImGuiItemStatusFlags_Edited = 4
-    ImGuiItemStatusFlags_ToggledSelection = 8
-    ImGuiItemStatusFlags_ToggledOpen = 16
-    ImGuiItemStatusFlags_HasDeactivated = 32
-    ImGuiItemStatusFlags_Deactivated = 64
 end
 
 @cenum ImGuiTextFlags_::UInt32 begin
@@ -1848,6 +1874,12 @@ end
     ImGuiPopupPositionPolicy_ComboBox = 1
 end
 
+@cenum ImGuiDataTypePrivate_::UInt32 begin
+    ImGuiDataType_String = 11
+    ImGuiDataType_Pointer = 12
+    ImGuiDataType_ID = 13
+end
+
 @cenum ImGuiNextWindowDataFlags_::UInt32 begin
     ImGuiNextWindowDataFlags_None = 0
     ImGuiNextWindowDataFlags_HasPos = 1
@@ -1857,12 +1889,22 @@ end
     ImGuiNextWindowDataFlags_HasSizeConstraint = 16
     ImGuiNextWindowDataFlags_HasFocus = 32
     ImGuiNextWindowDataFlags_HasBgAlpha = 64
+    ImGuiNextWindowDataFlags_HasScroll = 128
 end
 
 @cenum ImGuiNextItemDataFlags_::UInt32 begin
     ImGuiNextItemDataFlags_None = 0
     ImGuiNextItemDataFlags_HasWidth = 1
     ImGuiNextItemDataFlags_HasOpen = 2
+end
+
+@cenum ImGuiColumnsFlags_::UInt32 begin
+    ImGuiColumnsFlags_None = 0
+    ImGuiColumnsFlags_NoBorder = 1
+    ImGuiColumnsFlags_NoResize = 2
+    ImGuiColumnsFlags_NoPreserveWidths = 4
+    ImGuiColumnsFlags_NoForceWithinWindow = 8
+    ImGuiColumnsFlags_GrowParentContentsSize = 16
 end
 
 @cenum ImGuiTabBarFlagsPrivate_::UInt32 begin

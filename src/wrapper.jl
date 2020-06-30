@@ -1590,7 +1590,7 @@ Selectable(label, p_selected::Ref, flags=0, size=ImVec2(0,0)) = igSelectableBool
     ListBox(label, current_item, items_getter::Ptr{Cvoid}, data::Ptr{Cvoid}, items_count, height_in_items=-1)
 """
 ListBox(label, current_item, items, items_count, height_in_items=-1) = igListBoxStr_arr(label, current_item, items, items_count, height_in_items)
-ListBox(label, current_item, items_getter::Ptr{Cvoid}, data::Ptr{Cvoid}, items_count, height_in_items=-1) = igListBoxFnPtr(label, current_item, items_getter, data, items_count, height_in_items)
+ListBox(label, current_item, items_getter::Ptr{Cvoid}, data::Ptr{Cvoid}, items_count, height_in_items=-1) = igListBoxFnBoolPtr(label, current_item, items_getter, data, items_count, height_in_items)
 
 """
     ListBoxHeader(label, size=(0,0))
@@ -1616,14 +1616,14 @@ ListBoxFooter() = igListBoxFooter()
     PlotLines(label, values_getter::Ptr, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=(0,0))
 """
 PlotLines(label, values, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0), stride=sizeof(Cfloat)) = igPlotLinesFloatPtr(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
-PlotLines(label, values_getter, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0)) = igPlotLinesFnPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
+PlotLines(label, values_getter, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0)) = igPlotLinesFnFloatPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
 
 """
     PlotHistogram(label, values, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=(0,0), stride=sizeof(Cfloat))
     PlotHistogram(label, values_getter::Ptr, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0))
 """
 PlotHistogram(label, values, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0), stride=sizeof(Cfloat)) = igPlotHistogramFloatPtr(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
-PlotHistogram(label, values_getter, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0)) = igPlotHistogramFnPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
+PlotHistogram(label, values_getter, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0)) = igPlotHistogramFnFloatPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
 
 ################################# Widgets: Value() Helpers #################################
 """
@@ -1753,16 +1753,16 @@ as [`Text`](@ref) you need to pass in an explicit ID here.
 BeginPopupContextItem(str_id=C_NULL, mouse_button=1) = igBeginPopupContextItem(str_id, mouse_button)
 
 """
-    BeginPopupContextWindow(str_id=C_NULL, mouse_button=1, also_over_items=true) -> Bool
+    BeginPopupContextWindow(str_id=C_NULL, popup_flags=1) -> Bool
 Helper to open and begin popup when clicked on current window.
 """
-BeginPopupContextWindow(str_id=C_NULL, mouse_button=1, also_over_items=true) = igBeginPopupContextWindow(str_id, mouse_button, also_over_items)
+BeginPopupContextWindow(str_id=C_NULL, popup_flags=1) = igBeginPopupContextWindow(str_id, popup_flags)
 
 """
-    BeginPopupContextVoid(str_id=C_NULL, mouse_button=1) -> Bool
+    BeginPopupContextVoid(str_id=C_NULL, popup_flags=1) -> Bool
 Helper to open and begin popup when clicked in void (where there are no imgui windows).
 """
-BeginPopupContextVoid(str_id=C_NULL, mouse_button=1) = igBeginPopupContextVoid(str_id, mouse_button)
+BeginPopupContextVoid(str_id=C_NULL, popup_flags=1) = igBeginPopupContextVoid(str_id, popup_flags)
 
 """
     BeginPopupModal(name, p_open=C_NULL, flags=0) -> Bool
@@ -1780,11 +1780,13 @@ See [`BeginPopup`](@ref), [`BeginPopupContextItem`](@ref), [`BeginPopupContextWi
 EndPopup() = igEndPopup()
 
 """
-    OpenPopupOnItemClick(str_id=C_NULL, mouse_button=1) -> Bool
+    OpenPopupContextItem(str_id=C_NULL, mouse_button=1) -> Bool
 Helper to open popup when clicked on last item (note: actually triggers on the mouse
 _released_ event to be consistent with popup behaviors). return true when just opened.
 """
-OpenPopupOnItemClick(str_id=C_NULL, mouse_button=1) = igOpenPopupOnItemClick(str_id, mouse_button)
+OpenPopupContextItem(str_id=C_NULL, mouse_button=1) = igOpenPopupContextItem(str_id, mouse_button)
+
+@deprecate OpenPopupOnItemClick(str_id=C_NULL, mouse_button=1) OpenPopupContextItem(str_id=C_NULL, mouse_button=1)
 
 """
     IsPopupOpen(str_id) -> Bool

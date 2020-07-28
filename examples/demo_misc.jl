@@ -202,7 +202,7 @@ function ShowDemoWindowMisc()
         end
 
         if CImGui.TreeNode("Mouse cursors")
-            mouse_cursors_names = ["Arrow", "TextInput", "Move", "ResizeNS", "ResizeEW", "ResizeNESW", "ResizeNWSE", "Hand"]
+            mouse_cursors_names = ["Arrow", "TextInput", "ResizeAll", "ResizeNS", "ResizeEW", "ResizeNESW", "ResizeNWSE", "Hand", "NotAllowed"]
             @assert length(mouse_cursors_names) == CImGui.ImGuiMouseCursor_COUNT
             cur = CImGui.GetMouseCursor()
             CImGui.Text("Current mouse cursor = $cur: $(mouse_cursors_names[cur+1])")

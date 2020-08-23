@@ -17,33 +17,43 @@ to get an idea of its use cases.
 pkg> add CImGui
 ```
 
-## Quick Start
-1. Run `demo/demo.jl` to test whether the default backend works on your machine.
-2. Run `examples/demo.jl` and browse demos in the `examples` folder to learn how to use the API.
-3. Read documentation or run `? CImGui.xxx` to retrieve docs:
+## How to start
+#### 1. Run `demo/demo.jl` to test whether the default backend works on your machine
+```julia-repl
+julia> using CImGui
+julia> include(joinpath(pathof(CImGui), "..", "..", "demo", "demo.jl"))
 ```
-help?> CImGui.Begin
-  Begin(name, p_open=C_NULL, flags=0) -> Bool
+#### 2. Run `examples/demo.jl` and browse demos in the `examples` folder to learn how to use the API
+```julia-repl
+julia> using CImGui
+julia> include(joinpath(pathof(CImGui), "..", "..", "examples", "demo.jl"))
+```
+[All of these examples](https://github.com/Gnimuc/CImGui.jl/tree/master/examples) are one-to-one ported from [Dear ImGui's C++ examples](https://github.com/ocornut/imgui/blob/master/imgui_demo.cpp) and there is an [interactive manual](https://pthom.github.io/imgui_manual_online/manual/imgui_manual.html) for quickly locating the code. You could also run `? CImGui.xxx` to retrieve docs:
+```
+help?> CImGui.Button
+  Button(label) -> Bool
+  Button(label, size) -> Bool
 
-  Push window to the stack and start appending to it.
+  Return true when the value has been changed or when pressed/selected.
+```
+#### 3. The rendering loop
+One thing that is necessary but the package doesn't provide is the [rendering loop](https://github.com/Gnimuc/CImGui.jl/blob/master/examples/demo.jl#L76-L113). 
+Note that all ImGui widgets should run within `CImGui.Begin()`...`CImGui.End()`, if not, a crash is waiting for you. For example, directly running `CImGui.Button("My button")` in REPL will crash Julia. 
 
-  Usage
-  –––––––
+An example rendering loop module is provided [here](https://github.com/Gnimuc/CImGui.jl/blob/master/examples/Renderer.jl) for those users who don't bother to study those boilerplate code and eager to draw some widgets on the screen.
+```julia-repl
+julia> using CImGui
+julia> include(joinpath(pathof(CImGui), "..", "..", "examples", "Renderer.jl"))
+Main.Renderer
 
-    •    you may append multiple times to the same window during the same frame.
+julia> using .Renderer
 
-    •    passing p_open != C_NULL shows a window-closing widget in the upper-right corner of
-        the window, which clicking will set the boolean to false when clicked.
-
-    •    Begin return false to indicate the window is collapsed or fully clipped, so you may
-        early out and omit submitting anything to the window.
-
-  │ Note
-  │
-  │  Always call a matching End for each Begin call, regardless of its return value. This
-  │  is due to legacy reason and is inconsistent with most other functions (such as
-  │  BeginMenu/EndMenu, BeginPopup/EndPopup, etc.) where the EndXXX call should only be
-  │  called if the corresponding BeginXXX function returned true.
+julia> Renderer.render(width = 1280, height = 720, title = "IMGUI Window") do
+           CImGui.Begin("Hello ImGui")
+           CImGui.Button("My Button") && @show "triggered"
+           CImGui.End()
+       end
+Task (runnable) @0x00000001136bead0
 ```
 
 ## Usage
@@ -51,11 +61,9 @@ The API provided in this package is as close as possible to the original C++ API
 - Replace `ImGui::` to `CImGui.`;
 - `using LibCImGui` to import all of the `ImGuiXXX` types into the current namespace;
 - Member function calling should be translated in Julia style: `fonts.AddFont(cfg)` => `CImGui.AddFont(fonts, cfg)`;
-- Prefer to define colors as `Vector{Cfloat}` instead of `CImGui.ImVec4`;
-- [CSyntax.jl](https://github.com/Gnimuc/CSyntax.jl) provides two useful macros: `@c` for translating C's `&` operator on immutables and `@cstatic`-block for emulating C's `static` keyword;
-- pointer arithmetic: `&A[n]` should be translated to `pointer(A) + n * sizeof(T)` where `n` counts from 0.
+- [`using CImGui.CSyntax`] provides two useful macros: `@c` for translating C's `&` operator on immutables and `@cstatic`-block for emulating C's `static` keyword;
 
-As mentioned before, this package aims to provide the same user experience as the original C++ API, so any high-level abstraction should go into a more high-level package.
+As mentioned before, this package aims to provide the same user experience as the original C++ API, so any high-level abstraction should go into a more high-level package. [`Redux.jl`](https://github.com/Gnimuc/Redux.jl) might be of interest to you if you're looking for state management frameworks.
 
 ### LibCImGui
 LibCImGui is a thin wrapper over cimgui. It's one-to-one mapped to the original cimgui APIs. By using CImGui.LibCImGui, all of the ImGui-prefixed types, enums and ig-prefixed functions will be imported into the current namespace. It's mainly for people who prefer to use original cimgui's interface.

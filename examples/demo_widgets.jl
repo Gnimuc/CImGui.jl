@@ -118,7 +118,7 @@ function ShowDemoWindowWidgets()
             ShowHelpMarker("CTRL+click to input value.")
 
             @c CImGui.SliderFloat("slider float", &f1, 0.0, 1.0, "ratio = %.3f")
-            @c CImGui.SliderFloat("slider float (curve)", &f2, -10.0, 10.0, "%.4f", 2.0)
+            @c CImGui.SliderFloat("slider float (log)", &f2, -10.0, 10.0, "%.4f", CImGui.ImGuiSliderFlags_Logarithmic)
 
             @c CImGui.SliderAngle("slider angle", &angle)
         end

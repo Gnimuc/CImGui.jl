@@ -18,12 +18,14 @@ pkg> add CImGui
 ```
 
 ## How to start
-#### 1. Run `demo/demo.jl` to test whether the default backend works on your machine
+
+### 1. Run `demo/demo.jl` to test whether the default backend works on your machine
 ```julia-repl
 julia> using CImGui
 julia> include(joinpath(pathof(CImGui), "..", "..", "demo", "demo.jl"))
 ```
-#### 2. Run `examples/demo.jl` and browse demos in the `examples` folder to learn how to use the API
+
+### 2. Run `examples/demo.jl` and browse demos in the `examples` folder to learn how to use the API
 ```julia-repl
 julia> using CImGui
 julia> include(joinpath(pathof(CImGui), "..", "..", "examples", "demo.jl"))
@@ -36,7 +38,8 @@ help?> CImGui.Button
 
   Return true when the value has been changed or when pressed/selected.
 ```
-#### 3. The rendering loop
+
+### 3. The rendering loop
 One thing that is necessary but the package doesn't provide is the [rendering loop](https://github.com/Gnimuc/CImGui.jl/blob/master/examples/demo.jl#L76-L113). 
 Note that all ImGui widgets should run within `CImGui.Begin()`...`CImGui.End()`, if not, a crash is waiting for you. For example, directly running `CImGui.Button("My button")` in REPL will crash Julia. 
 

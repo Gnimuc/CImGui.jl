@@ -48,7 +48,7 @@ Main.Renderer
 
 julia> using .Renderer
 
-julia> Renderer.render(width = 1280, height = 720, title = "IMGUI Window") do
+julia> Renderer.render(width = 360, height = 480, title = "IMGUI Window") do
            CImGui.Begin("Hello ImGui")
            CImGui.Button("My Button") && @show "triggered"
            CImGui.End()

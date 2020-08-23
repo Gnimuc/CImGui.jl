@@ -518,30 +518,6 @@ function igTextUnformatted(text, text_end)
     ccall((:igTextUnformatted, libcimgui), Cvoid, (Cstring, Cstring), text, text_end)
 end
 
-function igText(text)
-    ccall((:igText, libcimgui), Cvoid, (Cstring,), text)
-end
-
-function igTextColored(col, text)
-    ccall((:igTextColored, libcimgui), Cvoid, (ImVec4, Cstring), col, text)
-end
-
-function igTextDisabled(text)
-    ccall((:igTextDisabled, libcimgui), Cvoid, (Cstring,), text)
-end
-
-function igTextWrapped(text)
-    ccall((:igTextWrapped, libcimgui), Cvoid, (Cstring,), text)
-end
-
-function igLabelText(label, text)
-    ccall((:igLabelText, libcimgui), Cvoid, (Cstring, Cstring), label, text)
-end
-
-function igBulletText(text)
-    ccall((:igBulletText, libcimgui), Cvoid, (Cstring,), text)
-end
-
 function igButton(label, size)
     ccall((:igButton, libcimgui), Bool, (Cstring, ImVec2), label, size)
 end
@@ -550,8 +526,8 @@ function igSmallButton(label)
     ccall((:igSmallButton, libcimgui), Bool, (Cstring,), label)
 end
 
-function igInvisibleButton(str_id, size)
-    ccall((:igInvisibleButton, libcimgui), Bool, (Cstring, ImVec2), str_id, size)
+function igInvisibleButton(str_id, size, flags)
+    ccall((:igInvisibleButton, libcimgui), Bool, (Cstring, ImVec2, ImGuiButtonFlags), str_id, size, flags)
 end
 
 function igArrowButton(str_id, dir)
@@ -606,112 +582,112 @@ function igComboStr(label, current_item, items_separated_by_zeros, popup_max_hei
     ccall((:igComboStr, libcimgui), Bool, (Cstring, Ptr{Cint}, Ptr{UInt8}, Cint), label, current_item, items_separated_by_zeros, popup_max_height_in_items)
 end
 
-function igComboFnPtr(label, current_item, items_getter, data, items_count, popup_max_height_in_items)
-    ccall((:igComboFnPtr, libcimgui), Bool, (Cstring, Ptr{Cint}, Ptr{Cvoid}, Ptr{Cvoid}, Cint, Cint), label, current_item, items_getter, data, items_count, popup_max_height_in_items)
+function igComboFnBoolPtr(label, current_item, items_getter, data, items_count, popup_max_height_in_items)
+    ccall((:igComboFnBoolPtr, libcimgui), Bool, (Cstring, Ptr{Cint}, Ptr{Cvoid}, Ptr{Cvoid}, Cint, Cint), label, current_item, items_getter, data, items_count, popup_max_height_in_items)
 end
 
-function igDragFloat(label, v, v_speed, v_min, v_max, format, power)
-    ccall((:igDragFloat, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cfloat, Cstring, Cfloat), label, v, v_speed, v_min, v_max, format, power)
+function igDragFloat(label, v, v_speed, v_min, v_max, format, flags)
+    ccall((:igDragFloat, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cfloat, Cstring, ImGuiSliderFlags), label, v, v_speed, v_min, v_max, format, flags)
 end
 
-function igDragFloat2(label, v, v_speed, v_min, v_max, format, power)
-    ccall((:igDragFloat2, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cfloat, Cstring, Cfloat), label, v, v_speed, v_min, v_max, format, power)
+function igDragFloat2(label, v, v_speed, v_min, v_max, format, flags)
+    ccall((:igDragFloat2, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cfloat, Cstring, ImGuiSliderFlags), label, v, v_speed, v_min, v_max, format, flags)
 end
 
-function igDragFloat3(label, v, v_speed, v_min, v_max, format, power)
-    ccall((:igDragFloat3, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cfloat, Cstring, Cfloat), label, v, v_speed, v_min, v_max, format, power)
+function igDragFloat3(label, v, v_speed, v_min, v_max, format, flags)
+    ccall((:igDragFloat3, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cfloat, Cstring, ImGuiSliderFlags), label, v, v_speed, v_min, v_max, format, flags)
 end
 
-function igDragFloat4(label, v, v_speed, v_min, v_max, format, power)
-    ccall((:igDragFloat4, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cfloat, Cstring, Cfloat), label, v, v_speed, v_min, v_max, format, power)
+function igDragFloat4(label, v, v_speed, v_min, v_max, format, flags)
+    ccall((:igDragFloat4, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cfloat, Cstring, ImGuiSliderFlags), label, v, v_speed, v_min, v_max, format, flags)
 end
 
-function igDragFloatRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, power)
-    ccall((:igDragFloatRange2, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Ptr{Cfloat}, Cfloat, Cfloat, Cfloat, Cstring, Cstring, Cfloat), label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, power)
+function igDragFloatRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, flags)
+    ccall((:igDragFloatRange2, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Ptr{Cfloat}, Cfloat, Cfloat, Cfloat, Cstring, Cstring, ImGuiSliderFlags), label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, flags)
 end
 
-function igDragInt(label, v, v_speed, v_min, v_max, format)
-    ccall((:igDragInt, libcimgui), Bool, (Cstring, Ptr{Cint}, Cfloat, Cint, Cint, Cstring), label, v, v_speed, v_min, v_max, format)
+function igDragInt(label, v, v_speed, v_min, v_max, format, flags)
+    ccall((:igDragInt, libcimgui), Bool, (Cstring, Ptr{Cint}, Cfloat, Cint, Cint, Cstring, ImGuiSliderFlags), label, v, v_speed, v_min, v_max, format, flags)
 end
 
-function igDragInt2(label, v, v_speed, v_min, v_max, format)
-    ccall((:igDragInt2, libcimgui), Bool, (Cstring, Ptr{Cint}, Cfloat, Cint, Cint, Cstring), label, v, v_speed, v_min, v_max, format)
+function igDragInt2(label, v, v_speed, v_min, v_max, format, flags)
+    ccall((:igDragInt2, libcimgui), Bool, (Cstring, Ptr{Cint}, Cfloat, Cint, Cint, Cstring, ImGuiSliderFlags), label, v, v_speed, v_min, v_max, format, flags)
 end
 
-function igDragInt3(label, v, v_speed, v_min, v_max, format)
-    ccall((:igDragInt3, libcimgui), Bool, (Cstring, Ptr{Cint}, Cfloat, Cint, Cint, Cstring), label, v, v_speed, v_min, v_max, format)
+function igDragInt3(label, v, v_speed, v_min, v_max, format, flags)
+    ccall((:igDragInt3, libcimgui), Bool, (Cstring, Ptr{Cint}, Cfloat, Cint, Cint, Cstring, ImGuiSliderFlags), label, v, v_speed, v_min, v_max, format, flags)
 end
 
-function igDragInt4(label, v, v_speed, v_min, v_max, format)
-    ccall((:igDragInt4, libcimgui), Bool, (Cstring, Ptr{Cint}, Cfloat, Cint, Cint, Cstring), label, v, v_speed, v_min, v_max, format)
+function igDragInt4(label, v, v_speed, v_min, v_max, format, flags)
+    ccall((:igDragInt4, libcimgui), Bool, (Cstring, Ptr{Cint}, Cfloat, Cint, Cint, Cstring, ImGuiSliderFlags), label, v, v_speed, v_min, v_max, format, flags)
 end
 
-function igDragIntRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max)
-    ccall((:igDragIntRange2, libcimgui), Bool, (Cstring, Ptr{Cint}, Ptr{Cint}, Cfloat, Cint, Cint, Cstring, Cstring), label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max)
+function igDragIntRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, flags)
+    ccall((:igDragIntRange2, libcimgui), Bool, (Cstring, Ptr{Cint}, Ptr{Cint}, Cfloat, Cint, Cint, Cstring, Cstring, ImGuiSliderFlags), label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, flags)
 end
 
-function igDragScalar(label, data_type, p_data, v_speed, p_min, p_max, format, power)
-    ccall((:igDragScalar, libcimgui), Bool, (Cstring, ImGuiDataType, Ptr{Cvoid}, Cfloat, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, Cfloat), label, data_type, p_data, v_speed, p_min, p_max, format, power)
+function igDragScalar(label, data_type, p_data, v_speed, p_min, p_max, format, flags)
+    ccall((:igDragScalar, libcimgui), Bool, (Cstring, ImGuiDataType, Ptr{Cvoid}, Cfloat, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, ImGuiSliderFlags), label, data_type, p_data, v_speed, p_min, p_max, format, flags)
 end
 
-function igDragScalarN(label, data_type, p_data, components, v_speed, p_min, p_max, format, power)
-    ccall((:igDragScalarN, libcimgui), Bool, (Cstring, ImGuiDataType, Ptr{Cvoid}, Cint, Cfloat, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, Cfloat), label, data_type, p_data, components, v_speed, p_min, p_max, format, power)
+function igDragScalarN(label, data_type, p_data, components, v_speed, p_min, p_max, format, flags)
+    ccall((:igDragScalarN, libcimgui), Bool, (Cstring, ImGuiDataType, Ptr{Cvoid}, Cint, Cfloat, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, ImGuiSliderFlags), label, data_type, p_data, components, v_speed, p_min, p_max, format, flags)
 end
 
-function igSliderFloat(label, v, v_min, v_max, format, power)
-    ccall((:igSliderFloat, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cstring, Cfloat), label, v, v_min, v_max, format, power)
+function igSliderFloat(label, v, v_min, v_max, format, flags)
+    ccall((:igSliderFloat, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cstring, ImGuiSliderFlags), label, v, v_min, v_max, format, flags)
 end
 
-function igSliderFloat2(label, v, v_min, v_max, format, power)
-    ccall((:igSliderFloat2, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cstring, Cfloat), label, v, v_min, v_max, format, power)
+function igSliderFloat2(label, v, v_min, v_max, format, flags)
+    ccall((:igSliderFloat2, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cstring, ImGuiSliderFlags), label, v, v_min, v_max, format, flags)
 end
 
-function igSliderFloat3(label, v, v_min, v_max, format, power)
-    ccall((:igSliderFloat3, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cstring, Cfloat), label, v, v_min, v_max, format, power)
+function igSliderFloat3(label, v, v_min, v_max, format, flags)
+    ccall((:igSliderFloat3, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cstring, ImGuiSliderFlags), label, v, v_min, v_max, format, flags)
 end
 
-function igSliderFloat4(label, v, v_min, v_max, format, power)
-    ccall((:igSliderFloat4, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cstring, Cfloat), label, v, v_min, v_max, format, power)
+function igSliderFloat4(label, v, v_min, v_max, format, flags)
+    ccall((:igSliderFloat4, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cstring, ImGuiSliderFlags), label, v, v_min, v_max, format, flags)
 end
 
-function igSliderAngle(label, v_rad, v_degrees_min, v_degrees_max, format)
-    ccall((:igSliderAngle, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cstring), label, v_rad, v_degrees_min, v_degrees_max, format)
+function igSliderAngle(label, v_rad, v_degrees_min, v_degrees_max, format, flags)
+    ccall((:igSliderAngle, libcimgui), Bool, (Cstring, Ptr{Cfloat}, Cfloat, Cfloat, Cstring, ImGuiSliderFlags), label, v_rad, v_degrees_min, v_degrees_max, format, flags)
 end
 
-function igSliderInt(label, v, v_min, v_max, format)
-    ccall((:igSliderInt, libcimgui), Bool, (Cstring, Ptr{Cint}, Cint, Cint, Cstring), label, v, v_min, v_max, format)
+function igSliderInt(label, v, v_min, v_max, format, flags)
+    ccall((:igSliderInt, libcimgui), Bool, (Cstring, Ptr{Cint}, Cint, Cint, Cstring, ImGuiSliderFlags), label, v, v_min, v_max, format, flags)
 end
 
-function igSliderInt2(label, v, v_min, v_max, format)
-    ccall((:igSliderInt2, libcimgui), Bool, (Cstring, Ptr{Cint}, Cint, Cint, Cstring), label, v, v_min, v_max, format)
+function igSliderInt2(label, v, v_min, v_max, format, flags)
+    ccall((:igSliderInt2, libcimgui), Bool, (Cstring, Ptr{Cint}, Cint, Cint, Cstring, ImGuiSliderFlags), label, v, v_min, v_max, format, flags)
 end
 
-function igSliderInt3(label, v, v_min, v_max, format)
-    ccall((:igSliderInt3, libcimgui), Bool, (Cstring, Ptr{Cint}, Cint, Cint, Cstring), label, v, v_min, v_max, format)
+function igSliderInt3(label, v, v_min, v_max, format, flags)
+    ccall((:igSliderInt3, libcimgui), Bool, (Cstring, Ptr{Cint}, Cint, Cint, Cstring, ImGuiSliderFlags), label, v, v_min, v_max, format, flags)
 end
 
-function igSliderInt4(label, v, v_min, v_max, format)
-    ccall((:igSliderInt4, libcimgui), Bool, (Cstring, Ptr{Cint}, Cint, Cint, Cstring), label, v, v_min, v_max, format)
+function igSliderInt4(label, v, v_min, v_max, format, flags)
+    ccall((:igSliderInt4, libcimgui), Bool, (Cstring, Ptr{Cint}, Cint, Cint, Cstring, ImGuiSliderFlags), label, v, v_min, v_max, format, flags)
 end
 
-function igSliderScalar(label, data_type, p_data, p_min, p_max, format, power)
-    ccall((:igSliderScalar, libcimgui), Bool, (Cstring, ImGuiDataType, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, Cfloat), label, data_type, p_data, p_min, p_max, format, power)
+function igSliderScalar(label, data_type, p_data, p_min, p_max, format, flags)
+    ccall((:igSliderScalar, libcimgui), Bool, (Cstring, ImGuiDataType, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, ImGuiSliderFlags), label, data_type, p_data, p_min, p_max, format, flags)
 end
 
-function igSliderScalarN(label, data_type, p_data, components, p_min, p_max, format, power)
-    ccall((:igSliderScalarN, libcimgui), Bool, (Cstring, ImGuiDataType, Ptr{Cvoid}, Cint, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, Cfloat), label, data_type, p_data, components, p_min, p_max, format, power)
+function igSliderScalarN(label, data_type, p_data, components, p_min, p_max, format, flags)
+    ccall((:igSliderScalarN, libcimgui), Bool, (Cstring, ImGuiDataType, Ptr{Cvoid}, Cint, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, ImGuiSliderFlags), label, data_type, p_data, components, p_min, p_max, format, flags)
 end
 
-function igVSliderFloat(label, size, v, v_min, v_max, format, power)
-    ccall((:igVSliderFloat, libcimgui), Bool, (Cstring, ImVec2, Ptr{Cfloat}, Cfloat, Cfloat, Cstring, Cfloat), label, size, v, v_min, v_max, format, power)
+function igVSliderFloat(label, size, v, v_min, v_max, format, flags)
+    ccall((:igVSliderFloat, libcimgui), Bool, (Cstring, ImVec2, Ptr{Cfloat}, Cfloat, Cfloat, Cstring, ImGuiSliderFlags), label, size, v, v_min, v_max, format, flags)
 end
 
-function igVSliderInt(label, size, v, v_min, v_max, format)
-    ccall((:igVSliderInt, libcimgui), Bool, (Cstring, ImVec2, Ptr{Cint}, Cint, Cint, Cstring), label, size, v, v_min, v_max, format)
+function igVSliderInt(label, size, v, v_min, v_max, format, flags)
+    ccall((:igVSliderInt, libcimgui), Bool, (Cstring, ImVec2, Ptr{Cint}, Cint, Cint, Cstring, ImGuiSliderFlags), label, size, v, v_min, v_max, format, flags)
 end
 
-function igVSliderScalar(label, size, data_type, p_data, p_min, p_max, format, power)
-    ccall((:igVSliderScalar, libcimgui), Bool, (Cstring, ImVec2, ImGuiDataType, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, Cfloat), label, size, data_type, p_data, p_min, p_max, format, power)
+function igVSliderScalar(label, size, data_type, p_data, p_min, p_max, format, flags)
+    ccall((:igVSliderScalar, libcimgui), Bool, (Cstring, ImVec2, ImGuiDataType, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, ImGuiSliderFlags), label, size, data_type, p_data, p_min, p_max, format, flags)
 end
 
 function igInputText(label, buf, buf_size, flags, callback, user_data)
@@ -798,24 +774,8 @@ function igTreeNodeStr(label)
     ccall((:igTreeNodeStr, libcimgui), Bool, (Cstring,), label)
 end
 
-function igTreeNodeStrStr(str_id, text)
-    ccall((:igTreeNodeStrStr, libcimgui), Bool, (Cstring, Cstring), str_id, text)
-end
-
-function igTreeNodePtr(ptr_id, text)
-    ccall((:igTreeNodePtr, libcimgui), Bool, (Ptr{Cvoid}, Cstring), ptr_id, text)
-end
-
 function igTreeNodeExStr(label, flags)
     ccall((:igTreeNodeExStr, libcimgui), Bool, (Cstring, ImGuiTreeNodeFlags), label, flags)
-end
-
-function igTreeNodeExStrStr(str_id, flags, text)
-    ccall((:igTreeNodeExStrStr, libcimgui), Bool, (Cstring, ImGuiTreeNodeFlags, Cstring), str_id, flags, text)
-end
-
-function igTreeNodeExPtr(ptr_id, flags, text)
-    ccall((:igTreeNodeExPtr, libcimgui), Bool, (Ptr{Cvoid}, ImGuiTreeNodeFlags, Cstring), ptr_id, flags, text)
 end
 
 function igTreePushStr(str_id)
@@ -946,14 +906,6 @@ function igEndTooltip()
     ccall((:igEndTooltip, libcimgui), Cvoid, ())
 end
 
-function igSetTooltip(text)
-    ccall((:igSetTooltip, libcimgui), Cvoid, (Cstring,), text)
-end
-
-function igOpenPopup(str_id)
-    ccall((:igOpenPopup, libcimgui), Cvoid, (Cstring,), str_id)
-end
-
 function igBeginPopup(str_id, flags)
     ccall((:igBeginPopup, libcimgui), Bool, (Cstring, ImGuiWindowFlags), str_id, flags)
 end
@@ -1064,10 +1016,6 @@ end
 
 function igLogButtons()
     ccall((:igLogButtons, libcimgui), Cvoid, ())
-end
-
-function igLogText(text)
-    ccall((:igLogText, libcimgui), Cvoid, (Cstring,), text)
 end
 
 function igBeginDragDropSource(flags)
@@ -1220,10 +1168,6 @@ end
 
 function igGetStateStorage()
     ccall((:igGetStateStorage, libcimgui), Ptr{ImGuiStorage}, ())
-end
-
-function igCalcTextSize(text, text_end, hide_text_after_double_hash, wrap_width)
-    ccall((:igCalcTextSize, libcimgui), ImVec2, (Cstring, Cstring, Bool, Cfloat), text, text_end, hide_text_after_double_hash, wrap_width)
 end
 
 function igCalcListClipping(items_count, items_height, out_items_display_start, out_items_display_end)
@@ -2206,8 +2150,8 @@ function ImFont_GrowIndex(self, new_size)
     ccall((:ImFont_GrowIndex, libcimgui), Cvoid, (Ptr{ImFont}, Cint), self, new_size)
 end
 
-function ImFont_AddGlyph(self, c, x0, y0, x1, y1, u0, v0, u1, v1, advance_x)
-    ccall((:ImFont_AddGlyph, libcimgui), Cvoid, (Ptr{ImFont}, ImWchar, Cfloat, Cfloat, Cfloat, Cfloat, Cfloat, Cfloat, Cfloat, Cfloat, Cfloat), self, c, x0, y0, x1, y1, u0, v0, u1, v1, advance_x)
+function ImFont_AddGlyph(self, src_cfg, c, x0, y0, x1, y1, u0, v0, u1, v1, advance_x)
+    ccall((:ImFont_AddGlyph, libcimgui), Cvoid, (Ptr{ImFont}, Ptr{ImFontConfig}, ImWchar, Cfloat, Cfloat, Cfloat, Cfloat, Cfloat, Cfloat, Cfloat, Cfloat, Cfloat), self, src_cfg, c, x0, y0, x1, y1, u0, v0, u1, v1, advance_x)
 end
 
 function ImFont_AddRemapChar(self, dst, src, overwrite_dst)
@@ -2372,6 +2316,30 @@ end
 
 function igImPowdouble(x, y)
     ccall((:igImPowdouble, libcimgui), Cdouble, (Cdouble, Cdouble), x, y)
+end
+
+function igImLogFloat(x)
+    ccall((:igImLogFloat, libcimgui), Cfloat, (Cfloat,), x)
+end
+
+function igImLogdouble(x)
+    ccall((:igImLogdouble, libcimgui), Cdouble, (Cdouble,), x)
+end
+
+function igImAbsFloat(x)
+    ccall((:igImAbsFloat, libcimgui), Cfloat, (Cfloat,), x)
+end
+
+function igImAbsdouble(x)
+    ccall((:igImAbsdouble, libcimgui), Cdouble, (Cdouble,), x)
+end
+
+function igImSignFloat(x)
+    ccall((:igImSignFloat, libcimgui), Cfloat, (Cfloat,), x)
+end
+
+function igImSigndouble(x)
+    ccall((:igImSigndouble, libcimgui), Cdouble, (Cdouble,), x)
 end
 
 function igImMin(pOut, lhs, rhs)
@@ -2934,20 +2902,20 @@ function ImGuiWindow_MenuBarRect(pOut, self)
     ccall((:ImGuiWindow_MenuBarRect, libcimgui), Cvoid, (Ptr{ImRect}, Ptr{ImGuiWindow}), pOut, self)
 end
 
-function ImGuiItemHoveredDataBackup_ImGuiItemHoveredDataBackup()
-    ccall((:ImGuiItemHoveredDataBackup_ImGuiItemHoveredDataBackup, libcimgui), Ptr{ImGuiItemHoveredDataBackup}, ())
+function ImGuiLastItemDataBackup_ImGuiLastItemDataBackup()
+    ccall((:ImGuiLastItemDataBackup_ImGuiLastItemDataBackup, libcimgui), Ptr{ImGuiLastItemDataBackup}, ())
 end
 
-function ImGuiItemHoveredDataBackup_destroy(self)
-    ccall((:ImGuiItemHoveredDataBackup_destroy, libcimgui), Cvoid, (Ptr{ImGuiItemHoveredDataBackup},), self)
+function ImGuiLastItemDataBackup_destroy(self)
+    ccall((:ImGuiLastItemDataBackup_destroy, libcimgui), Cvoid, (Ptr{ImGuiLastItemDataBackup},), self)
 end
 
-function ImGuiItemHoveredDataBackup_Backup(self)
-    ccall((:ImGuiItemHoveredDataBackup_Backup, libcimgui), Cvoid, (Ptr{ImGuiItemHoveredDataBackup},), self)
+function ImGuiLastItemDataBackup_Backup(self)
+    ccall((:ImGuiLastItemDataBackup_Backup, libcimgui), Cvoid, (Ptr{ImGuiLastItemDataBackup},), self)
 end
 
-function ImGuiItemHoveredDataBackup_Restore(self)
-    ccall((:ImGuiItemHoveredDataBackup_Restore, libcimgui), Cvoid, (Ptr{ImGuiItemHoveredDataBackup},), self)
+function ImGuiLastItemDataBackup_Restore(self)
+    ccall((:ImGuiLastItemDataBackup_Restore, libcimgui), Cvoid, (Ptr{ImGuiLastItemDataBackup},), self)
 end
 
 function ImGuiTabItem_ImGuiTabItem()
@@ -3020,6 +2988,10 @@ end
 
 function igSetWindowCollapsedWindowPtr(window, collapsed, cond)
     ccall((:igSetWindowCollapsedWindowPtr, libcimgui), Cvoid, (Ptr{ImGuiWindow}, Bool, ImGuiCond), window, collapsed, cond)
+end
+
+function igSetWindowHitTestHole(window, pos, size)
+    ccall((:igSetWindowHitTestHole, libcimgui), Cvoid, (Ptr{ImGuiWindow}, ImVec2, ImVec2), window, pos, size)
 end
 
 function igFocusWindow(window)
@@ -3196,6 +3168,10 @@ end
 
 function igIsClippedEx(bb, id, clip_even_when_logged)
     ccall((:igIsClippedEx, libcimgui), Bool, (ImRect, ImGuiID, Bool), bb, id, clip_even_when_logged)
+end
+
+function igSetLastItemData(window, item_id, status_flags, item_rect)
+    ccall((:igSetLastItemData, libcimgui), Cvoid, (Ptr{ImGuiWindow}, ImGuiID, ImGuiItemStatusFlags, ImRect), window, item_id, status_flags, item_rect)
 end
 
 function igFocusableItemRegister(window, id)
@@ -3530,6 +3506,10 @@ function igRenderRectFilledRangeH(draw_list, rect, col, x_start_norm, x_end_norm
     ccall((:igRenderRectFilledRangeH, libcimgui), Cvoid, (Ptr{ImDrawList}, ImRect, ImU32, Cfloat, Cfloat, Cfloat), draw_list, rect, col, x_start_norm, x_end_norm, rounding)
 end
 
+function igRenderRectFilledWithHole(draw_list, outer, inner, col, rounding)
+    ccall((:igRenderRectFilledWithHole, libcimgui), Cvoid, (Ptr{ImDrawList}, ImRect, ImRect, ImU32, Cfloat), draw_list, outer, inner, col, rounding)
+end
+
 function igTextEx(text, text_end, flags)
     ccall((:igTextEx, libcimgui), Cvoid, (Cstring, Cstring, ImGuiTextFlags), text, text_end, flags)
 end
@@ -3582,12 +3562,12 @@ function igButtonBehavior(bb, id, out_hovered, out_held, flags)
     ccall((:igButtonBehavior, libcimgui), Bool, (ImRect, ImGuiID, Ptr{Bool}, Ptr{Bool}, ImGuiButtonFlags), bb, id, out_hovered, out_held, flags)
 end
 
-function igDragBehavior(id, data_type, p_v, v_speed, p_min, p_max, format, power, flags)
-    ccall((:igDragBehavior, libcimgui), Bool, (ImGuiID, ImGuiDataType, Ptr{Cvoid}, Cfloat, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, Cfloat, ImGuiDragFlags), id, data_type, p_v, v_speed, p_min, p_max, format, power, flags)
+function igDragBehavior(id, data_type, p_v, v_speed, p_min, p_max, format, flags)
+    ccall((:igDragBehavior, libcimgui), Bool, (ImGuiID, ImGuiDataType, Ptr{Cvoid}, Cfloat, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, ImGuiSliderFlags), id, data_type, p_v, v_speed, p_min, p_max, format, flags)
 end
 
-function igSliderBehavior(bb, id, data_type, p_v, p_min, p_max, format, power, flags, out_grab_bb)
-    ccall((:igSliderBehavior, libcimgui), Bool, (ImRect, ImGuiID, ImGuiDataType, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, Cfloat, ImGuiSliderFlags, Ptr{ImRect}), bb, id, data_type, p_v, p_min, p_max, format, power, flags, out_grab_bb)
+function igSliderBehavior(bb, id, data_type, p_v, p_min, p_max, format, flags, out_grab_bb)
+    ccall((:igSliderBehavior, libcimgui), Bool, (ImRect, ImGuiID, ImGuiDataType, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Cstring, ImGuiSliderFlags, Ptr{ImRect}), bb, id, data_type, p_v, p_min, p_max, format, flags, out_grab_bb)
 end
 
 function igSplitterBehavior(bb, id, axis, size1, size2, min_size1, min_size2, hover_extend, hover_visibility_delay)
@@ -3704,6 +3684,10 @@ end
 
 function igImFontAtlasBuildFinish(atlas)
     ccall((:igImFontAtlasBuildFinish, libcimgui), Cvoid, (Ptr{ImFontAtlas},), atlas)
+end
+
+function igImFontAtlasBuildRender1bppRectFromString(atlas, atlas_x, atlas_y, w, h, in_str, in_marker_char, in_marker_pixel_value)
+    ccall((:igImFontAtlasBuildRender1bppRectFromString, libcimgui), Cvoid, (Ptr{ImFontAtlas}, Cint, Cint, Cint, Cint, Cstring, UInt8, Cuchar), atlas, atlas_x, atlas_y, w, h, in_str, in_marker_char, in_marker_pixel_value)
 end
 
 function igImFontAtlasBuildMultiplyCalcLookupTable(out_table, in_multiply_factor)

@@ -4,6 +4,7 @@
 # Skipping MacroDefinition: API __attribute__ ( ( __visibility__ ( "default" ) ) )
 const ImGuiLayoutType = Cint
 const ImGuiItemFlags = Cint
+
 const ImGuiID = UInt32
 
 struct ImGuiStoragePair
@@ -83,19 +84,19 @@ end
 const ImFontAtlasFlags = Cint
 const ImTextureID = Ptr{Cvoid}
 
-struct ImVector_ImFontPtr{ImFont_}
+struct ImVector_ImFontPtr
     Size::Cint
     Capacity::Cint
-    Data::Ptr{Ptr{ImFont_}}
+    Data::Ptr{Ptr{Cvoid}}  # Ptr{Ptr{ImFont}}
 end
 
-struct ImVector_ImFontAtlasCustomRect{_ImFontAtlasCustomRect}
+struct ImVector_ImFontAtlasCustomRect
     Size::Cint
     Capacity::Cint
-    Data::Ptr{_ImFontAtlasCustomRect}
+    Data::Ptr{Cvoid}  # Ptr{ImFontAtlasCustomRect}
 end
 
-struct ImFontConfig{ImFont_}
+struct ImFontConfig
     FontData::Ptr{Cvoid}
     FontDataSize::Cint
     FontDataOwnedByAtlas::Bool
@@ -114,13 +115,20 @@ struct ImFontConfig{ImFont_}
     RasterizerMultiply::Cfloat
     EllipsisChar::ImWchar
     Name::NTuple{40, UInt8}
-    DstFont::Ptr{ImFont_}
+    DstFont::Ptr{Cvoid}  # Ptr{ImFont}
 end
 
 struct ImVector_ImFontConfig
     Size::Cint
     Capacity::Cint
     Data::Ptr{ImFontConfig}
+end
+
+struct ImVec4
+    x::Cfloat
+    y::Cfloat
+    z::Cfloat
+    w::Cfloat
 end
 
 struct ImFontAtlas
@@ -138,7 +146,9 @@ struct ImFontAtlas
     Fonts::ImVector_ImFontPtr
     CustomRects::ImVector_ImFontAtlasCustomRect
     ConfigData::ImVector_ImFontConfig
-    CustomRectIds::NTuple{1, Cint}
+    TexUvLines::NTuple{64, ImVec4}
+    PackIdMouseCursors::Cint
+    PackIdLines::Cint
 end
 
 struct ImFont
@@ -171,13 +181,6 @@ struct ImFontAtlasCustomRect
     GlyphAdvanceX::Cfloat
     GlyphOffset::ImVec2
     Font::Ptr{ImFont}
-end
-
-struct ImVec4
-    x::Cfloat
-    y::Cfloat
-    z::Cfloat
-    w::Cfloat
 end
 
 struct ImGuiWindowSettings
@@ -305,7 +308,7 @@ struct ImGuiColumns
     HostCursorMaxPosX::Cfloat
     HostInitialClipRect::ImRect
     HostBackupClipRect::ImRect
-    HostWorkRect::ImRect
+    HostBackupParentWorkRect::ImRect
     Columns::ImVector_ImGuiColumnData
     Splitter::ImDrawListSplitter
 end
@@ -340,6 +343,7 @@ struct ImDrawListSharedData
     InitialFlags::ImDrawListFlags
     ArcFastVtx::NTuple{12, ImVec2}
     CircleSegmentCounts::NTuple{64, ImU8}
+    TexUvLines::Ptr{ImVec4}
 end
 
 struct ImVector_ImVec4
@@ -377,18 +381,13 @@ struct ImDrawList
     _Splitter::ImDrawListSplitter
 end
 
-
+const ImGuiLayoutType = Cint
+const ImGuiItemFlags = Cint
 
 struct ImVector_ImGuiItemFlags
     Size::Cint
     Capacity::Cint
     Data::Ptr{ImGuiItemFlags}
-end
-
-struct ImVector_ImGuiWindowPtr
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{Ptr{Cvoid}} # Ptr{Ptr{ImGuiWindow}}
 end
 
 struct ImGuiGroupData
@@ -407,6 +406,12 @@ struct ImVector_ImGuiGroupData
     Size::Cint
     Capacity::Cint
     Data::Ptr{ImGuiGroupData}
+end
+
+struct ImVector_ImGuiWindowPtr
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{Ptr{Cvoid}}  # Ptr{Ptr{ImGuiWindow}}
 end
 
 struct ImGuiWindowTempData
@@ -509,8 +514,11 @@ struct ImGuiWindow
     InnerRect::ImRect
     InnerClipRect::ImRect
     WorkRect::ImRect
+    ParentWorkRect::ImRect
     ClipRect::ImRect
     ContentRegionRect::ImRect
+    HitTestHoleSize::ImVec2ih
+    HitTestHoleOffset::ImVec2ih
     LastFrameActive::Cint
     LastTimeActive::Cfloat
     ItemWidthDefault::Cfloat
@@ -532,17 +540,22 @@ struct ImGuiWindow
     MemoryDrawListVtxCapacity::Cint
 end
 
+
+
+
 const ImGuiTabItemFlags = Cint
+const ImS16 = Int16
 
 struct ImGuiTabItem
     ID::ImGuiID
     Flags::ImGuiTabItemFlags
     LastFrameVisible::Cint
     LastFrameSelected::Cint
-    NameOffset::Cint
     Offset::Cfloat
     Width::Cfloat
     ContentWidth::Cfloat
+    NameOffset::ImS16
+    WantClose::Bool
 end
 
 struct ImVector_ImGuiTabItem
@@ -659,7 +672,7 @@ struct ImGuiNavMoveResult
     RectRel::ImRect
 end
 
-struct ImGuiItemHoveredDataBackup
+struct ImGuiLastItemDataBackup
     LastItemId::ImGuiID
     LastItemStatusFlags::ImGuiItemStatusFlags
     LastItemRect::ImRect
@@ -789,6 +802,7 @@ struct ImGuiStyle
     ScrollbarRounding::Cfloat
     GrabMinSize::Cfloat
     GrabRounding::Cfloat
+    LogSliderDeadzone::Cfloat
     TabRounding::Cfloat
     TabBorderSize::Cfloat
     TabMinWidthForUnselectedCloseButton::Cfloat
@@ -799,6 +813,7 @@ struct ImGuiStyle
     DisplaySafeAreaPadding::ImVec2
     MouseCursorScale::Cfloat
     AntiAliasedLines::Bool
+    AntiAliasedLinesUseTex::Bool
     AntiAliasedFill::Bool
     CurveTessellationTol::Cfloat
     CircleSegmentMaxError::Cfloat
@@ -1082,13 +1097,15 @@ struct ImGuiContext
     CurrentWindow::Ptr{ImGuiWindow}
     HoveredWindow::Ptr{ImGuiWindow}
     HoveredRootWindow::Ptr{ImGuiWindow}
+    HoveredWindowUnderMovingWindow::Ptr{ImGuiWindow}
     MovingWindow::Ptr{ImGuiWindow}
     WheelingWindow::Ptr{ImGuiWindow}
     WheelingWindowRefMousePos::ImVec2
     WheelingWindowTimer::Cfloat
     HoveredId::ImGuiID
-    HoveredIdAllowOverlap::Bool
     HoveredIdPreviousFrame::ImGuiID
+    HoveredIdAllowOverlap::Bool
+    HoveredIdDisabled::Bool
     HoveredIdTimer::Cfloat
     HoveredIdNotActiveTimer::Cfloat
     ActiveId::ImGuiID
@@ -1096,6 +1113,7 @@ struct ImGuiContext
     ActiveIdTimer::Cfloat
     ActiveIdIsJustActivated::Bool
     ActiveIdAllowOverlap::Bool
+    ActiveIdNoClearOnFocusLoss::Bool
     ActiveIdHasBeenPressedBefore::Bool
     ActiveIdHasBeenEditedBefore::Bool
     ActiveIdHasBeenEditedThisFrame::Bool
@@ -1207,6 +1225,8 @@ struct ImGuiContext
     ColorEditLastSat::Cfloat
     ColorEditLastColor::NTuple{3, Cfloat}
     ColorPickerRef::ImVec4
+    SliderCurrentAccum::Cfloat
+    SliderCurrentAccumDirty::Bool
     DragCurrentAccumDirty::Bool
     DragCurrentAccum::Cfloat
     DragSpeedDefaultRatio::Cfloat
@@ -1253,23 +1273,21 @@ const ImGuiDataType = Cint
 const ImGuiNavInput = Cint
 const ImGuiMouseButton = Cint
 const ImDrawCornerFlags = Cint
+const ImGuiButtonFlags = Cint
 const ImGuiComboFlags = Cint
 const ImGuiFocusedFlags = Cint
 const ImGuiHoveredFlags = Cint
 const ImGuiPopupFlags = Cint
 const ImGuiSelectableFlags = Cint
+const ImGuiSliderFlags = Cint
 const ImGuiTreeNodeFlags = Cint
 const ImWchar32 = UInt32
-const ImS16 = Int16
 const ImU16 = UInt16
 const ImS32 = Cint
 const ImS64 = Int64
-const ImGuiButtonFlags = Cint
-const ImGuiDragFlags = Cint
 const ImGuiNavHighlightFlags = Cint
 const ImGuiNavDirSourceFlags = Cint
 const ImGuiSeparatorFlags = Cint
-const ImGuiSliderFlags = Cint
 const ImGuiTextFlags = Cint
 const ImGuiTooltipFlags = Cint
 
@@ -1640,6 +1658,15 @@ end
     ImGuiStyleVar_COUNT = 23
 end
 
+@cenum ImGuiButtonFlags_::UInt32 begin
+    ImGuiButtonFlags_None = 0
+    ImGuiButtonFlags_MouseButtonLeft = 1
+    ImGuiButtonFlags_MouseButtonRight = 2
+    ImGuiButtonFlags_MouseButtonMiddle = 4
+    ImGuiButtonFlags_MouseButtonMask_ = 7
+    ImGuiButtonFlags_MouseButtonDefault_ = 1
+end
+
 @cenum ImGuiColorEditFlags_::UInt32 begin
     ImGuiColorEditFlags_None = 0
     ImGuiColorEditFlags_NoAlpha = 2
@@ -1670,6 +1697,15 @@ end
     ImGuiColorEditFlags__DataTypeMask = 25165824
     ImGuiColorEditFlags__PickerMask = 100663296
     ImGuiColorEditFlags__InputMask = 402653184
+end
+
+@cenum ImGuiSliderFlags_::UInt32 begin
+    ImGuiSliderFlags_None = 0
+    ImGuiSliderFlags_ClampOnInput = 16
+    ImGuiSliderFlags_Logarithmic = 32
+    ImGuiSliderFlags_NoRoundToFormat = 64
+    ImGuiSliderFlags_NoInput = 128
+    ImGuiSliderFlags_InvalidMask_ = 1879048207
 end
 
 @cenum ImGuiMouseButton_::UInt32 begin
@@ -1717,14 +1753,16 @@ end
 @cenum ImDrawListFlags_::UInt32 begin
     ImDrawListFlags_None = 0
     ImDrawListFlags_AntiAliasedLines = 1
-    ImDrawListFlags_AntiAliasedFill = 2
-    ImDrawListFlags_AllowVtxOffset = 4
+    ImDrawListFlags_AntiAliasedLinesUseTex = 2
+    ImDrawListFlags_AntiAliasedFill = 4
+    ImDrawListFlags_AllowVtxOffset = 8
 end
 
 @cenum ImFontAtlasFlags_::UInt32 begin
     ImFontAtlasFlags_None = 0
     ImFontAtlasFlags_NoPowerOfTwoHeight = 1
     ImFontAtlasFlags_NoMouseCursors = 2
+    ImFontAtlasFlags_NoBakedLines = 4
 end
 
 @cenum ImGuiItemFlags_::UInt32 begin
@@ -1736,6 +1774,7 @@ end
     ImGuiItemFlags_NoNavDefaultFocus = 16
     ImGuiItemFlags_SelectableDontClosePopup = 32
     ImGuiItemFlags_MixedValue = 64
+    ImGuiItemFlags_ReadOnly = 128
     ImGuiItemFlags_Default_ = 0
 end
 
@@ -1750,42 +1789,30 @@ end
     ImGuiItemStatusFlags_Deactivated = 64
 end
 
-@cenum ImGuiButtonFlags_::UInt32 begin
-    ImGuiButtonFlags_None = 0
-    ImGuiButtonFlags_Repeat = 1
-    ImGuiButtonFlags_PressedOnClick = 2
-    ImGuiButtonFlags_PressedOnClickRelease = 4
-    ImGuiButtonFlags_PressedOnClickReleaseAnywhere = 8
-    ImGuiButtonFlags_PressedOnRelease = 16
-    ImGuiButtonFlags_PressedOnDoubleClick = 32
-    ImGuiButtonFlags_PressedOnDragDropHold = 64
-    ImGuiButtonFlags_FlattenChildren = 128
-    ImGuiButtonFlags_AllowItemOverlap = 256
-    ImGuiButtonFlags_DontClosePopups = 512
-    ImGuiButtonFlags_Disabled = 1024
-    ImGuiButtonFlags_AlignTextBaseLine = 2048
-    ImGuiButtonFlags_NoKeyModifiers = 4096
-    ImGuiButtonFlags_NoHoldingActiveId = 8192
-    ImGuiButtonFlags_NoNavFocus = 16384
-    ImGuiButtonFlags_NoHoveredOnFocus = 32768
-    ImGuiButtonFlags_MouseButtonLeft = 65536
-    ImGuiButtonFlags_MouseButtonRight = 131072
-    ImGuiButtonFlags_MouseButtonMiddle = 262144
-    ImGuiButtonFlags_MouseButtonMask_ = 458752
-    ImGuiButtonFlags_MouseButtonShift_ = 16
-    ImGuiButtonFlags_MouseButtonDefault_ = 65536
-    ImGuiButtonFlags_PressedOnMask_ = 126
-    ImGuiButtonFlags_PressedOnDefault_ = 4
+@cenum ImGuiButtonFlagsPrivate_::UInt32 begin
+    ImGuiButtonFlags_PressedOnClick = 16
+    ImGuiButtonFlags_PressedOnClickRelease = 32
+    ImGuiButtonFlags_PressedOnClickReleaseAnywhere = 64
+    ImGuiButtonFlags_PressedOnRelease = 128
+    ImGuiButtonFlags_PressedOnDoubleClick = 256
+    ImGuiButtonFlags_PressedOnDragDropHold = 512
+    ImGuiButtonFlags_Repeat = 1024
+    ImGuiButtonFlags_FlattenChildren = 2048
+    ImGuiButtonFlags_AllowItemOverlap = 4096
+    ImGuiButtonFlags_DontClosePopups = 8192
+    ImGuiButtonFlags_Disabled = 16384
+    ImGuiButtonFlags_AlignTextBaseLine = 32768
+    ImGuiButtonFlags_NoKeyModifiers = 65536
+    ImGuiButtonFlags_NoHoldingActiveId = 131072
+    ImGuiButtonFlags_NoNavFocus = 262144
+    ImGuiButtonFlags_NoHoveredOnFocus = 524288
+    ImGuiButtonFlags_PressedOnMask_ = 1008
+    ImGuiButtonFlags_PressedOnDefault_ = 32
 end
 
-@cenum ImGuiSliderFlags_::UInt32 begin
-    ImGuiSliderFlags_None = 0
-    ImGuiSliderFlags_Vertical = 1
-end
-
-@cenum ImGuiDragFlags_::UInt32 begin
-    ImGuiDragFlags_None = 0
-    ImGuiDragFlags_Vertical = 1
+@cenum ImGuiSliderFlagsPrivate_::UInt32 begin
+    ImGuiSliderFlags_Vertical = 1048576
+    ImGuiSliderFlags_ReadOnly = 2097152
 end
 
 @cenum ImGuiSelectableFlagsPrivate_::UInt32 begin
@@ -1916,3 +1943,4 @@ end
 @cenum ImGuiTabItemFlagsPrivate_::UInt32 begin
     ImGuiTabItemFlags_NoCloseButton = 1048576
 end
+

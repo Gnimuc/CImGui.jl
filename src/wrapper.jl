@@ -1201,34 +1201,34 @@ Combo(label, current_item, items_getter::Union{Ptr,Base.CFunction}, data, items_
 If `v_min` >= `v_max` we have no bound.
 """
 DragFloat(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0) = igDragFloat(label, v, v_speed, v_min, v_max, format, flag)
-@deprecate DragFloat(label, v, v_speed, v_min, v_max, format, power::AbstractFloat) DragFloat(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0) 
+@deprecate DragFloat(label, v, v_speed, v_min, v_max, format, power::AbstractFloat) DragFloat(label, v, v_speed, v_min, v_max, format, 0) 
 
 """
     DragFloat2(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0) -> Bool
 The expected number of elements to be accessible in `v` is 2.
 """
 DragFloat2(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0) = igDragFloat2(label, v, v_speed, v_min, v_max, format, flag)
-@deprecate DragFloat2(label, v, v_speed, v_min, v_max, format, power::AbstractFloat) DragFloat2(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0)
+@deprecate DragFloat2(label, v, v_speed, v_min, v_max, format, power::AbstractFloat) DragFloat2(label, v, v_speed, v_min, v_max, format, 0)
 
 """
     DragFloat3(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0) -> Bool
 The expected number of elements to be accessible in `v` is 3.
 """
 DragFloat3(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0) = igDragFloat3(label, v, v_speed, v_min, v_max, format, flag)
-@deprecate DragFloat3(label, v, v_speed, v_min, v_max, format, power::AbstractFloat) DragFloat3(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0)
+@deprecate DragFloat3(label, v, v_speed, v_min, v_max, format, power::AbstractFloat) DragFloat3(label, v, v_speed, v_min, v_max, format, 0)
 
 """
     DragFloat4(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0) -> Bool
 The expected number of elements to be accessible in `v` is 4.
 """
 DragFloat4(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0) = igDragFloat4(label, v, v_speed, v_min, v_max, format, flag)
-@deprecate DragFloat4(label, v, v_speed, v_min, v_max, format, power::AbstractFloat) DragFloat4(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0)
+@deprecate DragFloat4(label, v, v_speed, v_min, v_max, format, power::AbstractFloat) DragFloat4(label, v, v_speed, v_min, v_max, format, 0)
 
 """
     DragFloatRange2(label, v_current_min, v_current_max, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", format_max=C_NULL, flag=0) -> Bool
 """
 DragFloatRange2(label, v_current_min, v_current_max, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", format_max=C_NULL, flag=0) = igDragFloatRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, flag)
-@deprecate DragFloatRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, power::AbstractFloat) DragFloatRange2(label, v_current_min, v_current_max, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", format_max=C_NULL, flag=0)
+@deprecate DragFloatRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, power::AbstractFloat) DragFloatRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, 0)
 
 """
     DragInt(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d", flag=0)
@@ -1262,13 +1262,13 @@ DragIntRange2(label, v_current_min, v_current_max, v_speed=1.0, v_min=0, v_max=0
     DragScalar(label, data_type, v, v_speed, v_min=C_NULL, v_max=C_NULL, format=C_NULL, flags=0)
 """
 DragScalar(label, data_type, v, v_speed, v_min=C_NULL, v_max=C_NULL, format=C_NULL, flags=0) = igDragScalar(label, data_type, v, v_speed, v_min, v_max, format, flag)
-@deprecate DragScalar(label, data_type, v, v_speed, v_min, v_max, format, power::AbstractFloat) DragScalar(label, data_type, v, v_speed, v_min=C_NULL, v_max=C_NULL, format=C_NULL, flags=0)
+@deprecate DragScalar(label, data_type, v, v_speed, v_min, v_max, format, power::AbstractFloat) DragScalar(label, data_type, v, v_speed, v_min, v_max, format, 0)
 
 """
     DragScalarN(label, data_type, v, components, v_speed, v_min=C_NULL, v_max=C_NULL, format=C_NULL, flag=0)
 """
 DragScalarN(label, data_type, v, components, v_speed, v_min=C_NULL, v_max=C_NULL, format=C_NULL, flag=0) = igDragScalarN(label, data_type, v, components, v_speed, v_min, v_max, format, flag)
-@deprecate DragScalarN(label, data_type, v, components, v_speed, v_min, v_max, format, power::AbstractFloat) DragScalarN(label, data_type, v, components, v_speed, v_min=C_NULL, v_max=C_NULL, format=C_NULL, flag=0)
+@deprecate DragScalarN(label, data_type, v, components, v_speed, v_min, v_max, format, power::AbstractFloat) DragScalarN(label, data_type, v, components, v_speed, v_min, v_max, format, 0)
 
 ##################################### Widgets: Sliders #####################################
 """

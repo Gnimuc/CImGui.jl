@@ -1096,12 +1096,12 @@ with `FramePadding=(0,0)` to easily embed within text.
 SmallButton(label) = igSmallButton(label)
 
 """
-    InvisibleButton(str_id, size) -> Bool
+    InvisibleButton(str_id, size, flag = 0) -> Bool
 Return true when the value has been changed or when pressed/selected.
-Create a button without the visuals, useful to build custom behaviors using the public api
-along with [`IsItemActive`](@ref), [`IsItemHovered`](@ref), etc.
+Flexible button behavior without the visuals, frequently useful to build custom behaviors using 
+the public api along with [`IsItemActive`](@ref), [`IsItemHovered`](@ref), etc.
 """
-InvisibleButton(str_id, size) = igInvisibleButton(str_id, size)
+InvisibleButton(str_id, size, flag = 0) = igInvisibleButton(str_id, size, flag)
 
 """
     ArrowButton(str_id, dir) -> Bool
@@ -1193,79 +1193,86 @@ Combo(label, current_item, items_separated_by_zeros, popup_max_height_in_items=-
 """
     Combo(label, current_item, items_getter::Union{Ptr,Base.CFunction}, data, items_count, popup_max_height_in_items=-1) -> Bool
 """
-Combo(label, current_item, items_getter::Union{Ptr,Base.CFunction}, data, items_count, popup_max_height_in_items=-1) = igComboFnPtr(label, current_item, items_getter, data, items_count, popup_max_height_in_items)
+Combo(label, current_item, items_getter::Union{Ptr,Base.CFunction}, data, items_count, popup_max_height_in_items=-1) = igComboFnBoolPtr(label, current_item, items_getter, data, items_count, popup_max_height_in_items)
 
 ###################################### Widgets: Drags ######################################
 """
-    DragFloat(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) -> Bool
+    DragFloat(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0) -> Bool
 If `v_min` >= `v_max` we have no bound.
 """
-DragFloat(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) = igDragFloat(label, v, v_speed, v_min, v_max, format, power)
+DragFloat(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0) = igDragFloat(label, v, v_speed, v_min, v_max, format, flag)
+@deprecate DragFloat(label, v, v_speed, v_min, v_max, format, power::AbstractFloat) DragFloat(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0) 
 
 """
-    DragFloat2(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) -> Bool
+    DragFloat2(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0) -> Bool
 The expected number of elements to be accessible in `v` is 2.
 """
-DragFloat2(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) = igDragFloat2(label, v, v_speed, v_min, v_max, format, power)
+DragFloat2(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0) = igDragFloat2(label, v, v_speed, v_min, v_max, format, flag)
+@deprecate DragFloat2(label, v, v_speed, v_min, v_max, format, power::AbstractFloat) DragFloat2(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0)
 
 """
-    DragFloat3(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) -> Bool
+    DragFloat3(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0) -> Bool
 The expected number of elements to be accessible in `v` is 3.
 """
-DragFloat3(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) = igDragFloat3(label, v, v_speed, v_min, v_max, format, power)
+DragFloat3(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0) = igDragFloat3(label, v, v_speed, v_min, v_max, format, flag)
+@deprecate DragFloat3(label, v, v_speed, v_min, v_max, format, power::AbstractFloat) DragFloat3(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0)
 
 """
-    DragFloat4(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) -> Bool
+    DragFloat4(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0) -> Bool
 The expected number of elements to be accessible in `v` is 4.
 """
-DragFloat4(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", power=1.0) = igDragFloat4(label, v, v_speed, v_min, v_max, format, power)
+DragFloat4(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0) = igDragFloat4(label, v, v_speed, v_min, v_max, format, flag)
+@deprecate DragFloat4(label, v, v_speed, v_min, v_max, format, power::AbstractFloat) DragFloat4(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0)
 
 """
-    DragFloatRange2(label, v_current_min, v_current_max, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", format_max=C_NULL, power=1.0) -> Bool
+    DragFloatRange2(label, v_current_min, v_current_max, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", format_max=C_NULL, flag=0) -> Bool
 """
-DragFloatRange2(label, v_current_min, v_current_max, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", format_max=C_NULL, power=1.0) = igDragFloatRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, power)
+DragFloatRange2(label, v_current_min, v_current_max, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", format_max=C_NULL, flag=0) = igDragFloatRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, flag)
+@deprecate DragFloatRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, power::AbstractFloat) DragFloatRange2(label, v_current_min, v_current_max, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", format_max=C_NULL, flag=0)
 
 """
-    DragInt(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d")
+    DragInt(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d", flag=0)
 """
-DragInt(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d") = igDragInt(label, v, v_speed, v_min, v_max, format)
+DragInt(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d", flag=0) = igDragInt(label, v, v_speed, v_min, v_max, format, flag)
 
 """
-    DragInt2(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d")
+    DragInt2(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d", flag=0)
 The expected number of elements to be accessible in `v` is 2.
 """
-DragInt2(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d") = igDragInt2(label, v, v_speed, v_min, v_max, format)
+DragInt2(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d", flag=0) = igDragInt2(label, v, v_speed, v_min, v_max, format, flag)
 
 """
-    DragInt3(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d")
+    DragInt3(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d", flag=0)
 The expected number of elements to be accessible in `v` is 3.
 """
-DragInt3(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d") = igDragInt3(label, v, v_speed, v_min, v_max, format)
+DragInt3(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d", flag=0) = igDragInt3(label, v, v_speed, v_min, v_max, format, flag)
 
 """
-    DragInt4(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d")
+    DragInt4(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d", flag=0)
 The expected number of elements to be accessible in `v` is 4.
 """
-DragInt4(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d") = igDragInt4(label, v, v_speed, v_min, v_max, format)
+DragInt4(label, v, v_speed=1.0, v_min=0, v_max=0, format="%d", flag=0) = igDragInt4(label, v, v_speed, v_min, v_max, format, flag)
 
 """
-    DragIntRange2(label, v_current_min, v_current_max, v_speed=1.0, v_min=0, v_max=0, format="%d", format_max=C_NULL)
+    DragIntRange2(label, v_current_min, v_current_max, v_speed=1.0, v_min=0, v_max=0, format="%d", format_max=C_NULL, flag=0)
 """
-DragIntRange2(label, v_current_min, v_current_max, v_speed=1.0, v_min=0, v_max=0, format="%d", format_max=C_NULL) = igDragIntRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max)
+DragIntRange2(label, v_current_min, v_current_max, v_speed=1.0, v_min=0, v_max=0, format="%d", format_max=C_NULL, flag=0) = igDragIntRange2(label, v_current_min, v_current_max, v_speed, v_min, v_max, format, format_max, flag)
 
 """
-    DragScalar(label, data_type, v, v_speed, v_min=C_NULL, v_max=C_NULL, format=C_NULL, power=1.0)
+    DragScalar(label, data_type, v, v_speed, v_min=C_NULL, v_max=C_NULL, format=C_NULL, flags=0)
 """
-DragScalar(label, data_type, v, v_speed, v_min=C_NULL, v_max=C_NULL, format=C_NULL, power=1.0) = igDragScalar(label, data_type, v, v_speed, v_min, v_max, format, power)
+DragScalar(label, data_type, v, v_speed, v_min=C_NULL, v_max=C_NULL, format=C_NULL, flags=0) = igDragScalar(label, data_type, v, v_speed, v_min, v_max, format, flag)
+@deprecate DragScalar(label, data_type, v, v_speed, v_min, v_max, format, power::AbstractFloat) DragScalar(label, data_type, v, v_speed, v_min=C_NULL, v_max=C_NULL, format=C_NULL, flags=0)
 
 """
-    DragScalarN(label, data_type, v, components, v_speed, v_min=C_NULL, v_max=C_NULL, format=C_NULL, power=1.0)
+    DragScalarN(label, data_type, v, components, v_speed, v_min=C_NULL, v_max=C_NULL, format=C_NULL, flag=0)
 """
-DragScalarN(label, data_type, v, components, v_speed, v_min=C_NULL, v_max=C_NULL, format=C_NULL, power=1.0) = igDragScalarN(label, data_type, v, components, v_speed, v_min, v_max, format, power)
+DragScalarN(label, data_type, v, components, v_speed, v_min=C_NULL, v_max=C_NULL, format=C_NULL, flag=0) = igDragScalarN(label, data_type, v, components, v_speed, v_min, v_max, format, flag)
+@deprecate DragScalarN(label, data_type, v, components, v_speed, v_min, v_max, format, power::AbstractFloat) DragScalarN(label, data_type, v, components, v_speed, v_min=C_NULL, v_max=C_NULL, format=C_NULL, flag=0)
 
 ##################################### Widgets: Sliders #####################################
 """
-    SliderFloat(label, v, v_min, v_max, format="%.3f", power=1.0) -> Bool
+    SliderFloat(label, v, v_min, v_max, format="%.3f", flag=0) -> Bool
 Create a slider widget.
 
 !!! tip
@@ -1276,80 +1283,87 @@ Create a slider widget.
   * "%.3f" -> 1.234
   * "%5.2f secs" -> 01.23 secs
   * "Biscuit: %.0f" -> Biscuit: 1
-- `power`: use `power != 1.0` for power curve sliders
 """
-SliderFloat(label, v, v_min, v_max, format="%.3f", power=1.0) = igSliderFloat(label, v, v_min, v_max, format, power)
+SliderFloat(label, v, v_min, v_max, format="%.3f", flag=0) = igSliderFloat(label, v, v_min, v_max, format, flag)
+@deprecate SliderFloat(label, v, v_min, v_max, format, power::AbstractFloat) SliderFloat(label, v, v_min, v_max, format, 0)
 
 """
-    SliderFloat2(label, v, v_min, v_max, format="%.3f", power=1.0) -> Bool
+    SliderFloat2(label, v, v_min, v_max, format="%.3f", flag=0) -> Bool
 The expected number of elements to be accessible in `v` is 2.
 """
-SliderFloat2(label, v, v_min, v_max, format="%.3f", power=1.0) = igSliderFloat2(label, v, v_min, v_max, format, power)
+SliderFloat2(label, v, v_min, v_max, format="%.3f", flag=0) = igSliderFloat2(label, v, v_min, v_max, format, flag)
+@deprecate SliderFloat2(label, v, v_min, v_max, format, power::AbstractFloat) SliderFloat2(label, v, v_min, v_max, format, 0)
 
 """
-    SliderFloat3(label, v, v_min, v_max, format="%.3f", power=1.0) -> Bool
+    SliderFloat3(label, v, v_min, v_max, format="%.3f", flag=0) -> Bool
 The expected number of elements to be accessible in `v` is 3.
 """
-SliderFloat3(label, v, v_min, v_max, format="%.3f", power=1.0) = igSliderFloat3(label, v, v_min, v_max, format, power)
+SliderFloat3(label, v, v_min, v_max, format="%.3f", flag=0) = igSliderFloat3(label, v, v_min, v_max, format, flag)
+@deprecate SliderFloat3(label, v, v_min, v_max, format, power::AbstractFloat) SliderFloat3(label, v, v_min, v_max, format, 0)
 
 """
-    SliderFloat4(label, v, v_min, v_max, format="%.3f", power=1.0) -> Bool
+    SliderFloat4(label, v, v_min, v_max, format="%.3f", flag=0) -> Bool
 The expected number of elements to be accessible in `v` is 4.
 """
-SliderFloat4(label, v, v_min, v_max, format="%.3f", power=1.0) = igSliderFloat4(label, v, v_min, v_max, format, power)
+SliderFloat4(label, v, v_min, v_max, format="%.3f", flag=0) = igSliderFloat4(label, v, v_min, v_max, format, flag)
+@deprecate SliderFloat4(label, v, v_min, v_max, format, power::AbstractFloat) SliderFloat4(label, v, v_min, v_max, format, 0)
 
 """
-    SliderAngle(label, v_rad, v_degrees_min=-360.0, v_degrees_max=360.0, format="%.0f deg") -> Bool
+    SliderAngle(label, v_rad, v_degrees_min=-360.0, v_degrees_max=360.0, format="%.0f deg", flags=0) -> Bool
 """
-SliderAngle(label, v_rad, v_degrees_min=-360.0, v_degrees_max=360.0, format="%.0f deg") = igSliderAngle(label, v_rad, v_degrees_min, v_degrees_max, format)
+SliderAngle(label, v_rad, v_degrees_min=-360.0, v_degrees_max=360.0, format="%.0f deg", flags=0) = igSliderAngle(label, v_rad, v_degrees_min, v_degrees_max, format, flags)
 
 """
-    SliderInt(label, v, v_min, v_max, format="%d") -> Bool
+    SliderInt(label, v, v_min, v_max, format="%d", flags=0) -> Bool
 """
-SliderInt(label, v, v_min, v_max, format="%d") = igSliderInt(label, v, v_min, v_max, format)
+SliderInt(label, v, v_min, v_max, format="%d", flags=0) = igSliderInt(label, v, v_min, v_max, format, flags)
 
 """
-    SliderInt2(label, v, v_min, v_max, format="%d") -> Bool
+    SliderInt2(label, v, v_min, v_max, format="%d", flags=0) -> Bool
 The expected number of elements to be accessible in `v` is 2.
 """
-SliderInt2(label, v, v_min, v_max, format="%d") = igSliderInt2(label, v, v_min, v_max, format)
+SliderInt2(label, v, v_min, v_max, format="%d", flags=0) = igSliderInt2(label, v, v_min, v_max, format, flags)
 
 """
-    SliderInt3(label, v, v_min, v_max, format="%d") -> Bool
+    SliderInt3(label, v, v_min, v_max, format="%d", flags=0) -> Bool
 The expected number of elements to be accessible in `v` is 3.
 """
-SliderInt3(label, v, v_min, v_max, format="%d") = igSliderInt3(label, v, v_min, v_max, format)
+SliderInt3(label, v, v_min, v_max, format="%d", flags=0) = igSliderInt3(label, v, v_min, v_max, format, flags)
 
 """
-    SliderInt4(label, v, v_min, v_max, format="%d") -> Bool
+    SliderInt4(label, v, v_min, v_max, format="%d", flags=0) -> Bool
 The expected number of elements to be accessible in `v` is 4.
 """
-SliderInt4(label, v, v_min, v_max, format="%d") = igSliderInt4(label, v, v_min, v_max, format)
+SliderInt4(label, v, v_min, v_max, format="%d", flags=0) = igSliderInt4(label, v, v_min, v_max, format, flags)
 
 """
-    SliderScalar(label, data_type, v, v_min, v_max, format=C_NULL, power=1.0) -> Bool
+    SliderScalar(label, data_type, v, v_min, v_max, format=C_NULL, flag=0) -> Bool
 """
-SliderScalar(label, data_type, v, v_min, v_max, format=C_NULL, power=1.0) = igSliderScalar(label, data_type, v, v_min, v_max, format, power)
+SliderScalar(label, data_type, v, v_min, v_max, format=C_NULL, flag=0) = igSliderScalar(label, data_type, v, v_min, v_max, format, flag)
+@deprecate SliderScalar(label, data_type, v, v_min, v_max, format, power::AbstractFloat) SliderScalar(label, data_type, v, v_min, v_max, format, 0)
 
 """
-    SliderScalarN(label, data_type, v, components, v_min, v_max, format=C_NULL, power=1.0) -> Bool
+    SliderScalarN(label, data_type, v, components, v_min, v_max, format=C_NULL, flag=0) -> Bool
 """
-SliderScalarN(label, data_type, v, components, v_min, v_max, format=C_NULL, power=1.0) = igSliderScalarN(label, data_type, v, components, v_min, v_max, format, power)
+SliderScalarN(label, data_type, v, components, v_min, v_max, format=C_NULL, flag=0) = igSliderScalarN(label, data_type, v, components, v_min, v_max, format, flag)
+@deprecate SliderScalarN(label, data_type, v, components, v_min, v_max, format, power::AbstractFloat) SliderScalarN(label, data_type, v, components, v_min, v_max, format, 0)
 
 """
-    VSliderFloat(label, size, v, v_min, v_max, format="%.3f", power=1.0) -> Bool
+    VSliderFloat(label, size, v, v_min, v_max, format="%.3f", flag=0) -> Bool
 """
-VSliderFloat(label, size, v, v_min, v_max, format="%.3f", power=1.0) = igVSliderFloat(label, size, v, v_min, v_max, format, power)
+VSliderFloat(label, size, v, v_min, v_max, format="%.3f", flag=0) = igVSliderFloat(label, size, v, v_min, v_max, format, flag)
+@deprecate VSliderFloat(label, size, v, v_min, v_max, format, power::AbstractFloat) VSliderFloat(label, size, v, v_min, v_max, format, 0)
 
 """
-    VSliderInt(label, size, v, v_min, v_max, format="%d") -> Bool
+    VSliderInt(label, size, v, v_min, v_max, format="%d", flag=0) -> Bool
 """
-VSliderInt(label, size, v, v_min, v_max, format="%d") = igVSliderInt(label, size, v, v_min, v_max, format)
+VSliderInt(label, size, v, v_min, v_max, format="%d", flag=0) = igVSliderInt(label, size, v, v_min, v_max, format, flag)
 
 """
-    VSliderScalar(label, size, data_type, v, v_min, v_max, format=C_NULL, power=1.0) -> Bool
+    VSliderScalar(label, size, data_type, v, v_min, v_max, format=C_NULL, flag=0) -> Bool
 """
-VSliderScalar(label, size, data_type, v, v_min, v_max, format=C_NULL, power=1.0) = igVSliderScalar(label, size, data_type, v, v_min, v_max, format, power)
+VSliderScalar(label, size, data_type, v, v_min, v_max, format=C_NULL, flag=0) = igVSliderScalar(label, size, data_type, v, v_min, v_max, format, flag)
+@deprecate VSliderScalar(label, size, data_type, v, v_min, v_max, format, power::AbstractFloat) VSliderScalar(label, size, data_type, v, v_min, v_max, format, 0)
 
 ############################### Widgets: Input with Keyboard ###############################
 """

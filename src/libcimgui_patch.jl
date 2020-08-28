@@ -1,6 +1,6 @@
 # should be reimplement as macros by using Julia 1.5's @ccall macro
 function igText(text)
-    ccall((:igText, libcimgui), Cvoid, (Cstring,), text)
+    ccall((:igText, libcimgui), Cvoid, (Cstring, Cstring), "%s", text)
 end
 
 function igTextColored(col, text)

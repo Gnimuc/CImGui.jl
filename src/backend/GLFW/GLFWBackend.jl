@@ -26,10 +26,10 @@ const g_MouseJustPressed = [false, false, false, false, false]
 const g_MouseCursors = [GLFW.Cursor(C_NULL) for i = 1:ImGuiMouseCursor_COUNT]
 const g_ImplGlfw_GetClipboardText = Ref(C_NULL)
 const g_ImplGlfw_SetClipboardText = Ref(C_NULL)
-const g_CustomCallbackMousebutton = Ref(C_NULL)
-const g_CustomCallbackScroll = Ref(C_NULL)
-const g_CustomCallbackKey = Ref(C_NULL)
-const g_CustomCallbackChar = Ref(C_NULL)
+const g_CustomCallbackMousebutton = Ref{Any}(C_NULL)
+const g_CustomCallbackScroll = Ref{Any}(C_NULL)
+const g_CustomCallbackKey = Ref{Any}(C_NULL)
+const g_CustomCallbackChar = Ref{Any}(C_NULL)
 
 function __init__()
     g_ImplGlfw_GetClipboardText[] = dlsym(dlopen(GLFW.libglfw), :glfwGetClipboardString)

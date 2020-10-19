@@ -1794,13 +1794,13 @@ See [`BeginPopup`](@ref), [`BeginPopupContextItem`](@ref), [`BeginPopupContextWi
 EndPopup() = igEndPopup()
 
 """
-    OpenPopupContextItem(str_id=C_NULL, mouse_button=1) -> Bool
+    OpenPopupOnItemClick(str_id=C_NULL, mouse_button=1) -> Nothing
 Helper to open popup when clicked on last item (note: actually triggers on the mouse
-_released_ event to be consistent with popup behaviors). return true when just opened.
+_released_ event to be consistent with popup behaviors).
 """
-OpenPopupContextItem(str_id=C_NULL, mouse_button=1) = igOpenPopupContextItem(str_id, mouse_button)
+OpenPopupOnItemClick(str_id=C_NULL, mouse_button=1) = igOpenPopupOnItemClick(str_id, mouse_button)
 
-@deprecate OpenPopupOnItemClick(str_id=C_NULL, mouse_button=1) OpenPopupContextItem(str_id=C_NULL, mouse_button=1)
+@deprecate OpenPopupContextItem(str_id=C_NULL, mouse_button=1) OpenPopupOnItemClick(str_id=C_NULL, mouse_button=1)
 
 """
     IsPopupOpen(str_id) -> Bool
@@ -2924,7 +2924,7 @@ end
 
 ##################################### ImGuiListClipper #####################################
 """
-    Clipper(items_count=-1, items_height=-1.0) -> Ptr{ImGuiListClipper}
+    Clipper() -> Ptr{ImGuiListClipper}
 Manually clip large list of items.
 
 If you are submitting lots of evenly spaced items and you have a random access to the list,
@@ -2940,7 +2940,8 @@ fetching/submission cost null.
 
 ### Example
 ```julia
-clipper = CImGui.Clipper(1000) # we have 1000 elements, evenly spaced.
+clipper = CImGui.Clipper() 
+Begin(clipper, 1000)  # we have 1000 elements, evenly spaced.
 while CImGui.Step()
     dis_start = CImGui.Get(clipper, :DisplayStart)
     dis_end = CImGui.Get(clipper, :DisplayEnd)-1
@@ -2968,7 +2969,7 @@ end
     [`Step`](@ref). If you specify `items_height` you may call the old [`Begin`](@ref)/[`End`](@ref)
     api directly, but prefer calling [`Step`](@ref).
 """
-Clipper(items_count=-1, items_height=-1.0) = ImGuiListClipper_ImGuiListClipper(items_count, items_height)
+Clipper() = ImGuiListClipper_ImGuiListClipper()
 
 """
     Destroy(handle::Ptr{ImGuiListClipper})

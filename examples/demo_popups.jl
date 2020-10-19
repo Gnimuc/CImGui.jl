@@ -100,10 +100,10 @@ function ShowDemoWindowPopups()
             end
         end
 
-        # We can also use OpenPopupContextItem() which is the same as BeginPopupContextItem() but without the Begin call.
+        # We can also use OpenPopupOnItemClick() which is the same as BeginPopupContextItem() but without the Begin call.
         # So here we will make it that clicking on the text field with the right mouse button (1) will toggle the visibility of the popup above.
         CImGui.Text("(You can also right-click me to the same popup as above.)")
-        CImGui.OpenPopupContextItem("item context menu", 1)
+        CImGui.OpenPopupOnItemClick("item context menu", 1)
 
         # When used after an item that has an ID (here the Button), we can skip providing an ID to BeginPopupContextItem().
         # BeginPopupContextItem() will use the last item ID as the popup ID.

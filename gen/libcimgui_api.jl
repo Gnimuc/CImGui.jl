@@ -922,8 +922,8 @@ function igOpenPopup(str_id, popup_flags)
     ccall((:igOpenPopup, libcimgui), Cvoid, (Cstring, ImGuiPopupFlags), str_id, popup_flags)
 end
 
-function igOpenPopupContextItem(str_id, popup_flags)
-    ccall((:igOpenPopupContextItem, libcimgui), Bool, (Cstring, ImGuiPopupFlags), str_id, popup_flags)
+function igOpenPopupOnItemClick(str_id, popup_flags)
+    ccall((:igOpenPopupOnItemClick, libcimgui), Cvoid, (Cstring, ImGuiPopupFlags), str_id, popup_flags)
 end
 
 function igCloseCurrentPopup()
@@ -992,6 +992,10 @@ end
 
 function igEndTabItem()
     ccall((:igEndTabItem, libcimgui), Cvoid, ())
+end
+
+function igTabItemButton(label, flags)
+    ccall((:igTabItemButton, libcimgui), Bool, (Cstring, ImGuiTabItemFlags), label, flags)
 end
 
 function igSetTabItemClosed(tab_or_docked_window_label)
@@ -1378,6 +1382,14 @@ function ImGuiInputTextCallbackData_InsertChars(self, pos, text, text_end)
     ccall((:ImGuiInputTextCallbackData_InsertChars, libcimgui), Cvoid, (Ptr{ImGuiInputTextCallbackData}, Cint, Cstring, Cstring), self, pos, text, text_end)
 end
 
+function ImGuiInputTextCallbackData_SelectAll(self)
+    ccall((:ImGuiInputTextCallbackData_SelectAll, libcimgui), Cvoid, (Ptr{ImGuiInputTextCallbackData},), self)
+end
+
+function ImGuiInputTextCallbackData_ClearSelection(self)
+    ccall((:ImGuiInputTextCallbackData_ClearSelection, libcimgui), Cvoid, (Ptr{ImGuiInputTextCallbackData},), self)
+end
+
 function ImGuiInputTextCallbackData_HasSelection(self)
     ccall((:ImGuiInputTextCallbackData_HasSelection, libcimgui), Bool, (Ptr{ImGuiInputTextCallbackData},), self)
 end
@@ -1578,16 +1590,12 @@ function ImGuiStorage_BuildSortByKey(self)
     ccall((:ImGuiStorage_BuildSortByKey, libcimgui), Cvoid, (Ptr{ImGuiStorage},), self)
 end
 
-function ImGuiListClipper_ImGuiListClipper(items_count, items_height)
-    ccall((:ImGuiListClipper_ImGuiListClipper, libcimgui), Ptr{ImGuiListClipper}, (Cint, Cfloat), items_count, items_height)
+function ImGuiListClipper_ImGuiListClipper()
+    ccall((:ImGuiListClipper_ImGuiListClipper, libcimgui), Ptr{ImGuiListClipper}, ())
 end
 
 function ImGuiListClipper_destroy(self)
     ccall((:ImGuiListClipper_destroy, libcimgui), Cvoid, (Ptr{ImGuiListClipper},), self)
-end
-
-function ImGuiListClipper_Step(self)
-    ccall((:ImGuiListClipper_Step, libcimgui), Bool, (Ptr{ImGuiListClipper},), self)
 end
 
 function ImGuiListClipper_Begin(self, items_count, items_height)
@@ -1596,6 +1604,10 @@ end
 
 function ImGuiListClipper_End(self)
     ccall((:ImGuiListClipper_End, libcimgui), Cvoid, (Ptr{ImGuiListClipper},), self)
+end
+
+function ImGuiListClipper_Step(self)
+    ccall((:ImGuiListClipper_Step, libcimgui), Bool, (Ptr{ImGuiListClipper},), self)
 end
 
 function ImColor_ImColorNil()
@@ -1626,8 +1638,8 @@ function ImColor_SetHSV(self, h, s, v, a)
     ccall((:ImColor_SetHSV, libcimgui), Cvoid, (Ptr{ImColor}, Cfloat, Cfloat, Cfloat, Cfloat), self, h, s, v, a)
 end
 
-function ImColor_HSV(pOut, self, h, s, v, a)
-    ccall((:ImColor_HSV, libcimgui), Cvoid, (Ptr{ImColor}, Ptr{ImColor}, Cfloat, Cfloat, Cfloat, Cfloat), pOut, self, h, s, v, a)
+function ImColor_HSV(pOut, h, s, v, a)
+    ccall((:ImColor_HSV, libcimgui), Cvoid, (Ptr{ImColor}, Cfloat, Cfloat, Cfloat, Cfloat), pOut, h, s, v, a)
 end
 
 function ImDrawCmd_ImDrawCmd()
@@ -3082,12 +3094,12 @@ function igSetNextWindowScroll(scroll)
     ccall((:igSetNextWindowScroll, libcimgui), Cvoid, (ImVec2,), scroll)
 end
 
-function igSetScrollXWindowPtr(window, new_scroll_x)
-    ccall((:igSetScrollXWindowPtr, libcimgui), Cvoid, (Ptr{ImGuiWindow}, Cfloat), window, new_scroll_x)
+function igSetScrollXWindowPtr(window, scroll_x)
+    ccall((:igSetScrollXWindowPtr, libcimgui), Cvoid, (Ptr{ImGuiWindow}, Cfloat), window, scroll_x)
 end
 
-function igSetScrollYWindowPtr(window, new_scroll_y)
-    ccall((:igSetScrollYWindowPtr, libcimgui), Cvoid, (Ptr{ImGuiWindow}, Cfloat), window, new_scroll_y)
+function igSetScrollYWindowPtr(window, scroll_y)
+    ccall((:igSetScrollYWindowPtr, libcimgui), Cvoid, (Ptr{ImGuiWindow}, Cfloat), window, scroll_y)
 end
 
 function igSetScrollFromPosXWindowPtr(window, local_x, center_x_ratio)
@@ -3148,6 +3160,10 @@ end
 
 function igPushOverrideID(id)
     ccall((:igPushOverrideID, libcimgui), Cvoid, (ImGuiID,), id)
+end
+
+function igGetIDWithSeed(str_id_begin, str_id_end, seed)
+    ccall((:igGetIDWithSeed, libcimgui), ImGuiID, (Cstring, Cstring, ImGuiID), str_id_begin, str_id_end, seed)
 end
 
 function igItemSizeVec2(size, text_baseline_y)
@@ -3418,8 +3434,12 @@ function igTabBarCloseTab(tab_bar, tab)
     ccall((:igTabBarCloseTab, libcimgui), Cvoid, (Ptr{ImGuiTabBar}, Ptr{ImGuiTabItem}), tab_bar, tab)
 end
 
-function igTabBarQueueChangeTabOrder(tab_bar, tab, dir)
-    ccall((:igTabBarQueueChangeTabOrder, libcimgui), Cvoid, (Ptr{ImGuiTabBar}, Ptr{ImGuiTabItem}, Cint), tab_bar, tab, dir)
+function igTabBarQueueReorder(tab_bar, tab, dir)
+    ccall((:igTabBarQueueReorder, libcimgui), Cvoid, (Ptr{ImGuiTabBar}, Ptr{ImGuiTabItem}, Cint), tab_bar, tab, dir)
+end
+
+function igTabBarProcessReorder(tab_bar)
+    ccall((:igTabBarProcessReorder, libcimgui), Bool, (Ptr{ImGuiTabBar},), tab_bar)
 end
 
 function igTabItemEx(tab_bar, label, p_open, flags)
@@ -3600,6 +3620,10 @@ end
 
 function igDataTypeApplyOpFromText(buf, initial_value_buf, data_type, p_data, format)
     ccall((:igDataTypeApplyOpFromText, libcimgui), Bool, (Cstring, Cstring, ImGuiDataType, Ptr{Cvoid}, Cstring), buf, initial_value_buf, data_type, p_data, format)
+end
+
+function igDataTypeCompare(data_type, arg_1, arg_2)
+    ccall((:igDataTypeCompare, libcimgui), Cint, (ImGuiDataType, Ptr{Cvoid}, Ptr{Cvoid}), data_type, arg_1, arg_2)
 end
 
 function igDataTypeClamp(data_type, p_data, p_min, p_max)

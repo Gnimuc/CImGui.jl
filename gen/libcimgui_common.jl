@@ -158,7 +158,6 @@ struct ImFont
     IndexLookup::ImVector_ImWchar
     Glyphs::ImVector_ImFontGlyph
     FallbackGlyph::Ptr{ImFontGlyph}
-    DisplayOffset::ImVec2
     ContainerAtlas::Ptr{ImFontAtlas}
     ConfigData::Ptr{ImFontConfig}
     ConfigDataCount::Int16
@@ -431,7 +430,6 @@ struct ImGuiWindowTempData
     LastItemRect::ImRect
     LastItemDisplayRect::ImRect
     NavLayerCurrent::ImGuiNavLayer
-    NavLayerCurrentMask::Cint
     NavLayerActiveMask::Cint
     NavLayerActiveMaskNext::Cint
     NavFocusScopeIdCurrent::ImGuiID
@@ -478,6 +476,7 @@ struct ImGuiWindow
     ScrollMax::ImVec2
     ScrollTarget::ImVec2
     ScrollTargetCenterRatio::ImVec2
+    ScrollTargetEdgeSnapDist::ImVec2
     ScrollbarSizes::ImVec2
     ScrollbarX::Bool
     ScrollbarY::Bool
@@ -540,9 +539,6 @@ struct ImGuiWindow
     MemoryDrawListVtxCapacity::Cint
 end
 
-
-
-
 const ImGuiTabItemFlags = Cint
 const ImS16 = Int16
 
@@ -555,6 +551,8 @@ struct ImGuiTabItem
     Width::Cfloat
     ContentWidth::Cfloat
     NameOffset::ImS16
+    BeginOrder::ImS8
+    IndexDuringLayout::ImS8
     WantClose::Bool
 end
 
@@ -586,18 +584,21 @@ struct ImGuiTabBar
     PrevFrameVisible::Cint
     BarRect::ImRect
     LastTabContentHeight::Cfloat
-    OffsetMax::Cfloat
-    OffsetMaxIdeal::Cfloat
-    OffsetNextTab::Cfloat
+    WidthAllTabs::Cfloat
+    WidthAllTabsIdeal::Cfloat
     ScrollingAnim::Cfloat
     ScrollingTarget::Cfloat
     ScrollingTargetDistToVisibility::Cfloat
     ScrollingSpeed::Cfloat
+    ScrollingRectMinX::Cfloat
+    ScrollingRectMaxX::Cfloat
     Flags::ImGuiTabBarFlags
     ReorderRequestTabId::ImGuiID
     ReorderRequestDir::ImS8
+    TabsActiveCount::ImS8
     WantLayout::Bool
     VisibleTabWasSubmitted::Bool
+    TabsAddedNew::Bool
     LastTabItemIdx::Int16
     FramePadding::ImVec2
     TabsNames::ImGuiTextBuffer
@@ -700,6 +701,7 @@ struct STB_TexteditState
     select_start::Cint
     select_end::Cint
     insert_mode::Cuchar
+    row_count_per_page::Cint
     cursor_at_end_of_line::Cuchar
     initialized::Cuchar
     has_preferred_x::Cuchar
@@ -728,6 +730,7 @@ struct ImGuiInputTextState
     CursorAnim::Cfloat
     CursorFollow::Bool
     SelectedAllMouseLock::Bool
+    Edited::Bool
     UserFlags::ImGuiInputTextFlags
     UserCallback::ImGuiInputTextCallback
     UserCallbackData::Ptr{Cvoid}
@@ -735,6 +738,7 @@ end
 
 struct ImGuiDataTypeInfo
     Size::Csize_t
+    Name::Cstring
     PrintFmt::Cstring
     ScanFmt::Cstring
 end
@@ -805,7 +809,7 @@ struct ImGuiStyle
     LogSliderDeadzone::Cfloat
     TabRounding::Cfloat
     TabBorderSize::Cfloat
-    TabMinWidthForUnselectedCloseButton::Cfloat
+    TabMinWidthForCloseButton::Cfloat
     ColorButtonPosition::ImGuiDir
     ButtonTextAlign::ImVec2
     SelectableTextAlign::ImVec2
@@ -1163,7 +1167,6 @@ struct ImGuiContext
     NavInitRequestFromMove::Bool
     NavInitResultId::ImGuiID
     NavInitResultRectRel::ImRect
-    NavMoveFromClampedRefRect::Bool
     NavMoveRequest::Bool
     NavMoveRequestFlags::ImGuiNavMoveFlags
     NavMoveRequestForward::ImGuiNavForward
@@ -1236,6 +1239,7 @@ struct ImGuiContext
     MenusIdSubmittedThisFrame::ImVector_ImGuiID
     PlatformImePos::ImVec2
     PlatformImeLastPos::ImVec2
+    PlatformLocaleDecimalPoint::UInt8
     SettingsLoaded::Bool
     SettingsDirtyTimer::Cfloat
     SettingsIniData::ImGuiTextBuffer
@@ -1360,6 +1364,7 @@ end
     ImGuiInputTextFlags_NoUndoRedo = 65536
     ImGuiInputTextFlags_CharsScientific = 131072
     ImGuiInputTextFlags_CallbackResize = 262144
+    ImGuiInputTextFlags_CallbackEdit = 524288
     ImGuiInputTextFlags_Multiline = 1048576
     ImGuiInputTextFlags_NoMarkEdited = 2097152
 end
@@ -1439,6 +1444,9 @@ end
     ImGuiTabItemFlags_NoCloseWithMiddleMouseButton = 4
     ImGuiTabItemFlags_NoPushId = 8
     ImGuiTabItemFlags_NoTooltip = 16
+    ImGuiTabItemFlags_NoReorder = 32
+    ImGuiTabItemFlags_Leading = 64
+    ImGuiTabItemFlags_Trailing = 128
 end
 
 @cenum ImGuiFocusedFlags_::UInt32 begin
@@ -1701,7 +1709,7 @@ end
 
 @cenum ImGuiSliderFlags_::UInt32 begin
     ImGuiSliderFlags_None = 0
-    ImGuiSliderFlags_ClampOnInput = 16
+    ImGuiSliderFlags_AlwaysClamp = 16
     ImGuiSliderFlags_Logarithmic = 32
     ImGuiSliderFlags_NoRoundToFormat = 64
     ImGuiSliderFlags_NoInput = 128
@@ -1822,6 +1830,7 @@ end
     ImGuiSelectableFlags_SpanAvailWidth = 8388608
     ImGuiSelectableFlags_DrawHoveredWhenHeld = 16777216
     ImGuiSelectableFlags_SetNavIdOnHover = 33554432
+    ImGuiSelectableFlags_NoPadWithHalfSpacing = 67108864
 end
 
 @cenum ImGuiTreeNodeFlagsPrivate_::UInt32 begin
@@ -1899,6 +1908,7 @@ end
 @cenum ImGuiPopupPositionPolicy::UInt32 begin
     ImGuiPopupPositionPolicy_Default = 0
     ImGuiPopupPositionPolicy_ComboBox = 1
+    ImGuiPopupPositionPolicy_Tooltip = 2
 end
 
 @cenum ImGuiDataTypePrivate_::UInt32 begin
@@ -1942,5 +1952,6 @@ end
 
 @cenum ImGuiTabItemFlagsPrivate_::UInt32 begin
     ImGuiTabItemFlags_NoCloseButton = 1048576
+    ImGuiTabItemFlags_Button = 2097152
 end
 

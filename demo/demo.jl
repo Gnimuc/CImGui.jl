@@ -47,15 +47,26 @@ CImGui.StyleColorsDark()
 # - If the file cannot be loaded, the function will return C_NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
 # - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling `CImGui.Build()`/`GetTexDataAsXXXX()``, which `ImGui_ImplXXXX_NewFrame` below will call.
 # - Read 'fonts/README.txt' for more instructions and details.
-fonts_dir = joinpath(@__DIR__, "..", "fonts")
+fonts_dir = joinpath(homedir(), "Downloads")
 fonts = CImGui.GetIO().Fonts
 # default_font = CImGui.AddFontDefault(fonts)
 # CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Cousine-Regular.ttf"), 15)
 # CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "DroidSans.ttf"), 16)
 # CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Karla-Regular.ttf"), 10)
 # CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "ProggyTiny.ttf"), 10)
-CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Roboto-Medium.ttf"), 16)
+# CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Roboto-Medium.ttf"), 16)
 # @assert default_font != C_NULL
+
+using CImGui.LibCImGui
+ranges = ImVector_ImWchar_create()
+ImVector_ImWchar_Init(ranges)
+builder = ImFontGlyphRangesBuilder_ImFontGlyphRangesBuilder()
+ImFontGlyphRangesBuilder_AddChar(builder, 'ϕ')
+ImFontGlyphRangesBuilder_AddChar(builder, '♐')
+ImFontGlyphRangesBuilder_AddRanges(builder, ImFontAtlas_GetGlyphRangesDefault(fonts))
+ImFontGlyphRangesBuilder_BuildRanges(builder, ranges)
+r = unsafe_wrap(Vector{ImVector_ImWchar}, ranges, 1)
+CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "arial-unicode-ms.ttf"), 16, C_NULL, r[1].Data)
 
 # setup Platform/Renderer bindings
 ImGui_ImplGlfw_InitForOpenGL(window, true)
@@ -102,6 +113,11 @@ try
             CImGui.End()
         end
 
+        CImGui.Begin("Hello ImGui")
+               CImGui.Text("ϕ")
+               CImGui.Text("♐")
+        CImGui.End()
+
         # rendering
         CImGui.Render()
         GLFW.MakeContextCurrent(window)
@@ -120,6 +136,8 @@ catch e
 finally
     ImGui_ImplOpenGL3_Shutdown()
     ImGui_ImplGlfw_Shutdown()
+    ImVector_ImWchar_destroy(ranges)
+    ImFontGlyphRangesBuilder_destroy(builder)
     CImGui.DestroyContext(ctx)
     GLFW.DestroyWindow(window)
 end

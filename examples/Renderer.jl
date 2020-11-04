@@ -1,6 +1,7 @@
 module Renderer
 
 using CImGui
+using CImGui.LibCImGui
 using CImGui.GLFWBackend
 using CImGui.OpenGLBackend
 using CImGui.GLFWBackend.GLFW
@@ -43,6 +44,24 @@ function init_renderer(width, height, title::AbstractString)
     CImGui.StyleColorsDark()
     # CImGui.StyleColorsClassic()
     # CImGui.StyleColorsLight()
+
+    # fonts
+    fonts_dir = joinpath(homedir(), "Downloads")
+    fonts = CImGui.GetIO().Fonts
+    # default_font = CImGui.AddFontDefault(fonts)
+    ranges = ImVector_ImWchar_create()
+    ImVector_ImWchar_Init(ranges)
+    builder = ImFontGlyphRangesBuilder_ImFontGlyphRangesBuilder()
+    ImFontGlyphRangesBuilder_AddChar(builder, 'ϕ')
+    ImFontGlyphRangesBuilder_AddChar(builder, '♐')
+    ImFontGlyphRangesBuilder_AddRanges(builder, ImFontAtlas_GetGlyphRangesDefault(fonts))
+    ImFontGlyphRangesBuilder_BuildRanges(builder, ranges)
+    r = unsafe_wrap(Vector{ImVector_ImWchar}, ranges, 1)
+    CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "arial-unicode-ms.ttf"), 16, C_NULL, r[1].Data)
+    # ImFontAtlas_Build(fonts)
+    # @assert ImFontAtlas_IsBuilt(fonts)
+    # ImVector_ImWchar_destroy(ranges)
+    # ImFontGlyphRangesBuilder_destroy(builder)
 
     # setup Platform/Renderer bindings
     ImGui_ImplGlfw_InitForOpenGL(window, true)

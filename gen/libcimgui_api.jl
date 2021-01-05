@@ -547,7 +547,7 @@ function igCheckbox(label, v)
 end
 
 function igCheckboxFlags(label, flags, flags_value)
-    ccall((:igCheckboxFlags, libcimgui), Bool, (Cstring, Ptr{UInt32}, UInt32), label, flags, flags_value)
+    ccall((:igCheckboxFlags, libcimgui), Bool, (Cstring, Ptr{Cuint}, Cuint), label, flags, flags_value)
 end
 
 function igRadioButtonBool(label, active)
@@ -859,7 +859,7 @@ function igValueInt(prefix, v)
 end
 
 function igValueUint(prefix, v)
-    ccall((:igValueUint, libcimgui), Cvoid, (Cstring, UInt32), prefix, v)
+    ccall((:igValueUint, libcimgui), Cvoid, (Cstring, Cuint), prefix, v)
 end
 
 function igValueFloat(prefix, v, float_format)
@@ -1343,7 +1343,7 @@ function ImGuiStyle_ScaleAllSizes(self, scale_factor)
 end
 
 function ImGuiIO_AddInputCharacter(self, c)
-    ccall((:ImGuiIO_AddInputCharacter, libcimgui), Cvoid, (Ptr{ImGuiIO}, UInt32), self, c)
+    ccall((:ImGuiIO_AddInputCharacter, libcimgui), Cvoid, (Ptr{ImGuiIO}, Cuint), self, c)
 end
 
 function ImGuiIO_AddInputCharacterUTF16(self, c)
@@ -1471,7 +1471,7 @@ function ImGuiTextRange_empty(self)
 end
 
 function ImGuiTextRange_split(self, separator, out)
-    ccall((:ImGuiTextRange_split, libcimgui), Cvoid, (Ptr{ImGuiTextRange}, UInt8, Ptr{ImVector_ImGuiTextRange}), self, separator, out)
+    ccall((:ImGuiTextRange_split, libcimgui), Cvoid, (Ptr{ImGuiTextRange}, Cchar, Ptr{ImVector_ImGuiTextRange}), self, separator, out)
 end
 
 function ImGuiTextBuffer_ImGuiTextBuffer()
@@ -2179,7 +2179,7 @@ function ImFont_SetFallbackChar(self, c)
 end
 
 function ImFont_IsGlyphRangeUnused(self, c_begin, c_last)
-    ccall((:ImFont_IsGlyphRangeUnused, libcimgui), Bool, (Ptr{ImFont}, UInt32, UInt32), self, c_begin, c_last)
+    ccall((:ImFont_IsGlyphRangeUnused, libcimgui), Bool, (Ptr{ImFont}, Cuint, Cuint), self, c_begin, c_last)
 end
 
 function igImHashData(data, data_size, seed)
@@ -2223,7 +2223,7 @@ function igImStrdupcpy(dst, p_dst_size, str)
 end
 
 function igImStrchrRange(str_begin, str_end, c)
-    ccall((:igImStrchrRange, libcimgui), Cstring, (Cstring, Cstring, UInt8), str_begin, str_end, c)
+    ccall((:igImStrchrRange, libcimgui), Cstring, (Cstring, Cstring, Cchar), str_begin, str_end, c)
 end
 
 function igImStrlenW(str)
@@ -2267,11 +2267,11 @@ function igImParseFormatPrecision(format, default_value)
 end
 
 function igImCharIsBlankA(c)
-    ccall((:igImCharIsBlankA, libcimgui), Bool, (UInt8,), c)
+    ccall((:igImCharIsBlankA, libcimgui), Bool, (Cchar,), c)
 end
 
 function igImCharIsBlankW(c)
-    ccall((:igImCharIsBlankW, libcimgui), Bool, (UInt32,), c)
+    ccall((:igImCharIsBlankW, libcimgui), Bool, (Cuint,), c)
 end
 
 function igImTextStrToUtf8(buf, buf_size, in_text, in_text_end)
@@ -2279,7 +2279,7 @@ function igImTextStrToUtf8(buf, buf_size, in_text, in_text_end)
 end
 
 function igImTextCharFromUtf8(out_char, in_text, in_text_end)
-    ccall((:igImTextCharFromUtf8, libcimgui), Cint, (Ptr{UInt32}, Cstring, Cstring), out_char, in_text, in_text_end)
+    ccall((:igImTextCharFromUtf8, libcimgui), Cint, (Ptr{Cuint}, Cstring, Cstring), out_char, in_text, in_text_end)
 end
 
 function igImTextStrFromUtf8(buf, buf_size, in_text, in_text_end, in_remaining)
@@ -2479,7 +2479,7 @@ function ImVec2ih_destroy(self)
 end
 
 function ImVec2ih_ImVec2ihshort(_x, _y)
-    ccall((:ImVec2ih_ImVec2ihshort, libcimgui), Ptr{ImVec2ih}, (Int16, Int16), _x, _y)
+    ccall((:ImVec2ih_ImVec2ihshort, libcimgui), Ptr{ImVec2ih}, (Cshort, Cshort), _x, _y)
 end
 
 function ImVec2ih_ImVec2ihVec2(rhs)
@@ -3711,7 +3711,7 @@ function igImFontAtlasBuildFinish(atlas)
 end
 
 function igImFontAtlasBuildRender1bppRectFromString(atlas, atlas_x, atlas_y, w, h, in_str, in_marker_char, in_marker_pixel_value)
-    ccall((:igImFontAtlasBuildRender1bppRectFromString, libcimgui), Cvoid, (Ptr{ImFontAtlas}, Cint, Cint, Cint, Cint, Cstring, UInt8, Cuchar), atlas, atlas_x, atlas_y, w, h, in_str, in_marker_char, in_marker_pixel_value)
+    ccall((:igImFontAtlasBuildRender1bppRectFromString, libcimgui), Cvoid, (Ptr{ImFontAtlas}, Cint, Cint, Cint, Cint, Cstring, Cchar, Cuchar), atlas, atlas_x, atlas_y, w, h, in_str, in_marker_char, in_marker_pixel_value)
 end
 
 function igImFontAtlasBuildMultiplyCalcLookupTable(out_table, in_multiply_factor)

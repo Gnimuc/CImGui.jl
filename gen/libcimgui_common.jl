@@ -15,6 +15,7 @@ struct ImGuiTextRange
     b::Cstring
     e::Cstring
 end
+const CIMGUI_INCLUDED = nothing
 
 struct ImGuiPtrOrIndex
     Ptr::Ptr{Cvoid}
@@ -33,8 +34,8 @@ struct ImGuiDataTypeTempStorage
 end
 
 struct ImVec2ih
-    x::Int16
-    y::Int16
+    x::Cshort
+    y::Cshort
 end
 
 struct ImVec1
@@ -52,7 +53,7 @@ struct ImVector_float
     Data::Ptr{Cfloat}
 end
 
-const ImWchar16 = UInt16
+const ImWchar16 = Cushort
 const ImWchar = ImWchar16
 
 struct ImVector_ImWchar
@@ -212,9 +213,9 @@ struct ImGuiMenuColumns
     NextWidths::NTuple{3, Cfloat}
 end
 
-const ImU32 = UInt32
+const ImU32 = Cuint
 const ImGuiWindowFlags = Cint
-const ImS8 = UInt8
+const ImS8 = Int8
 const ImGuiDir = Cint
 const ImGuiCond = Cint
 
@@ -254,9 +255,9 @@ const ImDrawCallback = Ptr{Cvoid}
 struct ImDrawCmd
     ClipRect::ImVec4
     TextureId::ImTextureID
-    VtxOffset::UInt32
-    IdxOffset::UInt32
-    ElemCount::UInt32
+    VtxOffset::Cuint
+    IdxOffset::Cuint
+    ElemCount::Cuint
     UserCallback::ImDrawCallback
     UserCallbackData::Ptr{Cvoid}
 end
@@ -267,7 +268,7 @@ struct ImVector_ImDrawCmd
     Data::Ptr{ImDrawCmd}
 end
 
-const ImDrawIdx = UInt16
+const ImDrawIdx = Cushort
 
 struct ImVector_ImDrawIdx
     Size::Cint
@@ -370,7 +371,7 @@ struct ImDrawList
     Flags::ImDrawListFlags
     _Data::Ptr{ImDrawListSharedData}
     _OwnerName::Cstring
-    _VtxCurrentIdx::UInt32
+    _VtxCurrentIdx::Cuint
     _VtxWritePtr::Ptr{ImDrawVert}
     _IdxWritePtr::Ptr{ImDrawIdx}
     _ClipRectStack::ImVector_ImVec4
@@ -490,10 +491,10 @@ struct ImGuiWindow
     Hidden::Bool
     IsFallbackWindow::Bool
     HasCloseButton::Bool
-    ResizeBorderHeld::UInt8
-    BeginCount::Int16
-    BeginOrderWithinParent::Int16
-    BeginOrderWithinContext::Int16
+    ResizeBorderHeld::Int8
+    BeginCount::Cshort
+    BeginOrderWithinParent::Cshort
+    BeginOrderWithinContext::Cshort
     PopupId::ImGuiID
     AutoFitFramesX::ImS8
     AutoFitFramesY::ImS8
@@ -540,7 +541,7 @@ struct ImGuiWindow
 end
 
 const ImGuiTabItemFlags = Cint
-const ImS16 = Int16
+const ImS16 = Cshort
 
 struct ImGuiTabItem
     ID::ImGuiID
@@ -599,7 +600,7 @@ struct ImGuiTabBar
     WantLayout::Bool
     VisibleTabWasSubmitted::Bool
     TabsAddedNew::Bool
-    LastTabItemIdx::Int16
+    LastTabItemIdx::Cshort
     FramePadding::ImVec2
     TabsNames::ImGuiTextBuffer
 end
@@ -777,7 +778,7 @@ struct ImVector_ImGuiTextRange
 end
 
 struct ImGuiTextFilter
-    InputBuf::NTuple{256, UInt8}
+    InputBuf::NTuple{256, Cchar}
     Filters::ImVector_ImGuiTextRange
     CountGrep::Cint
 end
@@ -837,7 +838,7 @@ struct ImGuiPayload
     SourceId::ImGuiID
     SourceParentId::ImGuiID
     DataFrameCount::Cint
-    DataType::NTuple{33, UInt8}
+    DataType::NTuple{33, Cchar}
     Preview::Bool
     Delivery::Bool
 end
@@ -1239,7 +1240,7 @@ struct ImGuiContext
     MenusIdSubmittedThisFrame::ImVector_ImGuiID
     PlatformImePos::ImVec2
     PlatformImeLastPos::ImVec2
-    PlatformLocaleDecimalPoint::UInt8
+    PlatformLocaleDecimalPoint::Cchar
     SettingsLoaded::Bool
     SettingsDirtyTimer::Cfloat
     SettingsIniData::ImGuiTextBuffer
@@ -1262,7 +1263,7 @@ struct ImGuiContext
     WantCaptureMouseNextFrame::Cint
     WantCaptureKeyboardNextFrame::Cint
     WantTextInputNextFrame::Cint
-    TempBuffer::NTuple{3073, UInt8}
+    TempBuffer::NTuple{3073, Cchar}
 end
 
 struct ImColor
@@ -1285,8 +1286,8 @@ const ImGuiPopupFlags = Cint
 const ImGuiSelectableFlags = Cint
 const ImGuiSliderFlags = Cint
 const ImGuiTreeNodeFlags = Cint
-const ImWchar32 = UInt32
-const ImU16 = UInt16
+const ImWchar32 = Cuint
+const ImU16 = Cushort
 const ImS32 = Cint
 const ImS64 = Int64
 const ImGuiNavHighlightFlags = Cint

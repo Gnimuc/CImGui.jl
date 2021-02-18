@@ -141,27 +141,27 @@ function ShowDemoWindowColumns()
     #     CImGui.TreePop()
     # end
 
-    if CImGui.TreeNode("Horizontal Scrolling")
-        CImGui.SetNextWindowContentSize((1500.0, 0.0))
-        CImGui.BeginChild("##ScrollingRegion", ImVec2(0, CImGui.GetFontSize() * 20), false, CImGui.ImGuiWindowFlags_HorizontalScrollbar)
-        CImGui.Columns(10)
-        ITEMS_COUNT = 2000
+    # if CImGui.TreeNode("Horizontal Scrolling")
+    #     CImGui.SetNextWindowContentSize((1500.0, 0.0))
+    #     CImGui.BeginChild("##ScrollingRegion", ImVec2(0, CImGui.GetFontSize() * 20), false, CImGui.ImGuiWindowFlags_HorizontalScrollbar)
+    #     CImGui.Columns(10)
+    #     ITEMS_COUNT = 2000
 
-        clipper = CImGui.Clipper(ITEMS_COUNT) # also demonstrate using the clipper for large list
-        while CImGui.Step(clipper)
-            s = CImGui.Get(clipper, :DisplayStart)
-            e = CImGui.Get(clipper, :DisplayEnd)-1
-            for i = s:e, j = 0:9
-                CImGui.Text("Line $i Column $j...")
-                CImGui.NextColumn()
-            end
-        end
-        CImGui.Destroy(clipper)
+    #     clipper = CImGui.Clipper() # also demonstrate using the clipper for large list
+    #     while CImGui.Step(clipper)
+    #         s = CImGui.Get(clipper, :DisplayStart)
+    #         e = CImGui.Get(clipper, :DisplayEnd)-1
+    #         for i = s:e, j = 0:9
+    #             CImGui.Text("Line $i Column $j...")
+    #             CImGui.NextColumn()
+    #         end
+    #     end
+    #     CImGui.Destroy(clipper)
 
-        CImGui.Columns(1)
-        CImGui.EndChild()
-        CImGui.TreePop()
-    end
+    #     CImGui.Columns(1)
+    #     CImGui.EndChild()
+    #     CImGui.TreePop()
+    # end
 
     node_open = CImGui.TreeNode("Tree within single cell")
     CImGui.SameLine()

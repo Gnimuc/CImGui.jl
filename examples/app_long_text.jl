@@ -36,7 +36,8 @@ function ShowExampleAppLongText(p_open::Ref{Bool})
             @case 1
                 # multiple calls to Text(), manually coarsely clipped - demonstrate how to use the ImGuiListClipper helper.
                 CImGui.PushStyleVar(CImGui.ImGuiStyleVar_ItemSpacing, (0,0))
-                clipper = CImGui.Clipper(lines)
+                clipper = CImGui.Clipper()
+                CImGui.Begin(clipper, lines)
                 while CImGui.Step(clipper)
                     s = CImGui.Get(clipper, :DisplayStart)
                     e = CImGui.Get(clipper, :DisplayEnd)-1

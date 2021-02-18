@@ -59,6 +59,8 @@ julia> Renderer.render(width = 360, height = 480, title = "IMGUI Window") do
 Task (runnable) @0x00000001136bead0
 ```
 
+Should you have any other questions, feel free to write a post at the [Discussions](https://github.com/Gnimuc/CImGui.jl/discussions) area.
+
 ## Usage
 The API provided in this package is as close as possible to the original C++ API. When translating C++ code to Julia, please follow the tips below:
 - Replace `ImGui::` to `CImGui.`;

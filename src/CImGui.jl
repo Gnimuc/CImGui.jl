@@ -1,11 +1,11 @@
 module CImGui
 
-using CSyntax
-using CSyntax.CEnum
-using CSyntax.CEnum: Cenum, name_value_pairs
-
 include("LibCImGui.jl")
 using .LibCImGui
+
+using CSyntax
+using CEnum
+using CEnum: Cenum, name_value_pairs
 
 # missing macros
 const IM_COL32_R_SHIFT = 0

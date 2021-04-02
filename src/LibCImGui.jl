@@ -125,6 +125,24 @@ struct ImGuiStoragePair
     data::NTuple{16, UInt8}
 end
 
+function Base.getproperty(x::Ptr{ImGuiStoragePair}, f::Symbol)
+    f === :key && return Ptr{ImGuiID}(x + 0)
+    f === :val_i && return Ptr{Cint}(x + 64)
+    f === :val_f && return Ptr{Cfloat}(x + 64)
+    f === :val_p && return Ptr{Ptr{Cvoid}}(x + 64)
+    return getfield(x, f)
+end
+
+function Base.getproperty(x::ImGuiStoragePair, f::Symbol)
+    r = Ref{ImGuiStoragePair}(x)
+    ptr = Base.unsafe_convert(Ptr{ImGuiStoragePair}, r)
+    GC.@preserve r unsafe_load(getproperty(ptr, f))
+end
+
+function Base.setproperty!(x::Ptr{ImGuiStoragePair}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
+end
+
 struct ImVector_ImGuiStoragePair
     Size::Cint
     Capacity::Cint
@@ -159,7 +177,7 @@ end
 
 const ImTextureID = Ptr{Cvoid}
 
-# C code: 
+# C code:
 # typedef void ( * ImDrawCallback ) ( const ImDrawList * parent_list , const ImDrawCmd * cmd )
 const ImDrawCallback = Ptr{Cvoid}
 
@@ -526,6 +544,23 @@ struct ImGuiStyleMod
     data::NTuple{12, UInt8}
 end
 
+function Base.getproperty(x::Ptr{ImGuiStyleMod}, f::Symbol)
+    f === :VarIdx && return Ptr{ImGuiStyleVar}(x + 0)
+    f === :BackupInt && return Ptr{NTuple{2, Cint}}(x + 32)
+    f === :BackupFloat && return Ptr{NTuple{2, Cfloat}}(x + 32)
+    return getfield(x, f)
+end
+
+function Base.getproperty(x::ImGuiStyleMod, f::Symbol)
+    r = Ref{ImGuiStyleMod}(x)
+    ptr = Base.unsafe_convert(Ptr{ImGuiStyleMod}, r)
+    GC.@preserve r unsafe_load(getproperty(ptr, f))
+end
+
+function Base.setproperty!(x::Ptr{ImGuiStyleMod}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
+end
+
 struct ImGuiSettingsHandler
     TypeName::Ptr{Cchar}
     TypeHash::ImGuiID
@@ -560,7 +595,7 @@ end
 
 const ImGuiNextWindowDataFlags = Cint
 
-# C code: 
+# C code:
 # typedef void ( * ImGuiSizeCallback ) ( ImGuiSizeCallbackData * data )
 const ImGuiSizeCallback = Ptr{Cvoid}
 
@@ -607,7 +642,7 @@ end
 
 const ImGuiInputTextFlags = Cint
 
-# C code: 
+# C code:
 # typedef int ( * ImGuiInputTextCallback ) ( ImGuiInputTextCallbackData * data )
 const ImGuiInputTextCallback = Ptr{Cvoid}
 
@@ -854,6 +889,31 @@ end
 
 struct ImFontGlyph
     data::NTuple{40, UInt8}
+end
+
+function Base.getproperty(x::Ptr{ImFontGlyph}, f::Symbol)
+    f === :Codepoint && return Ptr{Cuint}(x + 0)
+    f === :Visible && return Ptr{Cuint}(x + 31)
+    f === :AdvanceX && return Ptr{Cfloat}(x + 32)
+    f === :X0 && return Ptr{Cfloat}(x + 64)
+    f === :Y0 && return Ptr{Cfloat}(x + 96)
+    f === :X1 && return Ptr{Cfloat}(x + 128)
+    f === :Y1 && return Ptr{Cfloat}(x + 160)
+    f === :U0 && return Ptr{Cfloat}(x + 192)
+    f === :V0 && return Ptr{Cfloat}(x + 224)
+    f === :U1 && return Ptr{Cfloat}(x + 256)
+    f === :V1 && return Ptr{Cfloat}(x + 288)
+    return getfield(x, f)
+end
+
+function Base.getproperty(x::ImFontGlyph, f::Symbol)
+    r = Ref{ImFontGlyph}(x)
+    ptr = Base.unsafe_convert(Ptr{ImFontGlyph}, r)
+    GC.@preserve r unsafe_load(getproperty(ptr, f))
+end
+
+function Base.setproperty!(x::Ptr{ImFontGlyph}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
 end
 
 struct ImVector_ImFontGlyph

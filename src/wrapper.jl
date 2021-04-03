@@ -3177,50 +3177,9 @@ Get_NavInputsDownDurationPrev(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_NavInputsDownDu
 Set_KeyMap(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_KeyMap(io, i, x)
 
 # Input - Fill before calling NewFrame()
-Set_MousePos(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MousePos(io, x)
 Set_MouseDown(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDown(io, i, x)
-Set_MouseWheel(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MouseWheel(io, x)
-Set_MouseWheelH(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MouseWheelH(io, x)
-Set_KeyCtrl(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_KeyCtrl(io, x)
-Set_KeyShift(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_KeyShift(io, x)
-Set_KeyAlt(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_KeyAlt(io, x)
-Set_KeySuper(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_KeySuper(io, x)
 Set_KeysDown(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_KeysDown(io, i, x)
 Set_NavInputs(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_NavInputs(io, i, x)
-
-# Output - Retrieve after calling NewFrame()
-# Set_WantCaptureMouse(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_WantCaptureMouse(io, x)
-# Set_WantCaptureKeyboard(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_WantCaptureKeyboard(io, x)
-# Set_MouseDown(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MouseDown(io, i, x)
-# Set_WantTextInput(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_WantTextInput(io, x)
-# Set_WantSetMousePos(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_WantSetMousePos(io, x)
-# Set_WantSaveIniSettings(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_WantSaveIniSettings(io, x)
-# Set_NavActive(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_NavActive(io, x)
-# Set_NavVisible(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_NavVisible(io, x)
-# Set_Framerate(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_Framerate(io, x)
-# Set_MetricsRenderVertices(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MetricsRenderVertices(io, x)
-# Set_MetricsRenderIndices(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MetricsRenderIndices(io, x)
-# Set_MetricsRenderWindows(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MetricsRenderWindows(io, x)
-# Set_MetricsActiveWindows(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MetricsActiveWindows(io, x)
-# Set_MetricsActiveAllocations(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MetricsActiveAllocations(io, x)
-# Set_MouseDelta(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MouseDelta(io, x)
-
-# [Internal] ImGui will maintain those fields. Forward compatibility not guaranteed!
-# Set_MousePosPrev(io::Ptr{ImGuiIO}, x) = ImGuiIO_Set_MousePosPrev(io, x)
-# Set_MouseClickedPos(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseClickedPos(io, i, x)
-# Set_MouseClickedTime(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseClickedTime(io, i, x)
-# Set_MouseClicked(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseClicked(io, i, x)
-# Set_MouseDoubleClicked(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDoubleClicked(io, i, x)
-# Set_MouseReleased(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseReleased(io, i, x)
-# Set_MouseDownOwned(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDownOwned(io, i, x)
-# Set_MouseDownDuration(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDownDuration(io, i, x)
-# Set_MouseDownDurationPrev(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDownDurationPrev(io, i, x)
-# Set_MouseDragMaxDistanceAbs(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDragMaxDistanceAbs(io, i, x)
-# Set_MouseDragMaxDistanceSqr(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDragMaxDistanceSqr(io, i, x)
-# Set_KeysDownDuration(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_KeysDownDuration(io, i, x)
-# Set_KeysDownDurationPrev(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_KeysDownDurationPrev(io, i, x)
-# Set_NavInputsDownDuration(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_NavInputsDownDuration(io, i, x)
-# Set_NavInputsDownDurationPrev(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_NavInputsDownDurationPrev(io, i, x)
 
 ######################################### ImDrawData #######################################
 # TODO: find out the use case
@@ -3231,25 +3190,4 @@ DeIndexAllBuffers(handle::Ptr{ImDrawData}) = ImDrawData_DeIndexAllBuffers(handle
 ScaleClipRects(handle::Ptr{ImDrawData}, fb_scale) = ImDrawData_ScaleClipRects(handle, fb_scale)
 
 # extra
-Get_Valid(data::Ptr{ImDrawData}) = ImDrawData_Get_Valid(data)
 Get_CmdLists(data::Ptr{ImDrawData}, i) = ImDrawData_Get_CmdLists(data, i)
-Get_CmdListsCount(data::Ptr{ImDrawData}) = ImDrawData_Get_CmdListsCount(data)
-Get_TotalIdxCount(data::Ptr{ImDrawData}) = ImDrawData_Get_TotalIdxCount(data)
-Get_TotalVtxCount(data::Ptr{ImDrawData}) = ImDrawData_Get_TotalVtxCount(data)
-Get_DisplayPos(data::Ptr{ImDrawData}) = ImDrawData_Get_DisplayPos(data)
-Get_DisplaySize(data::Ptr{ImDrawData}) = ImDrawData_Get_DisplaySize(data)
-Get_FramebufferScale(data::Ptr{ImDrawData}) = ImDrawData_Get_FramebufferScale(data)
-
-######################################### ImDrawCmd ########################################
-Get_ElemCount(cmd::Ptr{ImDrawCmd}) = ImDrawCmd_Get_ElemCount(cmd)
-Get_ClipRect(cmd::Ptr{ImDrawCmd}) = ImDrawCmd_Get_ClipRect(cmd)
-Get_TextureId(cmd::Ptr{ImDrawCmd}) = ImDrawCmd_Get_TextureId(cmd)
-Get_UserCallback(cmd::Ptr{ImDrawCmd}) = ImDrawCmd_Get_UserCallback(cmd)
-Get_UserCallbackData(cmd::Ptr{ImDrawCmd}) = ImDrawCmd_Get_UserCallbackData(cmd)
-
-################################### ImGuiSizeCallbackData ##################################
-Get_UserData(handle::Ptr{ImGuiSizeCallbackData}) = ImGuiSizeCallbackData_Get_UserData(handle)
-Get_Pos(handle::Ptr{ImGuiSizeCallbackData}) = ImGuiSizeCallbackData_Get_Pos(handle)
-Get_CurrentSize(handle::Ptr{ImGuiSizeCallbackData}) = ImGuiSizeCallbackData_Get_CurrentSize(handle)
-Get_DesiredSize(handle::Ptr{ImGuiSizeCallbackData}) = ImGuiSizeCallbackData_Get_DesiredSize(handle)
-Set_DesiredSize(handle::Ptr{ImGuiSizeCallbackData}, x) = ImGuiSizeCallbackData_Set_DesiredSize(handle, x)

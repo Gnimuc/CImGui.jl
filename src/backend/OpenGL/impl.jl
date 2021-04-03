@@ -45,8 +45,8 @@ function ImGui_ImplOpenGL3_SetupRenderState(draw_data, fb_width::Cint, fb_height
 
     # setup viewport, orthographic projection matrix
     glViewport(0, 0, GLsizei(fb_width), GLsizei(fb_height))
-    disp_pos = draw_data.DisplayPos
-    disp_size = draw_data.DisplaySize
+    disp_pos = unsafe_load(draw_data.DisplayPos)
+    disp_size = unsafe_load(draw_data.DisplaySize)
     L = disp_pos.x
     R = disp_pos.x + disp_size.x
     T = disp_pos.y
@@ -77,8 +77,8 @@ end
 
 function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
     # avoid rendering when minimized, scale coordinates for retina displays
-    fb_width = trunc(Cint, draw_data.DisplaySize.x * draw_data.FramebufferScale.x)
-    fb_height = trunc(Cint, draw_data.DisplaySize.y * draw_data.FramebufferScale.y)
+    fb_width = trunc(Cint, unsafe_load(draw_data.DisplaySize).x * unsafe_load(draw_data.FramebufferScale).x)
+    fb_height = trunc(Cint, unsafe_load(draw_data.DisplaySize).y * unsafe_load(draw_data.FramebufferScale).y)
     (fb_width ≤ 0 || fb_height ≤ 0) && return nothing
 
     # backup GL state
@@ -113,11 +113,11 @@ function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
     ImGui_ImplOpenGL3_SetupRenderState(draw_data, fb_width, fb_height, vertex_array_object)
 
     # will project scissor/clipping rectangles into framebuffer space
-    clip_off = draw_data.DisplayPos         # (0,0) unless using multi-viewports
-    clip_scale = draw_data.FramebufferScale # (1,1) unless using retina display which are often (2,2)
+    clip_off = unsafe_load(draw_data.DisplayPos)         # (0,0) unless using multi-viewports
+    clip_scale = unsafe_load(draw_data.FramebufferScale) # (1,1) unless using retina display which are often (2,2)
 
     # render command lists
-    for n = 0:draw_data.CmdListsCount-1
+    for n = 0:unsafe_load(draw_data.CmdListsCount)-1
         cmd_list = ImDrawData_Get_CmdLists(draw_data, n)
         vtx_buffer = ImDrawList_Get_VtxBuffer(cmd_list)
         idx_buffer = ImDrawList_Get_IdxBuffer(cmd_list)
@@ -130,13 +130,13 @@ function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
         cmd_buffer = ImDrawList_Get_CmdBuffer(cmd_list)
         for cmd_i = 0:cmd_buffer.Size-1
             pcmd = cmd_buffer.Data + cmd_i * sizeof(ImDrawCmd)
-            elem_count = pcmd.ElemCount
-            if pcmd.UserCallback != C_NULL
+            elem_count = unsafe_load(pcmd.ElemCount)
+            if unsafe_load(pcmd.UserCallback) != C_NULL
                 # user callback (registered via ImDrawList_AddCallback)
-                ccall(pcmd.UserCallback, Cvoid, (Ptr{ImDrawList}, Ptr{ImDrawCmd}), cmd_list, pcmd)
+                ccall(unsafe_load(pcmd.UserCallback), Cvoid, (Ptr{ImDrawList}, Ptr{ImDrawCmd}), cmd_list, pcmd)
             else
                 # project scissor/clipping rectangles into framebuffer space
-                rect = pcmd.ClipRect
+                rect = unsafe_load(pcmd.ClipRect)
                 clip_rect_x = (rect.x - clip_off.x) * clip_scale.x
                 clip_rect_y = (rect.y - clip_off.y) * clip_scale.y
                 clip_rect_z = (rect.z - clip_off.x) * clip_scale.x
@@ -157,9 +157,9 @@ function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
                     end
                     glScissor(ix, iy, iz, iw)
                     # bind texture, draw
-                    glBindTexture(GL_TEXTURE_2D, UInt(pcmd.TextureId))
+                    glBindTexture(GL_TEXTURE_2D, UInt(unsafe_load(pcmd.TextureId)))
                     format = sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT
-                    glDrawElementsBaseVertex(GL_TRIANGLES, GLsizei(elem_count), format, Ptr{Cvoid}(pcmd.IdxOffset * sizeof(ImDrawIdx)), GLint(pcmd.VtxOffset))
+                    glDrawElementsBaseVertex(GL_TRIANGLES, GLsizei(elem_count), format, Ptr{Cvoid}(unsafe_load(pcmd.IdxOffset) * sizeof(ImDrawIdx)), GLint(unsafe_load(pcmd.VtxOffset)))
                 end
             end
         end

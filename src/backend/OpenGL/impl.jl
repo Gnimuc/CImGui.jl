@@ -18,8 +18,8 @@
 
 function ImGui_ImplOpenGL3_Init(glsl_version::Integer=130)
     io = GetIO()
-    io.BackendRendererName = "imgui_impl_opengl3"
-    io.BackendFlags = io.BackendFlags | ImGuiBackendFlags_RendererHasVtxOffset
+    io.BackendRendererName = pointer("imgui_impl_opengl3")
+    io.BackendFlags = unsafe_load(io.BackendFlags) | ImGuiBackendFlags_RendererHasVtxOffset
     g_GlslVersion[] = glsl_version
     return true
 end
@@ -186,7 +186,7 @@ end
 
 function ImGui_ImplOpenGL3_CreateFontsTexture()
     # build texture atlas
-    fonts = igGetIO().Fonts
+    fonts = unsafe_load(igGetIO().Fonts)
     pixels = Ptr{Cuchar}(C_NULL)
     width, height = Cint(0), Cint(0)
     @c GetTexDataAsRGBA32(fonts, &pixels, &width, &height)

@@ -24,19 +24,19 @@ function ShowDemoWindowMisc()
     if CImGui.CollapsingHeader("Inputs, Navigation & Focus")
         io = CImGui.GetIO()
 
-        CImGui.Text("WantCaptureMouse: $(io.WantCaptureMouse)")
-        CImGui.Text("WantCaptureKeyboard: $(io.WantCaptureKeyboard)")
-        CImGui.Text("WantTextInput: $(io.WantTextInput)")
-        CImGui.Text("WantSetMousePos: $(io.WantSetMousePos)")
-        CImGui.Text("NavActive: $(io.NavActive), NavVisible: $(io.NavVisible)")
+        CImGui.Text("WantCaptureMouse: $(unsafe_load(io.WantCaptureMouse))")
+        CImGui.Text("WantCaptureKeyboard: $(unsafe_load(io.WantCaptureKeyboard))")
+        CImGui.Text("WantTextInput: $(unsafe_load(io.WantTextInput))")
+        CImGui.Text("WantSetMousePos: $(unsafe_load(io.WantSetMousePos))")
+        CImGui.Text("NavActive: $(unsafe_load(io.NavActive)), NavVisible: $(unsafe_load(io.NavVisible))")
 
         if CImGui.TreeNode("Keyboard, Mouse & Navigation State")
             if CImGui.IsMousePosValid()
-                CImGui.Text("Mouse pos: ($(io.MousePos.x), $(io.MousePos.y))")
+                CImGui.Text("Mouse pos: ($(unsafe_load(io.MousePos).x), $(unsafe_load(io.MousePos).y))")
             else
                 CImGui.Text("Mouse pos: <INVALID>")
             end
-            CImGui.Text("Mouse delta: ($(io.MouseDelta.x), $(io.MouseDelta.y))")
+            CImGui.Text("Mouse delta: ($(unsafe_load(io.MouseDelta).x), $(unsafe_load(io.MouseDelta).y))")
             CImGui.Text("Mouse down:")
             for i = 0:4
                 dur = CImGui.Get_MouseDownDuration(io, i)
@@ -62,7 +62,7 @@ function ShowDemoWindowMisc()
                 CImGui.SameLine()
                 CImGui.Text("b$i")
             end
-            CImGui.Text(@sprintf("Mouse wheel: %.1f", io.MouseWheel))
+            CImGui.Text(@sprintf("Mouse wheel: %.1f", unsafe_load(io.MouseWheel)))
 
             CImGui.Text("Keys down:")
             for i = 0:511
@@ -84,7 +84,7 @@ function ShowDemoWindowMisc()
                 CImGui.SameLine()
                 CImGui.Text("$i")
             end
-            CImGui.Text(@sprintf("Keys mods: %s%s%s%s", io.KeyCtrl ? "CTRL " : "", io.KeyShift ? "SHIFT " : "", io.KeyAlt ? "ALT " : "", io.KeySuper ? "SUPER " : ""))
+            CImGui.Text(@sprintf("Keys mods: %s%s%s%s", unsafe_load(io.KeyCtrl) ? "CTRL " : "", unsafe_load(io.KeyShift) ? "SHIFT " : "", unsafe_load(io.KeyAlt) ? "ALT " : "", unsafe_load(io.KeySuper) ? "SUPER " : ""))
 
             CImGui.Text("NavInputs down:")
             for i = 0:20
@@ -186,14 +186,14 @@ function ShowDemoWindowMisc()
                 draw_list = CImGui.GetWindowDrawList()
                 CImGui.PushClipRectFullScreen(draw_list)
                 click_pos = CImGui.Get_MouseClickedPos(io, 0)
-                CImGui.AddLine(draw_list, click_pos, io.MousePos, CImGui.GetColorU32(CImGui.ImGuiCol_Button), 4.0)
+                CImGui.AddLine(draw_list, click_pos, unsafe_load(io.MousePos), CImGui.GetColorU32(CImGui.ImGuiCol_Button), 4.0)
                 CImGui.PopClipRect(draw_list)
 
                 # drag operations gets "unlocked" when the mouse has moved past a certain threshold (the default threshold is stored in io.MouseDragThreshold)
                 # you can request a lower or higher threshold using the second parameter of IsMouseDragging() and GetMouseDragDelta()
                 value_raw = CImGui.GetMouseDragDelta(0, 0.0)
                 value_with_lock_threshold = CImGui.GetMouseDragDelta(0)
-                mouse_delta = io.MouseDelta
+                mouse_delta = unsafe_load(io.MouseDelta)
                 CImGui.SameLine()
                 txt = @sprintf "Raw (%.1f, %.1f), WithLockThresold (%.1f, %.1f), MouseDelta (%.1f, %.1f)" value_raw.x value_raw.y value_with_lock_threshold.x value_with_lock_threshold.y mouse_delta.x mouse_delta.y
                 CImGui.Text(txt)

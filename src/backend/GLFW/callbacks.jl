@@ -15,8 +15,8 @@ end
 function ImGui_ImplGlfw_ScrollCallback(window::GLFW.Window, xoffset, yoffset)
     g_CustomCallbackScroll[] != C_NULL && g_CustomCallbackScroll[](window, xoffset, yoffset)
     io = GetIO()
-    io.MouseWheelH += Cfloat(xoffset)
-    io.MouseWheel += Cfloat(yoffset)
+    io.MouseWheelH = unsafe_load(io.MouseWheelH) + Cfloat(xoffset)
+    io.MouseWheel = unsafe_load(io.MouseWheel) + Cfloat(yoffset)
 end
 
 function ImGui_ImplGlfw_KeyCallback(window::GLFW.Window, key, scancode, action, mods)

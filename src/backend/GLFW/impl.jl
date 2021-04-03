@@ -8,9 +8,9 @@ function ImGui_ImplGlfw_Init(window::GLFW.Window, install_callbacks::Bool, clien
 
     # setup back-end capabilities flags
     io = GetIO()
-    io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors
-    io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos
-    io.BackendPlatformName = "imgui_impl_glfw"
+    io.BackendFlags = unsafe_load(io.BackendFlags) | ImGuiBackendFlags_HasMouseCursors
+    io.BackendFlags = unsafe_load(io.BackendFlags) | ImGuiBackendFlags_HasSetMousePos
+    io.BackendPlatformName = pointer("imgui_impl_glfw")
 
     # keyboard mapping
     Set_KeyMap(io, ImGuiKey_Tab, GLFW.KEY_TAB)
@@ -87,10 +87,10 @@ function ImGui_ImplGlfw_UpdateMousePosAndButtons()
     end
 
     # update mouse position
-    mouse_pos_backup = io.MousePos
+    mouse_pos_backup = unsafe_load(io.MousePos)
     io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX)
     if GLFW.GetWindowAttrib(g_Window[], GLFW.FOCUSED) != 0
-        if io.WantSetMousePos
+        if unsafe_load(io.WantSetMousePos)
             GLFW.SetCursorPos(g_Window[], Cdouble(mouse_pos_backup.x), Cdouble(mouse_pos_backup.y))
         else
             mouse_x, mouse_y = GLFW.GetCursorPos(g_Window[])
@@ -101,13 +101,13 @@ end
 
 function ImGui_ImplGlfw_UpdateMouseCursor()
     io = GetIO()
-    if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) != 0 ||
+    if (unsafe_load(io.ConfigFlags) & ImGuiConfigFlags_NoMouseCursorChange) != 0 ||
         GLFW.GetInputMode(g_Window[], GLFW.CURSOR) == GLFW.CURSOR_DISABLED
         return nothing
     end
 
     imgui_cursor = GetMouseCursor()
-    if imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor
+    if imgui_cursor == ImGuiMouseCursor_None || unsafe_load(io.MouseDrawCursor)
         # hide OS mouse cursor if imgui is drawing it or if it wants no cursor
         GLFW.SetInputMode(g_Window[], GLFW.CURSOR, GLFW.CURSOR_HIDDEN)
     else
@@ -123,7 +123,7 @@ end
 function ImGui_ImplGlfw_NewFrame(window::Union{GLFW.Window,Nothing}=nothing)
     window !== nothing && (g_Window[] = window;)
     io = GetIO()
-    @assert ImFontAtlas_IsBuilt(io.Fonts) "Font atlas not built! It is generally built by the renderer back-end. Missing call to renderer _NewFrame() function? e.g. ImGui_ImplOpenGL3_NewFrame()."
+    @assert ImFontAtlas_IsBuilt(unsafe_load(io.Fonts)) "Font atlas not built! It is generally built by the renderer back-end. Missing call to renderer _NewFrame() function? e.g. ImGui_ImplOpenGL3_NewFrame()."
 
     # setup display size (every frame to accommodate for window resizing)
     w, h = GLFW.GetWindowSize(g_Window[])

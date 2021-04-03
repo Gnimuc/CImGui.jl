@@ -290,9 +290,9 @@ function ShowDemoWindowWidgets()
         # If you decided that ImTextureID = MyEngineTexture*, then you can pass your MyEngineTexture* pointers to CImGui.Image(), and gather width/height through your own functions, etc.
         # Using ShowMetricsWindow() as a "debugger" to inspect the draw data that are being passed to your render will help you debug issues if you are confused about this.
         # Consider using the lower-level ImDrawList::AddImage() API, via CImGui.GetWindowDrawList()->AddImage().
-        my_tex_id = io.Fonts.TexID
-        my_tex_w = io.Fonts.TexWidth
-        my_tex_h = io.Fonts.TexHeight
+        my_tex_id = unsafe_load(io.Fonts.TexID)
+        my_tex_w = unsafe_load(io.Fonts.TexWidth)
+        my_tex_h = unsafe_load(io.Fonts.TexHeight)
 
         CImGui.Text(@sprintf("%.0fx%.0f", my_tex_w, my_tex_h))
         pos = CImGui.GetCursorScreenPos()
@@ -300,13 +300,13 @@ function ShowDemoWindowWidgets()
         if CImGui.IsItemHovered()
             CImGui.BeginTooltip()
             region_sz = 32.0
-            region_x = io.MousePos.x - pos.x - region_sz * 0.5
+            region_x = unsafe_load(io.MousePos).x - pos.x - region_sz * 0.5
             if region_x < 0.0
                 region_x = 0.0
             elseif region_x > my_tex_w - region_sz
                 region_x = my_tex_w - region_sz
             end
-            region_y = io.MousePos.y - pos.y - region_sz * 0.5
+            region_y = unsafe_load(io.MousePos).y - pos.y - region_sz * 0.5
             if region_y < 0.0
                 region_y = 0.0
             elseif region_y > my_tex_h - region_sz
@@ -339,7 +339,7 @@ function ShowDemoWindowWidgets()
 
     if CImGui.TreeNode("Combo")
         # expose flags as checkbox for the demo
-        flags = @cstatic flags=Cint(0) begin
+        flags = @cstatic flags=Cuint(0) begin
             @c CImGui.CheckboxFlags("ImGuiComboFlags_PopupAlignLeft", &flags, CImGui.ImGuiComboFlags_PopupAlignLeft)
             if @c(CImGui.CheckboxFlags("ImGuiComboFlags_NoArrowButton", &flags, CImGui.ImGuiComboFlags_NoArrowButton)) != 0
                 flags &= ~CImGui.ImGuiComboFlags_NoPreview # clear the other flag, as we cannot combine both
@@ -585,7 +585,7 @@ function ShowDemoWindowWidgets()
         # animate a simple progress bar
         @cstatic progress=Cfloat(0) progress_dir=Cfloat(1) begin
             if animate
-                progress += progress_dir * 0.4 * CImGui.GetIO().DeltaTime
+                progress += progress_dir * 0.4 * unsafe_load(CImGui.GetIO().DeltaTime)
                 progress ≥ 1.1 && (progress = 1.1; progress_dir *= -1.0;)
                 progress ≤ -0.1 && (progress = -0.1; progress_dir *= -1.0;)
             end

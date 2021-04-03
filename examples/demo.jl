@@ -49,7 +49,7 @@ CImGui.StyleColorsDark()
 # - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling `CImGui.Build()`/`GetTexDataAsXXXX()``, which `ImGui_ImplXXXX_NewFrame` below will call.
 # - Read 'fonts/README.txt' for more instructions and details.
 fonts_dir = joinpath(@__DIR__, "..", "fonts")
-fonts = CImGui.GetIO().Fonts
+fonts = unsafe_load(CImGui.GetIO().Fonts)
 # default_font = CImGui.AddFontDefault(fonts)
 # CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Cousine-Regular.ttf"), 15)
 # CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "DroidSans.ttf"), 16)

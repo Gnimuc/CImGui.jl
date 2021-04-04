@@ -3126,10 +3126,6 @@ Default + Thai characters.
 """
 GetGlyphRangesThai(self::Ptr{ImFontAtlas}) = ImFontAtlas_GetGlyphRangesThai(self)
 
-# TODO: find out the use case
-# ImFontAtlas_ImFontAtlas()
-# ImFontAtlas_destroy(self)
-
 ########################################## ImGuiIO #########################################
 # functions
 """
@@ -3150,14 +3146,7 @@ Clear the text input buffer manually.
 """
 ClearInputCharacters(io) = ImGuiIO_ClearInputCharacters(io)
 
-# TODO: find out the use case
-# ImGuiIO_ImGuiIO()
-# ImGuiIO_destroy(self)
-
 ######################################### ImDrawData #######################################
-# TODO: find out the use case
-# ImDrawData_ImDrawData()
-# ImDrawData_destroy(handle)
 Clear(handle::Ptr{ImDrawData}) = ImDrawData_Clear(handle)
 DeIndexAllBuffers(handle::Ptr{ImDrawData}) = ImDrawData_DeIndexAllBuffers(handle)
 ScaleClipRects(handle::Ptr{ImDrawData}, fb_scale) = ImDrawData_ScaleClipRects(handle, fb_scale)

@@ -2,6 +2,8 @@ using Clang
 using Clang.Generators
 using CImGui.LibCImGui.CImGui_jll
 
+cd(@__DIR__)
+
 include_dir = joinpath(CImGui_jll.artifact_dir, "include")
 
 const CIMGUI_H = joinpath(include_dir, "cimgui.h") |> normpath

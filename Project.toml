@@ -1,7 +1,7 @@
 name = "CImGui"
 uuid = "5d785b6c-b76f-510e-a07c-3070796c7e87"
 authors = ["Yupei Qi <qiyupei@gmail.com>"]
-version = "1.79.0"
+version = "1.82.0"
 
 [deps]
 CEnum = "fa961155-64e5-5f13-b03f-caf6b980ea82"
@@ -13,7 +13,7 @@ ModernGL = "66fc600b-dfda-50eb-8b99-91cfa97b1301"
 
 [compat]
 CEnum = "0.2,0.3,0.4"
-CImGui_jll = "~1.79.0"
+CImGui_jll = "~1.82.0"
 CSyntax = "0.4.0"
 GLFW = "3.2.0,3.3.0,3.4.0"
 ModernGL = "1.1.0"

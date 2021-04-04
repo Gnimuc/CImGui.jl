@@ -39,7 +39,7 @@ function ShowDemoWindowMisc()
             CImGui.Text("Mouse delta: ($(unsafe_load(io.MouseDelta).x), $(unsafe_load(io.MouseDelta).y))")
             CImGui.Text("Mouse down:")
             for i = 0:4
-                dur = CImGui.Get_MouseDownDuration(io, i)
+                dur = CImGui.c_get(io.MouseDownDuration, i)
                 dur ≥ 0 || continue
                 CImGui.SameLine()
                 CImGui.Text(@sprintf("b%d (%.02f secs)", i, dur))
@@ -66,7 +66,7 @@ function ShowDemoWindowMisc()
 
             CImGui.Text("Keys down:")
             for i = 0:511
-                dur = CImGui.Get_KeysDownDuration(io, i)
+                dur = CImGui.c_get(io.KeysDownDuration, i)
                 dur ≥ 0 || continue
                 CImGui.SameLine()
                 txt = @sprintf "%d (%.02f secs)" i dur
@@ -88,21 +88,21 @@ function ShowDemoWindowMisc()
 
             CImGui.Text("NavInputs down:")
             for i = 0:20
-                nav = CImGui.Get_NavInputs(io, i)
+                nav = CImGui.c_get(io.NavInputs, i)
                 nav > 0 || continue
                 CImGui.SameLine()
                 CImGui.Text(@sprintf("[%d] %.2f", i, nav))
             end
             CImGui.Text("NavInputs pressed:")
             for i = 0:20
-                dur = CImGui.Get_NavInputsDownDuration(io, i)
+                dur = CImGui.c_get(io.NavInputsDownDuration, i)
                 dur == 0.0 || continue
                 CImGui.SameLine()
                 CImGui.Text("[$i]")
             end
             CImGui.Text("NavInputs duration:")
             for i = 0:20
-                dur = CImGui.Get_NavInputsDownDuration(io, i)
+                dur = CImGui.c_get(io.NavInputsDownDuration, i)
                 dur ≥ 0.0 || continue
                 CImGui.SameLine()
                 CImGui.Text(@sprintf("[%d] %.2f", i, dur))
@@ -185,7 +185,7 @@ function ShowDemoWindowMisc()
                 # draw a line between the button and the mouse cursor
                 draw_list = CImGui.GetWindowDrawList()
                 CImGui.PushClipRectFullScreen(draw_list)
-                click_pos = CImGui.Get_MouseClickedPos(io, 0)
+                click_pos = CImGui.c_get(io.MouseClickedPos, 0)
                 CImGui.AddLine(draw_list, click_pos, unsafe_load(io.MousePos), CImGui.GetColorU32(CImGui.ImGuiCol_Button), 4.0)
                 CImGui.PopClipRect(draw_list)
 

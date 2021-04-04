@@ -6,7 +6,6 @@ Base.convert(::Type{ImVec4}, x::Vector) = ImVec4(x...)
 Base.convert(::Type{ImVec4}, x::ImU32) = ColorConvertU32ToFloat4(x)
 Base.convert(::Type{ImU32}, x::ImVec4) = ColorConvertFloat4ToU32(x)
 
-# TODO: put these in CEnum.jl
 Base.:~(x::Cenum{UInt32}) = ~UInt32(x)
 Base.:(:)(a::T, b::Cenum) where {T<:Integer} = a:T(b)
 Base.:(:)(a::Cenum, b::T) where {T<:Integer} = T(a):b
@@ -21,37 +20,14 @@ function ShowFlags(::Type{T}) where {T<:Cenum}
 end
 GetFlags(::Type{T}) where {T<:Cenum} = name_value_pairs(T) |> collect
 
-# simple unsafe destruction helper
-function UnsafeGetPtr(x::Ptr{T}, name::Symbol) where {T}
-    offset = x
-    type = T
-    flag = false
-    for i = 1:fieldcount(T)
-        name == fieldname(T, i) || continue
-        flag = true
-        type = fieldtype(T, i)
-        offset += fieldoffset(T, i)
-        break
-    end
-    flag || throw(ArgumentError("$T has no field named $name."))
-    return Ptr{type}(offset)
+function c_get(x::Ptr{NTuple{N,T}}, i) where {N,T}
+    unsafe_load(Ptr{T}(x), Integer(i)+1)
 end
 
-function Get(x::Ptr{T}, name::Symbol) where {T}
-    GC.@preserve x begin
-        value = unsafe_load(UnsafeGetPtr(x, name))
-    end
-    return value
+function c_set!(x::Ptr{NTuple{N,T}}, i, v) where {N,T}
+    unsafe_store!(Ptr{T}(x), v, Integer(i)+1)
 end
 
-function Set(x::Ptr{T}, name::Symbol, value::S) where {T,S}
-    GC.@preserve x value begin
-        unsafe_store!(UnsafeGetPtr(x, name), value)
-    end
-    return value
-end
-
-# emulate ImGui::GetIO().xxx ImGuiBackendFlags
 function Base.getproperty(io::Ptr{ImGuiIO}, x::Symbol)
     x === :ConfigFlags && return Ptr{ImGuiConfigFlags}(io + fieldoffset(ImGuiIO, 1))
     x === :BackendFlags && return Ptr{ImGuiBackendFlags}(io + fieldoffset(ImGuiIO, 2))
@@ -90,15 +66,15 @@ function Base.getproperty(io::Ptr{ImGuiIO}, x::Symbol)
     x === :ImeWindowHandle && return Ptr{Ptr{Cvoid}}(io + fieldoffset(ImGuiIO, 35))
     x === :RenderDrawListsFnUnused && return Ptr{Ptr{Cvoid}}(io + fieldoffset(ImGuiIO, 36))
     x === :MousePos && return Ptr{ImVec2}(io + fieldoffset(ImGuiIO, 37))
-    # MouseDown 38
+    x === :MouseDown && return Ptr{NTuple{5, Bool}}(io + fieldoffset(ImGuiIO, 38))
     x === :MouseWheel && return Ptr{Cfloat}(io + fieldoffset(ImGuiIO, 39))
     x === :MouseWheelH && return Ptr{Cfloat}(io + fieldoffset(ImGuiIO, 40))
     x === :KeyCtrl && return Ptr{Bool}(io + fieldoffset(ImGuiIO, 41))
     x === :KeyShift && return Ptr{Bool}(io + fieldoffset(ImGuiIO, 42))
     x === :KeyAlt && return Ptr{Bool}(io + fieldoffset(ImGuiIO, 43))
     x === :KeySuper && return Ptr{Bool}(io + fieldoffset(ImGuiIO, 44))
-    # KeysDown
-    # NavInputs
+    x === :KeysDown && return Ptr{NTuple{512, Bool}}(io + fieldoffset(ImGuiIO, 45))
+    x === :NavInputs && return Ptr{NTuple{21, Cfloat}}(io + fieldoffset(ImGuiIO, 46))
     x === :WantCaptureMouse && return Ptr{Bool}(io + fieldoffset(ImGuiIO, 47))
     x === :WantCaptureKeyboard && return Ptr{Bool}(io + fieldoffset(ImGuiIO, 48))
     x === :WantTextInput && return Ptr{Bool}(io + fieldoffset(ImGuiIO, 49))
@@ -113,89 +89,41 @@ function Base.getproperty(io::Ptr{ImGuiIO}, x::Symbol)
     x === :MetricsActiveWindows && return Ptr{Cint}(io + fieldoffset(ImGuiIO, 58))
     x === :MetricsActiveAllocations && return Ptr{Cint}(io + fieldoffset(ImGuiIO, 59))
     x === :MouseDelta && return Ptr{ImVec2}(io + fieldoffset(ImGuiIO, 60))
-    # KeyMods
-    x === :MousePosPrev && return Ptr{ImVec2}(io + fieldoffset(ImGuiIO, 62))
-    throw(ArgumentError("field $x is not supported to be used like this, please use `Get_$x` instead."))
+    x === :KeyMods && return Ptr{ImGuiKeyModFlags}(io + fieldoffset(ImGuiIO, 61))
+    # MousePosPrev::ImVec2
+    # MouseClickedPos::NTuple{5, ImVec2}
+    # MouseClickedTime::NTuple{5, Cdouble}
+    # MouseClicked::NTuple{5, Bool}
+    # MouseDoubleClicked::NTuple{5, Bool}
+    # MouseReleased::NTuple{5, Bool}
+    # MouseDownOwned::NTuple{5, Bool}
+    # MouseDownWasDoubleClick::NTuple{5, Bool}
+    x === :MouseDownDuration && return Ptr{NTuple{5, Cfloat}}(io + fieldoffset(ImGuiIO, 70))
+    # MouseDownDurationPrev::NTuple{5, Cfloat}
+    # MouseDragMaxDistanceAbs::NTuple{5, ImVec2}
+    # MouseDragMaxDistanceSqr::NTuple{5, Cfloat}
+    x === :KeysDownDuration && return Ptr{NTuple{512, Cfloat}}(io + fieldoffset(ImGuiIO, 74))
+    # KeysDownDurationPrev::NTuple{512, Cfloat}
+    # NavInputsDownDuration::NTuple{21, Cfloat}
+    # NavInputsDownDurationPrev::NTuple{21, Cfloat}
+    # PenPressure::Cfloat
+    # InputQueueSurrogate::ImWchar16
+    # InputQueueCharacters::ImVector_ImWchar
+    return getfield(io, x)
 end
 
 function Base.setproperty!(io::Ptr{ImGuiIO}, x::Symbol, v)
     unsafe_store!(getproperty(io, x), v)
 end
 
-# emulate ImGui::GetStyle().xxx
-function Base.getproperty(s::Ptr{ImGuiStyle}, x::Symbol)
-    x == :Alpha && return ImGuiStyle_Get_Alpha(s)
-    x == :WindowPadding && return ImGuiStyle_Get_WindowPadding(s)
-    x == :WindowRounding && return ImGuiStyle_Get_WindowRounding(s)
-    x == :WindowBorderSize && return ImGuiStyle_Get_WindowBorderSize(s)
-    x == :WindowMinSize && return ImGuiStyle_Get_WindowMinSize(s)
-    x == :WindowTitleAlign && return ImGuiStyle_Get_WindowTitleAlign(s)
-    x == :ChildRounding && return ImGuiStyle_Get_ChildRounding(s)
-    x == :ChildBorderSize && return ImGuiStyle_Get_ChildBorderSize(s)
-    x == :PopupRounding && return ImGuiStyle_Get_PopupRounding(s)
-    x == :PopupBorderSize && return ImGuiStyle_Get_PopupBorderSize(s)
-    x == :FramePadding && return ImGuiStyle_Get_FramePadding(s)
-    x == :FrameRounding && return ImGuiStyle_Get_FrameRounding(s)
-    x == :FrameBorderSize && return ImGuiStyle_Get_FrameBorderSize(s)
-    x == :ItemSpacing && return ImGuiStyle_Get_ItemSpacing(s)
-    x == :ItemInnerSpacing && return ImGuiStyle_Get_ItemInnerSpacing(s)
-    x == :TouchExtraPadding && return ImGuiStyle_Get_TouchExtraPadding(s)
-    x == :IndentSpacing && return ImGuiStyle_Get_IndentSpacing(s)
-    x == :ColumnsMinSpacing && return ImGuiStyle_Get_ColumnsMinSpacing(s)
-    x == :ScrollbarSize && return ImGuiStyle_Get_ScrollbarSize(s)
-    x == :ScrollbarRounding && return ImGuiStyle_Get_ScrollbarRounding(s)
-    x == :GrabMinSize && return ImGuiStyle_Get_GrabMinSize(s)
-    x == :GrabRounding && return ImGuiStyle_Get_GrabRounding(s)
-    x == :TabRounding && return ImGuiStyle_Get_TabRounding(s)
-    x == :TabBorderSize && return ImGuiStyle_Get_TabBorderSize(s)
-    x == :ButtonTextAlign && return ImGuiStyle_Get_ButtonTextAlign(s)
-    x == :SelectableTextAlign && return ImGuiStyle_Get_SelectableTextAlign(s)
-    x == :DisplayWindowPadding && return ImGuiStyle_Get_DisplayWindowPadding(s)
-    x == :DisplaySafeAreaPadding && return ImGuiStyle_Get_DisplaySafeAreaPadding(s)
-    x == :MouseCursorScale && return ImGuiStyle_Get_MouseCursorScale(s)
-    x == :AntiAliasedLines && return ImGuiStyle_Get_AntiAliasedLines(s)
-    x == :AntiAliasedFill && return ImGuiStyle_Get_AntiAliasedFill(s)
-    x == :CurveTessellationTol && return ImGuiStyle_Get_CurveTessellationTol(s)
-    throw(ArgumentError("field $x is not supported to be used like this, please use `Get_$x` instead."))
+function Base.getproperty(x::Ptr{ImDrawList}, f::Symbol)
+    f === :CmdBuffer && return Ptr{ImVector_ImDrawCmd}(x + fieldoffset(ImDrawList, 1))
+    f === :IdxBuffer && return Ptr{ImVector_ImDrawIdx}(x + fieldoffset(ImDrawList, 2))
+    f === :VtxBuffer && return Ptr{ImVector_ImDrawVert}(x + fieldoffset(ImDrawList, 3))
+    f === :Flags && return Ptr{ImDrawListFlags}(x + fieldoffset(ImDrawList, 4))
+    return getfield(x, f)
 end
 
-function Base.setproperty!(s::Ptr{ImGuiStyle}, x::Symbol, v)
-    x == :Alpha && return ImGuiStyle_Get_Alpha(s, v)
-    x == :WindowPadding && return ImGuiStyle_Get_WindowPadding(s, v)
-    x == :WindowRounding && return ImGuiStyle_Get_WindowRounding(s, v)
-    x == :WindowBorderSize && return ImGuiStyle_Get_WindowBorderSize(s, v)
-    x == :WindowMinSize && return ImGuiStyle_Get_WindowMinSize(s, v)
-    x == :WindowTitleAlign && return ImGuiStyle_Get_WindowTitleAlign(s, v)
-    x == :ChildRounding && return ImGuiStyle_Get_ChildRounding(s, v)
-    x == :ChildBorderSize && return ImGuiStyle_Get_ChildBorderSize(s, v)
-    x == :PopupRounding && return ImGuiStyle_Get_PopupRounding(s, v)
-    x == :PopupBorderSize && return ImGuiStyle_Get_PopupBorderSize(s, v)
-    x == :FramePadding && return ImGuiStyle_Get_FramePadding(s, v)
-    x == :FrameRounding && return ImGuiStyle_Get_FrameRounding(s, v)
-    x == :FrameBorderSize && return ImGuiStyle_Get_FrameBorderSize(s, v)
-    x == :ItemSpacing && return ImGuiStyle_Get_ItemSpacing(s, v)
-    x == :ItemInnerSpacing && return ImGuiStyle_Get_ItemInnerSpacing(s, v)
-    x == :TouchExtraPadding && return ImGuiStyle_Get_TouchExtraPadding(s, v)
-    x == :IndentSpacing && return ImGuiStyle_Get_IndentSpacing(s, v)
-    x == :ColumnsMinSpacing && return ImGuiStyle_Get_ColumnsMinSpacing(s, v)
-    x == :ScrollbarSize && return ImGuiStyle_Get_ScrollbarSize(s, v)
-    x == :ScrollbarRounding && return ImGuiStyle_Get_ScrollbarRounding(s, v)
-    x == :GrabMinSize && return ImGuiStyle_Get_GrabMinSize(s, v)
-    x == :GrabRounding && return ImGuiStyle_Get_GrabRounding(s, v)
-    x == :TabRounding && return ImGuiStyle_Get_TabRounding(s, v)
-    x == :TabBorderSize && return ImGuiStyle_Get_TabBorderSize(s, v)
-    x == :ButtonTextAlign && return ImGuiStyle_Get_ButtonTextAlign(s, v)
-    x == :SelectableTextAlign && return ImGuiStyle_Get_SelectableTextAlign(s, v)
-    x == :DisplayWindowPadding && return ImGuiStyle_Get_DisplayWindowPadding(s, v)
-    x == :DisplaySafeAreaPadding && return ImGuiStyle_Get_DisplaySafeAreaPadding(s, v)
-    x == :MouseCursorScale && return ImGuiStyle_Get_MouseCursorScale(s, v)
-    x == :AntiAliasedLines && return ImGuiStyle_Get_AntiAliasedLines(s, v)
-    x == :AntiAliasedFill && return ImGuiStyle_Get_AntiAliasedFill(s, v)
-    x == :CurveTessellationTol && return ImGuiStyle_Get_CurveTessellationTol(s, v)
-    throw(ArgumentError("field $x is not supported to be used like this!"))
-end
-
-# emulate draw_data->xxx
 function Base.getproperty(x::Ptr{ImDrawData}, f::Symbol)
     f === :Valid && return Ptr{Bool}(x + fieldoffset(ImDrawData, 1))
     f === :CmdLists && return Ptr{Ptr{Ptr{ImDrawList}}}(x + fieldoffset(ImDrawData, 2))
@@ -208,7 +136,6 @@ function Base.getproperty(x::Ptr{ImDrawData}, f::Symbol)
     return getfield(x, f)
 end
 
-# emulate cmd.xxx
 function Base.getproperty(x::Ptr{ImDrawCmd}, f::Symbol)
     f === :ClipRect && return Ptr{ImVec4}(x + fieldoffset(ImDrawCmd, 1))
     f === :TextureId && return Ptr{ImTextureID}(x + fieldoffset(ImDrawCmd, 2))
@@ -220,10 +147,21 @@ function Base.getproperty(x::Ptr{ImDrawCmd}, f::Symbol)
     return getfield(x, f)
 end
 
-# emulate io.Fonts->.xxx
 function Base.getproperty(x::Ptr{ImFontAtlas}, f::Symbol)
     f === :TexID && return Ptr{ImTextureID}(x + fieldoffset(ImFontAtlas, 3))
     f === :TexWidth && return Ptr{Cint}(x + fieldoffset(ImFontAtlas, 8))
     f === :TexHeight && return Ptr{Cint}(x + fieldoffset(ImFontAtlas, 9))
     return getfield(x, f)
+end
+
+function Base.getproperty(x::Ptr{ImGuiSizeCallbackData}, f::Symbol)
+    f === :UserData && return Ptr{Ptr{Cvoid}}(x + fieldoffset(ImGuiSizeCallbackData, 1))
+    f === :Pos && return Ptr{ImVec2}(x + fieldoffset(ImGuiSizeCallbackData, 2))
+    f === :CurrentSize && return Ptr{ImVec2}(x + fieldoffset(ImGuiSizeCallbackData, 3))
+    f === :DesiredSize && return Ptr{ImVec2}(x + fieldoffset(ImGuiSizeCallbackData, 4))
+    return getfield(x, f)
+end
+
+function Base.setproperty!(io::Ptr{ImGuiSizeCallbackData}, x::Symbol, v)
+    unsafe_store!(getproperty(io, x), v)
 end

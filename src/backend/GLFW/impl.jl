@@ -13,27 +13,28 @@ function ImGui_ImplGlfw_Init(window::GLFW.Window, install_callbacks::Bool, clien
     io.BackendPlatformName = pointer("imgui_impl_glfw")
 
     # keyboard mapping
-    Set_KeyMap(io, ImGuiKey_Tab, GLFW.KEY_TAB)
-    Set_KeyMap(io, ImGuiKey_LeftArrow, GLFW.KEY_LEFT)
-    Set_KeyMap(io, ImGuiKey_RightArrow, GLFW.KEY_RIGHT)
-    Set_KeyMap(io, ImGuiKey_UpArrow, GLFW.KEY_UP)
-    Set_KeyMap(io, ImGuiKey_DownArrow, GLFW.KEY_DOWN)
-    Set_KeyMap(io, ImGuiKey_PageUp, GLFW.KEY_PAGE_UP)
-    Set_KeyMap(io, ImGuiKey_PageDown, GLFW.KEY_PAGE_DOWN)
-    Set_KeyMap(io, ImGuiKey_Home, GLFW.KEY_HOME)
-    Set_KeyMap(io, ImGuiKey_End, GLFW.KEY_END)
-    Set_KeyMap(io, ImGuiKey_Insert, GLFW.KEY_INSERT)
-    Set_KeyMap(io, ImGuiKey_Delete, GLFW.KEY_DELETE)
-    Set_KeyMap(io, ImGuiKey_Backspace, GLFW.KEY_BACKSPACE)
-    Set_KeyMap(io, ImGuiKey_Space, GLFW.KEY_SPACE)
-    Set_KeyMap(io, ImGuiKey_Enter, GLFW.KEY_ENTER)
-    Set_KeyMap(io, ImGuiKey_Escape, GLFW.KEY_ESCAPE)
-    Set_KeyMap(io, ImGuiKey_A, GLFW.KEY_A)
-    Set_KeyMap(io, ImGuiKey_C, GLFW.KEY_C)
-    Set_KeyMap(io, ImGuiKey_V, GLFW.KEY_V)
-    Set_KeyMap(io, ImGuiKey_X, GLFW.KEY_X)
-    Set_KeyMap(io, ImGuiKey_Y, GLFW.KEY_Y)
-    Set_KeyMap(io, ImGuiKey_Z, GLFW.KEY_Z)
+    c_set!(io.KeyMap, ImGuiKey_Tab, GLFW.KEY_TAB)
+    c_set!(io.KeyMap, ImGuiKey_LeftArrow, GLFW.KEY_LEFT)
+    c_set!(io.KeyMap, ImGuiKey_RightArrow, GLFW.KEY_RIGHT)
+    c_set!(io.KeyMap, ImGuiKey_UpArrow, GLFW.KEY_UP)
+    c_set!(io.KeyMap, ImGuiKey_DownArrow, GLFW.KEY_DOWN)
+    c_set!(io.KeyMap, ImGuiKey_PageUp, GLFW.KEY_PAGE_UP)
+    c_set!(io.KeyMap, ImGuiKey_PageDown, GLFW.KEY_PAGE_DOWN)
+    c_set!(io.KeyMap, ImGuiKey_Home, GLFW.KEY_HOME)
+    c_set!(io.KeyMap, ImGuiKey_End, GLFW.KEY_END)
+    c_set!(io.KeyMap, ImGuiKey_Insert, GLFW.KEY_INSERT)
+    c_set!(io.KeyMap, ImGuiKey_Delete, GLFW.KEY_DELETE)
+    c_set!(io.KeyMap, ImGuiKey_Backspace, GLFW.KEY_BACKSPACE)
+    c_set!(io.KeyMap, ImGuiKey_Space, GLFW.KEY_SPACE)
+    c_set!(io.KeyMap, ImGuiKey_Enter, GLFW.KEY_ENTER)
+    c_set!(io.KeyMap, ImGuiKey_Escape, GLFW.KEY_ESCAPE)
+    c_set!(io.KeyMap, ImGuiKey_KeyPadEnter, GLFW.KEY_KP_ENTER)
+    c_set!(io.KeyMap, ImGuiKey_A, GLFW.KEY_A)
+    c_set!(io.KeyMap, ImGuiKey_C, GLFW.KEY_C)
+    c_set!(io.KeyMap, ImGuiKey_V, GLFW.KEY_V)
+    c_set!(io.KeyMap, ImGuiKey_X, GLFW.KEY_X)
+    c_set!(io.KeyMap, ImGuiKey_Y, GLFW.KEY_Y)
+    c_set!(io.KeyMap, ImGuiKey_Z, GLFW.KEY_Z)
 
     io.SetClipboardTextFn = g_ImplGlfw_SetClipboardText[]
     io.GetClipboardTextFn = g_ImplGlfw_GetClipboardText[]
@@ -82,7 +83,7 @@ function ImGui_ImplGlfw_UpdateMousePosAndButtons()
         # if a mouse press event came, always pass it as "mouse held this frame",
         # so we don't miss click-release events that are shorter than 1 frame.
         mousedown = g_MouseJustPressed[i] || GLFW.GetMouseButton(g_Window[], GLFW.MouseButton(i-1))
-        Set_MouseDown(io, i-1, mousedown)
+        c_set!(io.MouseDown, i-1, mousedown)
         g_MouseJustPressed[i] = false
     end
 

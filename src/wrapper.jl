@@ -3153,34 +3153,6 @@ ClearInputCharacters(io) = ImGuiIO_ClearInputCharacters(io)
 # ImGuiIO_ImGuiIO()
 # ImGuiIO_destroy(self)
 
-# extra
-Get_KeyMap(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_KeyMap(io, i)
-Get_MouseDown(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseDown(io, i)
-Get_KeysDown(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_KeysDown(io, i)
-Get_NavInputs(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_NavInputs(io, i)
-Get_MouseDown(io::Ptr{ImGuiIO}) = ImGuiIO_Get_MouseDown(io, i)
-Get_MouseClickedPos(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseClickedPos(io, i)
-Get_MouseClickedTime(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseClickedTime(io, i)
-Get_MouseClicked(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseClicked(io, i)
-Get_MouseDoubleClicked(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseDoubleClicked(io, i)
-Get_MouseReleased(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseReleased(io, i)
-Get_MouseDownOwned(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseDownOwned(io, i)
-Get_MouseDownDuration(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseDownDuration(io, i)
-Get_MouseDownDurationPrev(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseDownDurationPrev(io, i)
-Get_MouseDragMaxDistanceAbs(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseDragMaxDistanceAbs(io, i)
-Get_MouseDragMaxDistanceSqr(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_MouseDragMaxDistanceSqr(io, i)
-Get_KeysDownDuration(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_KeysDownDuration(io, i)
-Get_KeysDownDurationPrev(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_KeysDownDurationPrev(io, i)
-Get_NavInputsDownDuration(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_NavInputsDownDuration(io, i)
-Get_NavInputsDownDurationPrev(io::Ptr{ImGuiIO}, i) = ImGuiIO_Get_NavInputsDownDurationPrev(io, i)
-
-Set_KeyMap(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_KeyMap(io, i, x)
-
-# Input - Fill before calling NewFrame()
-Set_MouseDown(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_MouseDown(io, i, x)
-Set_KeysDown(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_KeysDown(io, i, x)
-Set_NavInputs(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_NavInputs(io, i, x)
-
 ######################################### ImDrawData #######################################
 # TODO: find out the use case
 # ImDrawData_ImDrawData()
@@ -3188,6 +3160,3 @@ Set_NavInputs(io::Ptr{ImGuiIO}, i, x) = ImGuiIO_Set_NavInputs(io, i, x)
 Clear(handle::Ptr{ImDrawData}) = ImDrawData_Clear(handle)
 DeIndexAllBuffers(handle::Ptr{ImDrawData}) = ImDrawData_DeIndexAllBuffers(handle)
 ScaleClipRects(handle::Ptr{ImDrawData}, fb_scale) = ImDrawData_ScaleClipRects(handle, fb_scale)
-
-# extra
-Get_CmdLists(data::Ptr{ImDrawData}, i) = ImDrawData_Get_CmdLists(data, i)

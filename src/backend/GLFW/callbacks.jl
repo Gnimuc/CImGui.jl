@@ -23,13 +23,13 @@ function ImGui_ImplGlfw_KeyCallback(window::GLFW.Window, key, scancode, action, 
     g_CustomCallbackKey[] != C_NULL && g_CustomCallbackKey[](window, key, scancode, action, mods)
 
     io = GetIO()
-    action == GLFW.PRESS && Set_KeysDown(io, key, true)
-    action == GLFW.RELEASE && Set_KeysDown(io, key, false)
+    action == GLFW.PRESS && c_set!(io.KeysDown, key, true)
+    action == GLFW.RELEASE && c_set!(io.KeysDown, key, false)
     # modifiers are not reliable across systems
-    io.KeyCtrl = Get_KeysDown(io, GLFW.KEY_LEFT_CONTROL) || Get_KeysDown(io, GLFW.KEY_RIGHT_CONTROL)
-    io.KeyShift = Get_KeysDown(io, GLFW.KEY_LEFT_SHIFT) || Get_KeysDown(io, GLFW.KEY_RIGHT_SHIFT)
-    io.KeyAlt = Get_KeysDown(io, GLFW.KEY_LEFT_ALT) || Get_KeysDown(io, GLFW.KEY_RIGHT_ALT)
-    io.KeySuper = Get_KeysDown(io, GLFW.KEY_LEFT_SUPER) || Get_KeysDown(io, GLFW.KEY_RIGHT_SUPER)
+    io.KeyCtrl = c_get(io.KeysDown, GLFW.KEY_LEFT_CONTROL) || c_get(io.KeysDown, GLFW.KEY_RIGHT_CONTROL)
+    io.KeyShift = c_get(io.KeysDown, GLFW.KEY_LEFT_SHIFT) || c_get(io.KeysDown, GLFW.KEY_RIGHT_SHIFT)
+    io.KeyAlt = c_get(io.KeysDown, GLFW.KEY_LEFT_ALT) || c_get(io.KeysDown, GLFW.KEY_RIGHT_ALT)
+    io.KeySuper = c_get(io.KeysDown, GLFW.KEY_LEFT_SUPER) || c_get(io.KeysDown, GLFW.KEY_RIGHT_SUPER)
 end
 
 function ImGui_ImplGlfw_CharCallback(window::GLFW.Window, c)

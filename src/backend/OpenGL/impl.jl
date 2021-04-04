@@ -117,17 +117,18 @@ function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
     clip_scale = unsafe_load(draw_data.FramebufferScale) # (1,1) unless using retina display which are often (2,2)
 
     # render command lists
-    for n = 0:unsafe_load(draw_data.CmdListsCount)-1
-        cmd_list = ImDrawData_Get_CmdLists(draw_data, n)
-        vtx_buffer = ImDrawList_Get_VtxBuffer(cmd_list)
-        idx_buffer = ImDrawList_Get_IdxBuffer(cmd_list)
+    data = unsafe_load(draw_data)
+    cmd_lists = unsafe_wrap(Vector{Ptr{ImDrawList}}, data.CmdLists, data.CmdListsCount)
+    for cmd_list in cmd_lists
+        vtx_buffer = cmd_list.VtxBuffer |> unsafe_load
+        idx_buffer = cmd_list.IdxBuffer |> unsafe_load
         # glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle[])
         glBufferData(GL_ARRAY_BUFFER, vtx_buffer.Size * sizeof(ImDrawVert), Ptr{GLCvoid}(vtx_buffer.Data), GL_STREAM_DRAW)
 
         # glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ElementsHandle[])
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, idx_buffer.Size * sizeof(ImDrawIdx), Ptr{GLCvoid}(idx_buffer.Data), GL_STREAM_DRAW)
 
-        cmd_buffer = ImDrawList_Get_CmdBuffer(cmd_list)
+        cmd_buffer = cmd_list.CmdBuffer |> unsafe_load
         for cmd_i = 0:cmd_buffer.Size-1
             pcmd = cmd_buffer.Data + cmd_i * sizeof(ImDrawCmd)
             elem_count = unsafe_load(pcmd.ElemCount)

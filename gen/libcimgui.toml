@@ -1,9 +1,26 @@
 [general]
 library_name = "libcimgui"
-output_file_path = "./src/LibCImGui.jl"
+output_file_path = "../src/LibCImGui.jl"
 module_name = "LibCImGui"
 jll_pkg_name = "CImGui_jll"
 export_symbol_prefixes = ["ig", "Im"]
 prologue_file_path = ""
-epilogue_file_path = "./gen/epilogue.jl"
+epilogue_file_path = "./epilogue.jl"
 
+printer_blacklist = [
+    "API",
+    "EXTERN",
+    "CIMGUI_API",
+    "CONST",
+    "CIMGUI_INCLUDED",
+]
+
+[codegen]
+field_access_method_list = [
+    "ImGuiIO",
+    "ImDrawList",
+    "ImDrawData",
+    "ImDrawCmd",
+    "ImFontAtlas",
+    "ImGuiSizeCallbackData",
+]

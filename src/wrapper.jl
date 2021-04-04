@@ -1130,7 +1130,8 @@ Checkbox(label, v) = igCheckbox(label, v)
     CheckboxFlags(label, flags, flags_value) -> Bool
 Return true when the value has been changed or when pressed/selected.
 """
-CheckboxFlags(label, flags, flags_value) = igCheckboxFlags(label, flags, flags_value)
+CheckboxFlags(label, flags::Ptr{Cint}, flags_value) = igCheckboxFlagsIntPtr(label, flags, flags_value)
+CheckboxFlags(label, flags::Ptr{Cuint}, flags_value) = igCheckboxFlagsUintPtr(label, flags, flags_value)
 
 """
     RadioButton(label, active::Bool) -> Bool

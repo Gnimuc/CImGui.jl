@@ -7,3 +7,20 @@ export_symbol_prefixes = ["ig", "Im"]
 prologue_file_path = ""
 epilogue_file_path = "./epilogue.jl"
 
+printer_blacklist = [
+    "API",
+    "EXTERN",
+    "CIMGUI_API",
+    "CONST",
+    "CIMGUI_INCLUDED",
+]
+
+[codegen]
+field_access_method_list = [
+    "ImGuiIO",
+    "ImDrawList",
+    "ImDrawData",
+    "ImDrawCmd",
+    "ImFontAtlas",
+    "ImGuiSizeCallbackData",
+]

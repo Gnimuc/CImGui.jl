@@ -1339,6 +1339,39 @@ struct ImFontConfig
     DstFont::Ptr{Cvoid}
 end
 
+function Base.getproperty(x::Ptr{ImFontConfig}, f::Symbol)
+    f === :FontData && return Ptr{Ptr{Cvoid}}(x + 0)
+    f === :FontDataSize && return Ptr{Cint}(x + 8)
+    f === :FontDataOwnedByAtlas && return Ptr{Bool}(x + 12)
+    f === :FontNo && return Ptr{Cint}(x + 16)
+    f === :SizePixels && return Ptr{Cfloat}(x + 20)
+    f === :OversampleH && return Ptr{Cint}(x + 24)
+    f === :OversampleV && return Ptr{Cint}(x + 28)
+    f === :PixelSnapH && return Ptr{Bool}(x + 32)
+    f === :GlyphExtraSpacing && return Ptr{ImVec2}(x + 36)
+    f === :GlyphOffset && return Ptr{ImVec2}(x + 44)
+    f === :GlyphRanges && return Ptr{Ptr{ImWchar}}(x + 56)
+    f === :GlyphMinAdvanceX && return Ptr{Cfloat}(x + 64)
+    f === :GlyphMaxAdvanceX && return Ptr{Cfloat}(x + 68)
+    f === :MergeMode && return Ptr{Bool}(x + 72)
+    f === :FontBuilderFlags && return Ptr{Cuint}(x + 76)
+    f === :RasterizerMultiply && return Ptr{Cfloat}(x + 80)
+    f === :EllipsisChar && return Ptr{ImWchar}(x + 84)
+    f === :Name && return Ptr{NTuple{40, Cchar}}(x + 86)
+    f === :DstFont && return Ptr{Ptr{ImFont}}(x + 128)
+    return getfield(x, f)
+end
+
+function Base.getproperty(x::ImFontConfig, f::Symbol)
+    r = Ref{ImFontConfig}(x)
+    ptr = Base.unsafe_convert(Ptr{ImFontConfig}, r)
+    GC.@preserve r unsafe_load(getproperty(ptr, f))
+end
+
+function Base.setproperty!(x::Ptr{ImFontConfig}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
+end
+
 struct ImVector_ImFontConfig
     Size::Cint
     Capacity::Cint

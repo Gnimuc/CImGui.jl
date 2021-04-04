@@ -23,4 +23,5 @@ field_access_method_list = [
     "ImDrawCmd",
     "ImFontAtlas",
     "ImGuiSizeCallbackData",
+    "ImFontConfig",
 ]

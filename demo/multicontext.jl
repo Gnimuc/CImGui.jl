@@ -97,7 +97,7 @@ while window1_open || window2_open
         CImGui.Button("Button") && (counter += 1)
         CImGui.SameLine()
         CImGui.Text("counter = $counter")
-        CImGui.Text(@sprintf("Application average %.3f ms/frame (%.1f FPS)", 1000 / ImGuiIO_Get_Framerate(CImGui.GetIO()), ImGuiIO_Get_Framerate(CImGui.GetIO())))
+        CImGui.Text(@sprintf("Application average %.3f ms/frame (%.1f FPS)", 1000 / unsafe_load(CImGui.GetIO().Framerate), unsafe_load(CImGui.GetIO().Framerate)))
         CImGui.End()
         CImGui.Render()
         GLFW.MakeContextCurrent(window2)

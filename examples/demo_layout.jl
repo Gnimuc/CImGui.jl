@@ -236,7 +236,7 @@ function ShowDemoWindowLayout()
 
         if CImGui.TreeNode("Advanced & Close Button")
             # expose a couple of the available flags. In most cases you may just call BeginTabBar() with no flags (0).
-            @cstatic tab_bar_flags=Cint(CImGui.ImGuiTabBarFlags_Reorderable) begin
+            @cstatic tab_bar_flags=Cuint(CImGui.ImGuiTabBarFlags_Reorderable) begin
                 @c CImGui.CheckboxFlags("ImGuiTabBarFlags_Reorderable", &tab_bar_flags, CImGui.ImGuiTabBarFlags_Reorderable)
                 @c CImGui.CheckboxFlags("ImGuiTabBarFlags_AutoSelectNewTabs", &tab_bar_flags, CImGui.ImGuiTabBarFlags_AutoSelectNewTabs)
                 @c CImGui.CheckboxFlags("ImGuiTabBarFlags_TabListPopupButton", &tab_bar_flags, CImGui.ImGuiTabBarFlags_TabListPopupButton)

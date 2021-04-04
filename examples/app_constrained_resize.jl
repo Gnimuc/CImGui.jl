@@ -9,17 +9,17 @@ Create a window with custom resize constraints.
 """
 global function ShowExampleAppConstrainedResize(p_open::Ref{Bool})
     function Square(data::Ptr{ImGuiSizeCallbackData})::Cvoid
-        desired_size = CImGui.Get_DesiredSize(data)
+        desired_size = unsafe_load(data.DesiredSize)
         max_size = max(desired_size.x, desired_size.y)
-        CImGui.Set_DesiredSize(data, ImVec2(max_size, max_size))
+        data.DesiredSize = ImVec2(max_size, max_size)
     end
 
     function Step(data::Ptr{ImGuiSizeCallbackData})::Cvoid
-        desired_size = CImGui.Get_DesiredSize(data)
-        step::Cfloat = CImGui.Get_UserData(data) |> Int
+        desired_size = data.DesiredSize |> unsafe_load
+        step::Cfloat = data.UserData |> unsafe_load |> Int
         size_x = trunc(desired_size.x / step + 0.5) * step
         size_y = trunc(desired_size.y / step + 0.5) * step
-        CImGui.Set_DesiredSize(data, ImVec2(size_x, size_y))
+        data.DesiredSize = ImVec2(size_x, size_y)
     end
 
     square_fptr = @cfunction($Square, Cvoid, (Ptr{ImGuiSizeCallbackData},))

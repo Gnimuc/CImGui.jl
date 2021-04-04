@@ -4,7 +4,7 @@ using Libdl
 using GLFW
 using ..LibCImGui
 using CImGui: FLT_MAX, AddInputCharacter
-using CImGui: GetIO, Set_KeyMap, Set_KeysDown, Get_KeysDown, Set_MouseDown, GetMouseCursor
+using CImGui: GetIO, GetMouseCursor, c_get, c_set!
 
 include("callbacks.jl")
 export SetCustomMouseButtonCallback

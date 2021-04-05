@@ -24,15 +24,28 @@ function Base.getproperty(x::Ptr{ImGuiTableColumnSettings}, f::Symbol)
     f === :DisplayOrder && return Ptr{ImGuiTableColumnIdx}(x + 9)
     f === :SortOrder && return Ptr{ImGuiTableColumnIdx}(x + 10)
     f === :SortDirection && return Ptr{ImU8}(x + 11)
-    f === :IsEnabled && return Ptr{ImU8}(x + 11)
-    f === :IsStretch && return Ptr{ImU8}(x + 11)
+    f === :IsEnabled && return (Ptr{ImU8}(x + 11), 2, 1)
+    f === :IsStretch && return (Ptr{ImU8}(x + 11), 3, 1)
     return getfield(x, f)
 end
 
 function Base.getproperty(x::ImGuiTableColumnSettings, f::Symbol)
     r = Ref{ImGuiTableColumnSettings}(x)
     ptr = Base.unsafe_convert(Ptr{ImGuiTableColumnSettings}, r)
-    GC.@preserve r unsafe_load(getproperty(ptr, f))
+    fptr = getproperty(ptr, f)
+    begin
+        if fptr isa Ptr
+            return GC.@preserve(r, unsafe_load(fptr))
+        else
+            (baseptr, offset, width) = fptr
+            ty = eltype(baseptr)
+            i8 = GC.@preserve(r, unsafe_load(baseptr))
+            bitstr = bitstring(i8)
+            sig = bitstr[(end - offset) - (width - 1):end - offset]
+            zexted = lpad(sig, 8 * sizeof(ty), '0')
+            return parse(ty, zexted; base = 2)
+        end
+    end
 end
 
 function Base.setproperty!(x::Ptr{ImGuiTableColumnSettings}, f::Symbol, v)
@@ -98,7 +111,8 @@ end
 function Base.getproperty(x::ImDrawCmd, f::Symbol)
     r = Ref{ImDrawCmd}(x)
     ptr = Base.unsafe_convert(Ptr{ImDrawCmd}, r)
-    GC.@preserve r unsafe_load(getproperty(ptr, f))
+    fptr = getproperty(ptr, f)
+    GC.@preserve r unsafe_load(fptr)
 end
 
 function Base.setproperty!(x::Ptr{ImDrawCmd}, f::Symbol, v)
@@ -215,7 +229,8 @@ end
 function Base.getproperty(x::ImDrawList, f::Symbol)
     r = Ref{ImDrawList}(x)
     ptr = Base.unsafe_convert(Ptr{ImDrawList}, r)
-    GC.@preserve r unsafe_load(getproperty(ptr, f))
+    fptr = getproperty(ptr, f)
+    GC.@preserve r unsafe_load(fptr)
 end
 
 function Base.setproperty!(x::Ptr{ImDrawList}, f::Symbol, v)
@@ -248,7 +263,8 @@ end
 function Base.getproperty(x::ImDrawData, f::Symbol)
     r = Ref{ImDrawData}(x)
     ptr = Base.unsafe_convert(Ptr{ImDrawData}, r)
-    GC.@preserve r unsafe_load(getproperty(ptr, f))
+    fptr = getproperty(ptr, f)
+    GC.@preserve r unsafe_load(fptr)
 end
 
 function Base.setproperty!(x::Ptr{ImDrawData}, f::Symbol, v)
@@ -397,7 +413,8 @@ end
 function Base.getproperty(x::ImGuiStoragePair, f::Symbol)
     r = Ref{ImGuiStoragePair}(x)
     ptr = Base.unsafe_convert(Ptr{ImGuiStoragePair}, r)
-    GC.@preserve r unsafe_load(getproperty(ptr, f))
+    fptr = getproperty(ptr, f)
+    GC.@preserve r unsafe_load(fptr)
 end
 
 function Base.setproperty!(x::Ptr{ImGuiStoragePair}, f::Symbol, v)
@@ -623,7 +640,20 @@ end
 function Base.getproperty(x::ImGuiWindow, f::Symbol)
     r = Ref{ImGuiWindow}(x)
     ptr = Base.unsafe_convert(Ptr{ImGuiWindow}, r)
-    GC.@preserve r unsafe_load(getproperty(ptr, f))
+    fptr = getproperty(ptr, f)
+    begin
+        if fptr isa Ptr
+            return GC.@preserve(r, unsafe_load(fptr))
+        else
+            (baseptr, offset, width) = fptr
+            ty = eltype(baseptr)
+            i8 = GC.@preserve(r, unsafe_load(baseptr))
+            bitstr = bitstring(i8)
+            sig = bitstr[(end - offset) - (width - 1):end - offset]
+            zexted = lpad(sig, 8 * sizeof(ty), '0')
+            return parse(ty, zexted; base = 2)
+        end
+    end
 end
 
 function Base.setproperty!(x::Ptr{ImGuiWindow}, f::Symbol, v)
@@ -691,8 +721,8 @@ function Base.getproperty(x::Ptr{ImGuiTableColumn}, f::Symbol)
     f === :AutoFitQueue && return Ptr{ImU8}(x + 98)
     f === :CannotSkipItemsQueue && return Ptr{ImU8}(x + 99)
     f === :SortDirection && return Ptr{ImU8}(x + 100)
-    f === :SortDirectionsAvailCount && return Ptr{ImU8}(x + 100)
-    f === :SortDirectionsAvailMask && return Ptr{ImU8}(x + 100)
+    f === :SortDirectionsAvailCount && return (Ptr{ImU8}(x + 100), 2, 2)
+    f === :SortDirectionsAvailMask && return (Ptr{ImU8}(x + 100), 4, 4)
     f === :SortDirectionsAvailList && return Ptr{ImU8}(x + 101)
     return getfield(x, f)
 end
@@ -700,7 +730,20 @@ end
 function Base.getproperty(x::ImGuiTableColumn, f::Symbol)
     r = Ref{ImGuiTableColumn}(x)
     ptr = Base.unsafe_convert(Ptr{ImGuiTableColumn}, r)
-    GC.@preserve r unsafe_load(getproperty(ptr, f))
+    fptr = getproperty(ptr, f)
+    begin
+        if fptr isa Ptr
+            return GC.@preserve(r, unsafe_load(fptr))
+        else
+            (baseptr, offset, width) = fptr
+            ty = eltype(baseptr)
+            i8 = GC.@preserve(r, unsafe_load(baseptr))
+            bitstr = bitstring(i8)
+            sig = bitstr[(end - offset) - (width - 1):end - offset]
+            zexted = lpad(sig, 8 * sizeof(ty), '0')
+            return parse(ty, zexted; base = 2)
+        end
+    end
 end
 
 function Base.setproperty!(x::Ptr{ImGuiTableColumn}, f::Symbol, v)
@@ -753,7 +796,20 @@ end
 function Base.getproperty(x::ImGuiTableColumnSortSpecs, f::Symbol)
     r = Ref{ImGuiTableColumnSortSpecs}(x)
     ptr = Base.unsafe_convert(Ptr{ImGuiTableColumnSortSpecs}, r)
-    GC.@preserve r unsafe_load(getproperty(ptr, f))
+    fptr = getproperty(ptr, f)
+    begin
+        if fptr isa Ptr
+            return GC.@preserve(r, unsafe_load(fptr))
+        else
+            (baseptr, offset, width) = fptr
+            ty = eltype(baseptr)
+            i8 = GC.@preserve(r, unsafe_load(baseptr))
+            bitstr = bitstring(i8)
+            sig = bitstr[(end - offset) - (width - 1):end - offset]
+            zexted = lpad(sig, 8 * sizeof(ty), '0')
+            return parse(ty, zexted; base = 2)
+        end
+    end
 end
 
 function Base.setproperty!(x::Ptr{ImGuiTableColumnSortSpecs}, f::Symbol, v)
@@ -894,7 +950,20 @@ end
 function Base.getproperty(x::ImGuiTable, f::Symbol)
     r = Ref{ImGuiTable}(x)
     ptr = Base.unsafe_convert(Ptr{ImGuiTable}, r)
-    GC.@preserve r unsafe_load(getproperty(ptr, f))
+    fptr = getproperty(ptr, f)
+    begin
+        if fptr isa Ptr
+            return GC.@preserve(r, unsafe_load(fptr))
+        else
+            (baseptr, offset, width) = fptr
+            ty = eltype(baseptr)
+            i8 = GC.@preserve(r, unsafe_load(baseptr))
+            bitstr = bitstring(i8)
+            sig = bitstr[(end - offset) - (width - 1):end - offset]
+            zexted = lpad(sig, 8 * sizeof(ty), '0')
+            return parse(ty, zexted; base = 2)
+        end
+    end
 end
 
 function Base.setproperty!(x::Ptr{ImGuiTable}, f::Symbol, v)
@@ -975,7 +1044,8 @@ end
 function Base.getproperty(x::ImGuiStyleMod, f::Symbol)
     r = Ref{ImGuiStyleMod}(x)
     ptr = Base.unsafe_convert(Ptr{ImGuiStyleMod}, r)
-    GC.@preserve r unsafe_load(getproperty(ptr, f))
+    fptr = getproperty(ptr, f)
+    GC.@preserve r unsafe_load(fptr)
 end
 
 function Base.setproperty!(x::Ptr{ImGuiStyleMod}, f::Symbol, v)
@@ -1248,7 +1318,8 @@ end
 function Base.getproperty(x::ImGuiSizeCallbackData, f::Symbol)
     r = Ref{ImGuiSizeCallbackData}(x)
     ptr = Base.unsafe_convert(Ptr{ImGuiSizeCallbackData}, r)
-    GC.@preserve r unsafe_load(getproperty(ptr, f))
+    fptr = getproperty(ptr, f)
+    GC.@preserve r unsafe_load(fptr)
 end
 
 function Base.setproperty!(x::Ptr{ImGuiSizeCallbackData}, f::Symbol, v)
@@ -1365,7 +1436,8 @@ end
 function Base.getproperty(x::ImFontConfig, f::Symbol)
     r = Ref{ImFontConfig}(x)
     ptr = Base.unsafe_convert(Ptr{ImFontConfig}, r)
-    GC.@preserve r unsafe_load(getproperty(ptr, f))
+    fptr = getproperty(ptr, f)
+    GC.@preserve r unsafe_load(fptr)
 end
 
 function Base.setproperty!(x::Ptr{ImFontConfig}, f::Symbol, v)
@@ -1432,7 +1504,8 @@ end
 function Base.getproperty(x::ImFontAtlas, f::Symbol)
     r = Ref{ImFontAtlas}(x)
     ptr = Base.unsafe_convert(Ptr{ImFontAtlas}, r)
-    GC.@preserve r unsafe_load(getproperty(ptr, f))
+    fptr = getproperty(ptr, f)
+    GC.@preserve r unsafe_load(fptr)
 end
 
 function Base.setproperty!(x::Ptr{ImFontAtlas}, f::Symbol, v)
@@ -1445,8 +1518,8 @@ end
 
 function Base.getproperty(x::Ptr{ImFontGlyph}, f::Symbol)
     f === :Colored && return Ptr{Cuint}(x + 0)
-    f === :Visible && return Ptr{Cuint}(x + 0)
-    f === :Codepoint && return Ptr{Cuint}(x + 0)
+    f === :Visible && return (Ptr{Cuint}(x + 0), 1, 1)
+    f === :Codepoint && return (Ptr{Cuint}(x + 0), 2, 30)
     f === :AdvanceX && return Ptr{Cfloat}(x + 4)
     f === :X0 && return Ptr{Cfloat}(x + 8)
     f === :Y0 && return Ptr{Cfloat}(x + 12)
@@ -1462,7 +1535,20 @@ end
 function Base.getproperty(x::ImFontGlyph, f::Symbol)
     r = Ref{ImFontGlyph}(x)
     ptr = Base.unsafe_convert(Ptr{ImFontGlyph}, r)
-    GC.@preserve r unsafe_load(getproperty(ptr, f))
+    fptr = getproperty(ptr, f)
+    begin
+        if fptr isa Ptr
+            return GC.@preserve(r, unsafe_load(fptr))
+        else
+            (baseptr, offset, width) = fptr
+            ty = eltype(baseptr)
+            i8 = GC.@preserve(r, unsafe_load(baseptr))
+            bitstr = bitstring(i8)
+            sig = bitstr[(end - offset) - (width - 1):end - offset]
+            zexted = lpad(sig, 8 * sizeof(ty), '0')
+            return parse(ty, zexted; base = 2)
+        end
+    end
 end
 
 function Base.setproperty!(x::Ptr{ImFontGlyph}, f::Symbol, v)
@@ -1667,7 +1753,8 @@ end
 function Base.getproperty(x::ImGuiIO, f::Symbol)
     r = Ref{ImGuiIO}(x)
     ptr = Base.unsafe_convert(Ptr{ImGuiIO}, r)
-    GC.@preserve r unsafe_load(getproperty(ptr, f))
+    fptr = getproperty(ptr, f)
+    GC.@preserve r unsafe_load(fptr)
 end
 
 function Base.setproperty!(x::Ptr{ImGuiIO}, f::Symbol, v)

@@ -1,7 +1,7 @@
 # CImGui
 
-![CI](https://github.com/Gnimuc/CImGui.jl/workflows/CI/badge.svg)
-![TagBot](https://github.com/Gnimuc/CImGui.jl/workflows/TagBot/badge.svg)
+[![Build Status](https://github.com/Gnimuc/CImGui.jl/workflows/CI/badge.svg)](https://github.com/Gnimuc/CImGui.jl/actions/workflows/ci.yml)
+[![TagBot](https://github.com/Gnimuc/CImGui.jl/workflows/TagBot/badge.svg)](https://github.com/Gnimuc/CImGui.jl/actions/workflows/TagBot.yml)
 [![Codecov](https://codecov.io/gh/Gnimuc/CImGui.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/Gnimuc/CImGui.jl)
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://Gnimuc.github.io/CImGui.jl/stable)
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://Gnimuc.github.io/CImGui.jl/dev)

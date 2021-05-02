@@ -1,6 +1,5 @@
 # CImGui
 
-[![Build Status](https://travis-ci.com/Gnimuc/CImGui.jl.svg?branch=master)](https://travis-ci.com/Gnimuc/CImGui.jl)
 ![CI](https://github.com/Gnimuc/CImGui.jl/workflows/CI/badge.svg)
 ![TagBot](https://github.com/Gnimuc/CImGui.jl/workflows/TagBot/badge.svg)
 [![Codecov](https://codecov.io/gh/Gnimuc/CImGui.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/Gnimuc/CImGui.jl)

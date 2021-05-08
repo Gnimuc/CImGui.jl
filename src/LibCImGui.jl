@@ -83,7 +83,6 @@ end
 
 const ImTextureID = Ptr{Cvoid}
 
-# C code:
 # typedef void ( * ImDrawCallback ) ( const ImDrawList * parent_list , const ImDrawCmd * cmd )
 const ImDrawCallback = Ptr{Cvoid}
 
@@ -106,13 +105,6 @@ function Base.getproperty(x::Ptr{ImDrawCmd}, f::Symbol)
     f === :UserCallback && return Ptr{ImDrawCallback}(x + 40)
     f === :UserCallbackData && return Ptr{Ptr{Cvoid}}(x + 48)
     return getfield(x, f)
-end
-
-function Base.getproperty(x::ImDrawCmd, f::Symbol)
-    r = Ref{ImDrawCmd}(x)
-    ptr = Base.unsafe_convert(Ptr{ImDrawCmd}, r)
-    fptr = getproperty(ptr, f)
-    GC.@preserve r unsafe_load(fptr)
 end
 
 function Base.setproperty!(x::Ptr{ImDrawCmd}, f::Symbol, v)
@@ -207,6 +199,11 @@ struct ImDrawList
     _FringeScale::Cfloat
 end
 
+function Base.getproperty(x::ImDrawList, f::Symbol)
+    f === :_Data && return Ptr{ImDrawListSharedData}(getfield(x, f))
+    return getfield(x, f)
+end
+
 function Base.getproperty(x::Ptr{ImDrawList}, f::Symbol)
     f === :CmdBuffer && return Ptr{ImVector_ImDrawCmd}(x + 0)
     f === :IdxBuffer && return Ptr{ImVector_ImDrawIdx}(x + 16)
@@ -224,13 +221,6 @@ function Base.getproperty(x::Ptr{ImDrawList}, f::Symbol)
     f === :_Splitter && return Ptr{ImDrawListSplitter}(x + 168)
     f === :_FringeScale && return Ptr{Cfloat}(x + 192)
     return getfield(x, f)
-end
-
-function Base.getproperty(x::ImDrawList, f::Symbol)
-    r = Ref{ImDrawList}(x)
-    ptr = Base.unsafe_convert(Ptr{ImDrawList}, r)
-    fptr = getproperty(ptr, f)
-    GC.@preserve r unsafe_load(fptr)
 end
 
 function Base.setproperty!(x::Ptr{ImDrawList}, f::Symbol, v)
@@ -258,13 +248,6 @@ function Base.getproperty(x::Ptr{ImDrawData}, f::Symbol)
     f === :DisplaySize && return Ptr{ImVec2}(x + 32)
     f === :FramebufferScale && return Ptr{ImVec2}(x + 40)
     return getfield(x, f)
-end
-
-function Base.getproperty(x::ImDrawData, f::Symbol)
-    r = Ref{ImDrawData}(x)
-    ptr = Base.unsafe_convert(Ptr{ImDrawData}, r)
-    fptr = getproperty(ptr, f)
-    GC.@preserve r unsafe_load(fptr)
 end
 
 function Base.setproperty!(x::Ptr{ImDrawData}, f::Symbol, v)
@@ -396,6 +379,11 @@ struct ImVector_ImGuiWindowPtr
     Capacity::Cint
     # Data::Ptr{Ptr{ImGuiWindow}}
     Data::Ptr{Ptr{Cvoid}}
+end
+
+function Base.getproperty(x::ImVector_ImGuiWindowPtr, f::Symbol)
+    f === :Data && return Ptr{Ptr{ImGuiWindow}}(getfield(x, f))
+    return getfield(x, f)
 end
 
 struct ImGuiStoragePair
@@ -1086,7 +1074,6 @@ end
 
 const ImGuiNextWindowDataFlags = Cint
 
-# C code:
 # typedef void ( * ImGuiSizeCallback ) ( ImGuiSizeCallbackData * data )
 const ImGuiSizeCallback = Ptr{Cvoid}
 
@@ -1143,7 +1130,6 @@ end
 
 const ImGuiInputTextFlags = Cint
 
-# C code:
 # typedef int ( * ImGuiInputTextCallback ) ( ImGuiInputTextCallbackData * data )
 const ImGuiInputTextCallback = Ptr{Cvoid}
 
@@ -1199,7 +1185,6 @@ end
     ImGuiContextHookType_PendingRemoval_ = 7
 end
 
-# C code:
 # typedef void ( * ImGuiContextHookCallback ) ( ImGuiContext * ctx , ImGuiContextHook * hook )
 const ImGuiContextHookCallback = Ptr{Cvoid}
 
@@ -1238,6 +1223,11 @@ struct ImFontAtlasCustomRect
     GlyphOffset::ImVec2
     # Font::Ptr{ImFont}
     Font::Ptr{Cvoid}
+end
+
+function Base.getproperty(x::ImFontAtlasCustomRect, f::Symbol)
+    f === :Font && return Ptr{ImFont}(getfield(x, f))
+    return getfield(x, f)
 end
 
 struct ImGuiTextRange
@@ -1315,13 +1305,6 @@ function Base.getproperty(x::Ptr{ImGuiSizeCallbackData}, f::Symbol)
     return getfield(x, f)
 end
 
-function Base.getproperty(x::ImGuiSizeCallbackData, f::Symbol)
-    r = Ref{ImGuiSizeCallbackData}(x)
-    ptr = Base.unsafe_convert(Ptr{ImGuiSizeCallbackData}, r)
-    fptr = getproperty(ptr, f)
-    GC.@preserve r unsafe_load(fptr)
-end
-
 function Base.setproperty!(x::Ptr{ImGuiSizeCallbackData}, f::Symbol, v)
     unsafe_store!(getproperty(x, f), v)
 end
@@ -1381,6 +1364,11 @@ struct ImVector_ImFontPtr
     Data::Ptr{Ptr{Cvoid}}
 end
 
+function Base.getproperty(x::ImVector_ImFontPtr, f::Symbol)
+    f === :Data && return Ptr{Ptr{ImFont}}(getfield(x, f))
+    return getfield(x, f)
+end
+
 struct ImVector_ImFontAtlasCustomRect
     Size::Cint
     Capacity::Cint
@@ -1410,6 +1398,11 @@ struct ImFontConfig
     DstFont::Ptr{Cvoid}
 end
 
+function Base.getproperty(x::ImFontConfig, f::Symbol)
+    f === :DstFont && return Ptr{ImFont}(getfield(x, f))
+    return getfield(x, f)
+end
+
 function Base.getproperty(x::Ptr{ImFontConfig}, f::Symbol)
     f === :FontData && return Ptr{Ptr{Cvoid}}(x + 0)
     f === :FontDataSize && return Ptr{Cint}(x + 8)
@@ -1431,13 +1424,6 @@ function Base.getproperty(x::Ptr{ImFontConfig}, f::Symbol)
     f === :Name && return Ptr{NTuple{40, Cchar}}(x + 86)
     f === :DstFont && return Ptr{Ptr{ImFont}}(x + 128)
     return getfield(x, f)
-end
-
-function Base.getproperty(x::ImFontConfig, f::Symbol)
-    r = Ref{ImFontConfig}(x)
-    ptr = Base.unsafe_convert(Ptr{ImFontConfig}, r)
-    fptr = getproperty(ptr, f)
-    GC.@preserve r unsafe_load(fptr)
 end
 
 function Base.setproperty!(x::Ptr{ImFontConfig}, f::Symbol, v)
@@ -1499,13 +1485,6 @@ function Base.getproperty(x::Ptr{ImFontAtlas}, f::Symbol)
     f === :PackIdMouseCursors && return Ptr{Cint}(x + 1156)
     f === :PackIdLines && return Ptr{Cint}(x + 1160)
     return getfield(x, f)
-end
-
-function Base.getproperty(x::ImFontAtlas, f::Symbol)
-    r = Ref{ImFontAtlas}(x)
-    ptr = Base.unsafe_convert(Ptr{ImFontAtlas}, r)
-    fptr = getproperty(ptr, f)
-    GC.@preserve r unsafe_load(fptr)
 end
 
 function Base.setproperty!(x::Ptr{ImFontAtlas}, f::Symbol, v)
@@ -1748,13 +1727,6 @@ function Base.getproperty(x::Ptr{ImGuiIO}, f::Symbol)
     f === :InputQueueSurrogate && return Ptr{ImWchar16}(x + 5444)
     f === :InputQueueCharacters && return Ptr{ImVector_ImWchar}(x + 5448)
     return getfield(x, f)
-end
-
-function Base.getproperty(x::ImGuiIO, f::Symbol)
-    r = Ref{ImGuiIO}(x)
-    ptr = Base.unsafe_convert(Ptr{ImGuiIO}, r)
-    fptr = getproperty(ptr, f)
-    GC.@preserve r unsafe_load(fptr)
 end
 
 function Base.setproperty!(x::Ptr{ImGuiIO}, f::Symbol, v)
@@ -2161,11 +2133,9 @@ const ImGuiSliderFlags = Cint
 
 const ImGuiTreeNodeFlags = Cint
 
-# C code:
 # typedef void * ( * ImGuiMemAllocFunc ) ( size_t sz , void * user_data )
 const ImGuiMemAllocFunc = Ptr{Cvoid}
 
-# C code:
 # typedef void ( * ImGuiMemFreeFunc ) ( void * ptr , void * user_data )
 const ImGuiMemFreeFunc = Ptr{Cvoid}
 
@@ -2187,7 +2157,6 @@ const ImGuiTextFlags = Cint
 
 const ImGuiTooltipFlags = Cint
 
-# C code:
 # typedef void ( * ImGuiErrorLogCallback ) ( void * user_data , const char * fmt , ... )
 const ImGuiErrorLogCallback = Ptr{Cvoid}
 
@@ -7248,11 +7217,9 @@ end
 
 # exports
 const PREFIXES = ["ig", "Im"]
-foreach(names(@__MODULE__; all=true)) do s
-    for prefix in PREFIXES
-        if startswith(string(s), prefix)
-            @eval export $s
-        end
+for name in names(@__MODULE__; all=true), prefix in PREFIXES
+    if startswith(string(name), prefix)
+        @eval export $name
     end
 end
 

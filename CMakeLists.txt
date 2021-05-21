@@ -27,7 +27,7 @@ add_definitions("-DIMGUI_DISABLE_OBSOLETE_FUNCTIONS=1")
 
 if (WIN32)
     add_definitions("-DIMGUI_IMPL_API=extern \"C\" __declspec\(dllexport\)")
-    target_link_libraries(imgui-cpp imm32)
+    target_link_libraries(${target} imm32)
 else()
     add_definitions("-DIMGUI_IMPL_API=extern \"C\" ")
 endif(WIN32)
@@ -41,20 +41,7 @@ target_include_directories(${target} PUBLIC
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/cimnodes/imnodes>
                            $<INSTALL_INTERFACE:include>)
 
-# set_target_properties(${target} PROPERTIES
-#     PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/cimgui/imgui/imgui.h
-#                   ${CMAKE_CURRENT_SOURCE_DIR}/cimgui/imgui/imgui_internal.h
-#                   ${CMAKE_CURRENT_SOURCE_DIR}/cimgui/imgui/imconfig.h
-#                   ${CMAKE_CURRENT_SOURCE_DIR}/cimgui/imgui/imstb_rectpack.h
-#                   ${CMAKE_CURRENT_SOURCE_DIR}/cimgui/imgui/imstb_textedit.h
-#                   ${CMAKE_CURRENT_SOURCE_DIR}/cimgui/imgui/imstb_truetype.h
-#                   ${CMAKE_CURRENT_SOURCE_DIR}/cimgui/cimgui.h
-#                   ${CMAKE_CURRENT_SOURCE_DIR}/cimplot/implot/implot.h
-#                   ${CMAKE_CURRENT_SOURCE_DIR}/cimplot/implot/implot_internal.h
-#                   ${CMAKE_CURRENT_SOURCE_DIR}/cimplot/cimplot.h
-#                   ${CMAKE_CURRENT_SOURCE_DIR}/cimnodes/imnodes/imnodes.h
-#                   ${CMAKE_CURRENT_SOURCE_DIR}/cimnodes/cimnodes.h
-# )
+target_compile_features(${target} PRIVATE cxx_std_11)
 
 set(hdrs ${CMAKE_CURRENT_SOURCE_DIR}/cimgui/imgui/imgui.h
          ${CMAKE_CURRENT_SOURCE_DIR}/cimgui/imgui/imgui_internal.h

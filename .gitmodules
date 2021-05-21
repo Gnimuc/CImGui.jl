@@ -4,3 +4,6 @@
 [submodule "cimplot"]
 	path = cimplot
 	url = https://github.com/cimgui/cimplot.git
+[submodule "cimnodes"]
+	path = cimnodes
+	url = https://github.com/cimgui/cimnodes.git

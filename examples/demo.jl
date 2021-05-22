@@ -37,6 +37,11 @@ GLFW.SwapInterval(1)  # enable vsync
 # setup Dear ImGui context
 ctx = CImGui.CreateContext()
 
+# enable docking and multi-viewport
+io = CImGui.GetIO()
+io.ConfigFlags = unsafe_load(io.ConfigFlags) | CImGui.ImGuiConfigFlags_DockingEnable
+io.ConfigFlags = unsafe_load(io.ConfigFlags) | CImGui.ImGuiConfigFlags_ViewportsEnable
+
 # setup Dear ImGui style
 CImGui.StyleColorsDark()
 # CImGui.StyleColorsClassic()
@@ -98,7 +103,13 @@ try
         glClear(GL_COLOR_BUFFER_BIT)
         ImGui_ImplOpenGL3_RenderDrawData(CImGui.GetDrawData())
 
-        GLFW.MakeContextCurrent(window)
+        if Bool(unsafe_load(CImGui.GetIO().ConfigFlags) & CImGui.ImGuiConfigFlags_ViewportsEnable)
+            backup_current_context = GLFW.GetCurrentContext()
+            CImGui.igUpdatePlatformWindows()
+            CImGui.igRenderPlatformWindowsDefault()
+            GLFW.MakeContextCurrent(backup_current_context)
+        end
+
         GLFW.SwapBuffers(window)
     end
 catch e

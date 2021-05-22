@@ -14,15 +14,15 @@ git-tree-sha1 = "215a9aa4a1f23fbd05b92769fdd62559488d70e9"
 uuid = "fa961155-64e5-5f13-b03f-caf6b980ea82"
 version = "0.4.1"
 
-[[CImGui_jll]]
+[[CImGuiPack_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
-git-tree-sha1 = "7f0d4bee1ceb849a2dff8bb87d86a885cf7af271"
-uuid = "7dd61d3b-0da5-5c94-bbf9-a0296c6e3925"
-version = "1.82.0+0"
+git-tree-sha1 = "6e95547ee6cf00b1575cbbee54f9c9abc0a4c8ae"
+uuid = "333409e9-af72-5310-9767-d6ad21a76a05"
+version = "0.1.1+0"
 
 [[Clang]]
 deps = ["CEnum", "Clang_jll", "Downloads", "Pkg", "TOML"]
-git-tree-sha1 = "40fdcc784487848cd0b842c29c1b8df9d3dc0bf3"
+git-tree-sha1 = "93b424759f11b7dbd300eb424fa1bfe590e15cf6"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaInterop/Clang.jl.git"
 uuid = "40e3b903-d033-50b4-a0cc-940c62c95e31"
@@ -94,9 +94,9 @@ uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
 [[Preferences]]
 deps = ["TOML"]
-git-tree-sha1 = "ea79e4c9077208cd3bc5d29631a26bc0cff78902"
+git-tree-sha1 = "00cfd92944ca9c760982747e9a1d0d5d86ab1e5a"
 uuid = "21216c6a-2e73-6563-6e65-726566657250"
-version = "1.2.1"
+version = "1.2.2"
 
 [[Printf]]
 deps = ["Unicode"]

@@ -16,15 +16,44 @@
 #  ES 3.0    300       "#version 300 es"
 #----------------------------------------
 
-function ImGui_ImplOpenGL3_Init(glsl_version::Integer=130)
-    io = GetIO()
-    io.BackendRendererName = pointer("imgui_impl_opengl3")
-    io.BackendFlags = unsafe_load(io.BackendFlags) | ImGuiBackendFlags_RendererHasVtxOffset
+const IMGUI_BACKEND_RENDERER_NAME = "imgui_impl_opengl3"
+
+function ImGui_ImplOpenGL3_RenderWindow(viewport::Ptr{ImGuiViewport}, userdata::Ptr{Cvoid})::Cvoid
+    vp = unsafe_load(viewport)
+    if !(vp.Flags & ImGuiViewportFlags_NoRendererClear) != 0
+        glClearColor(0.0f0, 0.0f0, 0.0f0, 1.0f0)
+        glClear(GL_COLOR_BUFFER_BIT)
+    end
+    ImGui_ImplOpenGL3_RenderDrawData(Ptr{ImDrawData}(vp.DrawData))
+end
+
+function ImGui_ImplOpenGL3_InitPlatformInterface()
+    platform_io::Ptr{ImGuiPlatformIO} = igGetPlatformIO()
+    fptr = @cfunction(ImGui_ImplOpenGL3_RenderWindow, Cvoid, (Ptr{ImGuiViewport}, Ptr{Cvoid}))
+    platform_io.Renderer_RenderWindow = fptr
+end
+
+ImGui_ImplOpenGL3_ShutdownPlatformInterface() = igDestroyPlatformWindows()
+
+function ImGui_ImplOpenGL3_Init(glsl_version::Integer=150)
+    io::Ptr{ImGuiIO} = GetIO()
+    io.BackendRendererName = pointer(IMGUI_BACKEND_RENDERER_NAME)
+    io.BackendFlags = unsafe_load(io.BackendFlags) | ImGuiBackendFlags_RendererHasVtxOffset  # version ≥ 320
+    io.BackendFlags = unsafe_load(io.BackendFlags) | ImGuiBackendFlags_RendererHasViewports
+
     g_GlslVersion[] = glsl_version
+
+    if unsafe_load(io.ConfigFlags) & ImGuiConfigFlags_ViewportsEnable != 0
+        ImGui_ImplOpenGL3_InitPlatformInterface()
+    end
+
     return true
 end
 
-ImGui_ImplOpenGL3_Shutdown() = ImGui_ImplOpenGL3_DestroyDeviceObjects()
+function ImGui_ImplOpenGL3_Shutdown()
+    ImGui_ImplOpenGL3_ShutdownPlatformInterface()
+    ImGui_ImplOpenGL3_DestroyDeviceObjects()
+end
 
 ImGui_ImplOpenGL3_NewFrame() = !ImFontAtlas_IsBuilt(GetIO().Fonts) && ImGui_ImplOpenGL3_CreateDeviceObjects()
 
@@ -37,10 +66,14 @@ function ImGui_ImplOpenGL3_SetupRenderState(draw_data, fb_width::Cint, fb_height
     # - polygon fill
     glEnable(GL_BLEND)
     glBlendEquation(GL_FUNC_ADD)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
     glDisable(GL_CULL_FACE)
     glDisable(GL_DEPTH_TEST)
+    glDisable(GL_STENCIL_TEST)
     glEnable(GL_SCISSOR_TEST)
+
+    g_GlslVersion[] > 310 && glDisable(GL_PRIMITIVE_RESTART)
+
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
     # setup viewport, orthographic projection matrix
@@ -59,7 +92,7 @@ function ImGui_ImplOpenGL3_SetupRenderState(draw_data, fb_width::Cint, fb_height
     glUseProgram(g_ShaderHandle[])
     glUniform1i(g_AttribLocationTex[], 0)
     glUniformMatrix4fv(g_AttribLocationProjMtx[], 1, GL_FALSE, ortho_projection)
-    glBindSampler(0, 0)
+    g_GlslVersion[] > 330 && glBindSampler(0, 0)
 
     glBindVertexArray(vertex_array_object)
     glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle[])
@@ -170,7 +203,7 @@ function ImGui_ImplOpenGL3_RenderDrawData(draw_data)
     # restore modified GL state
     glUseProgram(last_program)
     glBindTexture(GL_TEXTURE_2D, last_texture)
-    glBindSampler(0, last_sampler)
+    g_GlslVersion[] > 330 && glBindSampler(0, last_sampler)
     glActiveTexture(last_active_texture)
     glBindVertexArray(last_vertex_array_object)
     glBindBuffer(GL_ARRAY_BUFFER, last_array_buffer)
@@ -206,6 +239,7 @@ function ImGui_ImplOpenGL3_CreateFontsTexture()
 
     # store our identifier
     SetTexID(fonts, ImTextureID(Int(new_texture)))
+
     # restore state
     glBindTexture(GL_TEXTURE_2D, last_texture)
 
@@ -213,26 +247,13 @@ function ImGui_ImplOpenGL3_CreateFontsTexture()
 end
 
 function ImGui_ImplOpenGL3_DestroyFontsTexture()
+    io::Ptr{ImGuiIO} = GetIO()
     glDeleteTextures(length(g_FontTextures), g_FontTextures)
+    SetTexID(unsafe_load(io.Fonts), ImTextureID(0))
     empty!(g_FontTextures)
 end
 
 function ImGui_ImplOpenGL3_CreateDeviceObjects()
-    vertex_shader_glsl_120 = """
-        #version $(g_GlslVersion[])
-        uniform mat4 ProjMtx;
-        attribute vec2 Position;
-        attribute vec2 UV;
-        attribute vec4 Color;
-        varying vec2 Frag_UV;
-        varying vec4 Frag_Color;
-        void main()
-        {
-            Frag_UV = UV;
-            Frag_Color = Color;
-            gl_Position = ProjMtx * vec4(Position.xy,0,1);
-        }"""
-
     vertex_shader_glsl_130 = """
         #version $(g_GlslVersion[])
         uniform mat4 ProjMtx;
@@ -263,19 +284,6 @@ function ImGui_ImplOpenGL3_CreateDeviceObjects()
             gl_Position = ProjMtx * vec4(Position.xy,0,1);
         }"""
 
-    fragment_shader_glsl_120 = """
-        #version $(g_GlslVersion[])
-        #ifdef GL_ES
-            precision mediump float;
-        #endif
-        uniform sampler2D Texture;
-        varying vec2 Frag_UV;
-        varying vec4 Frag_Color;
-        void main()
-        {
-            gl_FragColor = Frag_Color * texture2D(Texture, Frag_UV.st);
-        }"""
-
     fragment_shader_glsl_130 = """
         #version $(g_GlslVersion[])
         uniform sampler2D Texture;
@@ -298,10 +306,7 @@ function ImGui_ImplOpenGL3_CreateDeviceObjects()
             Out_Color = Frag_Color * texture(Texture, Frag_UV.st);
         }"""
 
-    if g_GlslVersion[] < 130
-        vertex_shader = vertex_shader_glsl_120
-        fragment_shader = fragment_shader_glsl_120
-    elseif g_GlslVersion[] == 410
+    if g_GlslVersion[] == 410
         vertex_shader = vertex_shader_glsl_410_core
         fragment_shader = fragment_shader_glsl_410_core
     else
@@ -358,8 +363,8 @@ function ImGui_ImplOpenGL3_CreateDeviceObjects()
     g_AttribLocationVtxColor[] = glGetAttribLocation(g_ShaderHandle[], "Color")
 
     # create buffers
-    @c glGenBuffers(1, &(g_VboHandle[]))
-    @c glGenBuffers(1, &(g_ElementsHandle[]))
+    glGenBuffers(1, g_VboHandle)
+    glGenBuffers(1, g_ElementsHandle)
 
     ImGui_ImplOpenGL3_CreateFontsTexture()
 
@@ -372,8 +377,8 @@ function ImGui_ImplOpenGL3_CreateDeviceObjects()
 end
 
 function ImGui_ImplOpenGL3_DestroyDeviceObjects()
-    g_VboHandle[] != 0 && @c glDeleteBuffers(1, &(g_VboHandle[]))
-    g_ElementsHandle[] != 0 && @c glDeleteBuffers(1, &(g_ElementsHandle[]))
+    g_VboHandle[] != 0 && glDeleteBuffers(1, g_VboHandle)
+    g_ElementsHandle[] != 0 && glDeleteBuffers(1, g_ElementsHandle)
     g_VboHandle[] = g_ElementsHandle[] = GLuint(0)
 
     g_ShaderHandle[] != 0 && g_VertHandle != 0 && glDetachShader(g_ShaderHandle[], g_VertHandle[])
@@ -395,7 +400,6 @@ function ImGui_ImplOpenGL3_DestroyDeviceObjects()
 end
 
 function ImGui_ImplOpenGL3_CreateImageTexture(image_width, image_height; format=GL_RGBA, type=GL_UNSIGNED_BYTE)
-
     id = GLuint(0)
     @c glGenTextures(1, &id)
     glBindTexture(GL_TEXTURE_2D, id)
@@ -404,7 +408,6 @@ function ImGui_ImplOpenGL3_CreateImageTexture(image_width, image_height; format=
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0)
     glTexImage2D(GL_TEXTURE_2D, 0, format, GLsizei(image_width), GLsizei(image_height), 0, format, type, C_NULL)
     g_ImageTexture[id] = id
-
     return Int(id)
 end
 

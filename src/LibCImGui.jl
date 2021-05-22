@@ -100,6 +100,30 @@ function Base.getproperty(x::ImGuiViewport, f::Symbol)
     return getfield(x, f)
 end
 
+function Base.getproperty(x::Ptr{ImGuiViewport}, f::Symbol)
+    f === :ID && return Ptr{ImGuiID}(x + 0)
+    f === :Flags && return Ptr{ImGuiViewportFlags}(x + 4)
+    f === :Pos && return Ptr{ImVec2}(x + 8)
+    f === :Size && return Ptr{ImVec2}(x + 16)
+    f === :WorkPos && return Ptr{ImVec2}(x + 24)
+    f === :WorkSize && return Ptr{ImVec2}(x + 32)
+    f === :DpiScale && return Ptr{Cfloat}(x + 40)
+    f === :ParentViewportId && return Ptr{ImGuiID}(x + 44)
+    f === :DrawData && return Ptr{Ptr{ImDrawData}}(x + 48)
+    f === :RendererUserData && return Ptr{Ptr{Cvoid}}(x + 56)
+    f === :PlatformUserData && return Ptr{Ptr{Cvoid}}(x + 64)
+    f === :PlatformHandle && return Ptr{Ptr{Cvoid}}(x + 72)
+    f === :PlatformHandleRaw && return Ptr{Ptr{Cvoid}}(x + 80)
+    f === :PlatformRequestMove && return Ptr{Bool}(x + 88)
+    f === :PlatformRequestResize && return Ptr{Bool}(x + 89)
+    f === :PlatformRequestClose && return Ptr{Bool}(x + 90)
+    return getfield(x, f)
+end
+
+function Base.setproperty!(x::Ptr{ImGuiViewport}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
+end
+
 struct ImVec4
     x::Cfloat
     y::Cfloat
@@ -1560,6 +1584,40 @@ struct ImGuiPlatformIO
     Renderer_SwapBuffers::Ptr{Cvoid}
     Monitors::ImVector_ImGuiPlatformMonitor
     Viewports::ImVector_ImGuiViewportPtr
+end
+
+function Base.getproperty(x::Ptr{ImGuiPlatformIO}, f::Symbol)
+    f === :Platform_CreateWindow && return Ptr{Ptr{Cvoid}}(x + 0)
+    f === :Platform_DestroyWindow && return Ptr{Ptr{Cvoid}}(x + 8)
+    f === :Platform_ShowWindow && return Ptr{Ptr{Cvoid}}(x + 16)
+    f === :Platform_SetWindowPos && return Ptr{Ptr{Cvoid}}(x + 24)
+    f === :Platform_GetWindowPos && return Ptr{Ptr{Cvoid}}(x + 32)
+    f === :Platform_SetWindowSize && return Ptr{Ptr{Cvoid}}(x + 40)
+    f === :Platform_GetWindowSize && return Ptr{Ptr{Cvoid}}(x + 48)
+    f === :Platform_SetWindowFocus && return Ptr{Ptr{Cvoid}}(x + 56)
+    f === :Platform_GetWindowFocus && return Ptr{Ptr{Cvoid}}(x + 64)
+    f === :Platform_GetWindowMinimized && return Ptr{Ptr{Cvoid}}(x + 72)
+    f === :Platform_SetWindowTitle && return Ptr{Ptr{Cvoid}}(x + 80)
+    f === :Platform_SetWindowAlpha && return Ptr{Ptr{Cvoid}}(x + 88)
+    f === :Platform_UpdateWindow && return Ptr{Ptr{Cvoid}}(x + 96)
+    f === :Platform_RenderWindow && return Ptr{Ptr{Cvoid}}(x + 104)
+    f === :Platform_SwapBuffers && return Ptr{Ptr{Cvoid}}(x + 112)
+    f === :Platform_GetWindowDpiScale && return Ptr{Ptr{Cvoid}}(x + 120)
+    f === :Platform_OnChangedViewport && return Ptr{Ptr{Cvoid}}(x + 128)
+    f === :Platform_SetImeInputPos && return Ptr{Ptr{Cvoid}}(x + 136)
+    f === :Platform_CreateVkSurface && return Ptr{Ptr{Cvoid}}(x + 144)
+    f === :Renderer_CreateWindow && return Ptr{Ptr{Cvoid}}(x + 152)
+    f === :Renderer_DestroyWindow && return Ptr{Ptr{Cvoid}}(x + 160)
+    f === :Renderer_SetWindowSize && return Ptr{Ptr{Cvoid}}(x + 168)
+    f === :Renderer_RenderWindow && return Ptr{Ptr{Cvoid}}(x + 176)
+    f === :Renderer_SwapBuffers && return Ptr{Ptr{Cvoid}}(x + 184)
+    f === :Monitors && return Ptr{ImVector_ImGuiPlatformMonitor}(x + 192)
+    f === :Viewports && return Ptr{ImVector_ImGuiViewportPtr}(x + 208)
+    return getfield(x, f)
+end
+
+function Base.setproperty!(x::Ptr{ImGuiPlatformIO}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
 end
 
 struct ImGuiPayload

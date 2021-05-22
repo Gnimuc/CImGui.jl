@@ -14,6 +14,24 @@ else
 end
 
 
+const __darwin_time_t = Clong
+
+const time_t = __darwin_time_t
+
+struct tm
+    tm_sec::Cint
+    tm_min::Cint
+    tm_hour::Cint
+    tm_mday::Cint
+    tm_mon::Cint
+    tm_year::Cint
+    tm_wday::Cint
+    tm_yday::Cint
+    tm_isdst::Cint
+    tm_gmtoff::Clong
+    tm_zone::Ptr{Cchar}
+end
+
 const ImGuiID = Cuint
 
 const ImS8 = Int8
@@ -75,6 +93,16 @@ struct ImVec2
     y::Cfloat
 end
 
+function Base.getproperty(x::Ptr{ImVec2}, f::Symbol)
+    f === :x && return Ptr{Cfloat}(x + 0)
+    f === :y && return Ptr{Cfloat}(x + 4)
+    return getfield(x, f)
+end
+
+function Base.setproperty!(x::Ptr{ImVec2}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
+end
+
 struct ImGuiViewport
     ID::ImGuiID
     Flags::ImGuiViewportFlags
@@ -129,6 +157,18 @@ struct ImVec4
     y::Cfloat
     z::Cfloat
     w::Cfloat
+end
+
+function Base.getproperty(x::Ptr{ImVec4}, f::Symbol)
+    f === :x && return Ptr{Cfloat}(x + 0)
+    f === :y && return Ptr{Cfloat}(x + 4)
+    f === :z && return Ptr{Cfloat}(x + 8)
+    f === :w && return Ptr{Cfloat}(x + 12)
+    return getfield(x, f)
+end
+
+function Base.setproperty!(x::Ptr{ImVec4}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
 end
 
 const ImTextureID = Ptr{Cvoid}
@@ -8216,20 +8256,6 @@ struct ImVector_ImPlotColormap
     Size::Cint
     Capacity::Cint
     Data::Ptr{ImPlotColormap}
-end
-
-struct tm
-    tm_sec::Cint
-    tm_min::Cint
-    tm_hour::Cint
-    tm_mday::Cint
-    tm_mon::Cint
-    tm_year::Cint
-    tm_wday::Cint
-    tm_yday::Cint
-    tm_isdst::Cint
-    tm_gmtoff::Clong
-    tm_zone::Ptr{Cchar}
 end
 
 struct ImVector_double

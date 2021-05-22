@@ -3,7 +3,7 @@ library_name = "libcimgui"
 output_file_path = "../src/LibCImGui.jl"
 module_name = "LibCImGui"
 jll_pkg_name = "CImGuiPack_jll"
-export_symbol_prefixes = ["ig", "Im", "IMGUI_", "imnodes_", "ImPlot_", "ImVector_", ]
+export_symbol_prefixes = ["ig", "Im", "IMGUI_", "imnodes_", "ImPlot_", "ImVector_"]
 prologue_file_path = "./prologue.jl"
 epilogue_file_path = "./epilogue.jl"
 
@@ -26,4 +26,6 @@ field_access_method_list = [
     "ImFontConfig",
     "ImGuiPlatformIO",
     "ImGuiViewport",
+    "ImVec2",
+    "ImVec4",
 ]

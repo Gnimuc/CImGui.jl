@@ -20,17 +20,16 @@ const IMGUI_BACKEND_RENDERER_NAME = "imgui_impl_opengl3"
 
 function ImGui_ImplOpenGL3_RenderWindow(viewport::Ptr{ImGuiViewport}, userdata::Ptr{Cvoid})::Cvoid
     vp = unsafe_load(viewport)
-    if !(vp.Flags & ImGuiViewportFlags_NoRendererClear) != 0
+    if !(vp.Flags & ImGuiViewportFlags_NoRendererClear != 0)
         glClearColor(0.0f0, 0.0f0, 0.0f0, 1.0f0)
         glClear(GL_COLOR_BUFFER_BIT)
     end
-    ImGui_ImplOpenGL3_RenderDrawData(Ptr{ImDrawData}(vp.DrawData))
+    ImGui_ImplOpenGL3_RenderDrawData(vp.DrawData)
 end
 
 function ImGui_ImplOpenGL3_InitPlatformInterface()
     platform_io::Ptr{ImGuiPlatformIO} = igGetPlatformIO()
-    fptr = @cfunction(ImGui_ImplOpenGL3_RenderWindow, Cvoid, (Ptr{ImGuiViewport}, Ptr{Cvoid}))
-    platform_io.Renderer_RenderWindow = fptr
+    platform_io.Renderer_RenderWindow = @cfunction(ImGui_ImplOpenGL3_RenderWindow, Cvoid, (Ptr{ImGuiViewport}, Ptr{Cvoid}))
 end
 
 ImGui_ImplOpenGL3_ShutdownPlatformInterface() = igDestroyPlatformWindows()
@@ -44,6 +43,7 @@ function ImGui_ImplOpenGL3_Init(glsl_version::Integer=150)
     g_GlslVersion[] = glsl_version
 
     if unsafe_load(io.ConfigFlags) & ImGuiConfigFlags_ViewportsEnable != 0
+        @show "pt 1"
         ImGui_ImplOpenGL3_InitPlatformInterface()
     end
 
@@ -55,7 +55,7 @@ function ImGui_ImplOpenGL3_Shutdown()
     ImGui_ImplOpenGL3_DestroyDeviceObjects()
 end
 
-ImGui_ImplOpenGL3_NewFrame() = !ImFontAtlas_IsBuilt(GetIO().Fonts) && ImGui_ImplOpenGL3_CreateDeviceObjects()
+ImGui_ImplOpenGL3_NewFrame() = g_ShaderHandle[] == 0 && ImGui_ImplOpenGL3_CreateDeviceObjects()
 
 function ImGui_ImplOpenGL3_SetupRenderState(draw_data, fb_width::Cint, fb_height::Cint, vertex_array_object::GLuint)
     # setup render state:

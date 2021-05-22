@@ -8,20 +8,11 @@ using Printf
 
 include(joinpath(@__DIR__, "demo_window.jl"))
 
-@static if Sys.isapple()
-    # OpenGL 3.2 + GLSL 150
-    const glsl_version = 150
-    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MAJOR, 3)
-    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MINOR, 2)
+GLFW.WindowHint(GLFW.CONTEXT_VERSION_MAJOR, 3)
+GLFW.WindowHint(GLFW.CONTEXT_VERSION_MINOR, 2)
+if Sys.isapple()
     GLFW.WindowHint(GLFW.OPENGL_PROFILE, GLFW.OPENGL_CORE_PROFILE) # 3.2+ only
     GLFW.WindowHint(GLFW.OPENGL_FORWARD_COMPAT, GL_TRUE) # required on Mac
-else
-    # OpenGL 3.0 + GLSL 130
-    const glsl_version = 130
-    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MAJOR, 3)
-    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MINOR, 0)
-    # GLFW.WindowHint(GLFW.OPENGL_PROFILE, GLFW.OPENGL_CORE_PROFILE) # 3.2+ only
-    # GLFW.WindowHint(GLFW.OPENGL_FORWARD_COMPAT, GL_TRUE) # 3.0+ only
 end
 
 # setup GLFW error callback
@@ -73,7 +64,7 @@ image_id = ImGui_ImplOpenGL3_CreateImageTexture(img_width, img_height)
 
 # setup Platform/Renderer bindings
 ImGui_ImplGlfw_InitForOpenGL(window, true)
-ImGui_ImplOpenGL3_Init(glsl_version)
+ImGui_ImplOpenGL3_Init()
 
 try
     demo_open = true
@@ -103,10 +94,10 @@ try
         glClear(GL_COLOR_BUFFER_BIT)
         ImGui_ImplOpenGL3_RenderDrawData(CImGui.GetDrawData())
 
-        if Bool(unsafe_load(CImGui.GetIO().ConfigFlags) & CImGui.ImGuiConfigFlags_ViewportsEnable)
+        if unsafe_load(CImGui.GetIO().ConfigFlags) & CImGui.ImGuiConfigFlags_ViewportsEnable != 0
             backup_current_context = GLFW.GetCurrentContext()
             CImGui.igUpdatePlatformWindows()
-            CImGui.igRenderPlatformWindowsDefault()
+            CImGui.igRenderPlatformWindowsDefault(C_NULL, C_NULL)
             GLFW.MakeContextCurrent(backup_current_context)
         end
 
@@ -119,6 +110,5 @@ finally
     ImGui_ImplOpenGL3_Shutdown()
     ImGui_ImplGlfw_Shutdown()
     CImGui.DestroyContext(ctx)
-    GLFW.HideWindow(window)
     GLFW.DestroyWindow(window)
 end

@@ -1,0 +1,25 @@
+[general]
+library_name = "libcimgui"
+
+printer_blacklist = [
+    "API",
+    "EXTERN",
+    "CIMGUI_API",
+    "CONST",
+    "CIMGUI_INCLUDED",
+]
+
+[codegen]
+field_access_method_list = [
+    "ImGuiIO",
+    "ImDrawList",
+    "ImDrawData",
+    "ImDrawCmd",
+    "ImFontAtlas",
+    "ImGuiSizeCallbackData",
+    "ImFontConfig",
+    "ImGuiPlatformIO",
+    "ImGuiViewport",
+    "ImVec2",
+    "ImVec4",
+]

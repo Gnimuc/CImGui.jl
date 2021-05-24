@@ -1,0 +1,17 @@
+name = "LibCImGui"
+uuid = "9be01004-c4f5-478b-abeb-cb32b114cf5e"
+authors = ["Yupei Qi <qiyupei@gmail.com>"]
+version = "1.82.0"
+
+[deps]
+CImGuiPack_jll = "333409e9-af72-5310-9767-d6ad21a76a05"
+
+[compat]
+julia = "1.6"
+CImGuiPack_jll = "~0.1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

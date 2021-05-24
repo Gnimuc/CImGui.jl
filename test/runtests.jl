@@ -1,6 +1,6 @@
 using LibCImGui
 using Test
 
-@testset "LibCImGui.jl" begin
-    # Write your tests here.
+@testset "Dock" begin
+    @test IMGUI_HAS_DOCK == 1
 end

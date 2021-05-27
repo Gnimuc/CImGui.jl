@@ -195,19 +195,39 @@ function ImGui_ImplGlfw_UpdateMouseCursor()
     return nothing
 end
 
+function Base.getproperty(x::Ptr{ImGuiPlatformMonitor}, f::Symbol)
+    f === :MainPos && return Ptr{ImVec2}(x + 0)
+    f === :MainSize && return Ptr{ImVec2}(x + 8)
+    f === :WorkPos && return Ptr{ImVec2}(x + 16)
+    f === :WorkSize && return Ptr{ImVec2}(x + 24)
+    f === :DpiScale && return Ptr{Cfloat}(x + 32)
+    return getfield(x, f)
+end
+
+function Base.setproperty!(x::Ptr{ImGuiPlatformMonitor}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
+end
+
 function ImGui_ImplGlfw_UpdateMonitors()
     platform_io::Ptr{ImGuiPlatformIO} = igGetPlatformIO()
-    glfw_monitors = GLFW.GetMonitors()
-    empty!(g_Monitors)
-    for glfw_monitor in glfw_monitors
+	glfw_monitors = GLFW.GetMonitors()
+    monitors_count = Ref{Cint}(length(glfw_monitors))
+    monitors_ptr::Ptr{ImGuiPlatformMonitor} = Libc.malloc(monitors_count[] * sizeof(ImGuiPlatformMonitor))
+    for n = 0:monitors_count[]-1
+        glfw_monitor = glfw_monitors[n+1]
         x, y = GLFW.GetMonitorPos(glfw_monitor)
         vid_mode = GLFW.GetVideoMode(glfw_monitor)
         main_pos, work_pos = ImVec2(x, y), ImVec2(x, y)
         main_size, work_size = ImVec2(vid_mode.width, vid_mode.height), ImVec2(vid_mode.width, vid_mode.height)
         x_scale, y_scale = GLFW.GetMonitorContentScale(glfw_monitor)
-        push!(g_Monitors, ImGuiPlatformMonitor(main_pos, main_size, work_pos, work_size, x_scale))
+        mptr::Ptr{ImGuiPlatformMonitor} = monitors_ptr + n * sizeof(ImGuiPlatformMonitor)
+        mptr.MainPos = ImVec2(x, y)
+        mptr.MainSize = ImVec2(vid_mode.width, vid_mode.height)
+        mptr.WorkPos = ImVec2(x, y)
+        mptr.WorkSize = ImVec2(vid_mode.width, vid_mode.height)
+        mptr.DpiScale = x_scale
     end
-    platform_io.Monitors = ImVector_ImGuiPlatformMonitor(length(g_Monitors), length(g_Monitors), pointer(g_Monitors))
+    platform_io.Monitors = ImVector_ImGuiPlatformMonitor(monitors_count[], monitors_count[], monitors_ptr)
     g_WantUpdateMonitors[] = false
 end
 

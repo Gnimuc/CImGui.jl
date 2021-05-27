@@ -62,7 +62,7 @@ function ImGui_ImplGlfw_MonitorCallback(monitor::GLFW.Monitor, x::Cint)::Cvoid
 end
 
 function ImGui_ImplGlfw_WindowCloseCallback(window::GLFW.Window)::Cvoid
-    viewport::Ptr{ImGuiViewport} = igFindViewportByPlatformHandle(window)
+    viewport::Ptr{ImGuiViewport} = igFindViewportByPlatformHandle(window.handle)
     if viewport != C_NULL
         viewport.PlatformRequestClose = true
     end
@@ -70,7 +70,7 @@ function ImGui_ImplGlfw_WindowCloseCallback(window::GLFW.Window)::Cvoid
 end
 
 function ImGui_ImplGlfw_WindowPosCallback(window::GLFW.Window, x::Cint, y::Cint)::Cvoid
-    viewport::Ptr{ImGuiViewport} = igFindViewportByPlatformHandle(window)
+    viewport::Ptr{ImGuiViewport} = igFindViewportByPlatformHandle(window.handle)
     if viewport != C_NULL
         data::Ptr{ImGuiViewportDataGlfw} = viewport.PlatformUserData
         if data != C_NULL
@@ -83,7 +83,7 @@ function ImGui_ImplGlfw_WindowPosCallback(window::GLFW.Window, x::Cint, y::Cint)
 end
 
 function ImGui_ImplGlfw_WindowSizeCallback(window::GLFW.Window, x::Cint, y::Cint)::Cvoid
-    viewport::Ptr{ImGuiViewport} = igFindViewportByPlatformHandle(window)
+    viewport::Ptr{ImGuiViewport} = igFindViewportByPlatformHandle(window.handle)
     if viewport != C_NULL
         data::Ptr{ImGuiViewportDataGlfw} = viewport.PlatformUserData
         if data != C_NULL

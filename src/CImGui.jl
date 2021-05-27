@@ -1,7 +1,6 @@
 module CImGui
 
-include("LibCImGui.jl")
-using .LibCImGui
+using LibCImGui
 
 using CSyntax
 using CEnum

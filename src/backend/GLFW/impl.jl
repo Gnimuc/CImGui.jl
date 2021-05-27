@@ -195,19 +195,6 @@ function ImGui_ImplGlfw_UpdateMouseCursor()
     return nothing
 end
 
-function Base.getproperty(x::Ptr{ImGuiPlatformMonitor}, f::Symbol)
-    f === :MainPos && return Ptr{ImVec2}(x + 0)
-    f === :MainSize && return Ptr{ImVec2}(x + 8)
-    f === :WorkPos && return Ptr{ImVec2}(x + 16)
-    f === :WorkSize && return Ptr{ImVec2}(x + 24)
-    f === :DpiScale && return Ptr{Cfloat}(x + 32)
-    return getfield(x, f)
-end
-
-function Base.setproperty!(x::Ptr{ImGuiPlatformMonitor}, f::Symbol, v)
-    unsafe_store!(getproperty(x, f), v)
-end
-
 function ImGui_ImplGlfw_UpdateMonitors()
     platform_io::Ptr{ImGuiPlatformIO} = igGetPlatformIO()
 	glfw_monitors = GLFW.GetMonitors()

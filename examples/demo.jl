@@ -1,10 +1,10 @@
 using CImGui
-using CImGui.CSyntax
-using CImGui.GLFWBackend
-using CImGui.OpenGLBackend
-using CImGui.GLFWBackend.GLFW
-using CImGui.OpenGLBackend.ModernGL
-using Printf
+using CImGui.ImGuiGLFWBackend
+using CImGui.ImGuiGLFWBackend.LibCImGui
+using CImGui.ImGuiGLFWBackend.LibGLFW
+using CImGui.ImGuiOpenGLBackend
+using CImGui.ImGuiOpenGLBackend.ModernGL
+using CImGui.ImGuiGLFWBackend.GLFW
 
 include(joinpath(@__DIR__, "demo_window.jl"))
 
@@ -15,15 +15,15 @@ if Sys.isapple()
     GLFW.WindowHint(GLFW.OPENGL_FORWARD_COMPAT, GL_TRUE) # required on Mac
 end
 
-# setup GLFW error callback
-error_callback(err::GLFW.GLFWError) = @error "GLFW ERROR: code $(err.code) msg: $(err.description)"
-GLFW.SetErrorCallback(error_callback)
-
 # create window
 window = GLFW.CreateWindow(1280, 720, "Demo")
 @assert window != C_NULL
 GLFW.MakeContextCurrent(window)
 GLFW.SwapInterval(1)  # enable vsync
+
+# create OpenGL and GLFW context
+window_ctx = ImGuiGLFWBackend.create_context(window.handle)
+gl_ctx = ImGuiOpenGLBackend.create_context()
 
 # setup Dear ImGui context
 ctx = CImGui.CreateContext()
@@ -59,12 +59,12 @@ CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Recursive Sans Linear-Regu
 # @assert default_font != C_NULL
 
 # creat texture for image drawing
-img_width, img_height = 256, 256
-image_id = ImGui_ImplOpenGL3_CreateImageTexture(img_width, img_height)
+# img_width, img_height = 256, 256
+# image_id = ImGui_ImplOpenGL3_CreateImageTexture(img_width, img_height)
 
 # setup Platform/Renderer bindings
-ImGui_ImplGlfw_InitForOpenGL(window, true)
-ImGui_ImplOpenGL3_Init()
+ImGuiGLFWBackend.init(window_ctx)
+ImGuiOpenGLBackend.init(gl_ctx)
 
 try
     demo_open = true
@@ -72,18 +72,18 @@ try
     while !GLFW.WindowShouldClose(window)
         GLFW.PollEvents()
         # start the Dear ImGui frame
-        ImGui_ImplOpenGL3_NewFrame()
-        ImGui_ImplGlfw_NewFrame()
+        ImGuiOpenGLBackend.new_frame(gl_ctx)
+        ImGuiGLFWBackend.new_frame(window_ctx)
         CImGui.NewFrame()
 
         demo_open && @c ShowDemoWindow(&demo_open)
 
-        # show image example
-        CImGui.Begin("Image Demo")
-        image = rand(GLubyte, 4, img_width, img_height)
-        ImGui_ImplOpenGL3_UpdateImageTexture(image_id, image, img_width, img_height)
-        CImGui.Image(Ptr{Cvoid}(image_id), (img_width, img_height))
-        CImGui.End()
+        # # show image example
+        # CImGui.Begin("Image Demo")
+        # image = rand(GLubyte, 4, img_width, img_height)
+        # ImGui_ImplOpenGL3_UpdateImageTexture(image_id, image, img_width, img_height)
+        # CImGui.Image(Ptr{Cvoid}(image_id), (img_width, img_height))
+        # CImGui.End()
 
         # rendering
         CImGui.Render()
@@ -92,13 +92,13 @@ try
         glViewport(0, 0, display_w, display_h)
         glClearColor(clear_color...)
         glClear(GL_COLOR_BUFFER_BIT)
-        ImGui_ImplOpenGL3_RenderDrawData(CImGui.GetDrawData())
+        ImGuiOpenGLBackend.render(gl_ctx)
 
-        if unsafe_load(CImGui.GetIO().ConfigFlags) & CImGui.ImGuiConfigFlags_ViewportsEnable != 0
-            backup_current_context = GLFW.GetCurrentContext()
-            CImGui.igUpdatePlatformWindows()
-            CImGui.igRenderPlatformWindowsDefault(C_NULL, C_NULL)
-            GLFW.MakeContextCurrent(backup_current_context)
+        if unsafe_load(igGetIO().ConfigFlags) & ImGuiConfigFlags_ViewportsEnable == ImGuiConfigFlags_ViewportsEnable
+            backup_current_context = glfwGetCurrentContext()
+            igUpdatePlatformWindows()
+            GC.@preserve gl_ctx igRenderPlatformWindowsDefault(C_NULL, pointer_from_objref(gl_ctx))
+            glfwMakeContextCurrent(backup_current_context)
         end
 
         GLFW.SwapBuffers(window)
@@ -107,8 +107,8 @@ catch e
     @error "Error in renderloop!" exception=e
     Base.show_backtrace(stderr, catch_backtrace())
 finally
-    ImGui_ImplOpenGL3_Shutdown()
-    ImGui_ImplGlfw_Shutdown()
+    ImGuiOpenGLBackend.shutdown(gl_ctx)
+    ImGuiGLFWBackend.shutdown(window_ctx)
     CImGui.DestroyContext(ctx)
     GLFW.DestroyWindow(window)
 end

@@ -6,16 +6,13 @@ version = "1.82.0"
 [deps]
 CEnum = "fa961155-64e5-5f13-b03f-caf6b980ea82"
 CSyntax = "ea656a56-6ca6-5dda-bba5-7b6963a5f74c"
-GLFW = "f7f18e0c-5ee9-5ccd-a5bf-e8befd85ed98"
+ImGuiGLFWBackend = "623d79b3-9695-4e60-bd7e-2a5aabaa6933"
+ImGuiOpenGLBackend = "9d0819b4-44e7-43a2-ad03-8fb999128168"
 LibCImGui = "9be01004-c4f5-478b-abeb-cb32b114cf5e"
-Libdl = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
-ModernGL = "66fc600b-dfda-50eb-8b99-91cfa97b1301"
 
 [compat]
 CEnum = "0.4"
-GLFW = "3.4"
 LibCImGui = "1.82.1"
-ModernGL = "1.1"
 julia = "1.6"
 
 [extras]

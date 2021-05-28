@@ -1,6 +1,8 @@
 module CImGui
 
 using LibCImGui
+using ImGuiGLFWBackend
+using ImGuiOpenGLBackend
 
 using CSyntax
 using CEnum
@@ -53,11 +55,5 @@ end
 include("wrapper.jl")
 
 const IMGUI_VERSION = unsafe_string(GetVersion())
-
-include("backend/GLFW/GLFWBackend.jl")
-using .GLFWBackend
-
-include("backend/OpenGL/OpenGLBackend.jl")
-using .OpenGLBackend
 
 end # module

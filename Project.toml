@@ -12,7 +12,7 @@ LibCImGui = "9be01004-c4f5-478b-abeb-cb32b114cf5e"
 
 [compat]
 CEnum = "0.4"
-LibCImGui = "1.82.1"
+LibCImGui = "1.82.2"
 julia = "1.6"
 
 [extras]

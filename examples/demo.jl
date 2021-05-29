@@ -8,6 +8,7 @@ using CImGui.ImGuiGLFWBackend.GLFW
 
 include(joinpath(@__DIR__, "demo_window.jl"))
 
+GLFW.DefaultWindowHints()
 GLFW.WindowHint(GLFW.CONTEXT_VERSION_MAJOR, 3)
 GLFW.WindowHint(GLFW.CONTEXT_VERSION_MINOR, 2)
 if Sys.isapple()
@@ -37,6 +38,14 @@ io.ConfigFlags = unsafe_load(io.ConfigFlags) | CImGui.ImGuiConfigFlags_Viewports
 CImGui.StyleColorsDark()
 # CImGui.StyleColorsClassic()
 # CImGui.StyleColorsLight()
+
+# When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+style = Ptr{ImGuiStyle}(CImGui.GetStyle())
+if unsafe_load(io.ConfigFlags) & ImGuiConfigFlags_ViewportsEnable == ImGuiConfigFlags_ViewportsEnable
+    style.WindowRounding = 5.0f0
+    col = CImGui.c_get(style.Colors, CImGui.ImGuiCol_WindowBg)
+    CImGui.c_set!(style.Colors, CImGui.ImGuiCol_WindowBg, ImVec4(col.x, col.y, col.z, 1.0f0))
+end
 
 # load Fonts
 # - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use `CImGui.PushFont/PopFont` to select them.

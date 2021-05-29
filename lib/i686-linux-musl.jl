@@ -1542,6 +1542,54 @@ struct ImGuiStyle
     Colors::NTuple{55, ImVec4}
 end
 
+function Base.getproperty(x::Ptr{ImGuiStyle}, f::Symbol)
+    f === :Alpha && return Ptr{Cfloat}(x + 0)
+    f === :WindowPadding && return Ptr{ImVec2}(x + 4)
+    f === :WindowRounding && return Ptr{Cfloat}(x + 12)
+    f === :WindowBorderSize && return Ptr{Cfloat}(x + 16)
+    f === :WindowMinSize && return Ptr{ImVec2}(x + 20)
+    f === :WindowTitleAlign && return Ptr{ImVec2}(x + 28)
+    f === :WindowMenuButtonPosition && return Ptr{ImGuiDir}(x + 36)
+    f === :ChildRounding && return Ptr{Cfloat}(x + 40)
+    f === :ChildBorderSize && return Ptr{Cfloat}(x + 44)
+    f === :PopupRounding && return Ptr{Cfloat}(x + 48)
+    f === :PopupBorderSize && return Ptr{Cfloat}(x + 52)
+    f === :FramePadding && return Ptr{ImVec2}(x + 56)
+    f === :FrameRounding && return Ptr{Cfloat}(x + 64)
+    f === :FrameBorderSize && return Ptr{Cfloat}(x + 68)
+    f === :ItemSpacing && return Ptr{ImVec2}(x + 72)
+    f === :ItemInnerSpacing && return Ptr{ImVec2}(x + 80)
+    f === :CellPadding && return Ptr{ImVec2}(x + 88)
+    f === :TouchExtraPadding && return Ptr{ImVec2}(x + 96)
+    f === :IndentSpacing && return Ptr{Cfloat}(x + 104)
+    f === :ColumnsMinSpacing && return Ptr{Cfloat}(x + 108)
+    f === :ScrollbarSize && return Ptr{Cfloat}(x + 112)
+    f === :ScrollbarRounding && return Ptr{Cfloat}(x + 116)
+    f === :GrabMinSize && return Ptr{Cfloat}(x + 120)
+    f === :GrabRounding && return Ptr{Cfloat}(x + 124)
+    f === :LogSliderDeadzone && return Ptr{Cfloat}(x + 128)
+    f === :TabRounding && return Ptr{Cfloat}(x + 132)
+    f === :TabBorderSize && return Ptr{Cfloat}(x + 136)
+    f === :TabMinWidthForCloseButton && return Ptr{Cfloat}(x + 140)
+    f === :ColorButtonPosition && return Ptr{ImGuiDir}(x + 144)
+    f === :ButtonTextAlign && return Ptr{ImVec2}(x + 148)
+    f === :SelectableTextAlign && return Ptr{ImVec2}(x + 156)
+    f === :DisplayWindowPadding && return Ptr{ImVec2}(x + 164)
+    f === :DisplaySafeAreaPadding && return Ptr{ImVec2}(x + 172)
+    f === :MouseCursorScale && return Ptr{Cfloat}(x + 180)
+    f === :AntiAliasedLines && return Ptr{Bool}(x + 184)
+    f === :AntiAliasedLinesUseTex && return Ptr{Bool}(x + 185)
+    f === :AntiAliasedFill && return Ptr{Bool}(x + 186)
+    f === :CurveTessellationTol && return Ptr{Cfloat}(x + 188)
+    f === :CircleTessellationMaxError && return Ptr{Cfloat}(x + 192)
+    f === :Colors && return Ptr{NTuple{55, ImVec4}}(x + 196)
+    return getfield(x, f)
+end
+
+function Base.setproperty!(x::Ptr{ImGuiStyle}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
+end
+
 struct ImGuiSizeCallbackData
     UserData::Ptr{Cvoid}
     Pos::ImVec2

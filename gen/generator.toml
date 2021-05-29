@@ -23,4 +23,5 @@ field_access_method_list = [
     "ImVec2",
     "ImVec4",
     "ImGuiPlatformMonitor",
+    "ImGuiStyle",
 ]

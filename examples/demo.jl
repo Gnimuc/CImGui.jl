@@ -5,6 +5,7 @@ using CImGui.ImGuiGLFWBackend.LibGLFW
 using CImGui.ImGuiOpenGLBackend
 using CImGui.ImGuiOpenGLBackend.ModernGL
 using CImGui.ImGuiGLFWBackend.GLFW
+using CImGui.CSyntax
 
 # include(joinpath(@__DIR__, "demo_window.jl"))
 

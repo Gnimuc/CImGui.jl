@@ -12,6 +12,9 @@ to get an idea of its use cases.
 ![demo](demo/demo.png)
 
 ## Installation
+
+**This is the doc for the v1.79 release, not the master branch. The master branch is currently being revamped. Please take a look at #52 for the future directions of this package.**
+
 ```julia
 pkg> add CImGui
 ```

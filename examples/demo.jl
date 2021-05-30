@@ -1,32 +1,20 @@
 using CImGui
-using CImGui.CSyntax
-using CImGui.GLFWBackend
-using CImGui.OpenGLBackend
-using CImGui.GLFWBackend.GLFW
-using CImGui.OpenGLBackend.ModernGL
-using Printf
+using CImGui.ImGuiGLFWBackend
+using CImGui.ImGuiGLFWBackend.LibCImGui
+using CImGui.ImGuiGLFWBackend.LibGLFW
+using CImGui.ImGuiOpenGLBackend
+using CImGui.ImGuiOpenGLBackend.ModernGL
+using CImGui.ImGuiGLFWBackend.GLFW
 
-include(joinpath(@__DIR__, "demo_window.jl"))
+# include(joinpath(@__DIR__, "demo_window.jl"))
 
-@static if Sys.isapple()
-    # OpenGL 3.2 + GLSL 150
-    const glsl_version = 150
-    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MAJOR, 3)
-    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MINOR, 2)
+GLFW.DefaultWindowHints()
+GLFW.WindowHint(GLFW.CONTEXT_VERSION_MAJOR, 3)
+GLFW.WindowHint(GLFW.CONTEXT_VERSION_MINOR, 2)
+if Sys.isapple()
     GLFW.WindowHint(GLFW.OPENGL_PROFILE, GLFW.OPENGL_CORE_PROFILE) # 3.2+ only
     GLFW.WindowHint(GLFW.OPENGL_FORWARD_COMPAT, GL_TRUE) # required on Mac
-else
-    # OpenGL 3.0 + GLSL 130
-    const glsl_version = 130
-    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MAJOR, 3)
-    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MINOR, 0)
-    # GLFW.WindowHint(GLFW.OPENGL_PROFILE, GLFW.OPENGL_CORE_PROFILE) # 3.2+ only
-    # GLFW.WindowHint(GLFW.OPENGL_FORWARD_COMPAT, GL_TRUE) # 3.0+ only
 end
-
-# setup GLFW error callback
-error_callback(err::GLFW.GLFWError) = @error "GLFW ERROR: code $(err.code) msg: $(err.description)"
-GLFW.SetErrorCallback(error_callback)
 
 # create window
 window = GLFW.CreateWindow(1280, 720, "Demo")
@@ -34,13 +22,30 @@ window = GLFW.CreateWindow(1280, 720, "Demo")
 GLFW.MakeContextCurrent(window)
 GLFW.SwapInterval(1)  # enable vsync
 
+# create OpenGL and GLFW context
+window_ctx = ImGuiGLFWBackend.create_context(window.handle)
+gl_ctx = ImGuiOpenGLBackend.create_context()
+
 # setup Dear ImGui context
 ctx = CImGui.CreateContext()
+
+# enable docking and multi-viewport
+io = CImGui.GetIO()
+io.ConfigFlags = unsafe_load(io.ConfigFlags) | CImGui.ImGuiConfigFlags_DockingEnable
+io.ConfigFlags = unsafe_load(io.ConfigFlags) | CImGui.ImGuiConfigFlags_ViewportsEnable
 
 # setup Dear ImGui style
 CImGui.StyleColorsDark()
 # CImGui.StyleColorsClassic()
 # CImGui.StyleColorsLight()
+
+# When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+style = Ptr{ImGuiStyle}(CImGui.GetStyle())
+if unsafe_load(io.ConfigFlags) & ImGuiConfigFlags_ViewportsEnable == ImGuiConfigFlags_ViewportsEnable
+    style.WindowRounding = 5.0f0
+    col = CImGui.c_get(style.Colors, CImGui.ImGuiCol_WindowBg)
+    CImGui.c_set!(style.Colors, CImGui.ImGuiCol_WindowBg, ImVec4(col.x, col.y, col.z, 1.0f0))
+end
 
 # load Fonts
 # - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use `CImGui.PushFont/PopFont` to select them.
@@ -63,12 +68,12 @@ CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Recursive Sans Linear-Regu
 # @assert default_font != C_NULL
 
 # creat texture for image drawing
-img_width, img_height = 256, 256
-image_id = ImGui_ImplOpenGL3_CreateImageTexture(img_width, img_height)
+# img_width, img_height = 256, 256
+# image_id = ImGui_ImplOpenGL3_CreateImageTexture(img_width, img_height)
 
 # setup Platform/Renderer bindings
-ImGui_ImplGlfw_InitForOpenGL(window, true)
-ImGui_ImplOpenGL3_Init(glsl_version)
+ImGuiGLFWBackend.init(window_ctx)
+ImGuiOpenGLBackend.init(gl_ctx)
 
 try
     demo_open = true
@@ -76,18 +81,18 @@ try
     while !GLFW.WindowShouldClose(window)
         GLFW.PollEvents()
         # start the Dear ImGui frame
-        ImGui_ImplOpenGL3_NewFrame()
-        ImGui_ImplGlfw_NewFrame()
+        ImGuiOpenGLBackend.new_frame(gl_ctx)
+        ImGuiGLFWBackend.new_frame(window_ctx)
         CImGui.NewFrame()
 
-        demo_open && @c ShowDemoWindow(&demo_open)
+        demo_open && @c CImGui.ShowDemoWindow(&demo_open)
 
-        # show image example
-        CImGui.Begin("Image Demo")
-        image = rand(GLubyte, 4, img_width, img_height)
-        ImGui_ImplOpenGL3_UpdateImageTexture(image_id, image, img_width, img_height)
-        CImGui.Image(Ptr{Cvoid}(image_id), (img_width, img_height))
-        CImGui.End()
+        # # show image example
+        # CImGui.Begin("Image Demo")
+        # image = rand(GLubyte, 4, img_width, img_height)
+        # ImGui_ImplOpenGL3_UpdateImageTexture(image_id, image, img_width, img_height)
+        # CImGui.Image(Ptr{Cvoid}(image_id), (img_width, img_height))
+        # CImGui.End()
 
         # rendering
         CImGui.Render()
@@ -96,18 +101,23 @@ try
         glViewport(0, 0, display_w, display_h)
         glClearColor(clear_color...)
         glClear(GL_COLOR_BUFFER_BIT)
-        ImGui_ImplOpenGL3_RenderDrawData(CImGui.GetDrawData())
+        ImGuiOpenGLBackend.render(gl_ctx)
 
-        GLFW.MakeContextCurrent(window)
+        if unsafe_load(igGetIO().ConfigFlags) & ImGuiConfigFlags_ViewportsEnable == ImGuiConfigFlags_ViewportsEnable
+            backup_current_context = glfwGetCurrentContext()
+            igUpdatePlatformWindows()
+            GC.@preserve gl_ctx igRenderPlatformWindowsDefault(C_NULL, pointer_from_objref(gl_ctx))
+            glfwMakeContextCurrent(backup_current_context)
+        end
+
         GLFW.SwapBuffers(window)
     end
 catch e
     @error "Error in renderloop!" exception=e
     Base.show_backtrace(stderr, catch_backtrace())
 finally
-    ImGui_ImplOpenGL3_Shutdown()
-    ImGui_ImplGlfw_Shutdown()
+    ImGuiOpenGLBackend.shutdown(gl_ctx)
+    ImGuiGLFWBackend.shutdown(window_ctx)
     CImGui.DestroyContext(ctx)
-    GLFW.HideWindow(window)
     GLFW.DestroyWindow(window)
 end

@@ -15,7 +15,7 @@ to get an idea of its use cases.
 
 ## Installation
 
-**This is the doc for the v1.79 release, not the master branch. The master branch is currently being revamped. Please take a look at #52 for the future directions of this package.**
+**This is the doc for the v1.79 release, not the master branch. The master branch is currently being revamped. Please check [#52](https://github.com/Gnimuc/CImGui.jl/discussions/52) for the future directions of this package.**
 
 ```julia
 pkg> add CImGui

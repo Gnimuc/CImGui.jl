@@ -1,37 +1,37 @@
 using CImGui
 using CImGui.CSyntax
 using CImGui.CSyntax.CStatic
-using CImGui.GLFWBackend
-using CImGui.OpenGLBackend
-using CImGui.GLFWBackend.GLFW
-using CImGui.OpenGLBackend.ModernGL
+using ImGuiGLFWBackend #CImGui.GLFWBackend
+using ImGuiOpenGLBackend #CImGui.OpenGLBackend
+using ImGuiGLFWBackend.LibGLFW # #CImGui.OpenGLBackend.GLFW
+using ImGuiOpenGLBackend.ModernGL
 using Printf
 
 @static if Sys.isapple()
     # OpenGL 3.2 + GLSL 150
     const glsl_version = 150
-    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MAJOR, 3)
-    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MINOR, 2)
-    GLFW.WindowHint(GLFW.OPENGL_PROFILE, GLFW.OPENGL_CORE_PROFILE) # 3.2+ only
-    GLFW.WindowHint(GLFW.OPENGL_FORWARD_COMPAT, GL_TRUE) # required on Mac
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2)
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE) # 3.2+ only
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE) # required on Mac
 else
     # OpenGL 3.0 + GLSL 130
     const glsl_version = 130
-    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MAJOR, 3)
-    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MINOR, 0)
-    # GLFW.WindowHint(GLFW.OPENGL_PROFILE, GLFW.OPENGL_CORE_PROFILE) # 3.2+ only
-    # GLFW.WindowHint(GLFW.OPENGL_FORWARD_COMPAT, GL_TRUE) # 3.0+ only
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0)
+    # glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE) # 3.2+ only
+    # glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE) # 3.0+ only
 end
 
 # setup GLFW error callback
-error_callback(err::GLFW.GLFWError) = @error "GLFW ERROR: code $(err.code) msg: $(err.description)"
-GLFW.SetErrorCallback(error_callback)
+#? error_callback(err::GLFW.GLFWError) = @error "GLFW ERROR: code $(err.code) msg: $(err.description)"
+#? GLFW.SetErrorCallback(error_callback)
 
 # create window
-window = GLFW.CreateWindow(1280, 720, "Demo")
+window = glfwCreateWindow(1280, 720, "Demo", C_NULL, C_NULL)
 @assert window != C_NULL
-GLFW.MakeContextCurrent(window)
-GLFW.SwapInterval(1)  # enable vsync
+glfwMakeContextCurrent(window)
+glfwSwapInterval(1)  # enable vsync
 
 # setup Dear ImGui context
 ctx = CImGui.CreateContext()
@@ -58,18 +58,20 @@ CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Roboto-Medium.ttf"), 16)
 # @assert default_font != C_NULL
 
 # setup Platform/Renderer bindings
-ImGui_ImplGlfw_InitForOpenGL(window, true)
-ImGui_ImplOpenGL3_Init(glsl_version)
+glfw_ctx = ImGuiGLFWBackend.create_context(window, install_callbacks = true)
+ImGuiGLFWBackend.init(glfw_ctx)
+opengl_ctx = ImGuiOpenGLBackend.create_context(glsl_version)
+ImGuiOpenGLBackend.init(opengl_ctx)
 
 try
     show_demo_window = true
     show_another_window = false
     clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
-    while !GLFW.WindowShouldClose(window)
-        GLFW.PollEvents()
+    while glfwWindowShouldClose(window) == 0
+        glfwPollEvents()
         # start the Dear ImGui frame
-        ImGui_ImplOpenGL3_NewFrame()
-        ImGui_ImplGlfw_NewFrame()
+        ImGuiOpenGLBackend.new_frame(opengl_ctx) #ImGui_ImplOpenGL3_NewFrame()
+        ImGuiGLFWBackend.new_frame(glfw_ctx) #ImGui_ImplGlfw_NewFrame()
         CImGui.NewFrame()
 
         # show the big demo window
@@ -104,22 +106,27 @@ try
 
         # rendering
         CImGui.Render()
-        GLFW.MakeContextCurrent(window)
-        display_w, display_h = GLFW.GetFramebufferSize(window)
+        glfwMakeContextCurrent(window)
+
+        width, height = Ref{Cint}(), Ref{Cint}() #! need helper fcn
+        glfwGetFramebufferSize(window, width, height)
+        display_w = width[]
+        display_h = height[]
+        
         glViewport(0, 0, display_w, display_h)
         glClearColor(clear_color...)
         glClear(GL_COLOR_BUFFER_BIT)
-        ImGui_ImplOpenGL3_RenderDrawData(CImGui.GetDrawData())
+        ImGuiOpenGLBackend.render(opengl_ctx) #ImGui_ImplOpenGL3_RenderDrawData(CImGui.GetDrawData())
 
-        GLFW.MakeContextCurrent(window)
-        GLFW.SwapBuffers(window)
+        glfwMakeContextCurrent(window)
+        glfwSwapBuffers(window)
     end
 catch e
     @error "Error in renderloop!" exception=e
     Base.show_backtrace(stderr, catch_backtrace())
 finally
-    ImGui_ImplOpenGL3_Shutdown()
-    ImGui_ImplGlfw_Shutdown()
+    ImGuiOpenGLBackend.shutdown(opengl_ctx) #ImGui_ImplOpenGL3_Shutdown()
+    ImGuiGLFWBackend.shutdown(glfw_ctx) #ImGui_ImplGlfw_Shutdown()
     CImGui.DestroyContext(ctx)
-    GLFW.DestroyWindow(window)
+    glfwDestroyWindow(window)
 end

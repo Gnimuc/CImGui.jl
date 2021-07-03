@@ -5,3 +5,4 @@
 *.jl.mem
 *.ini
 imgui_log.txt
+.vscode

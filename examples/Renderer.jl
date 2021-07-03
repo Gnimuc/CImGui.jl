@@ -10,31 +10,31 @@ function __init__()
     @static if Sys.isapple()
         # OpenGL 3.2 + GLSL 150
         global glsl_version = 150
-        GLFW.WindowHint(GLFW.CONTEXT_VERSION_MAJOR, 3)
-        GLFW.WindowHint(GLFW.CONTEXT_VERSION_MINOR, 2)
-        GLFW.WindowHint(GLFW.OPENGL_PROFILE, GLFW.OPENGL_CORE_PROFILE) # 3.2+ only
-        GLFW.WindowHint(GLFW.OPENGL_FORWARD_COMPAT, GL_TRUE) # required on Mac
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2)
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE) # 3.2+ only
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE) # required on Mac
     else
         # OpenGL 3.0 + GLSL 130
         global glsl_version = 130
-        GLFW.WindowHint(GLFW.CONTEXT_VERSION_MAJOR, 3)
-        GLFW.WindowHint(GLFW.CONTEXT_VERSION_MINOR, 0)
-        # GLFW.WindowHint(GLFW.OPENGL_PROFILE, GLFW.OPENGL_CORE_PROFILE) # 3.2+ only
-        # GLFW.WindowHint(GLFW.OPENGL_FORWARD_COMPAT, GL_TRUE) # 3.0+ only
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0)
+        # glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE) # 3.2+ only
+        # glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE) # 3.0+ only
     end
 end
 
-error_callback(err::GLFW.GLFWError) = @error "GLFW ERROR: code $(err.code) msg: $(err.description)"
+#? error_callback(err::GLFW.GLFWError) = @error "GLFW ERROR: code $(err.code) msg: $(err.description)"
 
 function init_renderer(width, height, title::AbstractString)
     # setup GLFW error callback
-    GLFW.SetErrorCallback(error_callback)
+    #? GLFW.SetErrorCallback(error_callback)
 
     # create window
-    window = GLFW.CreateWindow(width, height, title)
+    window = glfwCreateWindow(width, height, title, C_NULL, C_NULL)
     @assert window != C_NULL
-    GLFW.MakeContextCurrent(window)
-    GLFW.SwapInterval(1)  # enable vsync
+    glfwMakeContextCurrent(window)
+    glfwSwapInterval(1)  # enable vsync
 
     # setup Dear ImGui context
     ctx = CImGui.CreateContext()
@@ -53,8 +53,8 @@ end
 
 function renderloop(window, ctx, ui=()->nothing, hotloading=false)
     try
-        while !GLFW.WindowShouldClose(window)
-            GLFW.PollEvents()
+        while !glfwWindowShouldClose(window)
+            glfwPollEvents()
             ImGui_ImplOpenGL3_NewFrame()
             ImGui_ImplGlfw_NewFrame()
             CImGui.NewFrame()
@@ -62,15 +62,15 @@ function renderloop(window, ctx, ui=()->nothing, hotloading=false)
             hotloading ? Base.invokelatest(ui) : ui()
 
             CImGui.Render()
-            GLFW.MakeContextCurrent(window)
-            display_w, display_h = GLFW.GetFramebufferSize(window)
+            glfwMakeContextCurrent(window)
+            display_w, display_h = glfwGetFramebufferSize(window)
             glViewport(0, 0, display_w, display_h)
             glClearColor(0.2, 0.2, 0.2, 1)
             glClear(GL_COLOR_BUFFER_BIT)
             ImGui_ImplOpenGL3_RenderDrawData(CImGui.GetDrawData())
 
-            GLFW.MakeContextCurrent(window)
-            GLFW.SwapBuffers(window)
+            glfwMakeContextCurrent(window)
+            glfwSwapBuffers(window)
             yield()
         end
     catch e
@@ -80,7 +80,7 @@ function renderloop(window, ctx, ui=()->nothing, hotloading=false)
         ImGui_ImplOpenGL3_Shutdown()
         ImGui_ImplGlfw_Shutdown()
         CImGui.DestroyContext(ctx)
-        GLFW.DestroyWindow(window)
+        glfwDestroyWindow(window)
     end
 end
 

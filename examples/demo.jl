@@ -4,27 +4,27 @@ using CImGui.ImGuiGLFWBackend.LibCImGui
 using CImGui.ImGuiGLFWBackend.LibGLFW
 using CImGui.ImGuiOpenGLBackend
 using CImGui.ImGuiOpenGLBackend.ModernGL
-using CImGui.ImGuiGLFWBackend.GLFW
+# using CImGui.ImGuiGLFWBackend.GLFW
 using CImGui.CSyntax
 
 # include(joinpath(@__DIR__, "demo_window.jl"))
 
-GLFW.DefaultWindowHints()
-GLFW.WindowHint(GLFW.CONTEXT_VERSION_MAJOR, 3)
-GLFW.WindowHint(GLFW.CONTEXT_VERSION_MINOR, 2)
+glfwDefaultWindowHints()
+glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
+glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2)
 if Sys.isapple()
-    GLFW.WindowHint(GLFW.OPENGL_PROFILE, GLFW.OPENGL_CORE_PROFILE) # 3.2+ only
-    GLFW.WindowHint(GLFW.OPENGL_FORWARD_COMPAT, GL_TRUE) # required on Mac
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE) # 3.2+ only
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE) # required on Mac
 end
 
 # create window
-window = GLFW.CreateWindow(1280, 720, "Demo")
+window = glfwCreateWindow(1280, 720, "Demo", C_NULL, C_NULL)
 @assert window != C_NULL
-GLFW.MakeContextCurrent(window)
-GLFW.SwapInterval(1)  # enable vsync
+glfwMakeContextCurrent(window)
+glfwSwapInterval(1)  # enable vsync
 
 # create OpenGL and GLFW context
-window_ctx = ImGuiGLFWBackend.create_context(window.handle)
+window_ctx = ImGuiGLFWBackend.create_context(window)
 gl_ctx = ImGuiOpenGLBackend.create_context()
 
 # setup Dear ImGui context
@@ -79,8 +79,8 @@ ImGuiOpenGLBackend.init(gl_ctx)
 try
     demo_open = true
     clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
-    while !GLFW.WindowShouldClose(window)
-        GLFW.PollEvents()
+    while glfwWindowShouldClose(window) == 0
+        glfwPollEvents()
         # start the Dear ImGui frame
         ImGuiOpenGLBackend.new_frame(gl_ctx)
         ImGuiGLFWBackend.new_frame(window_ctx)
@@ -97,8 +97,13 @@ try
 
         # rendering
         CImGui.Render()
-        GLFW.MakeContextCurrent(window)
-        display_w, display_h = GLFW.GetFramebufferSize(window)
+        glfwMakeContextCurrent(window)
+
+        width, height = Ref{Cint}(), Ref{Cint}() #! need helper fcn
+        glfwGetFramebufferSize(window, width, height)
+        display_w = width[]
+        display_h = height[]
+
         glViewport(0, 0, display_w, display_h)
         glClearColor(clear_color...)
         glClear(GL_COLOR_BUFFER_BIT)
@@ -111,7 +116,7 @@ try
             glfwMakeContextCurrent(backup_current_context)
         end
 
-        GLFW.SwapBuffers(window)
+        glfwSwapBuffers(window)
     end
 catch e
     @error "Error in renderloop!" exception=e
@@ -120,5 +125,5 @@ finally
     ImGuiOpenGLBackend.shutdown(gl_ctx)
     ImGuiGLFWBackend.shutdown(window_ctx)
     CImGui.DestroyContext(ctx)
-    GLFW.DestroyWindow(window)
+    glfwDestroyWindow(window)
 end

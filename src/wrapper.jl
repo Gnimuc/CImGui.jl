@@ -1868,6 +1868,30 @@ SetColumnOffset(column_index, offset_x) = igSetColumnOffset(column_index, offset
 """
 GetColumnsCount() = igGetColumnsCount()
 
+####################################  Table ####################################
+
+BeginTable(str_id,columns_count,flags,outer_size,inner_width) = igBeginTable(str_id,columns_count,flags,outer_size,inner_width)
+EndTable() = igEndTable()
+
+TableNextRow(row_flags, min_row_height) = igTableNextRow(row_flags, min_row_height)
+TableNextColumn() = igTableNextColumn()
+TableSetColumnIndex(column_n) = igTableSetColumnIndex(column_n)
+TableGetColumnIndex() = igTableGetColumnIndex()
+TableGetRowIndex() = igTableGetRowIndex()
+
+# Tables: Headers & Columns declaration
+TableSetupColumn(label, flags, init_width_or_weight, user_id) = igTableSetupColumn(label, flags, init_width_or_weight, user_id)
+TableSetupScrollFreeze(cols, rows) = igTableSetupScrollFreeze(cols, rows)
+TableHeadersRow() = igTableHeadersRow()
+TableHeader(label) = igTableHeader(label)
+
+# Tables: Miscellaneous functions
+TableGetColumnCount() = igTableGetColumnCount()
+TableGetColumnName(column_n) = igTableGetColumnName(column_n)
+TableGetColumnFlags(column_n) = igTableGetColumnFlags(column_n)
+TableGetSortSpecs() = igTableGetSortSpecs()
+TableSetBgColor(bg_target, color, column_n) = igTableSetBgColor(bg_target, color, column_n)
+
 ##################################### Tab Bars, Tabs #######################################
 """
     igBeginTabBar(str_id, flags=ImGuiTabBarFlags_(0)) -> Bool

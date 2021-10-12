@@ -1870,7 +1870,7 @@ GetColumnsCount() = igGetColumnsCount()
 
 ####################################  Table ####################################
 
-BeginTable(str_id,columns_count,flags,outer_size,inner_width) = igBeginTable(str_id,columns_count,flags,outer_size,inner_width)
+BeginTable(str_id, columns_count, flags, outer_size, inner_width) = igBeginTable(str_id, columns_count, flags, outer_size, inner_width)
 EndTable() = igEndTable()
 
 TableNextRow(row_flags, min_row_height) = igTableNextRow(row_flags, min_row_height)

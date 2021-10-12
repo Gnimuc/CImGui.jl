@@ -1869,28 +1869,135 @@ SetColumnOffset(column_index, offset_x) = igSetColumnOffset(column_index, offset
 GetColumnsCount() = igGetColumnsCount()
 
 ####################################  Table ####################################
+# [BETA API] API may evolve slightly! If you use this, please update to the next version when it comes out!
+# - Full-featured replacement for old Columns API.
+# - See Demo->Tables for demo code.
+# - See top of imgui_tables.cpp for general commentary.
+# - See ImGuiTableFlags_ and ImGuiTableColumnFlags_ enums for a description of available flags.
+# The typical call flow is:
+# - 1. Call BeginTable().
+# - 2. Optionally call TableSetupColumn() to submit column name/flags/defaults.
+# - 3. Optionally call TableSetupScrollFreeze() to request scroll freezing of columns/rows.
+# - 4. Optionally call TableHeadersRow() to submit a header row. Names are pulled from TableSetupColumn() data.
+# - 5. Populate contents:
+#    - In most situations you can use TableNextRow() + TableSetColumnIndex(N) to start appending into a column.
+#    - If you are using tables as a sort of grid, where every columns is holding the same type of contents,
+#      you may prefer using TableNextColumn() instead of TableNextRow() + TableSetColumnIndex().
+#      TableNextColumn() will automatically wrap-around into the next row if needed.
+#    - IMPORTANT: Comparatively to the old Columns() API, we need to call TableNextColumn() for the first column!
+#    - Summary of possible call flow:
+#        --------------------------------------------------------------------------------------------------------
+#        TableNextRow() -> TableSetColumnIndex(0) -> Text("Hello 0") -> TableSetColumnIndex(1) -> Text("Hello 1")  // OK
+#        TableNextRow() -> TableNextColumn()      -> Text("Hello 0") -> TableNextColumn()      -> Text("Hello 1")  // OK
+#                          TableNextColumn()      -> Text("Hello 0") -> TableNextColumn()      -> Text("Hello 1")  // OK: TableNextColumn() automatically gets to next row!
+#        TableNextRow()                           -> Text("Hello 0")                                               // Not OK! Missing TableSetColumnIndex() or TableNextColumn()! Text will not appear!
+#        --------------------------------------------------------------------------------------------------------
+# - 5. Call EndTable()
+"""
+    BeginTable(str_id, columns_count, flags = ImGuiTableFlags_(0), outer_size = ImVec2(0,0), inner_width = 0.0) -> Bool
+Begin a table entry. 
+"""
 
-BeginTable(str_id, columns_count, flags, outer_size, inner_width) = igBeginTable(str_id, columns_count, flags, outer_size, inner_width)
+BeginTable(str_id, columns_count, flags = ImGuiTableFlags_(0), outer_size = ImVec2(0,0), inner_width = 0.0) = igBeginTable(str_id, columns_count, flags, outer_size, inner_width)
+
+"""
+    EndTable()
+Only call [`EndTable`](@ref) if [`BeginTable`](@ref) returns true!
+"""
 EndTable() = igEndTable()
 
-TableNextRow(row_flags, min_row_height) = igTableNextRow(row_flags, min_row_height)
+"""
+    TableNextRow(row_flags = ImGuiTableRowFlags_(0), min_row_height = 0.0)
+Append into the first cell of a new row.
+"""
+TableNextRow(row_flags = ImGuiTableRowFlags_(0), min_row_height = 0.0) = igTableNextRow(row_flags, min_row_height)
+
+"""
+    TableNextColumn() -> Bool
+Append into the next column (or first column of next row if currently in last column). Return true when column is visible.
+"""                                                                                                                                    
 TableNextColumn() = igTableNextColumn()
+
+"""
+    TableSetColumnIndex(column_n) -> Bool
+Append into the specified column. Return true when column is visible.
+"""
 TableSetColumnIndex(column_n) = igTableSetColumnIndex(column_n)
+
+"""
+    TableGetColumnIndex() -> CInt
+Return current column index
+"""
 TableGetColumnIndex() = igTableGetColumnIndex()
+
+"""
+    TableGetRowIndex() -> CInt
+Return current row index.
+"""
 TableGetRowIndex() = igTableGetRowIndex()
 
 # Tables: Headers & Columns declaration
-TableSetupColumn(label, flags, init_width_or_weight, user_id) = igTableSetupColumn(label, flags, init_width_or_weight, user_id)
+# - Use TableSetupColumn() to specify label, resizing policy, default width/weight, id, various other flags etc.
+# - Use TableHeadersRow() to create a header row and automatically submit a TableHeader() for each column.
+#   Headers are required to perform: reordering, sorting, and opening the context menu.
+#   The context menu can also be made available in columns body using ImGuiTableFlags_ContextMenuInBody.
+# - You may manually submit headers using TableNextRow() + TableHeader() calls, but this is only useful in
+#   some advanced use cases (e.g. adding custom widgets in header row).
+# - Use TableSetupScrollFreeze() to lock columns/rows so they stay visible when scrolled.
+"""
+    TableSetupColumn(label, flags = ImGuiTableColumnFlags_(0), init_width_or_weight = 0.0, user_id = ImGuiID(0))
+Specify label, resizing policy, default width/weight, id, various other flags etc.
+"""
+TableSetupColumn(label, flags = ImGuiTableColumnFlags_(0), init_width_or_weight = 0.0, user_id = ImGuiID(0)) = igTableSetupColumn(label, flags, init_width_or_weight, user_id)
+
+"""
+    TableSetupScrollFreeze(cols, rows)
+Lock columns/rows so they stay visible when scrolled.
+"""
 TableSetupScrollFreeze(cols, rows) = igTableSetupScrollFreeze(cols, rows)
+
+"""
+    TableHeadersRow()
+Submit all headers cells based on data provided to TableSetupColumn() + submit context menu
+"""
 TableHeadersRow() = igTableHeadersRow()
+
+"""
+    TableHeader(label)
+Submit one header cell manually (rarely used)
+"""
 TableHeader(label) = igTableHeader(label)
 
 # Tables: Miscellaneous functions
+"""
+    TableGetColumnCount() -> CInt
+return number of columns (value passed to BeginTable)
+"""
 TableGetColumnCount() = igTableGetColumnCount()
-TableGetColumnName(column_n) = igTableGetColumnName(column_n)
-TableGetColumnFlags(column_n) = igTableGetColumnFlags(column_n)
+
+"""
+    TableGetColumnName(column_n = -1) -> String
+return "" if column didn't have a name declared by TableSetupColumn(). Pass -1 to use current column.
+"""
+TableGetColumnName(column_n = -1) = unsafe_string(igTableGetColumnNameInt(column_n))
+
+"""
+    TableGetColumnFlags(column_n = -1) -> ImGuiTableColumnFlags
+Return column flags so you can query their Enabled/Visible/Sorted/Hovered status flags. Pass -1 to use current column.
+"""
+TableGetColumnFlags(column_n = -1) = igTableGetColumnFlags(column_n)
+
+"""
+    TableGetSortSpecs() -> Ptr{ImGuiTableSortSpecs}
+get latest sort specs for the table (NULL if not sorting).
+"""
 TableGetSortSpecs() = igTableGetSortSpecs()
-TableSetBgColor(bg_target, color, column_n) = igTableSetBgColor(bg_target, color, column_n)
+
+"""
+    TableSetBgColor(bg_target, color, column_n = -1)
+Change the color of a cell, row, or column. See ImGuiTableBgTarget_ flags for details.
+"""
+TableSetBgColor(bg_target, color, column_n = -1) = igTableSetBgColor(bg_target, color, column_n)
 
 ##################################### Tab Bars, Tabs #######################################
 """

@@ -1607,13 +1607,11 @@ ListBox(label, current_item, items, items_count, height_in_items=-1) = igListBox
 ListBox(label, current_item, items_getter::Ptr{Cvoid}, data::Ptr{Cvoid}, items_count, height_in_items=-1) = igListBoxFnBoolPtr(label, current_item, items_getter, data, items_count, height_in_items)
 
 """
-    ListBoxHeader(label, size=(0,0))
-    ListBoxHeader(label, items_count::Integer, height_in_items=-1)
+    BeginListBox(label, size=(0,0))
 Use if you want to reimplement [`ListBox`](@ref) will custom data or interactions.
-If the function return true, you can output elements then call [`ListBoxFooter`](@ref) afterwards.
+If the function return true, you can output elements then call [`EndListBox`](@ref) afterwards.
 """
-ListBoxHeader(label, size=ImVec2(0,0)) = igListBoxHeaderVec2(label, size)
-ListBoxHeader(label, items_count::Integer, height_in_items=-1) = igListBoxHeaderInt(label, items_count, height_in_items)
+BeginListBox(label,size=ImVec2(0,0)) = igBeginListBox(label,size)
 
 """
     ListBoxFooter()
@@ -1622,7 +1620,8 @@ Terminate the scrolling region.
 !!! note
     Only call `ListBoxFooter()` if [`ListBoxHeader`](@ref) returned true!
 """
-ListBoxFooter() = igListBoxFooter()
+EndListBox() = igEndListBox()
+
 
 ################################## Widgets: Data Plotting ##################################
 """

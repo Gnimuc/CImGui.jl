@@ -1,10 +1,10 @@
 module Renderer
 
 using CImGui
-using CImGui.GLFWBackend
-using CImGui.OpenGLBackend
-using CImGui.GLFWBackend.GLFW
-using CImGui.OpenGLBackend.ModernGL
+using CImGui.ImGuiGLFWBackend
+using CImGui.ImGuiOpenGLBackend
+using CImGui.ImGuiGLFWBackend.LibGLFW
+using CImGui.ImGuiOpenGLBackend.ModernGL
 
 function __init__()
     @static if Sys.isapple()
@@ -45,29 +45,34 @@ function init_renderer(width, height, title::AbstractString)
     # CImGui.StyleColorsLight()
 
     # setup Platform/Renderer bindings
-    ImGui_ImplGlfw_InitForOpenGL(window, true)
-    ImGui_ImplOpenGL3_Init(glsl_version)
+    glfw_ctx = ImGuiGLFWBackend.create_context(window, install_callbacks = true)
+    ImGuiGLFWBackend.init(glfw_ctx)
+    opengl_ctx = ImGuiOpenGLBackend.create_context(glsl_version)
+    ImGuiOpenGLBackend.init(opengl_ctx)
 
-    return window, ctx
+    return window, ctx, glfw_ctx, opengl_ctx
 end
 
-function renderloop(window, ctx, ui=()->nothing, hotloading=false)
+function renderloop(window, ctx, glfw_ctx, opengl_ctx, ui=()->nothing, hotloading=false)
     try
-        while !glfwWindowShouldClose(window)
+        while glfwWindowShouldClose(window) == 0
             glfwPollEvents()
-            ImGui_ImplOpenGL3_NewFrame()
-            ImGui_ImplGlfw_NewFrame()
+            ImGuiOpenGLBackend.new_frame(opengl_ctx)
+            ImGuiGLFWBackend.new_frame(glfw_ctx)
             CImGui.NewFrame()
 
             hotloading ? Base.invokelatest(ui) : ui()
 
             CImGui.Render()
             glfwMakeContextCurrent(window)
-            display_w, display_h = glfwGetFramebufferSize(window)
+            width, height = Ref{Cint}(), Ref{Cint}() #! need helper fcn
+            glfwGetFramebufferSize(window, width, height)
+            display_w = width[]
+            display_h = height[]
             glViewport(0, 0, display_w, display_h)
             glClearColor(0.2, 0.2, 0.2, 1)
             glClear(GL_COLOR_BUFFER_BIT)
-            ImGui_ImplOpenGL3_RenderDrawData(CImGui.GetDrawData())
+            ImGuiOpenGLBackend.render(opengl_ctx)
 
             glfwMakeContextCurrent(window)
             glfwSwapBuffers(window)
@@ -77,17 +82,17 @@ function renderloop(window, ctx, ui=()->nothing, hotloading=false)
         @error "Error in renderloop!" exception=e
         Base.show_backtrace(stderr, catch_backtrace())
     finally
-        ImGui_ImplOpenGL3_Shutdown()
-        ImGui_ImplGlfw_Shutdown()
+        ImGuiOpenGLBackend.shutdown(opengl_ctx)
+        ImGuiGLFWBackend.shutdown(glfw_ctx)
         CImGui.DestroyContext(ctx)
         glfwDestroyWindow(window)
     end
 end
 
 function render(ui; width=1280, height=720, title::AbstractString="Demo", hotloading=false)
-    window, ctx = init_renderer(width, height, title)
+    window, ctx, glfw_ctx, opengl_ctx = init_renderer(width, height, title)
     GC.@preserve window ctx begin
-        t = @async renderloop(window, ctx, ui, hotloading)
+        t = @async renderloop(window, ctx, glfw_ctx, opengl_ctx, ui, hotloading)
     end
     return t
 end

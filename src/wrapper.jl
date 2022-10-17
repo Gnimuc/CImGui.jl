@@ -1098,7 +1098,7 @@ SmallButton(label) = igSmallButton(label)
 """
     InvisibleButton(str_id, size, flag = 0) -> Bool
 Return true when the value has been changed or when pressed/selected.
-Flexible button behavior without the visuals, frequently useful to build custom behaviors using 
+Flexible button behavior without the visuals, frequently useful to build custom behaviors using
 the public api along with [`IsItemActive`](@ref), [`IsItemHovered`](@ref), etc.
 """
 InvisibleButton(str_id, size, flag = 0) = igInvisibleButton(str_id, size, flag)
@@ -1201,7 +1201,7 @@ Combo(label, current_item, items_getter::Union{Ptr,Base.CFunction}, data, items_
 If `v_min` >= `v_max` we have no bound.
 """
 DragFloat(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0) = igDragFloat(label, v, v_speed, v_min, v_max, format, flag)
-@deprecate DragFloat(label, v, v_speed, v_min, v_max, format, power::AbstractFloat) DragFloat(label, v, v_speed, v_min, v_max, format, 0) 
+@deprecate DragFloat(label, v, v_speed, v_min, v_max, format, power::AbstractFloat) DragFloat(label, v, v_speed, v_min, v_max, format, 0)
 
 """
     DragFloat2(label, v, v_speed=1.0, v_min=0.0, v_max=0.0, format="%.3f", flag=0) -> Bool
@@ -2940,7 +2940,7 @@ fetching/submission cost null.
 
 ### Example
 ```julia
-clipper = CImGui.Clipper() 
+clipper = CImGui.Clipper()
 Begin(clipper, 1000)  # we have 1000 elements, evenly spaced.
 while CImGui.Step()
     dis_start = CImGui.Get(clipper, :DisplayStart)
@@ -2987,7 +2987,7 @@ Step(handle::Ptr{ImGuiListClipper}) = ImGuiListClipper_Step(handle)
     Begin(handle::Ptr{ImGuiListClipper}, items_count, items_height=-1.0)
 Automatically called by constructor if you passed `items_count` or by [`Step`](@ref) in Step 1.
 """
-Begin(handle::Ptr{ImGuiListClipper}, items_count, items_height=-1.0) = ImGuiListClipper_Begin(self, items_count, items_height)
+Begin(handle::Ptr{ImGuiListClipper}, items_count, items_height=-1.0) = ImGuiListClipper_Begin(handle, items_count, items_height)
 
 """
     End(handle::Ptr{ImGuiListClipper})

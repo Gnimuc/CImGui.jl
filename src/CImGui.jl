@@ -2,7 +2,13 @@ module CImGui
 
 using LibCImGui
 using ImGuiGLFWBackend
+using Preferences
+const opengl_major_version = parse(Int, @load_preference("opengl_major_version", "3"))
+if opengl_major_version == 2
+using ImGuiOpenGL2Backend
+elseif opengl_major_version >= 3
 using ImGuiOpenGLBackend
+end
 
 using CSyntax
 using CEnum

@@ -23,7 +23,7 @@ target_sources(${target} PRIVATE ./cimplot/cimplot.cpp)
 target_sources(${target} PRIVATE ./cimnodes/imnodes/imnodes.cpp)
 target_sources(${target} PRIVATE ./cimnodes/cimnodes.cpp)
 
-add_definitions("-DIMGUI_DISABLE_OBSOLETE_FUNCTIONS=1")
+add_definitions(-DIMGUI_DISABLE_OBSOLETE_FUNCTIONS=1 -DIMNODES_NAMESPACE=imnodes)
 
 if (WIN32)
     add_definitions("-DIMGUI_IMPL_API=extern \"C\" __declspec\(dllexport\)")

@@ -6,4 +6,4 @@ Clang = "40e3b903-d033-50b4-a0cc-940c62c95e31"
 [compat]
 CEnum = "0.2,0.3,0.4"
 CImGuiPack_jll = "~0.1"
-Clang = "0.14.0"
+Clang = "0.17"

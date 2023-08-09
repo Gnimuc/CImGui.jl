@@ -1,5 +1,10 @@
 using CEnum
 
+to_c_type(t::Type) = t
+to_c_type_pairs(va_list) = map(enumerate(to_c_type.(va_list))) do (ind, type)
+    :(va_list[$ind]::$type)
+end
+
 const time_t = Clong
 
 struct tm
@@ -16,133 +21,12 @@ struct tm
     tm_zone::Ptr{Cchar}
 end
 
-const ImGuiID = Cuint
-
-const ImS8 = Int8
-
-const ImGuiTableColumnIdx = ImS8
-
-const ImU8 = Cuchar
-
-struct ImGuiTableColumnSettings
-    data::NTuple{12, UInt8}
-end
-
-function Base.getproperty(x::Ptr{ImGuiTableColumnSettings}, f::Symbol)
-    f === :WidthOrWeight && return Ptr{Cfloat}(x + 0)
-    f === :UserID && return Ptr{ImGuiID}(x + 4)
-    f === :Index && return Ptr{ImGuiTableColumnIdx}(x + 8)
-    f === :DisplayOrder && return Ptr{ImGuiTableColumnIdx}(x + 9)
-    f === :SortOrder && return Ptr{ImGuiTableColumnIdx}(x + 10)
-    f === :SortDirection && return Ptr{ImU8}(x + 11)
-    f === :IsEnabled && return (Ptr{ImU8}(x + 11), 2, 1)
-    f === :IsStretch && return (Ptr{ImU8}(x + 11), 3, 1)
-    return getfield(x, f)
-end
-
-function Base.getproperty(x::ImGuiTableColumnSettings, f::Symbol)
-    r = Ref{ImGuiTableColumnSettings}(x)
-    ptr = Base.unsafe_convert(Ptr{ImGuiTableColumnSettings}, r)
-    fptr = getproperty(ptr, f)
-    begin
-        if fptr isa Ptr
-            return GC.@preserve(r, unsafe_load(fptr))
-        else
-            (baseptr, offset, width) = fptr
-            ty = eltype(baseptr)
-            i8 = GC.@preserve(r, unsafe_load(baseptr))
-            bitstr = bitstring(i8)
-            sig = bitstr[(end - offset) - (width - 1):end - offset]
-            zexted = lpad(sig, 8 * sizeof(ty), '0')
-            return parse(ty, zexted; base = 2)
-        end
-    end
-end
-
-function Base.setproperty!(x::Ptr{ImGuiTableColumnSettings}, f::Symbol, v)
-    unsafe_store!(getproperty(x, f), v)
-end
-
-const ImU32 = Cuint
-
-struct ImGuiTableCellData
-    BgColor::ImU32
-    Column::ImGuiTableColumnIdx
-end
-
-const ImGuiViewportFlags = Cint
-
-struct ImVec2
-    x::Cfloat
-    y::Cfloat
-end
-
-function Base.getproperty(x::Ptr{ImVec2}, f::Symbol)
-    f === :x && return Ptr{Cfloat}(x + 0)
-    f === :y && return Ptr{Cfloat}(x + 4)
-    return getfield(x, f)
-end
-
-function Base.setproperty!(x::Ptr{ImVec2}, f::Symbol, v)
-    unsafe_store!(getproperty(x, f), v)
-end
-
-struct ImGuiViewport
-    ID::ImGuiID
-    Flags::ImGuiViewportFlags
-    Pos::ImVec2
-    Size::ImVec2
-    WorkPos::ImVec2
-    WorkSize::ImVec2
-    DpiScale::Cfloat
-    ParentViewportId::ImGuiID
-    # DrawData::Ptr{ImDrawData}
-    DrawData::Ptr{Cvoid}
-    RendererUserData::Ptr{Cvoid}
-    PlatformUserData::Ptr{Cvoid}
-    PlatformHandle::Ptr{Cvoid}
-    PlatformHandleRaw::Ptr{Cvoid}
-    PlatformRequestMove::Bool
-    PlatformRequestResize::Bool
-    PlatformRequestClose::Bool
-end
-
-function Base.getproperty(x::ImGuiViewport, f::Symbol)
-    f === :DrawData && return Ptr{ImDrawData}(getfield(x, f))
-    return getfield(x, f)
-end
-
-function Base.getproperty(x::Ptr{ImGuiViewport}, f::Symbol)
-    f === :ID && return Ptr{ImGuiID}(x + 0)
-    f === :Flags && return Ptr{ImGuiViewportFlags}(x + 4)
-    f === :Pos && return Ptr{ImVec2}(x + 8)
-    f === :Size && return Ptr{ImVec2}(x + 16)
-    f === :WorkPos && return Ptr{ImVec2}(x + 24)
-    f === :WorkSize && return Ptr{ImVec2}(x + 32)
-    f === :DpiScale && return Ptr{Cfloat}(x + 40)
-    f === :ParentViewportId && return Ptr{ImGuiID}(x + 44)
-    f === :DrawData && return Ptr{Ptr{ImDrawData}}(x + 48)
-    f === :RendererUserData && return Ptr{Ptr{Cvoid}}(x + 52)
-    f === :PlatformUserData && return Ptr{Ptr{Cvoid}}(x + 56)
-    f === :PlatformHandle && return Ptr{Ptr{Cvoid}}(x + 60)
-    f === :PlatformHandleRaw && return Ptr{Ptr{Cvoid}}(x + 64)
-    f === :PlatformRequestMove && return Ptr{Bool}(x + 68)
-    f === :PlatformRequestResize && return Ptr{Bool}(x + 69)
-    f === :PlatformRequestClose && return Ptr{Bool}(x + 70)
-    return getfield(x, f)
-end
-
-function Base.setproperty!(x::Ptr{ImGuiViewport}, f::Symbol, v)
-    unsafe_store!(getproperty(x, f), v)
-end
-
 struct ImVec4
     x::Cfloat
     y::Cfloat
     z::Cfloat
     w::Cfloat
 end
-
 function Base.getproperty(x::Ptr{ImVec4}, f::Symbol)
     f === :x && return Ptr{Cfloat}(x + 0)
     f === :y && return Ptr{Cfloat}(x + 4)
@@ -154,6 +38,7 @@ end
 function Base.setproperty!(x::Ptr{ImVec4}, f::Symbol, v)
     unsafe_store!(getproperty(x, f), v)
 end
+
 
 const ImTextureID = Ptr{Cvoid}
 
@@ -169,7 +54,6 @@ struct ImDrawCmd
     UserCallback::ImDrawCallback
     UserCallbackData::Ptr{Cvoid}
 end
-
 function Base.getproperty(x::Ptr{ImDrawCmd}, f::Symbol)
     f === :ClipRect && return Ptr{ImVec4}(x + 0)
     f === :TextureId && return Ptr{ImTextureID}(x + 16)
@@ -185,6 +69,7 @@ function Base.setproperty!(x::Ptr{ImDrawCmd}, f::Symbol, v)
     unsafe_store!(getproperty(x, f), v)
 end
 
+
 struct ImVector_ImDrawCmd
     Size::Cint
     Capacity::Cint
@@ -198,6 +83,28 @@ struct ImVector_ImDrawIdx
     Capacity::Cint
     Data::Ptr{ImDrawIdx}
 end
+
+struct ImDrawChannel
+    _CmdBuffer::ImVector_ImDrawCmd
+    _IdxBuffer::ImVector_ImDrawIdx
+end
+
+struct ImVec2
+    x::Cfloat
+    y::Cfloat
+end
+function Base.getproperty(x::Ptr{ImVec2}, f::Symbol)
+    f === :x && return Ptr{Cfloat}(x + 0)
+    f === :y && return Ptr{Cfloat}(x + 4)
+    return getfield(x, f)
+end
+
+function Base.setproperty!(x::Ptr{ImVec2}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
+end
+
+
+const ImU32 = Cuint
 
 struct ImDrawVert
     pos::ImVec2
@@ -213,1061 +120,15 @@ end
 
 const ImDrawListFlags = Cint
 
-struct ImVector_ImVec4
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImVec4}
-end
-
-struct ImVector_ImTextureID
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImTextureID}
-end
-
-struct ImVector_ImVec2
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImVec2}
-end
-
-struct ImDrawCmdHeader
-    ClipRect::ImVec4
-    TextureId::ImTextureID
-    VtxOffset::Cuint
-end
-
-struct ImDrawChannel
-    _CmdBuffer::ImVector_ImDrawCmd
-    _IdxBuffer::ImVector_ImDrawIdx
-end
-
-struct ImVector_ImDrawChannel
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImDrawChannel}
-end
-
-struct ImDrawListSplitter
-    _Current::Cint
-    _Count::Cint
-    _Channels::ImVector_ImDrawChannel
-end
-
-struct ImDrawList
-    CmdBuffer::ImVector_ImDrawCmd
-    IdxBuffer::ImVector_ImDrawIdx
-    VtxBuffer::ImVector_ImDrawVert
-    Flags::ImDrawListFlags
-    _VtxCurrentIdx::Cuint
-    # _Data::Ptr{ImDrawListSharedData}
-    _Data::Ptr{Cvoid}
-    _OwnerName::Ptr{Cchar}
-    _VtxWritePtr::Ptr{ImDrawVert}
-    _IdxWritePtr::Ptr{ImDrawIdx}
-    _ClipRectStack::ImVector_ImVec4
-    _TextureIdStack::ImVector_ImTextureID
-    _Path::ImVector_ImVec2
-    _CmdHeader::ImDrawCmdHeader
-    _Splitter::ImDrawListSplitter
-    _FringeScale::Cfloat
-end
-
-function Base.getproperty(x::ImDrawList, f::Symbol)
-    f === :_Data && return Ptr{ImDrawListSharedData}(getfield(x, f))
-    return getfield(x, f)
-end
-
-function Base.getproperty(x::Ptr{ImDrawList}, f::Symbol)
-    f === :CmdBuffer && return Ptr{ImVector_ImDrawCmd}(x + 0)
-    f === :IdxBuffer && return Ptr{ImVector_ImDrawIdx}(x + 12)
-    f === :VtxBuffer && return Ptr{ImVector_ImDrawVert}(x + 24)
-    f === :Flags && return Ptr{ImDrawListFlags}(x + 36)
-    f === :_VtxCurrentIdx && return Ptr{Cuint}(x + 40)
-    f === :_Data && return Ptr{Ptr{ImDrawListSharedData}}(x + 44)
-    f === :_OwnerName && return Ptr{Ptr{Cchar}}(x + 48)
-    f === :_VtxWritePtr && return Ptr{Ptr{ImDrawVert}}(x + 52)
-    f === :_IdxWritePtr && return Ptr{Ptr{ImDrawIdx}}(x + 56)
-    f === :_ClipRectStack && return Ptr{ImVector_ImVec4}(x + 60)
-    f === :_TextureIdStack && return Ptr{ImVector_ImTextureID}(x + 72)
-    f === :_Path && return Ptr{ImVector_ImVec2}(x + 84)
-    f === :_CmdHeader && return Ptr{ImDrawCmdHeader}(x + 96)
-    f === :_Splitter && return Ptr{ImDrawListSplitter}(x + 120)
-    f === :_FringeScale && return Ptr{Cfloat}(x + 140)
-    return getfield(x, f)
-end
-
-function Base.setproperty!(x::Ptr{ImDrawList}, f::Symbol, v)
-    unsafe_store!(getproperty(x, f), v)
-end
-
-struct ImDrawData
-    Valid::Bool
-    CmdListsCount::Cint
-    TotalIdxCount::Cint
-    TotalVtxCount::Cint
-    CmdLists::Ptr{Ptr{ImDrawList}}
-    DisplayPos::ImVec2
-    DisplaySize::ImVec2
-    FramebufferScale::ImVec2
-    OwnerViewport::Ptr{ImGuiViewport}
-end
-
-function Base.getproperty(x::Ptr{ImDrawData}, f::Symbol)
-    f === :Valid && return Ptr{Bool}(x + 0)
-    f === :CmdListsCount && return Ptr{Cint}(x + 4)
-    f === :TotalIdxCount && return Ptr{Cint}(x + 8)
-    f === :TotalVtxCount && return Ptr{Cint}(x + 12)
-    f === :CmdLists && return Ptr{Ptr{Ptr{ImDrawList}}}(x + 16)
-    f === :DisplayPos && return Ptr{ImVec2}(x + 20)
-    f === :DisplaySize && return Ptr{ImVec2}(x + 28)
-    f === :FramebufferScale && return Ptr{ImVec2}(x + 36)
-    f === :OwnerViewport && return Ptr{Ptr{ImGuiViewport}}(x + 44)
-    return getfield(x, f)
-end
-
-function Base.setproperty!(x::Ptr{ImDrawData}, f::Symbol, v)
-    unsafe_store!(getproperty(x, f), v)
-end
-
-struct ImVector_ImDrawListPtr
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{Ptr{ImDrawList}}
-end
-
-struct ImDrawDataBuilder
-    Layers::NTuple{2, ImVector_ImDrawListPtr}
-end
-
-struct ImGuiViewportP
-    _ImGuiViewport::ImGuiViewport
-    Idx::Cint
-    LastFrameActive::Cint
-    LastFrontMostStampCount::Cint
-    LastNameHash::ImGuiID
-    LastPos::ImVec2
-    Alpha::Cfloat
-    LastAlpha::Cfloat
-    PlatformMonitor::Cshort
-    PlatformWindowCreated::Bool
-    # Window::Ptr{ImGuiWindow}
-    Window::Ptr{Cvoid}
-    DrawListsLastFrame::NTuple{2, Cint}
-    DrawLists::NTuple{2, Ptr{ImDrawList}}
-    DrawDataP::ImDrawData
-    DrawDataBuilder::ImDrawDataBuilder
-    LastPlatformPos::ImVec2
-    LastPlatformSize::ImVec2
-    LastRendererSize::ImVec2
-    WorkOffsetMin::ImVec2
-    WorkOffsetMax::ImVec2
-    CurrWorkOffsetMin::ImVec2
-    CurrWorkOffsetMax::ImVec2
-end
-
-function Base.getproperty(x::ImGuiViewportP, f::Symbol)
-    f === :Window && return Ptr{ImGuiWindow}(getfield(x, f))
-    return getfield(x, f)
-end
-
-struct ImGuiWindowDockStyle
-    Colors::NTuple{6, ImU32}
-end
-
-struct ImGuiPtrOrIndex
-    Ptr::Ptr{Cvoid}
-    Index::Cint
-end
-
-struct ImGuiShrinkWidthItem
-    Index::Cint
-    Width::Cfloat
-end
-
-struct ImGuiDataTypeTempStorage
-    Data::NTuple{8, ImU8}
-end
-
-struct ImVec2ih
-    x::Cshort
-    y::Cshort
-end
-
-struct ImVec1
-    x::Cfloat
-end
-
-struct StbTexteditRow
-    x0::Cfloat
-    x1::Cfloat
-    baseline_y_delta::Cfloat
-    ymin::Cfloat
-    ymax::Cfloat
-    num_chars::Cint
-end
-
-struct StbUndoRecord
-    where::Cint
-    insert_length::Cint
-    delete_length::Cint
-    char_storage::Cint
-end
-
-const ImWchar16 = Cushort
-
-const ImWchar = ImWchar16
-
-struct StbUndoState
-    undo_rec::NTuple{99, StbUndoRecord}
-    undo_char::NTuple{999, ImWchar}
-    undo_point::Cshort
-    redo_point::Cshort
-    undo_char_point::Cint
-    redo_char_point::Cint
-end
-
-struct STB_TexteditState
-    cursor::Cint
-    select_start::Cint
-    select_end::Cint
-    insert_mode::Cuchar
-    row_count_per_page::Cint
-    cursor_at_end_of_line::Cuchar
-    initialized::Cuchar
-    has_preferred_x::Cuchar
-    single_line::Cuchar
-    padding1::Cuchar
-    padding2::Cuchar
-    padding3::Cuchar
-    preferred_x::Cfloat
-    undostate::StbUndoState
-end
-
-struct ImGuiWindowSettings
-    ID::ImGuiID
-    Pos::ImVec2ih
-    Size::ImVec2ih
-    ViewportPos::ImVec2ih
-    ViewportId::ImGuiID
-    DockId::ImGuiID
-    ClassId::ImGuiID
-    DockOrder::Cshort
-    Collapsed::Bool
-    WantApply::Bool
-end
-
-const ImGuiItemStatusFlags = Cint
-
-struct ImRect
-    Min::ImVec2
-    Max::ImVec2
-end
-
-@cenum ImGuiNavLayer::UInt32 begin
-    ImGuiNavLayer_Main = 0
-    ImGuiNavLayer_Menu = 1
-    ImGuiNavLayer_COUNT = 2
-end
-
-struct ImGuiMenuColumns
-    Spacing::Cfloat
-    Width::Cfloat
-    NextWidth::Cfloat
-    Pos::NTuple{3, Cfloat}
-    NextWidths::NTuple{3, Cfloat}
-end
-
-struct ImVector_ImGuiWindowPtr
-    Size::Cint
-    Capacity::Cint
-    # Data::Ptr{Ptr{ImGuiWindow}}
-    Data::Ptr{Ptr{Cvoid}}
-end
-
-function Base.getproperty(x::ImVector_ImGuiWindowPtr, f::Symbol)
-    f === :Data && return Ptr{Ptr{ImGuiWindow}}(getfield(x, f))
-    return getfield(x, f)
-end
-
-struct ImGuiStoragePair
-    data::NTuple{8, UInt8}
-end
-
-function Base.getproperty(x::Ptr{ImGuiStoragePair}, f::Symbol)
-    f === :key && return Ptr{ImGuiID}(x + 0)
-    f === :val_i && return Ptr{Cint}(x + 4)
-    f === :val_f && return Ptr{Cfloat}(x + 4)
-    f === :val_p && return Ptr{Ptr{Cvoid}}(x + 4)
-    return getfield(x, f)
-end
-
-function Base.getproperty(x::ImGuiStoragePair, f::Symbol)
-    r = Ref{ImGuiStoragePair}(x)
-    ptr = Base.unsafe_convert(Ptr{ImGuiStoragePair}, r)
-    fptr = getproperty(ptr, f)
-    GC.@preserve r unsafe_load(fptr)
-end
-
-function Base.setproperty!(x::Ptr{ImGuiStoragePair}, f::Symbol, v)
-    unsafe_store!(getproperty(x, f), v)
-end
-
-struct ImVector_ImGuiStoragePair
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImGuiStoragePair}
-end
-
-struct ImGuiStorage
-    Data::ImVector_ImGuiStoragePair
-end
-
-const ImGuiOldColumnFlags = Cint
-
-struct ImGuiOldColumnData
-    OffsetNorm::Cfloat
-    OffsetNormBeforeResize::Cfloat
-    Flags::ImGuiOldColumnFlags
-    ClipRect::ImRect
-end
-
-struct ImVector_ImGuiOldColumnData
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImGuiOldColumnData}
-end
-
-struct ImGuiOldColumns
-    ID::ImGuiID
-    Flags::ImGuiOldColumnFlags
-    IsFirstFrame::Bool
-    IsBeingResized::Bool
-    Current::Cint
-    Count::Cint
-    OffMinX::Cfloat
-    OffMaxX::Cfloat
-    LineMinY::Cfloat
-    LineMaxY::Cfloat
-    HostCursorPosY::Cfloat
-    HostCursorMaxPosX::Cfloat
-    HostInitialClipRect::ImRect
-    HostBackupClipRect::ImRect
-    HostBackupParentWorkRect::ImRect
-    Columns::ImVector_ImGuiOldColumnData
-    Splitter::ImDrawListSplitter
-end
-
-const ImGuiLayoutType = Cint
-
-const ImGuiItemFlags = Cint
-
 struct ImVector_float
     Size::Cint
     Capacity::Cint
     Data::Ptr{Cfloat}
 end
 
-struct ImGuiStackSizes
-    SizeOfIDStack::Cshort
-    SizeOfColorStack::Cshort
-    SizeOfStyleVarStack::Cshort
-    SizeOfFontStack::Cshort
-    SizeOfFocusScopeStack::Cshort
-    SizeOfGroupStack::Cshort
-    SizeOfBeginPopupStack::Cshort
-end
+const ImWchar16 = Cushort
 
-struct ImGuiWindowTempData
-    CursorPos::ImVec2
-    CursorPosPrevLine::ImVec2
-    CursorStartPos::ImVec2
-    CursorMaxPos::ImVec2
-    IdealMaxPos::ImVec2
-    CurrLineSize::ImVec2
-    PrevLineSize::ImVec2
-    CurrLineTextBaseOffset::Cfloat
-    PrevLineTextBaseOffset::Cfloat
-    Indent::ImVec1
-    ColumnsOffset::ImVec1
-    GroupOffset::ImVec1
-    LastItemId::ImGuiID
-    LastItemStatusFlags::ImGuiItemStatusFlags
-    LastItemRect::ImRect
-    LastItemDisplayRect::ImRect
-    NavLayerCurrent::ImGuiNavLayer
-    NavLayerActiveMask::Cint
-    NavLayerActiveMaskNext::Cint
-    NavFocusScopeIdCurrent::ImGuiID
-    NavHideHighlightOneFrame::Bool
-    NavHasScroll::Bool
-    MenuBarAppending::Bool
-    MenuBarOffset::ImVec2
-    MenuColumns::ImGuiMenuColumns
-    TreeDepth::Cint
-    TreeJumpToParentOnPopMask::ImU32
-    ChildWindows::ImVector_ImGuiWindowPtr
-    StateStorage::Ptr{ImGuiStorage}
-    CurrentColumns::Ptr{ImGuiOldColumns}
-    CurrentTableIdx::Cint
-    LayoutType::ImGuiLayoutType
-    ParentLayoutType::ImGuiLayoutType
-    FocusCounterRegular::Cint
-    FocusCounterTabStop::Cint
-    ItemFlags::ImGuiItemFlags
-    ItemWidth::Cfloat
-    TextWrapPos::Cfloat
-    ItemWidthStack::ImVector_float
-    TextWrapPosStack::ImVector_float
-    StackSizesOnBegin::ImGuiStackSizes
-end
-
-const ImGuiWindowFlags = Cint
-
-const ImGuiTabItemFlags = Cint
-
-const ImGuiDockNodeFlags = Cint
-
-struct ImGuiWindowClass
-    ClassId::ImGuiID
-    ParentViewportId::ImGuiID
-    ViewportFlagsOverrideSet::ImGuiViewportFlags
-    ViewportFlagsOverrideClear::ImGuiViewportFlags
-    TabItemFlagsOverrideSet::ImGuiTabItemFlags
-    DockNodeFlagsOverrideSet::ImGuiDockNodeFlags
-    DockNodeFlagsOverrideClear::ImGuiDockNodeFlags
-    DockingAlwaysTabBar::Bool
-    DockingAllowUnclassed::Bool
-end
-
-const ImGuiDir = Cint
-
-const ImGuiCond = Cint
-
-struct ImVector_ImGuiID
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImGuiID}
-end
-
-struct ImVector_ImGuiOldColumns
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImGuiOldColumns}
-end
-
-struct ImGuiWindow
-    data::NTuple{992, UInt8}
-end
-
-function Base.getproperty(x::Ptr{ImGuiWindow}, f::Symbol)
-    f === :Name && return Ptr{Ptr{Cchar}}(x + 0)
-    f === :ID && return Ptr{ImGuiID}(x + 4)
-    f === :Flags && return Ptr{ImGuiWindowFlags}(x + 8)
-    f === :FlagsPreviousFrame && return Ptr{ImGuiWindowFlags}(x + 12)
-    f === :WindowClass && return Ptr{ImGuiWindowClass}(x + 16)
-    f === :Viewport && return Ptr{Ptr{ImGuiViewportP}}(x + 48)
-    f === :ViewportId && return Ptr{ImGuiID}(x + 52)
-    f === :ViewportPos && return Ptr{ImVec2}(x + 56)
-    f === :ViewportAllowPlatformMonitorExtend && return Ptr{Cint}(x + 64)
-    f === :Pos && return Ptr{ImVec2}(x + 68)
-    f === :Size && return Ptr{ImVec2}(x + 76)
-    f === :SizeFull && return Ptr{ImVec2}(x + 84)
-    f === :ContentSize && return Ptr{ImVec2}(x + 92)
-    f === :ContentSizeIdeal && return Ptr{ImVec2}(x + 100)
-    f === :ContentSizeExplicit && return Ptr{ImVec2}(x + 108)
-    f === :WindowPadding && return Ptr{ImVec2}(x + 116)
-    f === :WindowRounding && return Ptr{Cfloat}(x + 124)
-    f === :WindowBorderSize && return Ptr{Cfloat}(x + 128)
-    f === :NameBufLen && return Ptr{Cint}(x + 132)
-    f === :MoveId && return Ptr{ImGuiID}(x + 136)
-    f === :ChildId && return Ptr{ImGuiID}(x + 140)
-    f === :Scroll && return Ptr{ImVec2}(x + 144)
-    f === :ScrollMax && return Ptr{ImVec2}(x + 152)
-    f === :ScrollTarget && return Ptr{ImVec2}(x + 160)
-    f === :ScrollTargetCenterRatio && return Ptr{ImVec2}(x + 168)
-    f === :ScrollTargetEdgeSnapDist && return Ptr{ImVec2}(x + 176)
-    f === :ScrollbarSizes && return Ptr{ImVec2}(x + 184)
-    f === :ScrollbarX && return Ptr{Bool}(x + 192)
-    f === :ScrollbarY && return Ptr{Bool}(x + 193)
-    f === :ViewportOwned && return Ptr{Bool}(x + 194)
-    f === :Active && return Ptr{Bool}(x + 195)
-    f === :WasActive && return Ptr{Bool}(x + 196)
-    f === :WriteAccessed && return Ptr{Bool}(x + 197)
-    f === :Collapsed && return Ptr{Bool}(x + 198)
-    f === :WantCollapseToggle && return Ptr{Bool}(x + 199)
-    f === :SkipItems && return Ptr{Bool}(x + 200)
-    f === :Appearing && return Ptr{Bool}(x + 201)
-    f === :Hidden && return Ptr{Bool}(x + 202)
-    f === :IsFallbackWindow && return Ptr{Bool}(x + 203)
-    f === :HasCloseButton && return Ptr{Bool}(x + 204)
-    f === :ResizeBorderHeld && return Ptr{Int8}(x + 205)
-    f === :BeginCount && return Ptr{Cshort}(x + 206)
-    f === :BeginOrderWithinParent && return Ptr{Cshort}(x + 208)
-    f === :BeginOrderWithinContext && return Ptr{Cshort}(x + 210)
-    f === :PopupId && return Ptr{ImGuiID}(x + 212)
-    f === :AutoFitFramesX && return Ptr{ImS8}(x + 216)
-    f === :AutoFitFramesY && return Ptr{ImS8}(x + 217)
-    f === :AutoFitChildAxises && return Ptr{ImS8}(x + 218)
-    f === :AutoFitOnlyGrows && return Ptr{Bool}(x + 219)
-    f === :AutoPosLastDirection && return Ptr{ImGuiDir}(x + 220)
-    f === :HiddenFramesCanSkipItems && return Ptr{ImS8}(x + 224)
-    f === :HiddenFramesCannotSkipItems && return Ptr{ImS8}(x + 225)
-    f === :HiddenFramesForRenderOnly && return Ptr{ImS8}(x + 226)
-    f === :DisableInputsFrames && return Ptr{ImS8}(x + 227)
-    f === :SetWindowPosAllowFlags && return Ptr{ImGuiCond}(x + 228)
-    f === :SetWindowSizeAllowFlags && return Ptr{ImGuiCond}(x + 229)
-    f === :SetWindowCollapsedAllowFlags && return Ptr{ImGuiCond}(x + 230)
-    f === :SetWindowDockAllowFlags && return Ptr{ImGuiCond}(x + 231)
-    f === :SetWindowPosVal && return Ptr{ImVec2}(x + 232)
-    f === :SetWindowPosPivot && return Ptr{ImVec2}(x + 240)
-    f === :IDStack && return Ptr{ImVector_ImGuiID}(x + 248)
-    f === :DC && return Ptr{ImGuiWindowTempData}(x + 260)
-    f === :OuterRectClipped && return Ptr{ImRect}(x + 540)
-    f === :InnerRect && return Ptr{ImRect}(x + 556)
-    f === :InnerClipRect && return Ptr{ImRect}(x + 572)
-    f === :WorkRect && return Ptr{ImRect}(x + 588)
-    f === :ParentWorkRect && return Ptr{ImRect}(x + 604)
-    f === :ClipRect && return Ptr{ImRect}(x + 620)
-    f === :ContentRegionRect && return Ptr{ImRect}(x + 636)
-    f === :HitTestHoleSize && return Ptr{ImVec2ih}(x + 652)
-    f === :HitTestHoleOffset && return Ptr{ImVec2ih}(x + 656)
-    f === :LastFrameActive && return Ptr{Cint}(x + 660)
-    f === :LastFrameJustFocused && return Ptr{Cint}(x + 664)
-    f === :LastTimeActive && return Ptr{Cfloat}(x + 668)
-    f === :ItemWidthDefault && return Ptr{Cfloat}(x + 672)
-    f === :StateStorage && return Ptr{ImGuiStorage}(x + 676)
-    f === :ColumnsStorage && return Ptr{ImVector_ImGuiOldColumns}(x + 688)
-    f === :FontWindowScale && return Ptr{Cfloat}(x + 700)
-    f === :FontDpiScale && return Ptr{Cfloat}(x + 704)
-    f === :SettingsOffset && return Ptr{Cint}(x + 708)
-    f === :DrawList && return Ptr{Ptr{ImDrawList}}(x + 712)
-    f === :DrawListInst && return Ptr{ImDrawList}(x + 716)
-    f === :ParentWindow && return Ptr{Ptr{ImGuiWindow}}(x + 860)
-    f === :RootWindow && return Ptr{Ptr{ImGuiWindow}}(x + 864)
-    f === :RootWindowDockTree && return Ptr{Ptr{ImGuiWindow}}(x + 868)
-    f === :RootWindowForTitleBarHighlight && return Ptr{Ptr{ImGuiWindow}}(x + 872)
-    f === :RootWindowForNav && return Ptr{Ptr{ImGuiWindow}}(x + 876)
-    f === :NavLastChildNavWindow && return Ptr{Ptr{ImGuiWindow}}(x + 880)
-    f === :NavLastIds && return Ptr{NTuple{2, ImGuiID}}(x + 884)
-    f === :NavRectRel && return Ptr{NTuple{2, ImRect}}(x + 892)
-    f === :MemoryDrawListIdxCapacity && return Ptr{Cint}(x + 924)
-    f === :MemoryDrawListVtxCapacity && return Ptr{Cint}(x + 928)
-    f === :MemoryCompacted && return Ptr{Bool}(x + 932)
-    f === :DockIsActive && return Ptr{Bool}(x + 933)
-    f === :DockTabIsVisible && return (Ptr{Bool}(x + 933), 1, 1)
-    f === :DockTabWantClose && return (Ptr{Bool}(x + 933), 2, 1)
-    f === :DockOrder && return Ptr{Cshort}(x + 934)
-    f === :DockStyle && return Ptr{ImGuiWindowDockStyle}(x + 936)
-    f === :DockNode && return Ptr{Ptr{ImGuiDockNode}}(x + 960)
-    f === :DockNodeAsHost && return Ptr{Ptr{ImGuiDockNode}}(x + 964)
-    f === :DockId && return Ptr{ImGuiID}(x + 968)
-    f === :DockTabItemStatusFlags && return Ptr{ImGuiItemStatusFlags}(x + 972)
-    f === :DockTabItemRect && return Ptr{ImRect}(x + 976)
-    return getfield(x, f)
-end
-
-function Base.getproperty(x::ImGuiWindow, f::Symbol)
-    r = Ref{ImGuiWindow}(x)
-    ptr = Base.unsafe_convert(Ptr{ImGuiWindow}, r)
-    fptr = getproperty(ptr, f)
-    begin
-        if fptr isa Ptr
-            return GC.@preserve(r, unsafe_load(fptr))
-        else
-            (baseptr, offset, width) = fptr
-            ty = eltype(baseptr)
-            i8 = GC.@preserve(r, unsafe_load(baseptr))
-            bitstr = bitstring(i8)
-            sig = bitstr[(end - offset) - (width - 1):end - offset]
-            zexted = lpad(sig, 8 * sizeof(ty), '0')
-            return parse(ty, zexted; base = 2)
-        end
-    end
-end
-
-function Base.setproperty!(x::Ptr{ImGuiWindow}, f::Symbol, v)
-    unsafe_store!(getproperty(x, f), v)
-end
-
-mutable struct ImGuiTableColumnsSettings end
-
-const ImGuiTableFlags = Cint
-
-struct ImGuiTableSettings
-    ID::ImGuiID
-    SaveFlags::ImGuiTableFlags
-    RefScale::Cfloat
-    ColumnsCount::ImGuiTableColumnIdx
-    ColumnsCountMax::ImGuiTableColumnIdx
-    WantApply::Bool
-end
-
-const ImGuiTableColumnFlags = Cint
-
-const ImS16 = Cshort
-
-const ImGuiTableDrawChannelIdx = ImU8
-
-struct ImGuiTableColumn
-    data::NTuple{104, UInt8}
-end
-
-function Base.getproperty(x::Ptr{ImGuiTableColumn}, f::Symbol)
-    f === :Flags && return Ptr{ImGuiTableColumnFlags}(x + 0)
-    f === :WidthGiven && return Ptr{Cfloat}(x + 4)
-    f === :MinX && return Ptr{Cfloat}(x + 8)
-    f === :MaxX && return Ptr{Cfloat}(x + 12)
-    f === :WidthRequest && return Ptr{Cfloat}(x + 16)
-    f === :WidthAuto && return Ptr{Cfloat}(x + 20)
-    f === :StretchWeight && return Ptr{Cfloat}(x + 24)
-    f === :InitStretchWeightOrWidth && return Ptr{Cfloat}(x + 28)
-    f === :ClipRect && return Ptr{ImRect}(x + 32)
-    f === :UserID && return Ptr{ImGuiID}(x + 48)
-    f === :WorkMinX && return Ptr{Cfloat}(x + 52)
-    f === :WorkMaxX && return Ptr{Cfloat}(x + 56)
-    f === :ItemWidth && return Ptr{Cfloat}(x + 60)
-    f === :ContentMaxXFrozen && return Ptr{Cfloat}(x + 64)
-    f === :ContentMaxXUnfrozen && return Ptr{Cfloat}(x + 68)
-    f === :ContentMaxXHeadersUsed && return Ptr{Cfloat}(x + 72)
-    f === :ContentMaxXHeadersIdeal && return Ptr{Cfloat}(x + 76)
-    f === :NameOffset && return Ptr{ImS16}(x + 80)
-    f === :DisplayOrder && return Ptr{ImGuiTableColumnIdx}(x + 82)
-    f === :IndexWithinEnabledSet && return Ptr{ImGuiTableColumnIdx}(x + 83)
-    f === :PrevEnabledColumn && return Ptr{ImGuiTableColumnIdx}(x + 84)
-    f === :NextEnabledColumn && return Ptr{ImGuiTableColumnIdx}(x + 85)
-    f === :SortOrder && return Ptr{ImGuiTableColumnIdx}(x + 86)
-    f === :DrawChannelCurrent && return Ptr{ImGuiTableDrawChannelIdx}(x + 87)
-    f === :DrawChannelFrozen && return Ptr{ImGuiTableDrawChannelIdx}(x + 88)
-    f === :DrawChannelUnfrozen && return Ptr{ImGuiTableDrawChannelIdx}(x + 89)
-    f === :IsEnabled && return Ptr{Bool}(x + 90)
-    f === :IsEnabledNextFrame && return Ptr{Bool}(x + 91)
-    f === :IsVisibleX && return Ptr{Bool}(x + 92)
-    f === :IsVisibleY && return Ptr{Bool}(x + 93)
-    f === :IsRequestOutput && return Ptr{Bool}(x + 94)
-    f === :IsSkipItems && return Ptr{Bool}(x + 95)
-    f === :IsPreserveWidthAuto && return Ptr{Bool}(x + 96)
-    f === :NavLayerCurrent && return Ptr{ImS8}(x + 97)
-    f === :AutoFitQueue && return Ptr{ImU8}(x + 98)
-    f === :CannotSkipItemsQueue && return Ptr{ImU8}(x + 99)
-    f === :SortDirection && return Ptr{ImU8}(x + 100)
-    f === :SortDirectionsAvailCount && return (Ptr{ImU8}(x + 100), 2, 2)
-    f === :SortDirectionsAvailMask && return (Ptr{ImU8}(x + 100), 4, 4)
-    f === :SortDirectionsAvailList && return Ptr{ImU8}(x + 101)
-    return getfield(x, f)
-end
-
-function Base.getproperty(x::ImGuiTableColumn, f::Symbol)
-    r = Ref{ImGuiTableColumn}(x)
-    ptr = Base.unsafe_convert(Ptr{ImGuiTableColumn}, r)
-    fptr = getproperty(ptr, f)
-    begin
-        if fptr isa Ptr
-            return GC.@preserve(r, unsafe_load(fptr))
-        else
-            (baseptr, offset, width) = fptr
-            ty = eltype(baseptr)
-            i8 = GC.@preserve(r, unsafe_load(baseptr))
-            bitstr = bitstring(i8)
-            sig = bitstr[(end - offset) - (width - 1):end - offset]
-            zexted = lpad(sig, 8 * sizeof(ty), '0')
-            return parse(ty, zexted; base = 2)
-        end
-    end
-end
-
-function Base.setproperty!(x::Ptr{ImGuiTableColumn}, f::Symbol, v)
-    unsafe_store!(getproperty(x, f), v)
-end
-
-struct ImSpan_ImGuiTableColumn
-    Data::Ptr{ImGuiTableColumn}
-    DataEnd::Ptr{ImGuiTableColumn}
-end
-
-struct ImSpan_ImGuiTableColumnIdx
-    Data::Ptr{ImGuiTableColumnIdx}
-    DataEnd::Ptr{ImGuiTableColumnIdx}
-end
-
-struct ImSpan_ImGuiTableCellData
-    Data::Ptr{ImGuiTableCellData}
-    DataEnd::Ptr{ImGuiTableCellData}
-end
-
-const ImU64 = UInt64
-
-const ImGuiTableRowFlags = Cint
-
-struct ImVector_char
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{Cchar}
-end
-
-struct ImGuiTextBuffer
-    Buf::ImVector_char
-end
-
-const ImGuiSortDirection = Cint
-
-struct ImGuiTableColumnSortSpecs
-    data::NTuple{12, UInt8}
-end
-
-function Base.getproperty(x::Ptr{ImGuiTableColumnSortSpecs}, f::Symbol)
-    f === :ColumnUserID && return Ptr{ImGuiID}(x + 0)
-    f === :ColumnIndex && return Ptr{ImS16}(x + 4)
-    f === :SortOrder && return Ptr{ImS16}(x + 6)
-    f === :SortDirection && return Ptr{ImGuiSortDirection}(x + 8)
-    return getfield(x, f)
-end
-
-function Base.getproperty(x::ImGuiTableColumnSortSpecs, f::Symbol)
-    r = Ref{ImGuiTableColumnSortSpecs}(x)
-    ptr = Base.unsafe_convert(Ptr{ImGuiTableColumnSortSpecs}, r)
-    fptr = getproperty(ptr, f)
-    begin
-        if fptr isa Ptr
-            return GC.@preserve(r, unsafe_load(fptr))
-        else
-            (baseptr, offset, width) = fptr
-            ty = eltype(baseptr)
-            i8 = GC.@preserve(r, unsafe_load(baseptr))
-            bitstr = bitstring(i8)
-            sig = bitstr[(end - offset) - (width - 1):end - offset]
-            zexted = lpad(sig, 8 * sizeof(ty), '0')
-            return parse(ty, zexted; base = 2)
-        end
-    end
-end
-
-function Base.setproperty!(x::Ptr{ImGuiTableColumnSortSpecs}, f::Symbol, v)
-    unsafe_store!(getproperty(x, f), v)
-end
-
-struct ImVector_ImGuiTableColumnSortSpecs
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImGuiTableColumnSortSpecs}
-end
-
-struct ImGuiTableSortSpecs
-    Specs::Ptr{ImGuiTableColumnSortSpecs}
-    SpecsCount::Cint
-    SpecsDirty::Bool
-end
-
-struct ImGuiTable
-    data::NTuple{544, UInt8}
-end
-
-function Base.getproperty(x::Ptr{ImGuiTable}, f::Symbol)
-    f === :ID && return Ptr{ImGuiID}(x + 0)
-    f === :Flags && return Ptr{ImGuiTableFlags}(x + 4)
-    f === :RawData && return Ptr{Ptr{Cvoid}}(x + 8)
-    f === :Columns && return Ptr{ImSpan_ImGuiTableColumn}(x + 12)
-    f === :DisplayOrderToIndex && return Ptr{ImSpan_ImGuiTableColumnIdx}(x + 20)
-    f === :RowCellData && return Ptr{ImSpan_ImGuiTableCellData}(x + 28)
-    f === :EnabledMaskByDisplayOrder && return Ptr{ImU64}(x + 36)
-    f === :EnabledMaskByIndex && return Ptr{ImU64}(x + 44)
-    f === :VisibleMaskByIndex && return Ptr{ImU64}(x + 52)
-    f === :RequestOutputMaskByIndex && return Ptr{ImU64}(x + 60)
-    f === :SettingsLoadedFlags && return Ptr{ImGuiTableFlags}(x + 68)
-    f === :SettingsOffset && return Ptr{Cint}(x + 72)
-    f === :LastFrameActive && return Ptr{Cint}(x + 76)
-    f === :ColumnsCount && return Ptr{Cint}(x + 80)
-    f === :CurrentRow && return Ptr{Cint}(x + 84)
-    f === :CurrentColumn && return Ptr{Cint}(x + 88)
-    f === :InstanceCurrent && return Ptr{ImS16}(x + 92)
-    f === :InstanceInteracted && return Ptr{ImS16}(x + 94)
-    f === :RowPosY1 && return Ptr{Cfloat}(x + 96)
-    f === :RowPosY2 && return Ptr{Cfloat}(x + 100)
-    f === :RowMinHeight && return Ptr{Cfloat}(x + 104)
-    f === :RowTextBaseline && return Ptr{Cfloat}(x + 108)
-    f === :RowIndentOffsetX && return Ptr{Cfloat}(x + 112)
-    f === :RowFlags && return Ptr{ImGuiTableRowFlags}(x + 116)
-    f === :LastRowFlags && return Ptr{ImGuiTableRowFlags}(x + 118)
-    f === :RowBgColorCounter && return Ptr{Cint}(x + 120)
-    f === :RowBgColor && return Ptr{NTuple{2, ImU32}}(x + 124)
-    f === :BorderColorStrong && return Ptr{ImU32}(x + 132)
-    f === :BorderColorLight && return Ptr{ImU32}(x + 136)
-    f === :BorderX1 && return Ptr{Cfloat}(x + 140)
-    f === :BorderX2 && return Ptr{Cfloat}(x + 144)
-    f === :HostIndentX && return Ptr{Cfloat}(x + 148)
-    f === :MinColumnWidth && return Ptr{Cfloat}(x + 152)
-    f === :OuterPaddingX && return Ptr{Cfloat}(x + 156)
-    f === :CellPaddingX && return Ptr{Cfloat}(x + 160)
-    f === :CellPaddingY && return Ptr{Cfloat}(x + 164)
-    f === :CellSpacingX1 && return Ptr{Cfloat}(x + 168)
-    f === :CellSpacingX2 && return Ptr{Cfloat}(x + 172)
-    f === :LastOuterHeight && return Ptr{Cfloat}(x + 176)
-    f === :LastFirstRowHeight && return Ptr{Cfloat}(x + 180)
-    f === :InnerWidth && return Ptr{Cfloat}(x + 184)
-    f === :ColumnsGivenWidth && return Ptr{Cfloat}(x + 188)
-    f === :ColumnsAutoFitWidth && return Ptr{Cfloat}(x + 192)
-    f === :ResizedColumnNextWidth && return Ptr{Cfloat}(x + 196)
-    f === :ResizeLockMinContentsX2 && return Ptr{Cfloat}(x + 200)
-    f === :RefScale && return Ptr{Cfloat}(x + 204)
-    f === :OuterRect && return Ptr{ImRect}(x + 208)
-    f === :InnerRect && return Ptr{ImRect}(x + 224)
-    f === :WorkRect && return Ptr{ImRect}(x + 240)
-    f === :InnerClipRect && return Ptr{ImRect}(x + 256)
-    f === :BgClipRect && return Ptr{ImRect}(x + 272)
-    f === :Bg0ClipRectForDrawCmd && return Ptr{ImRect}(x + 288)
-    f === :Bg2ClipRectForDrawCmd && return Ptr{ImRect}(x + 304)
-    f === :HostClipRect && return Ptr{ImRect}(x + 320)
-    f === :HostBackupWorkRect && return Ptr{ImRect}(x + 336)
-    f === :HostBackupParentWorkRect && return Ptr{ImRect}(x + 352)
-    f === :HostBackupInnerClipRect && return Ptr{ImRect}(x + 368)
-    f === :HostBackupPrevLineSize && return Ptr{ImVec2}(x + 384)
-    f === :HostBackupCurrLineSize && return Ptr{ImVec2}(x + 392)
-    f === :HostBackupCursorMaxPos && return Ptr{ImVec2}(x + 400)
-    f === :UserOuterSize && return Ptr{ImVec2}(x + 408)
-    f === :HostBackupColumnsOffset && return Ptr{ImVec1}(x + 416)
-    f === :HostBackupItemWidth && return Ptr{Cfloat}(x + 420)
-    f === :HostBackupItemWidthStackSize && return Ptr{Cint}(x + 424)
-    f === :OuterWindow && return Ptr{Ptr{ImGuiWindow}}(x + 428)
-    f === :InnerWindow && return Ptr{Ptr{ImGuiWindow}}(x + 432)
-    f === :ColumnsNames && return Ptr{ImGuiTextBuffer}(x + 436)
-    f === :DrawSplitter && return Ptr{ImDrawListSplitter}(x + 448)
-    f === :SortSpecsSingle && return Ptr{ImGuiTableColumnSortSpecs}(x + 468)
-    f === :SortSpecsMulti && return Ptr{ImVector_ImGuiTableColumnSortSpecs}(x + 480)
-    f === :SortSpecs && return Ptr{ImGuiTableSortSpecs}(x + 492)
-    f === :SortSpecsCount && return Ptr{ImGuiTableColumnIdx}(x + 504)
-    f === :ColumnsEnabledCount && return Ptr{ImGuiTableColumnIdx}(x + 505)
-    f === :ColumnsEnabledFixedCount && return Ptr{ImGuiTableColumnIdx}(x + 506)
-    f === :DeclColumnsCount && return Ptr{ImGuiTableColumnIdx}(x + 507)
-    f === :HoveredColumnBody && return Ptr{ImGuiTableColumnIdx}(x + 508)
-    f === :HoveredColumnBorder && return Ptr{ImGuiTableColumnIdx}(x + 509)
-    f === :AutoFitSingleColumn && return Ptr{ImGuiTableColumnIdx}(x + 510)
-    f === :ResizedColumn && return Ptr{ImGuiTableColumnIdx}(x + 511)
-    f === :LastResizedColumn && return Ptr{ImGuiTableColumnIdx}(x + 512)
-    f === :HeldHeaderColumn && return Ptr{ImGuiTableColumnIdx}(x + 513)
-    f === :ReorderColumn && return Ptr{ImGuiTableColumnIdx}(x + 514)
-    f === :ReorderColumnDir && return Ptr{ImGuiTableColumnIdx}(x + 515)
-    f === :LeftMostEnabledColumn && return Ptr{ImGuiTableColumnIdx}(x + 516)
-    f === :RightMostEnabledColumn && return Ptr{ImGuiTableColumnIdx}(x + 517)
-    f === :LeftMostStretchedColumn && return Ptr{ImGuiTableColumnIdx}(x + 518)
-    f === :RightMostStretchedColumn && return Ptr{ImGuiTableColumnIdx}(x + 519)
-    f === :ContextPopupColumn && return Ptr{ImGuiTableColumnIdx}(x + 520)
-    f === :FreezeRowsRequest && return Ptr{ImGuiTableColumnIdx}(x + 521)
-    f === :FreezeRowsCount && return Ptr{ImGuiTableColumnIdx}(x + 522)
-    f === :FreezeColumnsRequest && return Ptr{ImGuiTableColumnIdx}(x + 523)
-    f === :FreezeColumnsCount && return Ptr{ImGuiTableColumnIdx}(x + 524)
-    f === :RowCellDataCurrent && return Ptr{ImGuiTableColumnIdx}(x + 525)
-    f === :DummyDrawChannel && return Ptr{ImGuiTableDrawChannelIdx}(x + 526)
-    f === :Bg2DrawChannelCurrent && return Ptr{ImGuiTableDrawChannelIdx}(x + 527)
-    f === :Bg2DrawChannelUnfrozen && return Ptr{ImGuiTableDrawChannelIdx}(x + 528)
-    f === :IsLayoutLocked && return Ptr{Bool}(x + 529)
-    f === :IsInsideRow && return Ptr{Bool}(x + 530)
-    f === :IsInitializing && return Ptr{Bool}(x + 531)
-    f === :IsSortSpecsDirty && return Ptr{Bool}(x + 532)
-    f === :IsUsingHeaders && return Ptr{Bool}(x + 533)
-    f === :IsContextPopupOpen && return Ptr{Bool}(x + 534)
-    f === :IsSettingsRequestLoad && return Ptr{Bool}(x + 535)
-    f === :IsSettingsDirty && return Ptr{Bool}(x + 536)
-    f === :IsDefaultDisplayOrder && return Ptr{Bool}(x + 537)
-    f === :IsResetAllRequest && return Ptr{Bool}(x + 538)
-    f === :IsResetDisplayOrderRequest && return Ptr{Bool}(x + 539)
-    f === :IsUnfrozenRows && return Ptr{Bool}(x + 540)
-    f === :IsDefaultSizingPolicy && return Ptr{Bool}(x + 541)
-    f === :MemoryCompacted && return Ptr{Bool}(x + 542)
-    f === :HostSkipItems && return Ptr{Bool}(x + 543)
-    return getfield(x, f)
-end
-
-function Base.getproperty(x::ImGuiTable, f::Symbol)
-    r = Ref{ImGuiTable}(x)
-    ptr = Base.unsafe_convert(Ptr{ImGuiTable}, r)
-    fptr = getproperty(ptr, f)
-    begin
-        if fptr isa Ptr
-            return GC.@preserve(r, unsafe_load(fptr))
-        else
-            (baseptr, offset, width) = fptr
-            ty = eltype(baseptr)
-            i8 = GC.@preserve(r, unsafe_load(baseptr))
-            bitstr = bitstring(i8)
-            sig = bitstr[(end - offset) - (width - 1):end - offset]
-            zexted = lpad(sig, 8 * sizeof(ty), '0')
-            return parse(ty, zexted; base = 2)
-        end
-    end
-end
-
-function Base.setproperty!(x::Ptr{ImGuiTable}, f::Symbol, v)
-    unsafe_store!(getproperty(x, f), v)
-end
-
-struct ImGuiTabItem
-    ID::ImGuiID
-    Flags::ImGuiTabItemFlags
-    Window::Ptr{ImGuiWindow}
-    LastFrameVisible::Cint
-    LastFrameSelected::Cint
-    Offset::Cfloat
-    Width::Cfloat
-    ContentWidth::Cfloat
-    NameOffset::ImS16
-    BeginOrder::ImS16
-    IndexDuringLayout::ImS16
-    WantClose::Bool
-end
-
-struct ImVector_ImGuiTabItem
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImGuiTabItem}
-end
-
-const ImGuiTabBarFlags = Cint
-
-struct ImGuiTabBar
-    Tabs::ImVector_ImGuiTabItem
-    Flags::ImGuiTabBarFlags
-    ID::ImGuiID
-    SelectedTabId::ImGuiID
-    NextSelectedTabId::ImGuiID
-    VisibleTabId::ImGuiID
-    CurrFrameVisible::Cint
-    PrevFrameVisible::Cint
-    BarRect::ImRect
-    CurrTabsContentsHeight::Cfloat
-    PrevTabsContentsHeight::Cfloat
-    WidthAllTabs::Cfloat
-    WidthAllTabsIdeal::Cfloat
-    ScrollingAnim::Cfloat
-    ScrollingTarget::Cfloat
-    ScrollingTargetDistToVisibility::Cfloat
-    ScrollingSpeed::Cfloat
-    ScrollingRectMinX::Cfloat
-    ScrollingRectMaxX::Cfloat
-    ReorderRequestTabId::ImGuiID
-    ReorderRequestDir::ImS8
-    BeginCount::ImS8
-    WantLayout::Bool
-    VisibleTabWasSubmitted::Bool
-    TabsAddedNew::Bool
-    TabsActiveCount::ImS16
-    LastTabItemIdx::ImS16
-    ItemSpacingY::Cfloat
-    FramePadding::ImVec2
-    BackupCursorPos::ImVec2
-    TabsNames::ImGuiTextBuffer
-end
-
-const ImGuiStyleVar = Cint
-
-struct ImGuiStyleMod
-    data::NTuple{12, UInt8}
-end
-
-function Base.getproperty(x::Ptr{ImGuiStyleMod}, f::Symbol)
-    f === :VarIdx && return Ptr{ImGuiStyleVar}(x + 0)
-    f === :BackupInt && return Ptr{NTuple{2, Cint}}(x + 4)
-    f === :BackupFloat && return Ptr{NTuple{2, Cfloat}}(x + 4)
-    return getfield(x, f)
-end
-
-function Base.getproperty(x::ImGuiStyleMod, f::Symbol)
-    r = Ref{ImGuiStyleMod}(x)
-    ptr = Base.unsafe_convert(Ptr{ImGuiStyleMod}, r)
-    fptr = getproperty(ptr, f)
-    GC.@preserve r unsafe_load(fptr)
-end
-
-function Base.setproperty!(x::Ptr{ImGuiStyleMod}, f::Symbol, v)
-    unsafe_store!(getproperty(x, f), v)
-end
-
-struct ImGuiSettingsHandler
-    TypeName::Ptr{Cchar}
-    TypeHash::ImGuiID
-    ClearAllFn::Ptr{Cvoid}
-    ReadInitFn::Ptr{Cvoid}
-    ReadOpenFn::Ptr{Cvoid}
-    ReadLineFn::Ptr{Cvoid}
-    ApplyAllFn::Ptr{Cvoid}
-    WriteAllFn::Ptr{Cvoid}
-    UserData::Ptr{Cvoid}
-end
-
-struct ImGuiPopupData
-    PopupId::ImGuiID
-    Window::Ptr{ImGuiWindow}
-    SourceWindow::Ptr{ImGuiWindow}
-    OpenFrameCount::Cint
-    OpenParentId::ImGuiID
-    OpenPopupPos::ImVec2
-    OpenMousePos::ImVec2
-end
-
-const ImGuiNextItemDataFlags = Cint
-
-struct ImGuiNextItemData
-    Flags::ImGuiNextItemDataFlags
-    Width::Cfloat
-    FocusScopeId::ImGuiID
-    OpenCond::ImGuiCond
-    OpenVal::Bool
-end
-
-const ImGuiNextWindowDataFlags = Cint
-
-# typedef void ( * ImGuiSizeCallback ) ( ImGuiSizeCallbackData * data )
-const ImGuiSizeCallback = Ptr{Cvoid}
-
-struct ImGuiNextWindowData
-    Flags::ImGuiNextWindowDataFlags
-    PosCond::ImGuiCond
-    SizeCond::ImGuiCond
-    CollapsedCond::ImGuiCond
-    DockCond::ImGuiCond
-    PosVal::ImVec2
-    PosPivotVal::ImVec2
-    SizeVal::ImVec2
-    ContentSizeVal::ImVec2
-    ScrollVal::ImVec2
-    PosUndock::Bool
-    CollapsedVal::Bool
-    SizeConstraintRect::ImRect
-    SizeCallback::ImGuiSizeCallback
-    SizeCallbackUserData::Ptr{Cvoid}
-    BgAlphaVal::Cfloat
-    ViewportId::ImGuiID
-    DockId::ImGuiID
-    WindowClass::ImGuiWindowClass
-    MenuBarOffsetMinVal::ImVec2
-end
-
-struct ImGuiMetricsConfig
-    ShowWindowsRects::Bool
-    ShowWindowsBeginOrder::Bool
-    ShowTablesRects::Bool
-    ShowDrawCmdMesh::Bool
-    ShowDrawCmdBoundingBoxes::Bool
-    ShowDockingNodes::Bool
-    ShowWindowsRectsType::Cint
-    ShowTablesRectsType::Cint
-end
-
-struct ImGuiNavMoveResult
-    Window::Ptr{ImGuiWindow}
-    ID::ImGuiID
-    FocusScopeId::ImGuiID
-    DistBox::Cfloat
-    DistCenter::Cfloat
-    DistAxial::Cfloat
-    RectRel::ImRect
-end
-
-struct ImGuiLastItemDataBackup
-    LastItemId::ImGuiID
-    LastItemStatusFlags::ImGuiItemStatusFlags
-    LastItemRect::ImRect
-    LastItemDisplayRect::ImRect
-end
+const ImWchar = ImWchar16
 
 struct ImVector_ImWchar
     Size::Cint
@@ -1275,109 +136,29 @@ struct ImVector_ImWchar
     Data::Ptr{ImWchar}
 end
 
-const ImGuiInputTextFlags = Cint
-
-# typedef int ( * ImGuiInputTextCallback ) ( ImGuiInputTextCallbackData * data )
-const ImGuiInputTextCallback = Ptr{Cvoid}
-
-struct ImGuiInputTextState
-    ID::ImGuiID
-    CurLenW::Cint
-    CurLenA::Cint
-    TextW::ImVector_ImWchar
-    TextA::ImVector_char
-    InitialTextA::ImVector_char
-    TextAIsValid::Bool
-    BufCapacityA::Cint
-    ScrollX::Cfloat
-    Stb::STB_TexteditState
-    CursorAnim::Cfloat
-    CursorFollow::Bool
-    SelectedAllMouseLock::Bool
-    Edited::Bool
-    UserFlags::ImGuiInputTextFlags
-    UserCallback::ImGuiInputTextCallback
-    UserCallbackData::Ptr{Cvoid}
+struct ImFontGlyph
+    data::NTuple{40, UInt8}
 end
 
-struct ImGuiGroupData
-    WindowID::ImGuiID
-    BackupCursorPos::ImVec2
-    BackupCursorMaxPos::ImVec2
-    BackupIndent::ImVec1
-    BackupGroupOffset::ImVec1
-    BackupCurrLineSize::ImVec2
-    BackupCurrLineTextBaseOffset::Cfloat
-    BackupActiveIdIsAlive::ImGuiID
-    BackupActiveIdPreviousFrameIsAlive::Bool
-    BackupHoveredIdIsAlive::Bool
-    EmitItem::Bool
-end
-
-mutable struct ImGuiDockNodeSettings end
-
-@cenum ImGuiDockNodeState::UInt32 begin
-    ImGuiDockNodeState_Unknown = 0
-    ImGuiDockNodeState_HostWindowHiddenBecauseSingleWindow = 1
-    ImGuiDockNodeState_HostWindowHiddenBecauseWindowsAreResizing = 2
-    ImGuiDockNodeState_HostWindowVisible = 3
-end
-
-@cenum ImGuiAxis::Int32 begin
-    ImGuiAxis_None = -1
-    ImGuiAxis_X = 0
-    ImGuiAxis_Y = 1
-end
-
-const ImGuiDataAuthority = Cint
-
-struct ImGuiDockNode
-    data::NTuple{148, UInt8}
-end
-
-function Base.getproperty(x::Ptr{ImGuiDockNode}, f::Symbol)
-    f === :ID && return Ptr{ImGuiID}(x + 0)
-    f === :SharedFlags && return Ptr{ImGuiDockNodeFlags}(x + 4)
-    f === :LocalFlags && return Ptr{ImGuiDockNodeFlags}(x + 8)
-    f === :State && return Ptr{ImGuiDockNodeState}(x + 12)
-    f === :ParentNode && return Ptr{Ptr{ImGuiDockNode}}(x + 16)
-    f === :ChildNodes && return Ptr{NTuple{2, Ptr{ImGuiDockNode}}}(x + 20)
-    f === :Windows && return Ptr{ImVector_ImGuiWindowPtr}(x + 28)
-    f === :TabBar && return Ptr{Ptr{ImGuiTabBar}}(x + 40)
-    f === :Pos && return Ptr{ImVec2}(x + 44)
-    f === :Size && return Ptr{ImVec2}(x + 52)
-    f === :SizeRef && return Ptr{ImVec2}(x + 60)
-    f === :SplitAxis && return Ptr{ImGuiAxis}(x + 68)
-    f === :WindowClass && return Ptr{ImGuiWindowClass}(x + 72)
-    f === :HostWindow && return Ptr{Ptr{ImGuiWindow}}(x + 104)
-    f === :VisibleWindow && return Ptr{Ptr{ImGuiWindow}}(x + 108)
-    f === :CentralNode && return Ptr{Ptr{ImGuiDockNode}}(x + 112)
-    f === :OnlyNodeWithWindows && return Ptr{Ptr{ImGuiDockNode}}(x + 116)
-    f === :LastFrameAlive && return Ptr{Cint}(x + 120)
-    f === :LastFrameActive && return Ptr{Cint}(x + 124)
-    f === :LastFrameFocused && return Ptr{Cint}(x + 128)
-    f === :LastFocusedNodeId && return Ptr{ImGuiID}(x + 132)
-    f === :SelectedTabId && return Ptr{ImGuiID}(x + 136)
-    f === :WantCloseTabId && return Ptr{ImGuiID}(x + 140)
-    f === :AuthorityForPos && return Ptr{ImGuiDataAuthority}(x + 144)
-    f === :AuthorityForSize && return (Ptr{ImGuiDataAuthority}(x + 144), 3, 3)
-    f === :AuthorityForViewport && return (Ptr{ImGuiDataAuthority}(x + 144), 6, 3)
-    f === :IsVisible && return (Ptr{Bool}(x + 145), 1, 1)
-    f === :IsFocused && return (Ptr{Bool}(x + 145), 2, 1)
-    f === :HasCloseButton && return (Ptr{Bool}(x + 145), 3, 1)
-    f === :HasWindowMenuButton && return (Ptr{Bool}(x + 145), 4, 1)
-    f === :WantCloseAll && return (Ptr{Bool}(x + 145), 5, 1)
-    f === :WantLockSizeOnce && return (Ptr{Bool}(x + 145), 6, 1)
-    f === :WantMouseMove && return (Ptr{Bool}(x + 145), 7, 1)
-    f === :WantHiddenTabBarUpdate && return Ptr{Bool}(x + 146)
-    f === :WantHiddenTabBarToggle && return (Ptr{Bool}(x + 146), 1, 1)
-    f === :MarkedForPosSizeWrite && return (Ptr{Bool}(x + 146), 2, 1)
+function Base.getproperty(x::Ptr{ImFontGlyph}, f::Symbol)
+    f === :Colored && return (Ptr{Cuint}(x + 0), 0, 1)
+    f === :Visible && return (Ptr{Cuint}(x + 0), 1, 1)
+    f === :Codepoint && return (Ptr{Cuint}(x + 0), 2, 30)
+    f === :AdvanceX && return Ptr{Cfloat}(x + 4)
+    f === :X0 && return Ptr{Cfloat}(x + 8)
+    f === :Y0 && return Ptr{Cfloat}(x + 12)
+    f === :X1 && return Ptr{Cfloat}(x + 16)
+    f === :Y1 && return Ptr{Cfloat}(x + 20)
+    f === :U0 && return Ptr{Cfloat}(x + 24)
+    f === :V0 && return Ptr{Cfloat}(x + 28)
+    f === :U1 && return Ptr{Cfloat}(x + 32)
+    f === :V1 && return Ptr{Cfloat}(x + 36)
     return getfield(x, f)
 end
 
-function Base.getproperty(x::ImGuiDockNode, f::Symbol)
-    r = Ref{ImGuiDockNode}(x)
-    ptr = Base.unsafe_convert(Ptr{ImGuiDockNode}, r)
+function Base.getproperty(x::ImFontGlyph, f::Symbol)
+    r = Ref{ImFontGlyph}(x)
+    ptr = Base.unsafe_convert(Ptr{ImFontGlyph}, r)
     fptr = getproperty(ptr, f)
     begin
         if fptr isa Ptr
@@ -1385,84 +166,56 @@ function Base.getproperty(x::ImGuiDockNode, f::Symbol)
         else
             (baseptr, offset, width) = fptr
             ty = eltype(baseptr)
-            i8 = GC.@preserve(r, unsafe_load(baseptr))
-            bitstr = bitstring(i8)
-            sig = bitstr[(end - offset) - (width - 1):end - offset]
-            zexted = lpad(sig, 8 * sizeof(ty), '0')
-            return parse(ty, zexted; base = 2)
+            baseptr32 = convert(Ptr{UInt32}, baseptr)
+            u64 = GC.@preserve(r, unsafe_load(baseptr32))
+            if offset + width > 32
+                u64 |= GC.@preserve(r, unsafe_load(baseptr32 + 4)) << 32
+            end
+            u64 = u64 >> offset & (1 << width - 1)
+            return u64 % ty
         end
     end
 end
 
-function Base.setproperty!(x::Ptr{ImGuiDockNode}, f::Symbol, v)
-    unsafe_store!(getproperty(x, f), v)
+function Base.setproperty!(x::Ptr{ImFontGlyph}, f::Symbol, v)
+    fptr = getproperty(x, f)
+    if fptr isa Ptr
+        unsafe_store!(getproperty(x, f), v)
+    else
+        (baseptr, offset, width) = fptr
+        baseptr32 = convert(Ptr{UInt32}, baseptr)
+        u64 = unsafe_load(baseptr32)
+        straddle = offset + width > 32
+        if straddle
+            u64 |= unsafe_load(baseptr32 + 4) << 32
+        end
+        mask = 1 << width - 1
+        u64 &= ~(mask << offset)
+        u64 |= (unsigned(v) & mask) << offset
+        unsafe_store!(baseptr32, u64 & typemax(UInt32))
+        if straddle
+            unsafe_store!(baseptr32 + 4, u64 >> 32)
+        end
+    end
 end
 
-mutable struct ImGuiDockRequest end
-
-struct ImVector_ImGuiDockRequest
+struct ImVector_ImFontGlyph
     Size::Cint
     Capacity::Cint
-    Data::Ptr{ImGuiDockRequest}
+    Data::Ptr{ImFontGlyph}
 end
 
-struct ImVector_ImGuiDockNodeSettings
+const ImFontAtlasFlags = Cint
+
+struct ImVector_ImFontPtr
     Size::Cint
     Capacity::Cint
-    Data::Ptr{ImGuiDockNodeSettings}
+    Data::Ptr{Ptr{Cvoid}} # Data::Ptr{Ptr{ImFont}}
 end
 
-struct ImGuiDockContext
-    Nodes::ImGuiStorage
-    Requests::ImVector_ImGuiDockRequest
-    NodesSettings::ImVector_ImGuiDockNodeSettings
-    WantFullRebuild::Bool
-end
-
-struct ImGuiDataTypeInfo
-    Size::Csize_t
-    Name::Ptr{Cchar}
-    PrintFmt::Ptr{Cchar}
-    ScanFmt::Ptr{Cchar}
-end
-
-@cenum ImGuiContextHookType::UInt32 begin
-    ImGuiContextHookType_NewFramePre = 0
-    ImGuiContextHookType_NewFramePost = 1
-    ImGuiContextHookType_EndFramePre = 2
-    ImGuiContextHookType_EndFramePost = 3
-    ImGuiContextHookType_RenderPre = 4
-    ImGuiContextHookType_RenderPost = 5
-    ImGuiContextHookType_Shutdown = 6
-    ImGuiContextHookType_PendingRemoval_ = 7
-end
-
-# typedef void ( * ImGuiContextHookCallback ) ( ImGuiContext * ctx , ImGuiContextHook * hook )
-const ImGuiContextHookCallback = Ptr{Cvoid}
-
-struct ImGuiContextHook
-    HookId::ImGuiID
-    Type::ImGuiContextHookType
-    Owner::ImGuiID
-    Callback::ImGuiContextHookCallback
-    UserData::Ptr{Cvoid}
-end
-
-const ImGuiCol = Cint
-
-struct ImGuiColorMod
-    Col::ImGuiCol
-    BackupValue::ImVec4
-end
-
-struct ImVector_ImU32
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImU32}
-end
-
-struct ImBitVector
-    Storage::ImVector_ImU32
+function Base.getproperty(x::ImVector_ImFontPtr, f::Symbol)
+    f === :Data && return Ptr{Ptr{ImFont}}(getfield(x, f))
+    return getfield(x, f)
 end
 
 struct ImFontAtlasCustomRect
@@ -1473,295 +226,11 @@ struct ImFontAtlasCustomRect
     GlyphID::Cuint
     GlyphAdvanceX::Cfloat
     GlyphOffset::ImVec2
-    # Font::Ptr{ImFont}
-    Font::Ptr{Cvoid}
+    Font::Ptr{Cvoid} # Font::Ptr{ImFont}
 end
 
 function Base.getproperty(x::ImFontAtlasCustomRect, f::Symbol)
     f === :Font && return Ptr{ImFont}(getfield(x, f))
-    return getfield(x, f)
-end
-
-struct ImGuiTextRange
-    b::Ptr{Cchar}
-    e::Ptr{Cchar}
-end
-
-struct ImVector_ImGuiTextRange
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImGuiTextRange}
-end
-
-struct ImGuiTextFilter
-    InputBuf::NTuple{256, Cchar}
-    Filters::ImVector_ImGuiTextRange
-    CountGrep::Cint
-end
-
-struct ImGuiStyle
-    Alpha::Cfloat
-    WindowPadding::ImVec2
-    WindowRounding::Cfloat
-    WindowBorderSize::Cfloat
-    WindowMinSize::ImVec2
-    WindowTitleAlign::ImVec2
-    WindowMenuButtonPosition::ImGuiDir
-    ChildRounding::Cfloat
-    ChildBorderSize::Cfloat
-    PopupRounding::Cfloat
-    PopupBorderSize::Cfloat
-    FramePadding::ImVec2
-    FrameRounding::Cfloat
-    FrameBorderSize::Cfloat
-    ItemSpacing::ImVec2
-    ItemInnerSpacing::ImVec2
-    CellPadding::ImVec2
-    TouchExtraPadding::ImVec2
-    IndentSpacing::Cfloat
-    ColumnsMinSpacing::Cfloat
-    ScrollbarSize::Cfloat
-    ScrollbarRounding::Cfloat
-    GrabMinSize::Cfloat
-    GrabRounding::Cfloat
-    LogSliderDeadzone::Cfloat
-    TabRounding::Cfloat
-    TabBorderSize::Cfloat
-    TabMinWidthForCloseButton::Cfloat
-    ColorButtonPosition::ImGuiDir
-    ButtonTextAlign::ImVec2
-    SelectableTextAlign::ImVec2
-    DisplayWindowPadding::ImVec2
-    DisplaySafeAreaPadding::ImVec2
-    MouseCursorScale::Cfloat
-    AntiAliasedLines::Bool
-    AntiAliasedLinesUseTex::Bool
-    AntiAliasedFill::Bool
-    CurveTessellationTol::Cfloat
-    CircleTessellationMaxError::Cfloat
-    Colors::NTuple{55, ImVec4}
-end
-
-function Base.getproperty(x::Ptr{ImGuiStyle}, f::Symbol)
-    f === :Alpha && return Ptr{Cfloat}(x + 0)
-    f === :WindowPadding && return Ptr{ImVec2}(x + 4)
-    f === :WindowRounding && return Ptr{Cfloat}(x + 12)
-    f === :WindowBorderSize && return Ptr{Cfloat}(x + 16)
-    f === :WindowMinSize && return Ptr{ImVec2}(x + 20)
-    f === :WindowTitleAlign && return Ptr{ImVec2}(x + 28)
-    f === :WindowMenuButtonPosition && return Ptr{ImGuiDir}(x + 36)
-    f === :ChildRounding && return Ptr{Cfloat}(x + 40)
-    f === :ChildBorderSize && return Ptr{Cfloat}(x + 44)
-    f === :PopupRounding && return Ptr{Cfloat}(x + 48)
-    f === :PopupBorderSize && return Ptr{Cfloat}(x + 52)
-    f === :FramePadding && return Ptr{ImVec2}(x + 56)
-    f === :FrameRounding && return Ptr{Cfloat}(x + 64)
-    f === :FrameBorderSize && return Ptr{Cfloat}(x + 68)
-    f === :ItemSpacing && return Ptr{ImVec2}(x + 72)
-    f === :ItemInnerSpacing && return Ptr{ImVec2}(x + 80)
-    f === :CellPadding && return Ptr{ImVec2}(x + 88)
-    f === :TouchExtraPadding && return Ptr{ImVec2}(x + 96)
-    f === :IndentSpacing && return Ptr{Cfloat}(x + 104)
-    f === :ColumnsMinSpacing && return Ptr{Cfloat}(x + 108)
-    f === :ScrollbarSize && return Ptr{Cfloat}(x + 112)
-    f === :ScrollbarRounding && return Ptr{Cfloat}(x + 116)
-    f === :GrabMinSize && return Ptr{Cfloat}(x + 120)
-    f === :GrabRounding && return Ptr{Cfloat}(x + 124)
-    f === :LogSliderDeadzone && return Ptr{Cfloat}(x + 128)
-    f === :TabRounding && return Ptr{Cfloat}(x + 132)
-    f === :TabBorderSize && return Ptr{Cfloat}(x + 136)
-    f === :TabMinWidthForCloseButton && return Ptr{Cfloat}(x + 140)
-    f === :ColorButtonPosition && return Ptr{ImGuiDir}(x + 144)
-    f === :ButtonTextAlign && return Ptr{ImVec2}(x + 148)
-    f === :SelectableTextAlign && return Ptr{ImVec2}(x + 156)
-    f === :DisplayWindowPadding && return Ptr{ImVec2}(x + 164)
-    f === :DisplaySafeAreaPadding && return Ptr{ImVec2}(x + 172)
-    f === :MouseCursorScale && return Ptr{Cfloat}(x + 180)
-    f === :AntiAliasedLines && return Ptr{Bool}(x + 184)
-    f === :AntiAliasedLinesUseTex && return Ptr{Bool}(x + 185)
-    f === :AntiAliasedFill && return Ptr{Bool}(x + 186)
-    f === :CurveTessellationTol && return Ptr{Cfloat}(x + 188)
-    f === :CircleTessellationMaxError && return Ptr{Cfloat}(x + 192)
-    f === :Colors && return Ptr{NTuple{55, ImVec4}}(x + 196)
-    return getfield(x, f)
-end
-
-function Base.setproperty!(x::Ptr{ImGuiStyle}, f::Symbol, v)
-    unsafe_store!(getproperty(x, f), v)
-end
-
-struct ImGuiSizeCallbackData
-    UserData::Ptr{Cvoid}
-    Pos::ImVec2
-    CurrentSize::ImVec2
-    DesiredSize::ImVec2
-end
-
-function Base.getproperty(x::Ptr{ImGuiSizeCallbackData}, f::Symbol)
-    f === :UserData && return Ptr{Ptr{Cvoid}}(x + 0)
-    f === :Pos && return Ptr{ImVec2}(x + 4)
-    f === :CurrentSize && return Ptr{ImVec2}(x + 12)
-    f === :DesiredSize && return Ptr{ImVec2}(x + 20)
-    return getfield(x, f)
-end
-
-function Base.setproperty!(x::Ptr{ImGuiSizeCallbackData}, f::Symbol, v)
-    unsafe_store!(getproperty(x, f), v)
-end
-
-struct ImGuiPlatformMonitor
-    MainPos::ImVec2
-    MainSize::ImVec2
-    WorkPos::ImVec2
-    WorkSize::ImVec2
-    DpiScale::Cfloat
-end
-
-function Base.getproperty(x::Ptr{ImGuiPlatformMonitor}, f::Symbol)
-    f === :MainPos && return Ptr{ImVec2}(x + 0)
-    f === :MainSize && return Ptr{ImVec2}(x + 8)
-    f === :WorkPos && return Ptr{ImVec2}(x + 16)
-    f === :WorkSize && return Ptr{ImVec2}(x + 24)
-    f === :DpiScale && return Ptr{Cfloat}(x + 32)
-    return getfield(x, f)
-end
-
-function Base.setproperty!(x::Ptr{ImGuiPlatformMonitor}, f::Symbol, v)
-    unsafe_store!(getproperty(x, f), v)
-end
-
-struct ImVector_ImGuiPlatformMonitor
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImGuiPlatformMonitor}
-end
-
-struct ImVector_ImGuiViewportPtr
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{Ptr{ImGuiViewport}}
-end
-
-struct ImGuiPlatformIO
-    Platform_CreateWindow::Ptr{Cvoid}
-    Platform_DestroyWindow::Ptr{Cvoid}
-    Platform_ShowWindow::Ptr{Cvoid}
-    Platform_SetWindowPos::Ptr{Cvoid}
-    Platform_GetWindowPos::Ptr{Cvoid}
-    Platform_SetWindowSize::Ptr{Cvoid}
-    Platform_GetWindowSize::Ptr{Cvoid}
-    Platform_SetWindowFocus::Ptr{Cvoid}
-    Platform_GetWindowFocus::Ptr{Cvoid}
-    Platform_GetWindowMinimized::Ptr{Cvoid}
-    Platform_SetWindowTitle::Ptr{Cvoid}
-    Platform_SetWindowAlpha::Ptr{Cvoid}
-    Platform_UpdateWindow::Ptr{Cvoid}
-    Platform_RenderWindow::Ptr{Cvoid}
-    Platform_SwapBuffers::Ptr{Cvoid}
-    Platform_GetWindowDpiScale::Ptr{Cvoid}
-    Platform_OnChangedViewport::Ptr{Cvoid}
-    Platform_SetImeInputPos::Ptr{Cvoid}
-    Platform_CreateVkSurface::Ptr{Cvoid}
-    Renderer_CreateWindow::Ptr{Cvoid}
-    Renderer_DestroyWindow::Ptr{Cvoid}
-    Renderer_SetWindowSize::Ptr{Cvoid}
-    Renderer_RenderWindow::Ptr{Cvoid}
-    Renderer_SwapBuffers::Ptr{Cvoid}
-    Monitors::ImVector_ImGuiPlatformMonitor
-    Viewports::ImVector_ImGuiViewportPtr
-end
-
-function Base.getproperty(x::Ptr{ImGuiPlatformIO}, f::Symbol)
-    f === :Platform_CreateWindow && return Ptr{Ptr{Cvoid}}(x + 0)
-    f === :Platform_DestroyWindow && return Ptr{Ptr{Cvoid}}(x + 4)
-    f === :Platform_ShowWindow && return Ptr{Ptr{Cvoid}}(x + 8)
-    f === :Platform_SetWindowPos && return Ptr{Ptr{Cvoid}}(x + 12)
-    f === :Platform_GetWindowPos && return Ptr{Ptr{Cvoid}}(x + 16)
-    f === :Platform_SetWindowSize && return Ptr{Ptr{Cvoid}}(x + 20)
-    f === :Platform_GetWindowSize && return Ptr{Ptr{Cvoid}}(x + 24)
-    f === :Platform_SetWindowFocus && return Ptr{Ptr{Cvoid}}(x + 28)
-    f === :Platform_GetWindowFocus && return Ptr{Ptr{Cvoid}}(x + 32)
-    f === :Platform_GetWindowMinimized && return Ptr{Ptr{Cvoid}}(x + 36)
-    f === :Platform_SetWindowTitle && return Ptr{Ptr{Cvoid}}(x + 40)
-    f === :Platform_SetWindowAlpha && return Ptr{Ptr{Cvoid}}(x + 44)
-    f === :Platform_UpdateWindow && return Ptr{Ptr{Cvoid}}(x + 48)
-    f === :Platform_RenderWindow && return Ptr{Ptr{Cvoid}}(x + 52)
-    f === :Platform_SwapBuffers && return Ptr{Ptr{Cvoid}}(x + 56)
-    f === :Platform_GetWindowDpiScale && return Ptr{Ptr{Cvoid}}(x + 60)
-    f === :Platform_OnChangedViewport && return Ptr{Ptr{Cvoid}}(x + 64)
-    f === :Platform_SetImeInputPos && return Ptr{Ptr{Cvoid}}(x + 68)
-    f === :Platform_CreateVkSurface && return Ptr{Ptr{Cvoid}}(x + 72)
-    f === :Renderer_CreateWindow && return Ptr{Ptr{Cvoid}}(x + 76)
-    f === :Renderer_DestroyWindow && return Ptr{Ptr{Cvoid}}(x + 80)
-    f === :Renderer_SetWindowSize && return Ptr{Ptr{Cvoid}}(x + 84)
-    f === :Renderer_RenderWindow && return Ptr{Ptr{Cvoid}}(x + 88)
-    f === :Renderer_SwapBuffers && return Ptr{Ptr{Cvoid}}(x + 92)
-    f === :Monitors && return Ptr{ImVector_ImGuiPlatformMonitor}(x + 96)
-    f === :Viewports && return Ptr{ImVector_ImGuiViewportPtr}(x + 108)
-    return getfield(x, f)
-end
-
-function Base.setproperty!(x::Ptr{ImGuiPlatformIO}, f::Symbol, v)
-    unsafe_store!(getproperty(x, f), v)
-end
-
-struct ImGuiPayload
-    Data::Ptr{Cvoid}
-    DataSize::Cint
-    SourceId::ImGuiID
-    SourceParentId::ImGuiID
-    DataFrameCount::Cint
-    DataType::NTuple{33, Cchar}
-    Preview::Bool
-    Delivery::Bool
-end
-
-struct ImGuiOnceUponAFrame
-    RefFrame::Cint
-end
-
-struct ImGuiListClipper
-    DisplayStart::Cint
-    DisplayEnd::Cint
-    ItemsCount::Cint
-    StepNo::Cint
-    ItemsFrozen::Cint
-    ItemsHeight::Cfloat
-    StartPosY::Cfloat
-end
-
-const ImGuiKey = Cint
-
-struct ImGuiInputTextCallbackData
-    EventFlag::ImGuiInputTextFlags
-    Flags::ImGuiInputTextFlags
-    UserData::Ptr{Cvoid}
-    EventChar::ImWchar
-    EventKey::ImGuiKey
-    Buf::Ptr{Cchar}
-    BufTextLen::Cint
-    BufSize::Cint
-    BufDirty::Bool
-    CursorPos::Cint
-    SelectionStart::Cint
-    SelectionEnd::Cint
-end
-
-const ImGuiConfigFlags = Cint
-
-const ImGuiBackendFlags = Cint
-
-const ImFontAtlasFlags = Cint
-
-struct ImVector_ImFontPtr
-    Size::Cint
-    Capacity::Cint
-    # Data::Ptr{Ptr{ImFont}}
-    Data::Ptr{Ptr{Cvoid}}
-end
-
-function Base.getproperty(x::ImVector_ImFontPtr, f::Symbol)
-    f === :Data && return Ptr{Ptr{ImFont}}(getfield(x, f))
     return getfield(x, f)
 end
 
@@ -1790,8 +259,7 @@ struct ImFontConfig
     RasterizerMultiply::Cfloat
     EllipsisChar::ImWchar
     Name::NTuple{40, Cchar}
-    # DstFont::Ptr{ImFont}
-    DstFont::Ptr{Cvoid}
+    DstFont::Ptr{Cvoid} # DstFont::Ptr{ImFont}
 end
 
 function Base.getproperty(x::ImFontConfig, f::Symbol)
@@ -1842,6 +310,8 @@ struct ImFontAtlas
     TexDesiredWidth::Cint
     TexGlyphPadding::Cint
     Locked::Bool
+    UserData::Ptr{Cvoid}
+    TexReady::Bool
     TexPixelsUseColors::Bool
     TexPixelsAlpha8::Ptr{Cuchar}
     TexPixelsRGBA32::Ptr{Cuint}
@@ -1858,28 +328,29 @@ struct ImFontAtlas
     PackIdMouseCursors::Cint
     PackIdLines::Cint
 end
-
 function Base.getproperty(x::Ptr{ImFontAtlas}, f::Symbol)
     f === :Flags && return Ptr{ImFontAtlasFlags}(x + 0)
     f === :TexID && return Ptr{ImTextureID}(x + 4)
     f === :TexDesiredWidth && return Ptr{Cint}(x + 8)
     f === :TexGlyphPadding && return Ptr{Cint}(x + 12)
     f === :Locked && return Ptr{Bool}(x + 16)
-    f === :TexPixelsUseColors && return Ptr{Bool}(x + 17)
-    f === :TexPixelsAlpha8 && return Ptr{Ptr{Cuchar}}(x + 20)
-    f === :TexPixelsRGBA32 && return Ptr{Ptr{Cuint}}(x + 24)
-    f === :TexWidth && return Ptr{Cint}(x + 28)
-    f === :TexHeight && return Ptr{Cint}(x + 32)
-    f === :TexUvScale && return Ptr{ImVec2}(x + 36)
-    f === :TexUvWhitePixel && return Ptr{ImVec2}(x + 44)
-    f === :Fonts && return Ptr{ImVector_ImFontPtr}(x + 52)
-    f === :CustomRects && return Ptr{ImVector_ImFontAtlasCustomRect}(x + 64)
-    f === :ConfigData && return Ptr{ImVector_ImFontConfig}(x + 76)
-    f === :TexUvLines && return Ptr{NTuple{64, ImVec4}}(x + 88)
-    f === :FontBuilderIO && return Ptr{Ptr{ImFontBuilderIO}}(x + 1112)
-    f === :FontBuilderFlags && return Ptr{Cuint}(x + 1116)
-    f === :PackIdMouseCursors && return Ptr{Cint}(x + 1120)
-    f === :PackIdLines && return Ptr{Cint}(x + 1124)
+    f === :UserData && return Ptr{Ptr{Cvoid}}(x + 20)
+    f === :TexReady && return Ptr{Bool}(x + 24)
+    f === :TexPixelsUseColors && return Ptr{Bool}(x + 25)
+    f === :TexPixelsAlpha8 && return Ptr{Ptr{Cuchar}}(x + 28)
+    f === :TexPixelsRGBA32 && return Ptr{Ptr{Cuint}}(x + 32)
+    f === :TexWidth && return Ptr{Cint}(x + 36)
+    f === :TexHeight && return Ptr{Cint}(x + 40)
+    f === :TexUvScale && return Ptr{ImVec2}(x + 44)
+    f === :TexUvWhitePixel && return Ptr{ImVec2}(x + 52)
+    f === :Fonts && return Ptr{ImVector_ImFontPtr}(x + 60)
+    f === :CustomRects && return Ptr{ImVector_ImFontAtlasCustomRect}(x + 72)
+    f === :ConfigData && return Ptr{ImVector_ImFontConfig}(x + 84)
+    f === :TexUvLines && return Ptr{NTuple{64, ImVec4}}(x + 96)
+    f === :FontBuilderIO && return Ptr{Ptr{ImFontBuilderIO}}(x + 1120)
+    f === :FontBuilderFlags && return Ptr{Cuint}(x + 1124)
+    f === :PackIdMouseCursors && return Ptr{Cint}(x + 1128)
+    f === :PackIdLines && return Ptr{Cint}(x + 1132)
     return getfield(x, f)
 end
 
@@ -1887,54 +358,8 @@ function Base.setproperty!(x::Ptr{ImFontAtlas}, f::Symbol, v)
     unsafe_store!(getproperty(x, f), v)
 end
 
-struct ImFontGlyph
-    data::NTuple{40, UInt8}
-end
 
-function Base.getproperty(x::Ptr{ImFontGlyph}, f::Symbol)
-    f === :Colored && return Ptr{Cuint}(x + 0)
-    f === :Visible && return (Ptr{Cuint}(x + 0), 1, 1)
-    f === :Codepoint && return (Ptr{Cuint}(x + 0), 2, 30)
-    f === :AdvanceX && return Ptr{Cfloat}(x + 4)
-    f === :X0 && return Ptr{Cfloat}(x + 8)
-    f === :Y0 && return Ptr{Cfloat}(x + 12)
-    f === :X1 && return Ptr{Cfloat}(x + 16)
-    f === :Y1 && return Ptr{Cfloat}(x + 20)
-    f === :U0 && return Ptr{Cfloat}(x + 24)
-    f === :V0 && return Ptr{Cfloat}(x + 28)
-    f === :U1 && return Ptr{Cfloat}(x + 32)
-    f === :V1 && return Ptr{Cfloat}(x + 36)
-    return getfield(x, f)
-end
-
-function Base.getproperty(x::ImFontGlyph, f::Symbol)
-    r = Ref{ImFontGlyph}(x)
-    ptr = Base.unsafe_convert(Ptr{ImFontGlyph}, r)
-    fptr = getproperty(ptr, f)
-    begin
-        if fptr isa Ptr
-            return GC.@preserve(r, unsafe_load(fptr))
-        else
-            (baseptr, offset, width) = fptr
-            ty = eltype(baseptr)
-            i8 = GC.@preserve(r, unsafe_load(baseptr))
-            bitstr = bitstring(i8)
-            sig = bitstr[(end - offset) - (width - 1):end - offset]
-            zexted = lpad(sig, 8 * sizeof(ty), '0')
-            return parse(ty, zexted; base = 2)
-        end
-    end
-end
-
-function Base.setproperty!(x::Ptr{ImFontGlyph}, f::Symbol, v)
-    unsafe_store!(getproperty(x, f), v)
-end
-
-struct ImVector_ImFontGlyph
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImFontGlyph}
-end
+const ImU8 = Cuchar
 
 struct ImFont
     IndexAdvanceX::ImVector_float
@@ -1948,6 +373,9 @@ struct ImFont
     ConfigDataCount::Cshort
     FallbackChar::ImWchar
     EllipsisChar::ImWchar
+    EllipsisCharCount::Cshort
+    EllipsisWidth::Cfloat
+    EllipsisCharStep::Cfloat
     DirtyLookupTables::Bool
     Scale::Cfloat
     Ascent::Cfloat
@@ -1956,7 +384,211 @@ struct ImFont
     Used4kPagesMap::NTuple{2, ImU8}
 end
 
-const ImGuiKeyModFlags = Cint
+struct ImVector_ImVec2
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImVec2}
+end
+
+struct ImDrawListSharedData
+    TexUvWhitePixel::ImVec2
+    Font::Ptr{ImFont}
+    FontSize::Cfloat
+    CurveTessellationTol::Cfloat
+    CircleSegmentMaxError::Cfloat
+    ClipRectFullscreen::ImVec4
+    InitialFlags::ImDrawListFlags
+    TempBuffer::ImVector_ImVec2
+    ArcFastVtx::NTuple{48, ImVec2}
+    ArcFastRadiusCutoff::Cfloat
+    CircleSegmentCounts::NTuple{64, ImU8}
+    TexUvLines::Ptr{ImVec4}
+end
+
+struct ImVector_ImVec4
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImVec4}
+end
+
+struct ImVector_ImTextureID
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImTextureID}
+end
+
+struct ImDrawCmdHeader
+    ClipRect::ImVec4
+    TextureId::ImTextureID
+    VtxOffset::Cuint
+end
+
+struct ImVector_ImDrawChannel
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImDrawChannel}
+end
+
+struct ImDrawListSplitter
+    _Current::Cint
+    _Count::Cint
+    _Channels::ImVector_ImDrawChannel
+end
+
+struct ImDrawList
+    CmdBuffer::ImVector_ImDrawCmd
+    IdxBuffer::ImVector_ImDrawIdx
+    VtxBuffer::ImVector_ImDrawVert
+    Flags::ImDrawListFlags
+    _VtxCurrentIdx::Cuint
+    _Data::Ptr{ImDrawListSharedData}
+    _OwnerName::Ptr{Cchar}
+    _VtxWritePtr::Ptr{ImDrawVert}
+    _IdxWritePtr::Ptr{ImDrawIdx}
+    _ClipRectStack::ImVector_ImVec4
+    _TextureIdStack::ImVector_ImTextureID
+    _Path::ImVector_ImVec2
+    _CmdHeader::ImDrawCmdHeader
+    _Splitter::ImDrawListSplitter
+    _FringeScale::Cfloat
+end
+function Base.getproperty(x::Ptr{ImDrawList}, f::Symbol)
+    f === :CmdBuffer && return Ptr{ImVector_ImDrawCmd}(x + 0)
+    f === :IdxBuffer && return Ptr{ImVector_ImDrawIdx}(x + 12)
+    f === :VtxBuffer && return Ptr{ImVector_ImDrawVert}(x + 24)
+    f === :Flags && return Ptr{ImDrawListFlags}(x + 36)
+    f === :_VtxCurrentIdx && return Ptr{Cuint}(x + 40)
+    f === :_Data && return Ptr{Ptr{ImDrawListSharedData}}(x + 44)
+    f === :_OwnerName && return Ptr{Ptr{Cchar}}(x + 48)
+    f === :_VtxWritePtr && return Ptr{Ptr{ImDrawVert}}(x + 52)
+    f === :_IdxWritePtr && return Ptr{Ptr{ImDrawIdx}}(x + 56)
+    f === :_ClipRectStack && return Ptr{ImVector_ImVec4}(x + 60)
+    f === :_TextureIdStack && return Ptr{ImVector_ImTextureID}(x + 72)
+    f === :_Path && return Ptr{ImVector_ImVec2}(x + 84)
+    f === :_CmdHeader && return Ptr{ImDrawCmdHeader}(x + 96)
+    f === :_Splitter && return Ptr{ImDrawListSplitter}(x + 120)
+    f === :_FringeScale && return Ptr{Cfloat}(x + 140)
+    return getfield(x, f)
+end
+
+function Base.setproperty!(x::Ptr{ImDrawList}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
+end
+
+
+const ImGuiID = Cuint
+
+const ImGuiViewportFlags = Cint
+
+struct ImGuiViewport
+    ID::ImGuiID
+    Flags::ImGuiViewportFlags
+    Pos::ImVec2
+    Size::ImVec2
+    WorkPos::ImVec2
+    WorkSize::ImVec2
+    DpiScale::Cfloat
+    ParentViewportId::ImGuiID
+    DrawData::Ptr{Cvoid} # DrawData::Ptr{ImDrawData}
+    RendererUserData::Ptr{Cvoid}
+    PlatformUserData::Ptr{Cvoid}
+    PlatformHandle::Ptr{Cvoid}
+    PlatformHandleRaw::Ptr{Cvoid}
+    PlatformWindowCreated::Bool
+    PlatformRequestMove::Bool
+    PlatformRequestResize::Bool
+    PlatformRequestClose::Bool
+end
+
+function Base.getproperty(x::ImGuiViewport, f::Symbol)
+    f === :DrawData && return Ptr{ImDrawData}(getfield(x, f))
+    return getfield(x, f)
+end
+
+function Base.getproperty(x::Ptr{ImGuiViewport}, f::Symbol)
+    f === :ID && return Ptr{ImGuiID}(x + 0)
+    f === :Flags && return Ptr{ImGuiViewportFlags}(x + 4)
+    f === :Pos && return Ptr{ImVec2}(x + 8)
+    f === :Size && return Ptr{ImVec2}(x + 16)
+    f === :WorkPos && return Ptr{ImVec2}(x + 24)
+    f === :WorkSize && return Ptr{ImVec2}(x + 32)
+    f === :DpiScale && return Ptr{Cfloat}(x + 40)
+    f === :ParentViewportId && return Ptr{ImGuiID}(x + 44)
+    f === :DrawData && return Ptr{Ptr{ImDrawData}}(x + 48)
+    f === :RendererUserData && return Ptr{Ptr{Cvoid}}(x + 52)
+    f === :PlatformUserData && return Ptr{Ptr{Cvoid}}(x + 56)
+    f === :PlatformHandle && return Ptr{Ptr{Cvoid}}(x + 60)
+    f === :PlatformHandleRaw && return Ptr{Ptr{Cvoid}}(x + 64)
+    f === :PlatformWindowCreated && return Ptr{Bool}(x + 68)
+    f === :PlatformRequestMove && return Ptr{Bool}(x + 69)
+    f === :PlatformRequestResize && return Ptr{Bool}(x + 70)
+    f === :PlatformRequestClose && return Ptr{Bool}(x + 71)
+    return getfield(x, f)
+end
+
+function Base.setproperty!(x::Ptr{ImGuiViewport}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
+end
+
+struct ImDrawData
+    Valid::Bool
+    CmdListsCount::Cint
+    TotalIdxCount::Cint
+    TotalVtxCount::Cint
+    CmdLists::Ptr{Ptr{ImDrawList}}
+    DisplayPos::ImVec2
+    DisplaySize::ImVec2
+    FramebufferScale::ImVec2
+    OwnerViewport::Ptr{ImGuiViewport}
+end
+function Base.getproperty(x::Ptr{ImDrawData}, f::Symbol)
+    f === :Valid && return Ptr{Bool}(x + 0)
+    f === :CmdListsCount && return Ptr{Cint}(x + 4)
+    f === :TotalIdxCount && return Ptr{Cint}(x + 8)
+    f === :TotalVtxCount && return Ptr{Cint}(x + 12)
+    f === :CmdLists && return Ptr{Ptr{Ptr{ImDrawList}}}(x + 16)
+    f === :DisplayPos && return Ptr{ImVec2}(x + 20)
+    f === :DisplaySize && return Ptr{ImVec2}(x + 28)
+    f === :FramebufferScale && return Ptr{ImVec2}(x + 36)
+    f === :OwnerViewport && return Ptr{Ptr{ImGuiViewport}}(x + 44)
+    return getfield(x, f)
+end
+
+function Base.setproperty!(x::Ptr{ImDrawData}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
+end
+
+
+struct ImVector_ImU32
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImU32}
+end
+
+struct ImFontGlyphRangesBuilder
+    UsedChars::ImVector_ImU32
+end
+
+struct ImColor
+    Value::ImVec4
+end
+
+const ImGuiConfigFlags = Cint
+
+const ImGuiBackendFlags = Cint
+
+const ImGuiKeyChord = Cint
+
+struct ImGuiKeyData
+    Down::Bool
+    DownDuration::Cfloat
+    DownDurationPrev::Cfloat
+    AnalogValue::Cfloat
+end
+
+const ImU16 = Cushort
+
+const ImS8 = Int8
 
 struct ImGuiIO
     ConfigFlags::ImGuiConfigFlags
@@ -1969,9 +601,10 @@ struct ImGuiIO
     MouseDoubleClickTime::Cfloat
     MouseDoubleClickMaxDist::Cfloat
     MouseDragThreshold::Cfloat
-    KeyMap::NTuple{22, Cint}
     KeyRepeatDelay::Cfloat
     KeyRepeatRate::Cfloat
+    HoverDelayNormal::Cfloat
+    HoverDelayShort::Cfloat
     UserData::Ptr{Cvoid}
     Fonts::Ptr{ImFontAtlas}
     FontGlobalScale::Cfloat
@@ -1988,11 +621,15 @@ struct ImGuiIO
     ConfigViewportsNoDefaultParent::Bool
     MouseDrawCursor::Bool
     ConfigMacOSXBehaviors::Bool
+    ConfigInputTrickleEventQueue::Bool
     ConfigInputTextCursorBlink::Bool
+    ConfigInputTextEnterKeepActive::Bool
     ConfigDragClickToInputText::Bool
     ConfigWindowsResizeFromEdges::Bool
     ConfigWindowsMoveFromTitleBarOnly::Bool
     ConfigMemoryCompactTimer::Cfloat
+    ConfigDebugBeginReturnValueOnce::Bool
+    ConfigDebugBeginReturnValueLoop::Bool
     BackendPlatformName::Ptr{Cchar}
     BackendRendererName::Ptr{Cchar}
     BackendPlatformUserData::Ptr{Cvoid}
@@ -2001,17 +638,8 @@ struct ImGuiIO
     GetClipboardTextFn::Ptr{Cvoid}
     SetClipboardTextFn::Ptr{Cvoid}
     ClipboardUserData::Ptr{Cvoid}
-    MousePos::ImVec2
-    MouseDown::NTuple{5, Bool}
-    MouseWheel::Cfloat
-    MouseWheelH::Cfloat
-    MouseHoveredViewport::ImGuiID
-    KeyCtrl::Bool
-    KeyShift::Bool
-    KeyAlt::Bool
-    KeySuper::Bool
-    KeysDown::NTuple{512, Bool}
-    NavInputs::NTuple{21, Cfloat}
+    SetPlatformImeDataFn::Ptr{Cvoid}
+    _UnusedPadding::Ptr{Cvoid}
     WantCaptureMouse::Bool
     WantCaptureKeyboard::Bool
     WantTextInput::Bool
@@ -2026,26 +654,48 @@ struct ImGuiIO
     MetricsActiveWindows::Cint
     MetricsActiveAllocations::Cint
     MouseDelta::ImVec2
-    KeyMods::ImGuiKeyModFlags
+    KeyMap::NTuple{652, Cint}
+    KeysDown::NTuple{652, Bool}
+    NavInputs::NTuple{16, Cfloat}
+    Ctx::Ptr{Cvoid} # Ctx::Ptr{ImGuiContext}
+    MousePos::ImVec2
+    MouseDown::NTuple{5, Bool}
+    MouseWheel::Cfloat
+    MouseWheelH::Cfloat
+    MouseHoveredViewport::ImGuiID
+    KeyCtrl::Bool
+    KeyShift::Bool
+    KeyAlt::Bool
+    KeySuper::Bool
+    KeyMods::ImGuiKeyChord
+    KeysData::NTuple{652, ImGuiKeyData}
+    WantCaptureMouseUnlessPopupClose::Bool
     MousePosPrev::ImVec2
     MouseClickedPos::NTuple{5, ImVec2}
     MouseClickedTime::NTuple{5, Cdouble}
     MouseClicked::NTuple{5, Bool}
     MouseDoubleClicked::NTuple{5, Bool}
+    MouseClickedCount::NTuple{5, ImU16}
+    MouseClickedLastCount::NTuple{5, ImU16}
     MouseReleased::NTuple{5, Bool}
     MouseDownOwned::NTuple{5, Bool}
-    MouseDownWasDoubleClick::NTuple{5, Bool}
+    MouseDownOwnedUnlessPopupClose::NTuple{5, Bool}
     MouseDownDuration::NTuple{5, Cfloat}
     MouseDownDurationPrev::NTuple{5, Cfloat}
     MouseDragMaxDistanceAbs::NTuple{5, ImVec2}
     MouseDragMaxDistanceSqr::NTuple{5, Cfloat}
-    KeysDownDuration::NTuple{512, Cfloat}
-    KeysDownDurationPrev::NTuple{512, Cfloat}
-    NavInputsDownDuration::NTuple{21, Cfloat}
-    NavInputsDownDurationPrev::NTuple{21, Cfloat}
     PenPressure::Cfloat
+    AppFocusLost::Bool
+    AppAcceptingEvents::Bool
+    BackendUsingLegacyKeyArrays::ImS8
+    BackendUsingLegacyNavInputArray::Bool
     InputQueueSurrogate::ImWchar16
     InputQueueCharacters::ImVector_ImWchar
+end
+
+function Base.getproperty(x::ImGuiIO, f::Symbol)
+    f === :Ctx && return Ptr{ImGuiContext}(getfield(x, f))
+    return getfield(x, f)
 end
 
 function Base.getproperty(x::Ptr{ImGuiIO}, f::Symbol)
@@ -2059,83 +709,96 @@ function Base.getproperty(x::Ptr{ImGuiIO}, f::Symbol)
     f === :MouseDoubleClickTime && return Ptr{Cfloat}(x + 32)
     f === :MouseDoubleClickMaxDist && return Ptr{Cfloat}(x + 36)
     f === :MouseDragThreshold && return Ptr{Cfloat}(x + 40)
-    f === :KeyMap && return Ptr{NTuple{22, Cint}}(x + 44)
-    f === :KeyRepeatDelay && return Ptr{Cfloat}(x + 132)
-    f === :KeyRepeatRate && return Ptr{Cfloat}(x + 136)
-    f === :UserData && return Ptr{Ptr{Cvoid}}(x + 140)
-    f === :Fonts && return Ptr{Ptr{ImFontAtlas}}(x + 144)
-    f === :FontGlobalScale && return Ptr{Cfloat}(x + 148)
-    f === :FontAllowUserScaling && return Ptr{Bool}(x + 152)
-    f === :FontDefault && return Ptr{Ptr{ImFont}}(x + 156)
-    f === :DisplayFramebufferScale && return Ptr{ImVec2}(x + 160)
-    f === :ConfigDockingNoSplit && return Ptr{Bool}(x + 168)
-    f === :ConfigDockingWithShift && return Ptr{Bool}(x + 169)
-    f === :ConfigDockingAlwaysTabBar && return Ptr{Bool}(x + 170)
-    f === :ConfigDockingTransparentPayload && return Ptr{Bool}(x + 171)
-    f === :ConfigViewportsNoAutoMerge && return Ptr{Bool}(x + 172)
-    f === :ConfigViewportsNoTaskBarIcon && return Ptr{Bool}(x + 173)
-    f === :ConfigViewportsNoDecoration && return Ptr{Bool}(x + 174)
-    f === :ConfigViewportsNoDefaultParent && return Ptr{Bool}(x + 175)
-    f === :MouseDrawCursor && return Ptr{Bool}(x + 176)
-    f === :ConfigMacOSXBehaviors && return Ptr{Bool}(x + 177)
-    f === :ConfigInputTextCursorBlink && return Ptr{Bool}(x + 178)
-    f === :ConfigDragClickToInputText && return Ptr{Bool}(x + 179)
-    f === :ConfigWindowsResizeFromEdges && return Ptr{Bool}(x + 180)
-    f === :ConfigWindowsMoveFromTitleBarOnly && return Ptr{Bool}(x + 181)
-    f === :ConfigMemoryCompactTimer && return Ptr{Cfloat}(x + 184)
-    f === :BackendPlatformName && return Ptr{Ptr{Cchar}}(x + 188)
-    f === :BackendRendererName && return Ptr{Ptr{Cchar}}(x + 192)
-    f === :BackendPlatformUserData && return Ptr{Ptr{Cvoid}}(x + 196)
-    f === :BackendRendererUserData && return Ptr{Ptr{Cvoid}}(x + 200)
-    f === :BackendLanguageUserData && return Ptr{Ptr{Cvoid}}(x + 204)
-    f === :GetClipboardTextFn && return Ptr{Ptr{Cvoid}}(x + 208)
-    f === :SetClipboardTextFn && return Ptr{Ptr{Cvoid}}(x + 212)
-    f === :ClipboardUserData && return Ptr{Ptr{Cvoid}}(x + 216)
-    f === :MousePos && return Ptr{ImVec2}(x + 220)
-    f === :MouseDown && return Ptr{NTuple{5, Bool}}(x + 228)
-    f === :MouseWheel && return Ptr{Cfloat}(x + 236)
-    f === :MouseWheelH && return Ptr{Cfloat}(x + 240)
-    f === :MouseHoveredViewport && return Ptr{ImGuiID}(x + 244)
-    f === :KeyCtrl && return Ptr{Bool}(x + 248)
-    f === :KeyShift && return Ptr{Bool}(x + 249)
-    f === :KeyAlt && return Ptr{Bool}(x + 250)
-    f === :KeySuper && return Ptr{Bool}(x + 251)
-    f === :KeysDown && return Ptr{NTuple{512, Bool}}(x + 252)
-    f === :NavInputs && return Ptr{NTuple{21, Cfloat}}(x + 764)
-    f === :WantCaptureMouse && return Ptr{Bool}(x + 848)
-    f === :WantCaptureKeyboard && return Ptr{Bool}(x + 849)
-    f === :WantTextInput && return Ptr{Bool}(x + 850)
-    f === :WantSetMousePos && return Ptr{Bool}(x + 851)
-    f === :WantSaveIniSettings && return Ptr{Bool}(x + 852)
-    f === :NavActive && return Ptr{Bool}(x + 853)
-    f === :NavVisible && return Ptr{Bool}(x + 854)
-    f === :Framerate && return Ptr{Cfloat}(x + 856)
-    f === :MetricsRenderVertices && return Ptr{Cint}(x + 860)
-    f === :MetricsRenderIndices && return Ptr{Cint}(x + 864)
-    f === :MetricsRenderWindows && return Ptr{Cint}(x + 868)
-    f === :MetricsActiveWindows && return Ptr{Cint}(x + 872)
-    f === :MetricsActiveAllocations && return Ptr{Cint}(x + 876)
-    f === :MouseDelta && return Ptr{ImVec2}(x + 880)
-    f === :KeyMods && return Ptr{ImGuiKeyModFlags}(x + 888)
-    f === :MousePosPrev && return Ptr{ImVec2}(x + 892)
-    f === :MouseClickedPos && return Ptr{NTuple{5, ImVec2}}(x + 900)
-    f === :MouseClickedTime && return Ptr{NTuple{5, Cdouble}}(x + 940)
-    f === :MouseClicked && return Ptr{NTuple{5, Bool}}(x + 980)
-    f === :MouseDoubleClicked && return Ptr{NTuple{5, Bool}}(x + 985)
-    f === :MouseReleased && return Ptr{NTuple{5, Bool}}(x + 990)
-    f === :MouseDownOwned && return Ptr{NTuple{5, Bool}}(x + 995)
-    f === :MouseDownWasDoubleClick && return Ptr{NTuple{5, Bool}}(x + 1000)
-    f === :MouseDownDuration && return Ptr{NTuple{5, Cfloat}}(x + 1008)
-    f === :MouseDownDurationPrev && return Ptr{NTuple{5, Cfloat}}(x + 1028)
-    f === :MouseDragMaxDistanceAbs && return Ptr{NTuple{5, ImVec2}}(x + 1048)
-    f === :MouseDragMaxDistanceSqr && return Ptr{NTuple{5, Cfloat}}(x + 1088)
-    f === :KeysDownDuration && return Ptr{NTuple{512, Cfloat}}(x + 1108)
-    f === :KeysDownDurationPrev && return Ptr{NTuple{512, Cfloat}}(x + 3156)
-    f === :NavInputsDownDuration && return Ptr{NTuple{21, Cfloat}}(x + 5204)
-    f === :NavInputsDownDurationPrev && return Ptr{NTuple{21, Cfloat}}(x + 5288)
-    f === :PenPressure && return Ptr{Cfloat}(x + 5372)
-    f === :InputQueueSurrogate && return Ptr{ImWchar16}(x + 5376)
-    f === :InputQueueCharacters && return Ptr{ImVector_ImWchar}(x + 5380)
+    f === :KeyRepeatDelay && return Ptr{Cfloat}(x + 44)
+    f === :KeyRepeatRate && return Ptr{Cfloat}(x + 48)
+    f === :HoverDelayNormal && return Ptr{Cfloat}(x + 52)
+    f === :HoverDelayShort && return Ptr{Cfloat}(x + 56)
+    f === :UserData && return Ptr{Ptr{Cvoid}}(x + 60)
+    f === :Fonts && return Ptr{Ptr{ImFontAtlas}}(x + 64)
+    f === :FontGlobalScale && return Ptr{Cfloat}(x + 68)
+    f === :FontAllowUserScaling && return Ptr{Bool}(x + 72)
+    f === :FontDefault && return Ptr{Ptr{ImFont}}(x + 76)
+    f === :DisplayFramebufferScale && return Ptr{ImVec2}(x + 80)
+    f === :ConfigDockingNoSplit && return Ptr{Bool}(x + 88)
+    f === :ConfigDockingWithShift && return Ptr{Bool}(x + 89)
+    f === :ConfigDockingAlwaysTabBar && return Ptr{Bool}(x + 90)
+    f === :ConfigDockingTransparentPayload && return Ptr{Bool}(x + 91)
+    f === :ConfigViewportsNoAutoMerge && return Ptr{Bool}(x + 92)
+    f === :ConfigViewportsNoTaskBarIcon && return Ptr{Bool}(x + 93)
+    f === :ConfigViewportsNoDecoration && return Ptr{Bool}(x + 94)
+    f === :ConfigViewportsNoDefaultParent && return Ptr{Bool}(x + 95)
+    f === :MouseDrawCursor && return Ptr{Bool}(x + 96)
+    f === :ConfigMacOSXBehaviors && return Ptr{Bool}(x + 97)
+    f === :ConfigInputTrickleEventQueue && return Ptr{Bool}(x + 98)
+    f === :ConfigInputTextCursorBlink && return Ptr{Bool}(x + 99)
+    f === :ConfigInputTextEnterKeepActive && return Ptr{Bool}(x + 100)
+    f === :ConfigDragClickToInputText && return Ptr{Bool}(x + 101)
+    f === :ConfigWindowsResizeFromEdges && return Ptr{Bool}(x + 102)
+    f === :ConfigWindowsMoveFromTitleBarOnly && return Ptr{Bool}(x + 103)
+    f === :ConfigMemoryCompactTimer && return Ptr{Cfloat}(x + 104)
+    f === :ConfigDebugBeginReturnValueOnce && return Ptr{Bool}(x + 108)
+    f === :ConfigDebugBeginReturnValueLoop && return Ptr{Bool}(x + 109)
+    f === :BackendPlatformName && return Ptr{Ptr{Cchar}}(x + 112)
+    f === :BackendRendererName && return Ptr{Ptr{Cchar}}(x + 116)
+    f === :BackendPlatformUserData && return Ptr{Ptr{Cvoid}}(x + 120)
+    f === :BackendRendererUserData && return Ptr{Ptr{Cvoid}}(x + 124)
+    f === :BackendLanguageUserData && return Ptr{Ptr{Cvoid}}(x + 128)
+    f === :GetClipboardTextFn && return Ptr{Ptr{Cvoid}}(x + 132)
+    f === :SetClipboardTextFn && return Ptr{Ptr{Cvoid}}(x + 136)
+    f === :ClipboardUserData && return Ptr{Ptr{Cvoid}}(x + 140)
+    f === :SetPlatformImeDataFn && return Ptr{Ptr{Cvoid}}(x + 144)
+    f === :_UnusedPadding && return Ptr{Ptr{Cvoid}}(x + 148)
+    f === :WantCaptureMouse && return Ptr{Bool}(x + 152)
+    f === :WantCaptureKeyboard && return Ptr{Bool}(x + 153)
+    f === :WantTextInput && return Ptr{Bool}(x + 154)
+    f === :WantSetMousePos && return Ptr{Bool}(x + 155)
+    f === :WantSaveIniSettings && return Ptr{Bool}(x + 156)
+    f === :NavActive && return Ptr{Bool}(x + 157)
+    f === :NavVisible && return Ptr{Bool}(x + 158)
+    f === :Framerate && return Ptr{Cfloat}(x + 160)
+    f === :MetricsRenderVertices && return Ptr{Cint}(x + 164)
+    f === :MetricsRenderIndices && return Ptr{Cint}(x + 168)
+    f === :MetricsRenderWindows && return Ptr{Cint}(x + 172)
+    f === :MetricsActiveWindows && return Ptr{Cint}(x + 176)
+    f === :MetricsActiveAllocations && return Ptr{Cint}(x + 180)
+    f === :MouseDelta && return Ptr{ImVec2}(x + 184)
+    f === :KeyMap && return Ptr{NTuple{652, Cint}}(x + 192)
+    f === :KeysDown && return Ptr{NTuple{652, Bool}}(x + 2800)
+    f === :NavInputs && return Ptr{NTuple{16, Cfloat}}(x + 3452)
+    f === :Ctx && return Ptr{Ptr{ImGuiContext}}(x + 3516)
+    f === :MousePos && return Ptr{ImVec2}(x + 3520)
+    f === :MouseDown && return Ptr{NTuple{5, Bool}}(x + 3528)
+    f === :MouseWheel && return Ptr{Cfloat}(x + 3536)
+    f === :MouseWheelH && return Ptr{Cfloat}(x + 3540)
+    f === :MouseHoveredViewport && return Ptr{ImGuiID}(x + 3544)
+    f === :KeyCtrl && return Ptr{Bool}(x + 3548)
+    f === :KeyShift && return Ptr{Bool}(x + 3549)
+    f === :KeyAlt && return Ptr{Bool}(x + 3550)
+    f === :KeySuper && return Ptr{Bool}(x + 3551)
+    f === :KeyMods && return Ptr{ImGuiKeyChord}(x + 3552)
+    f === :KeysData && return Ptr{NTuple{652, ImGuiKeyData}}(x + 3556)
+    f === :WantCaptureMouseUnlessPopupClose && return Ptr{Bool}(x + 13988)
+    f === :MousePosPrev && return Ptr{ImVec2}(x + 13992)
+    f === :MouseClickedPos && return Ptr{NTuple{5, ImVec2}}(x + 14000)
+    f === :MouseClickedTime && return Ptr{NTuple{5, Cdouble}}(x + 14040)
+    f === :MouseClicked && return Ptr{NTuple{5, Bool}}(x + 14080)
+    f === :MouseDoubleClicked && return Ptr{NTuple{5, Bool}}(x + 14085)
+    f === :MouseClickedCount && return Ptr{NTuple{5, ImU16}}(x + 14090)
+    f === :MouseClickedLastCount && return Ptr{NTuple{5, ImU16}}(x + 14100)
+    f === :MouseReleased && return Ptr{NTuple{5, Bool}}(x + 14110)
+    f === :MouseDownOwned && return Ptr{NTuple{5, Bool}}(x + 14115)
+    f === :MouseDownOwnedUnlessPopupClose && return Ptr{NTuple{5, Bool}}(x + 14120)
+    f === :MouseDownDuration && return Ptr{NTuple{5, Cfloat}}(x + 14128)
+    f === :MouseDownDurationPrev && return Ptr{NTuple{5, Cfloat}}(x + 14148)
+    f === :MouseDragMaxDistanceAbs && return Ptr{NTuple{5, ImVec2}}(x + 14168)
+    f === :MouseDragMaxDistanceSqr && return Ptr{NTuple{5, Cfloat}}(x + 14208)
+    f === :PenPressure && return Ptr{Cfloat}(x + 14228)
+    f === :AppFocusLost && return Ptr{Bool}(x + 14232)
+    f === :AppAcceptingEvents && return Ptr{Bool}(x + 14233)
+    f === :BackendUsingLegacyKeyArrays && return Ptr{ImS8}(x + 14234)
+    f === :BackendUsingLegacyNavInputArray && return Ptr{Bool}(x + 14235)
+    f === :InputQueueSurrogate && return Ptr{ImWchar16}(x + 14236)
+    f === :InputQueueCharacters && return Ptr{ImVector_ImWchar}(x + 14240)
     return getfield(x, f)
 end
 
@@ -2143,18 +806,110 @@ function Base.setproperty!(x::Ptr{ImGuiIO}, f::Symbol, v)
     unsafe_store!(getproperty(x, f), v)
 end
 
-struct ImDrawListSharedData
-    TexUvWhitePixel::ImVec2
-    Font::Ptr{ImFont}
-    FontSize::Cfloat
-    CurveTessellationTol::Cfloat
-    CircleSegmentMaxError::Cfloat
-    ClipRectFullscreen::ImVec4
-    InitialFlags::ImDrawListFlags
-    ArcFastVtx::NTuple{48, ImVec2}
-    ArcFastRadiusCutoff::Cfloat
-    CircleSegmentCounts::NTuple{64, ImU8}
-    TexUvLines::Ptr{ImVec4}
+struct ImGuiPlatformMonitor
+    MainPos::ImVec2
+    MainSize::ImVec2
+    WorkPos::ImVec2
+    WorkSize::ImVec2
+    DpiScale::Cfloat
+end
+function Base.getproperty(x::Ptr{ImGuiPlatformMonitor}, f::Symbol)
+    f === :MainPos && return Ptr{ImVec2}(x + 0)
+    f === :MainSize && return Ptr{ImVec2}(x + 8)
+    f === :WorkPos && return Ptr{ImVec2}(x + 16)
+    f === :WorkSize && return Ptr{ImVec2}(x + 24)
+    f === :DpiScale && return Ptr{Cfloat}(x + 32)
+    return getfield(x, f)
+end
+
+function Base.setproperty!(x::Ptr{ImGuiPlatformMonitor}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
+end
+
+
+struct ImVector_ImGuiPlatformMonitor
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiPlatformMonitor}
+end
+
+struct ImVector_ImGuiViewportPtr
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{Ptr{ImGuiViewport}}
+end
+
+struct ImGuiPlatformIO
+    Platform_CreateWindow::Ptr{Cvoid}
+    Platform_DestroyWindow::Ptr{Cvoid}
+    Platform_ShowWindow::Ptr{Cvoid}
+    Platform_SetWindowPos::Ptr{Cvoid}
+    Platform_GetWindowPos::Ptr{Cvoid}
+    Platform_SetWindowSize::Ptr{Cvoid}
+    Platform_GetWindowSize::Ptr{Cvoid}
+    Platform_SetWindowFocus::Ptr{Cvoid}
+    Platform_GetWindowFocus::Ptr{Cvoid}
+    Platform_GetWindowMinimized::Ptr{Cvoid}
+    Platform_SetWindowTitle::Ptr{Cvoid}
+    Platform_SetWindowAlpha::Ptr{Cvoid}
+    Platform_UpdateWindow::Ptr{Cvoid}
+    Platform_RenderWindow::Ptr{Cvoid}
+    Platform_SwapBuffers::Ptr{Cvoid}
+    Platform_GetWindowDpiScale::Ptr{Cvoid}
+    Platform_OnChangedViewport::Ptr{Cvoid}
+    Platform_CreateVkSurface::Ptr{Cvoid}
+    Renderer_CreateWindow::Ptr{Cvoid}
+    Renderer_DestroyWindow::Ptr{Cvoid}
+    Renderer_SetWindowSize::Ptr{Cvoid}
+    Renderer_RenderWindow::Ptr{Cvoid}
+    Renderer_SwapBuffers::Ptr{Cvoid}
+    Monitors::ImVector_ImGuiPlatformMonitor
+    Viewports::ImVector_ImGuiViewportPtr
+end
+function Base.getproperty(x::Ptr{ImGuiPlatformIO}, f::Symbol)
+    f === :Platform_CreateWindow && return Ptr{Ptr{Cvoid}}(x + 0)
+    f === :Platform_DestroyWindow && return Ptr{Ptr{Cvoid}}(x + 4)
+    f === :Platform_ShowWindow && return Ptr{Ptr{Cvoid}}(x + 8)
+    f === :Platform_SetWindowPos && return Ptr{Ptr{Cvoid}}(x + 12)
+    f === :Platform_GetWindowPos && return Ptr{Ptr{Cvoid}}(x + 16)
+    f === :Platform_SetWindowSize && return Ptr{Ptr{Cvoid}}(x + 20)
+    f === :Platform_GetWindowSize && return Ptr{Ptr{Cvoid}}(x + 24)
+    f === :Platform_SetWindowFocus && return Ptr{Ptr{Cvoid}}(x + 28)
+    f === :Platform_GetWindowFocus && return Ptr{Ptr{Cvoid}}(x + 32)
+    f === :Platform_GetWindowMinimized && return Ptr{Ptr{Cvoid}}(x + 36)
+    f === :Platform_SetWindowTitle && return Ptr{Ptr{Cvoid}}(x + 40)
+    f === :Platform_SetWindowAlpha && return Ptr{Ptr{Cvoid}}(x + 44)
+    f === :Platform_UpdateWindow && return Ptr{Ptr{Cvoid}}(x + 48)
+    f === :Platform_RenderWindow && return Ptr{Ptr{Cvoid}}(x + 52)
+    f === :Platform_SwapBuffers && return Ptr{Ptr{Cvoid}}(x + 56)
+    f === :Platform_GetWindowDpiScale && return Ptr{Ptr{Cvoid}}(x + 60)
+    f === :Platform_OnChangedViewport && return Ptr{Ptr{Cvoid}}(x + 64)
+    f === :Platform_CreateVkSurface && return Ptr{Ptr{Cvoid}}(x + 68)
+    f === :Renderer_CreateWindow && return Ptr{Ptr{Cvoid}}(x + 72)
+    f === :Renderer_DestroyWindow && return Ptr{Ptr{Cvoid}}(x + 76)
+    f === :Renderer_SetWindowSize && return Ptr{Ptr{Cvoid}}(x + 80)
+    f === :Renderer_RenderWindow && return Ptr{Ptr{Cvoid}}(x + 84)
+    f === :Renderer_SwapBuffers && return Ptr{Ptr{Cvoid}}(x + 88)
+    f === :Monitors && return Ptr{ImVector_ImGuiPlatformMonitor}(x + 92)
+    f === :Viewports && return Ptr{ImVector_ImGuiViewportPtr}(x + 104)
+    return getfield(x, f)
+end
+
+function Base.setproperty!(x::Ptr{ImGuiPlatformIO}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
+end
+
+
+@cenum ImGuiInputEventType::UInt32 begin
+    ImGuiInputEventType_None = 0
+    ImGuiInputEventType_MousePos = 1
+    ImGuiInputEventType_MouseWheel = 2
+    ImGuiInputEventType_MouseButton = 3
+    ImGuiInputEventType_MouseViewport = 4
+    ImGuiInputEventType_Key = 5
+    ImGuiInputEventType_Text = 6
+    ImGuiInputEventType_Focus = 7
+    ImGuiInputEventType_COUNT = 8
 end
 
 @cenum ImGuiInputSource::UInt32 begin
@@ -2162,14 +917,863 @@ end
     ImGuiInputSource_Mouse = 1
     ImGuiInputSource_Keyboard = 2
     ImGuiInputSource_Gamepad = 3
-    ImGuiInputSource_Nav = 4
-    ImGuiInputSource_COUNT = 5
+    ImGuiInputSource_Clipboard = 4
+    ImGuiInputSource_Nav = 5
+    ImGuiInputSource_COUNT = 6
+end
+
+struct ImGuiInputEvent
+    data::NTuple{24, UInt8}
+end
+
+function Base.getproperty(x::Ptr{ImGuiInputEvent}, f::Symbol)
+    f === :Type && return Ptr{ImGuiInputEventType}(x + 0)
+    f === :Source && return Ptr{ImGuiInputSource}(x + 4)
+    f === :MousePos && return Ptr{ImGuiInputEventMousePos}(x + 8)
+    f === :MouseWheel && return Ptr{ImGuiInputEventMouseWheel}(x + 8)
+    f === :MouseButton && return Ptr{ImGuiInputEventMouseButton}(x + 8)
+    f === :MouseViewport && return Ptr{ImGuiInputEventMouseViewport}(x + 8)
+    f === :Key && return Ptr{ImGuiInputEventKey}(x + 8)
+    f === :Text && return Ptr{ImGuiInputEventText}(x + 8)
+    f === :AppFocused && return Ptr{ImGuiInputEventAppFocused}(x + 8)
+    f === :AddedByTestEngine && return Ptr{Bool}(x + 20)
+    return getfield(x, f)
+end
+
+function Base.getproperty(x::ImGuiInputEvent, f::Symbol)
+    r = Ref{ImGuiInputEvent}(x)
+    ptr = Base.unsafe_convert(Ptr{ImGuiInputEvent}, r)
+    fptr = getproperty(ptr, f)
+    GC.@preserve r unsafe_load(fptr)
+end
+
+function Base.setproperty!(x::Ptr{ImGuiInputEvent}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
+end
+
+struct ImVector_ImGuiInputEvent
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiInputEvent}
+end
+
+const ImGuiDir = Cint
+
+struct ImGuiStyle
+    Alpha::Cfloat
+    DisabledAlpha::Cfloat
+    WindowPadding::ImVec2
+    WindowRounding::Cfloat
+    WindowBorderSize::Cfloat
+    WindowMinSize::ImVec2
+    WindowTitleAlign::ImVec2
+    WindowMenuButtonPosition::ImGuiDir
+    ChildRounding::Cfloat
+    ChildBorderSize::Cfloat
+    PopupRounding::Cfloat
+    PopupBorderSize::Cfloat
+    FramePadding::ImVec2
+    FrameRounding::Cfloat
+    FrameBorderSize::Cfloat
+    ItemSpacing::ImVec2
+    ItemInnerSpacing::ImVec2
+    CellPadding::ImVec2
+    TouchExtraPadding::ImVec2
+    IndentSpacing::Cfloat
+    ColumnsMinSpacing::Cfloat
+    ScrollbarSize::Cfloat
+    ScrollbarRounding::Cfloat
+    GrabMinSize::Cfloat
+    GrabRounding::Cfloat
+    LogSliderDeadzone::Cfloat
+    TabRounding::Cfloat
+    TabBorderSize::Cfloat
+    TabMinWidthForCloseButton::Cfloat
+    ColorButtonPosition::ImGuiDir
+    ButtonTextAlign::ImVec2
+    SelectableTextAlign::ImVec2
+    SeparatorTextBorderSize::Cfloat
+    SeparatorTextAlign::ImVec2
+    SeparatorTextPadding::ImVec2
+    DisplayWindowPadding::ImVec2
+    DisplaySafeAreaPadding::ImVec2
+    MouseCursorScale::Cfloat
+    AntiAliasedLines::Bool
+    AntiAliasedLinesUseTex::Bool
+    AntiAliasedFill::Bool
+    CurveTessellationTol::Cfloat
+    CircleTessellationMaxError::Cfloat
+    Colors::NTuple{55, ImVec4}
+end
+function Base.getproperty(x::Ptr{ImGuiStyle}, f::Symbol)
+    f === :Alpha && return Ptr{Cfloat}(x + 0)
+    f === :DisabledAlpha && return Ptr{Cfloat}(x + 4)
+    f === :WindowPadding && return Ptr{ImVec2}(x + 8)
+    f === :WindowRounding && return Ptr{Cfloat}(x + 16)
+    f === :WindowBorderSize && return Ptr{Cfloat}(x + 20)
+    f === :WindowMinSize && return Ptr{ImVec2}(x + 24)
+    f === :WindowTitleAlign && return Ptr{ImVec2}(x + 32)
+    f === :WindowMenuButtonPosition && return Ptr{ImGuiDir}(x + 40)
+    f === :ChildRounding && return Ptr{Cfloat}(x + 44)
+    f === :ChildBorderSize && return Ptr{Cfloat}(x + 48)
+    f === :PopupRounding && return Ptr{Cfloat}(x + 52)
+    f === :PopupBorderSize && return Ptr{Cfloat}(x + 56)
+    f === :FramePadding && return Ptr{ImVec2}(x + 60)
+    f === :FrameRounding && return Ptr{Cfloat}(x + 68)
+    f === :FrameBorderSize && return Ptr{Cfloat}(x + 72)
+    f === :ItemSpacing && return Ptr{ImVec2}(x + 76)
+    f === :ItemInnerSpacing && return Ptr{ImVec2}(x + 84)
+    f === :CellPadding && return Ptr{ImVec2}(x + 92)
+    f === :TouchExtraPadding && return Ptr{ImVec2}(x + 100)
+    f === :IndentSpacing && return Ptr{Cfloat}(x + 108)
+    f === :ColumnsMinSpacing && return Ptr{Cfloat}(x + 112)
+    f === :ScrollbarSize && return Ptr{Cfloat}(x + 116)
+    f === :ScrollbarRounding && return Ptr{Cfloat}(x + 120)
+    f === :GrabMinSize && return Ptr{Cfloat}(x + 124)
+    f === :GrabRounding && return Ptr{Cfloat}(x + 128)
+    f === :LogSliderDeadzone && return Ptr{Cfloat}(x + 132)
+    f === :TabRounding && return Ptr{Cfloat}(x + 136)
+    f === :TabBorderSize && return Ptr{Cfloat}(x + 140)
+    f === :TabMinWidthForCloseButton && return Ptr{Cfloat}(x + 144)
+    f === :ColorButtonPosition && return Ptr{ImGuiDir}(x + 148)
+    f === :ButtonTextAlign && return Ptr{ImVec2}(x + 152)
+    f === :SelectableTextAlign && return Ptr{ImVec2}(x + 160)
+    f === :SeparatorTextBorderSize && return Ptr{Cfloat}(x + 168)
+    f === :SeparatorTextAlign && return Ptr{ImVec2}(x + 172)
+    f === :SeparatorTextPadding && return Ptr{ImVec2}(x + 180)
+    f === :DisplayWindowPadding && return Ptr{ImVec2}(x + 188)
+    f === :DisplaySafeAreaPadding && return Ptr{ImVec2}(x + 196)
+    f === :MouseCursorScale && return Ptr{Cfloat}(x + 204)
+    f === :AntiAliasedLines && return Ptr{Bool}(x + 208)
+    f === :AntiAliasedLinesUseTex && return Ptr{Bool}(x + 209)
+    f === :AntiAliasedFill && return Ptr{Bool}(x + 210)
+    f === :CurveTessellationTol && return Ptr{Cfloat}(x + 212)
+    f === :CircleTessellationMaxError && return Ptr{Cfloat}(x + 216)
+    f === :Colors && return Ptr{NTuple{55, ImVec4}}(x + 220)
+    return getfield(x, f)
+end
+
+function Base.setproperty!(x::Ptr{ImGuiStyle}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
+end
+
+
+struct ImVector_ImGuiWindowPtr
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{Ptr{Cvoid}} # Data::Ptr{Ptr{ImGuiWindow}}
+end
+
+function Base.getproperty(x::ImVector_ImGuiWindowPtr, f::Symbol)
+    f === :Data && return Ptr{Ptr{ImGuiWindow}}(getfield(x, f))
+    return getfield(x, f)
+end
+
+const ImGuiWindowFlags = Cint
+
+const ImGuiTabItemFlags = Cint
+
+const ImGuiDockNodeFlags = Cint
+
+struct ImGuiWindowClass
+    ClassId::ImGuiID
+    ParentViewportId::ImGuiID
+    ViewportFlagsOverrideSet::ImGuiViewportFlags
+    ViewportFlagsOverrideClear::ImGuiViewportFlags
+    TabItemFlagsOverrideSet::ImGuiTabItemFlags
+    DockNodeFlagsOverrideSet::ImGuiDockNodeFlags
+    DockingAlwaysTabBar::Bool
+    DockingAllowUnclassed::Bool
+end
+
+struct ImVector_ImDrawListPtr
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{Ptr{ImDrawList}}
+end
+
+struct ImDrawDataBuilder
+    Layers::NTuple{2, ImVector_ImDrawListPtr}
+end
+
+struct ImGuiViewportP
+    _ImGuiViewport::ImGuiViewport
+    Idx::Cint
+    LastFrameActive::Cint
+    LastFrontMostStampCount::Cint
+    LastNameHash::ImGuiID
+    LastPos::ImVec2
+    Alpha::Cfloat
+    LastAlpha::Cfloat
+    PlatformMonitor::Cshort
+    Window::Ptr{Cvoid} # Window::Ptr{ImGuiWindow}
+    DrawListsLastFrame::NTuple{2, Cint}
+    DrawLists::NTuple{2, Ptr{ImDrawList}}
+    DrawDataP::ImDrawData
+    DrawDataBuilder::ImDrawDataBuilder
+    LastPlatformPos::ImVec2
+    LastPlatformSize::ImVec2
+    LastRendererSize::ImVec2
+    WorkOffsetMin::ImVec2
+    WorkOffsetMax::ImVec2
+    BuildWorkOffsetMin::ImVec2
+    BuildWorkOffsetMax::ImVec2
+end
+
+function Base.getproperty(x::ImGuiViewportP, f::Symbol)
+    f === :Window && return Ptr{ImGuiWindow}(getfield(x, f))
+    return getfield(x, f)
+end
+
+const ImGuiCond = Cint
+
+struct ImVector_ImGuiID
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiID}
+end
+
+struct ImVec1
+    x::Cfloat
+end
+
+@cenum ImGuiNavLayer::UInt32 begin
+    ImGuiNavLayer_Main = 0
+    ImGuiNavLayer_Menu = 1
+    ImGuiNavLayer_COUNT = 2
+end
+
+struct ImGuiMenuColumns
+    TotalWidth::ImU32
+    NextTotalWidth::ImU32
+    Spacing::ImU16
+    OffsetIcon::ImU16
+    OffsetLabel::ImU16
+    OffsetShortcut::ImU16
+    OffsetMark::ImU16
+    Widths::NTuple{4, ImU16}
+end
+
+struct ImGuiStoragePair
+    data::NTuple{8, UInt8}
+end
+
+function Base.getproperty(x::Ptr{ImGuiStoragePair}, f::Symbol)
+    f === :key && return Ptr{ImGuiID}(x + 0)
+    f === :val_i && return Ptr{Cint}(x + 4)
+    f === :val_f && return Ptr{Cfloat}(x + 4)
+    f === :val_p && return Ptr{Ptr{Cvoid}}(x + 4)
+    return getfield(x, f)
+end
+
+function Base.getproperty(x::ImGuiStoragePair, f::Symbol)
+    r = Ref{ImGuiStoragePair}(x)
+    ptr = Base.unsafe_convert(Ptr{ImGuiStoragePair}, r)
+    fptr = getproperty(ptr, f)
+    GC.@preserve r unsafe_load(fptr)
+end
+
+function Base.setproperty!(x::Ptr{ImGuiStoragePair}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
+end
+
+struct ImVector_ImGuiStoragePair
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiStoragePair}
+end
+
+struct ImGuiStorage
+    Data::ImVector_ImGuiStoragePair
+end
+
+const ImGuiOldColumnFlags = Cint
+
+struct ImRect
+    Min::ImVec2
+    Max::ImVec2
+end
+
+struct ImGuiOldColumnData
+    OffsetNorm::Cfloat
+    OffsetNormBeforeResize::Cfloat
+    Flags::ImGuiOldColumnFlags
+    ClipRect::ImRect
+end
+
+struct ImVector_ImGuiOldColumnData
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiOldColumnData}
+end
+
+struct ImGuiOldColumns
+    ID::ImGuiID
+    Flags::ImGuiOldColumnFlags
+    IsFirstFrame::Bool
+    IsBeingResized::Bool
+    Current::Cint
+    Count::Cint
+    OffMinX::Cfloat
+    OffMaxX::Cfloat
+    LineMinY::Cfloat
+    LineMaxY::Cfloat
+    HostCursorPosY::Cfloat
+    HostCursorMaxPosX::Cfloat
+    HostInitialClipRect::ImRect
+    HostBackupClipRect::ImRect
+    HostBackupParentWorkRect::ImRect
+    Columns::ImVector_ImGuiOldColumnData
+    Splitter::ImDrawListSplitter
+end
+
+const ImGuiLayoutType = Cint
+
+struct ImGuiWindowTempData
+    CursorPos::ImVec2
+    CursorPosPrevLine::ImVec2
+    CursorStartPos::ImVec2
+    CursorMaxPos::ImVec2
+    IdealMaxPos::ImVec2
+    CurrLineSize::ImVec2
+    PrevLineSize::ImVec2
+    CurrLineTextBaseOffset::Cfloat
+    PrevLineTextBaseOffset::Cfloat
+    IsSameLine::Bool
+    IsSetPos::Bool
+    Indent::ImVec1
+    ColumnsOffset::ImVec1
+    GroupOffset::ImVec1
+    CursorStartPosLossyness::ImVec2
+    NavLayerCurrent::ImGuiNavLayer
+    NavLayersActiveMask::Cshort
+    NavLayersActiveMaskNext::Cshort
+    NavHideHighlightOneFrame::Bool
+    NavHasScroll::Bool
+    MenuBarAppending::Bool
+    MenuBarOffset::ImVec2
+    MenuColumns::ImGuiMenuColumns
+    TreeDepth::Cint
+    TreeJumpToParentOnPopMask::ImU32
+    ChildWindows::ImVector_ImGuiWindowPtr
+    StateStorage::Ptr{ImGuiStorage}
+    CurrentColumns::Ptr{ImGuiOldColumns}
+    CurrentTableIdx::Cint
+    LayoutType::ImGuiLayoutType
+    ParentLayoutType::ImGuiLayoutType
+    ItemWidth::Cfloat
+    TextWrapPos::Cfloat
+    ItemWidthStack::ImVector_float
+    TextWrapPosStack::ImVector_float
+end
+
+struct ImVec2ih
+    x::Cshort
+    y::Cshort
+end
+
+struct ImVector_ImGuiOldColumns
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiOldColumns}
+end
+
+struct ImGuiWindowDockStyle
+    Colors::NTuple{6, ImU32}
+end
+
+@cenum ImGuiDockNodeState::UInt32 begin
+    ImGuiDockNodeState_Unknown = 0
+    ImGuiDockNodeState_HostWindowHiddenBecauseSingleWindow = 1
+    ImGuiDockNodeState_HostWindowHiddenBecauseWindowsAreResizing = 2
+    ImGuiDockNodeState_HostWindowVisible = 3
+end
+
+const ImS32 = Cint
+
+const ImS16 = Cshort
+
+struct ImGuiTabItem
+    ID::ImGuiID
+    Flags::ImGuiTabItemFlags
+    Window::Ptr{Cvoid} # Window::Ptr{ImGuiWindow}
+    LastFrameVisible::Cint
+    LastFrameSelected::Cint
+    Offset::Cfloat
+    Width::Cfloat
+    ContentWidth::Cfloat
+    RequestedWidth::Cfloat
+    NameOffset::ImS32
+    BeginOrder::ImS16
+    IndexDuringLayout::ImS16
+    WantClose::Bool
+end
+
+function Base.getproperty(x::ImGuiTabItem, f::Symbol)
+    f === :Window && return Ptr{ImGuiWindow}(getfield(x, f))
+    return getfield(x, f)
+end
+
+struct ImVector_ImGuiTabItem
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiTabItem}
+end
+
+const ImGuiTabBarFlags = Cint
+
+struct ImVector_char
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{Cchar}
+end
+
+struct ImGuiTextBuffer
+    Buf::ImVector_char
+end
+
+struct ImGuiTabBar
+    Tabs::ImVector_ImGuiTabItem
+    Flags::ImGuiTabBarFlags
+    ID::ImGuiID
+    SelectedTabId::ImGuiID
+    NextSelectedTabId::ImGuiID
+    VisibleTabId::ImGuiID
+    CurrFrameVisible::Cint
+    PrevFrameVisible::Cint
+    BarRect::ImRect
+    CurrTabsContentsHeight::Cfloat
+    PrevTabsContentsHeight::Cfloat
+    WidthAllTabs::Cfloat
+    WidthAllTabsIdeal::Cfloat
+    ScrollingAnim::Cfloat
+    ScrollingTarget::Cfloat
+    ScrollingTargetDistToVisibility::Cfloat
+    ScrollingSpeed::Cfloat
+    ScrollingRectMinX::Cfloat
+    ScrollingRectMaxX::Cfloat
+    ReorderRequestTabId::ImGuiID
+    ReorderRequestOffset::ImS16
+    BeginCount::ImS8
+    WantLayout::Bool
+    VisibleTabWasSubmitted::Bool
+    TabsAddedNew::Bool
+    TabsActiveCount::ImS16
+    LastTabItemIdx::ImS16
+    ItemSpacingY::Cfloat
+    FramePadding::ImVec2
+    BackupCursorPos::ImVec2
+    TabsNames::ImGuiTextBuffer
+end
+
+@cenum ImGuiAxis::Int32 begin
+    ImGuiAxis_None = -1
+    ImGuiAxis_X = 0
+    ImGuiAxis_Y = 1
+end
+
+const ImGuiDataAuthority = Cint
+
+struct ImGuiDockNode
+    data::NTuple{160, UInt8}
+end
+
+function Base.getproperty(x::Ptr{ImGuiDockNode}, f::Symbol)
+    f === :ID && return Ptr{ImGuiID}(x + 0)
+    f === :SharedFlags && return Ptr{ImGuiDockNodeFlags}(x + 4)
+    f === :LocalFlags && return Ptr{ImGuiDockNodeFlags}(x + 8)
+    f === :LocalFlagsInWindows && return Ptr{ImGuiDockNodeFlags}(x + 12)
+    f === :MergedFlags && return Ptr{ImGuiDockNodeFlags}(x + 16)
+    f === :State && return Ptr{ImGuiDockNodeState}(x + 20)
+    f === :ParentNode && return Ptr{Ptr{ImGuiDockNode}}(x + 24)
+    f === :ChildNodes && return Ptr{NTuple{2, Ptr{ImGuiDockNode}}}(x + 28)
+    f === :Windows && return Ptr{ImVector_ImGuiWindowPtr}(x + 36)
+    f === :TabBar && return Ptr{Ptr{ImGuiTabBar}}(x + 48)
+    f === :Pos && return Ptr{ImVec2}(x + 52)
+    f === :Size && return Ptr{ImVec2}(x + 60)
+    f === :SizeRef && return Ptr{ImVec2}(x + 68)
+    f === :SplitAxis && return Ptr{ImGuiAxis}(x + 76)
+    f === :WindowClass && return Ptr{ImGuiWindowClass}(x + 80)
+    f === :LastBgColor && return Ptr{ImU32}(x + 108)
+    f === :HostWindow && return Ptr{Ptr{ImGuiWindow}}(x + 112)
+    f === :VisibleWindow && return Ptr{Ptr{ImGuiWindow}}(x + 116)
+    f === :CentralNode && return Ptr{Ptr{ImGuiDockNode}}(x + 120)
+    f === :OnlyNodeWithWindows && return Ptr{Ptr{ImGuiDockNode}}(x + 124)
+    f === :CountNodeWithWindows && return Ptr{Cint}(x + 128)
+    f === :LastFrameAlive && return Ptr{Cint}(x + 132)
+    f === :LastFrameActive && return Ptr{Cint}(x + 136)
+    f === :LastFrameFocused && return Ptr{Cint}(x + 140)
+    f === :LastFocusedNodeId && return Ptr{ImGuiID}(x + 144)
+    f === :SelectedTabId && return Ptr{ImGuiID}(x + 148)
+    f === :WantCloseTabId && return Ptr{ImGuiID}(x + 152)
+    f === :AuthorityForPos && return (Ptr{ImGuiDataAuthority}(x + 156), 0, 3)
+    f === :AuthorityForSize && return (Ptr{ImGuiDataAuthority}(x + 156), 3, 3)
+    f === :AuthorityForViewport && return (Ptr{ImGuiDataAuthority}(x + 156), 6, 3)
+    f === :IsVisible && return (Ptr{Bool}(x + 156), 9, 1)
+    f === :IsFocused && return (Ptr{Bool}(x + 156), 10, 1)
+    f === :IsBgDrawnThisFrame && return (Ptr{Bool}(x + 156), 11, 1)
+    f === :HasCloseButton && return (Ptr{Bool}(x + 156), 12, 1)
+    f === :HasWindowMenuButton && return (Ptr{Bool}(x + 156), 13, 1)
+    f === :HasCentralNodeChild && return (Ptr{Bool}(x + 156), 14, 1)
+    f === :WantCloseAll && return (Ptr{Bool}(x + 156), 15, 1)
+    f === :WantLockSizeOnce && return (Ptr{Bool}(x + 156), 16, 1)
+    f === :WantMouseMove && return (Ptr{Bool}(x + 156), 17, 1)
+    f === :WantHiddenTabBarUpdate && return (Ptr{Bool}(x + 156), 18, 1)
+    f === :WantHiddenTabBarToggle && return (Ptr{Bool}(x + 156), 19, 1)
+    return getfield(x, f)
+end
+
+function Base.getproperty(x::ImGuiDockNode, f::Symbol)
+    r = Ref{ImGuiDockNode}(x)
+    ptr = Base.unsafe_convert(Ptr{ImGuiDockNode}, r)
+    fptr = getproperty(ptr, f)
+    begin
+        if fptr isa Ptr
+            return GC.@preserve(r, unsafe_load(fptr))
+        else
+            (baseptr, offset, width) = fptr
+            ty = eltype(baseptr)
+            baseptr32 = convert(Ptr{UInt32}, baseptr)
+            u64 = GC.@preserve(r, unsafe_load(baseptr32))
+            if offset + width > 32
+                u64 |= GC.@preserve(r, unsafe_load(baseptr32 + 4)) << 32
+            end
+            u64 = u64 >> offset & (1 << width - 1)
+            return u64 % ty
+        end
+    end
+end
+
+function Base.setproperty!(x::Ptr{ImGuiDockNode}, f::Symbol, v)
+    fptr = getproperty(x, f)
+    if fptr isa Ptr
+        unsafe_store!(getproperty(x, f), v)
+    else
+        (baseptr, offset, width) = fptr
+        baseptr32 = convert(Ptr{UInt32}, baseptr)
+        u64 = unsafe_load(baseptr32)
+        straddle = offset + width > 32
+        if straddle
+            u64 |= unsafe_load(baseptr32 + 4) << 32
+        end
+        mask = 1 << width - 1
+        u64 &= ~(mask << offset)
+        u64 |= (unsigned(v) & mask) << offset
+        unsafe_store!(baseptr32, u64 & typemax(UInt32))
+        if straddle
+            unsafe_store!(baseptr32 + 4, u64 >> 32)
+        end
+    end
+end
+
+const ImGuiItemStatusFlags = Cint
+
+struct ImGuiWindow
+    data::NTuple{968, UInt8}
+end
+
+function Base.getproperty(x::Ptr{ImGuiWindow}, f::Symbol)
+    f === :Ctx && return Ptr{Ptr{ImGuiContext}}(x + 0)
+    f === :Name && return Ptr{Ptr{Cchar}}(x + 4)
+    f === :ID && return Ptr{ImGuiID}(x + 8)
+    f === :Flags && return Ptr{ImGuiWindowFlags}(x + 12)
+    f === :FlagsPreviousFrame && return Ptr{ImGuiWindowFlags}(x + 16)
+    f === :WindowClass && return Ptr{ImGuiWindowClass}(x + 20)
+    f === :Viewport && return Ptr{Ptr{ImGuiViewportP}}(x + 48)
+    f === :ViewportId && return Ptr{ImGuiID}(x + 52)
+    f === :ViewportPos && return Ptr{ImVec2}(x + 56)
+    f === :ViewportAllowPlatformMonitorExtend && return Ptr{Cint}(x + 64)
+    f === :Pos && return Ptr{ImVec2}(x + 68)
+    f === :Size && return Ptr{ImVec2}(x + 76)
+    f === :SizeFull && return Ptr{ImVec2}(x + 84)
+    f === :ContentSize && return Ptr{ImVec2}(x + 92)
+    f === :ContentSizeIdeal && return Ptr{ImVec2}(x + 100)
+    f === :ContentSizeExplicit && return Ptr{ImVec2}(x + 108)
+    f === :WindowPadding && return Ptr{ImVec2}(x + 116)
+    f === :WindowRounding && return Ptr{Cfloat}(x + 124)
+    f === :WindowBorderSize && return Ptr{Cfloat}(x + 128)
+    f === :DecoOuterSizeX1 && return Ptr{Cfloat}(x + 132)
+    f === :DecoOuterSizeY1 && return Ptr{Cfloat}(x + 136)
+    f === :DecoOuterSizeX2 && return Ptr{Cfloat}(x + 140)
+    f === :DecoOuterSizeY2 && return Ptr{Cfloat}(x + 144)
+    f === :DecoInnerSizeX1 && return Ptr{Cfloat}(x + 148)
+    f === :DecoInnerSizeY1 && return Ptr{Cfloat}(x + 152)
+    f === :NameBufLen && return Ptr{Cint}(x + 156)
+    f === :MoveId && return Ptr{ImGuiID}(x + 160)
+    f === :TabId && return Ptr{ImGuiID}(x + 164)
+    f === :ChildId && return Ptr{ImGuiID}(x + 168)
+    f === :Scroll && return Ptr{ImVec2}(x + 172)
+    f === :ScrollMax && return Ptr{ImVec2}(x + 180)
+    f === :ScrollTarget && return Ptr{ImVec2}(x + 188)
+    f === :ScrollTargetCenterRatio && return Ptr{ImVec2}(x + 196)
+    f === :ScrollTargetEdgeSnapDist && return Ptr{ImVec2}(x + 204)
+    f === :ScrollbarSizes && return Ptr{ImVec2}(x + 212)
+    f === :ScrollbarX && return Ptr{Bool}(x + 220)
+    f === :ScrollbarY && return Ptr{Bool}(x + 221)
+    f === :ViewportOwned && return Ptr{Bool}(x + 222)
+    f === :Active && return Ptr{Bool}(x + 223)
+    f === :WasActive && return Ptr{Bool}(x + 224)
+    f === :WriteAccessed && return Ptr{Bool}(x + 225)
+    f === :Collapsed && return Ptr{Bool}(x + 226)
+    f === :WantCollapseToggle && return Ptr{Bool}(x + 227)
+    f === :SkipItems && return Ptr{Bool}(x + 228)
+    f === :Appearing && return Ptr{Bool}(x + 229)
+    f === :Hidden && return Ptr{Bool}(x + 230)
+    f === :IsFallbackWindow && return Ptr{Bool}(x + 231)
+    f === :IsExplicitChild && return Ptr{Bool}(x + 232)
+    f === :HasCloseButton && return Ptr{Bool}(x + 233)
+    f === :ResizeBorderHeld && return Ptr{Int8}(x + 234)
+    f === :BeginCount && return Ptr{Cshort}(x + 236)
+    f === :BeginCountPreviousFrame && return Ptr{Cshort}(x + 238)
+    f === :BeginOrderWithinParent && return Ptr{Cshort}(x + 240)
+    f === :BeginOrderWithinContext && return Ptr{Cshort}(x + 242)
+    f === :FocusOrder && return Ptr{Cshort}(x + 244)
+    f === :PopupId && return Ptr{ImGuiID}(x + 248)
+    f === :AutoFitFramesX && return Ptr{ImS8}(x + 252)
+    f === :AutoFitFramesY && return Ptr{ImS8}(x + 253)
+    f === :AutoFitChildAxises && return Ptr{ImS8}(x + 254)
+    f === :AutoFitOnlyGrows && return Ptr{Bool}(x + 255)
+    f === :AutoPosLastDirection && return Ptr{ImGuiDir}(x + 256)
+    f === :HiddenFramesCanSkipItems && return Ptr{ImS8}(x + 260)
+    f === :HiddenFramesCannotSkipItems && return Ptr{ImS8}(x + 261)
+    f === :HiddenFramesForRenderOnly && return Ptr{ImS8}(x + 262)
+    f === :DisableInputsFrames && return Ptr{ImS8}(x + 263)
+    f === :SetWindowPosAllowFlags && return (Ptr{ImGuiCond}(x + 264), 0, 8)
+    f === :SetWindowSizeAllowFlags && return (Ptr{ImGuiCond}(x + 264), 8, 8)
+    f === :SetWindowCollapsedAllowFlags && return (Ptr{ImGuiCond}(x + 264), 16, 8)
+    f === :SetWindowDockAllowFlags && return (Ptr{ImGuiCond}(x + 264), 24, 8)
+    f === :SetWindowPosVal && return Ptr{ImVec2}(x + 268)
+    f === :SetWindowPosPivot && return Ptr{ImVec2}(x + 276)
+    f === :IDStack && return Ptr{ImVector_ImGuiID}(x + 284)
+    f === :DC && return Ptr{ImGuiWindowTempData}(x + 296)
+    f === :OuterRectClipped && return Ptr{ImRect}(x + 504)
+    f === :InnerRect && return Ptr{ImRect}(x + 520)
+    f === :InnerClipRect && return Ptr{ImRect}(x + 536)
+    f === :WorkRect && return Ptr{ImRect}(x + 552)
+    f === :ParentWorkRect && return Ptr{ImRect}(x + 568)
+    f === :ClipRect && return Ptr{ImRect}(x + 584)
+    f === :ContentRegionRect && return Ptr{ImRect}(x + 600)
+    f === :HitTestHoleSize && return Ptr{ImVec2ih}(x + 616)
+    f === :HitTestHoleOffset && return Ptr{ImVec2ih}(x + 620)
+    f === :LastFrameActive && return Ptr{Cint}(x + 624)
+    f === :LastFrameJustFocused && return Ptr{Cint}(x + 628)
+    f === :LastTimeActive && return Ptr{Cfloat}(x + 632)
+    f === :ItemWidthDefault && return Ptr{Cfloat}(x + 636)
+    f === :StateStorage && return Ptr{ImGuiStorage}(x + 640)
+    f === :ColumnsStorage && return Ptr{ImVector_ImGuiOldColumns}(x + 652)
+    f === :FontWindowScale && return Ptr{Cfloat}(x + 664)
+    f === :FontDpiScale && return Ptr{Cfloat}(x + 668)
+    f === :SettingsOffset && return Ptr{Cint}(x + 672)
+    f === :DrawList && return Ptr{Ptr{ImDrawList}}(x + 676)
+    f === :DrawListInst && return Ptr{ImDrawList}(x + 680)
+    f === :ParentWindow && return Ptr{Ptr{ImGuiWindow}}(x + 824)
+    f === :ParentWindowInBeginStack && return Ptr{Ptr{ImGuiWindow}}(x + 828)
+    f === :RootWindow && return Ptr{Ptr{ImGuiWindow}}(x + 832)
+    f === :RootWindowPopupTree && return Ptr{Ptr{ImGuiWindow}}(x + 836)
+    f === :RootWindowDockTree && return Ptr{Ptr{ImGuiWindow}}(x + 840)
+    f === :RootWindowForTitleBarHighlight && return Ptr{Ptr{ImGuiWindow}}(x + 844)
+    f === :RootWindowForNav && return Ptr{Ptr{ImGuiWindow}}(x + 848)
+    f === :NavLastChildNavWindow && return Ptr{Ptr{ImGuiWindow}}(x + 852)
+    f === :NavLastIds && return Ptr{NTuple{2, ImGuiID}}(x + 856)
+    f === :NavRectRel && return Ptr{NTuple{2, ImRect}}(x + 864)
+    f === :NavRootFocusScopeId && return Ptr{ImGuiID}(x + 896)
+    f === :MemoryDrawListIdxCapacity && return Ptr{Cint}(x + 900)
+    f === :MemoryDrawListVtxCapacity && return Ptr{Cint}(x + 904)
+    f === :MemoryCompacted && return Ptr{Bool}(x + 908)
+    f === :DockIsActive && return (Ptr{Bool}(x + 908), 8, 1)
+    f === :DockNodeIsVisible && return (Ptr{Bool}(x + 908), 9, 1)
+    f === :DockTabIsVisible && return (Ptr{Bool}(x + 908), 10, 1)
+    f === :DockTabWantClose && return (Ptr{Bool}(x + 908), 11, 1)
+    f === :DockOrder && return Ptr{Cshort}(x + 910)
+    f === :DockStyle && return Ptr{ImGuiWindowDockStyle}(x + 912)
+    f === :DockNode && return Ptr{Ptr{ImGuiDockNode}}(x + 936)
+    f === :DockNodeAsHost && return Ptr{Ptr{ImGuiDockNode}}(x + 940)
+    f === :DockId && return Ptr{ImGuiID}(x + 944)
+    f === :DockTabItemStatusFlags && return Ptr{ImGuiItemStatusFlags}(x + 948)
+    f === :DockTabItemRect && return Ptr{ImRect}(x + 952)
+    return getfield(x, f)
+end
+
+function Base.getproperty(x::ImGuiWindow, f::Symbol)
+    r = Ref{ImGuiWindow}(x)
+    ptr = Base.unsafe_convert(Ptr{ImGuiWindow}, r)
+    fptr = getproperty(ptr, f)
+    begin
+        if fptr isa Ptr
+            return GC.@preserve(r, unsafe_load(fptr))
+        else
+            (baseptr, offset, width) = fptr
+            ty = eltype(baseptr)
+            baseptr32 = convert(Ptr{UInt32}, baseptr)
+            u64 = GC.@preserve(r, unsafe_load(baseptr32))
+            if offset + width > 32
+                u64 |= GC.@preserve(r, unsafe_load(baseptr32 + 4)) << 32
+            end
+            u64 = u64 >> offset & (1 << width - 1)
+            return u64 % ty
+        end
+    end
+end
+
+function Base.setproperty!(x::Ptr{ImGuiWindow}, f::Symbol, v)
+    fptr = getproperty(x, f)
+    if fptr isa Ptr
+        unsafe_store!(getproperty(x, f), v)
+    else
+        (baseptr, offset, width) = fptr
+        baseptr32 = convert(Ptr{UInt32}, baseptr)
+        u64 = unsafe_load(baseptr32)
+        straddle = offset + width > 32
+        if straddle
+            u64 |= unsafe_load(baseptr32 + 4) << 32
+        end
+        mask = 1 << width - 1
+        u64 &= ~(mask << offset)
+        u64 |= (unsigned(v) & mask) << offset
+        unsafe_store!(baseptr32, u64 & typemax(UInt32))
+        if straddle
+            unsafe_store!(baseptr32 + 4, u64 >> 32)
+        end
+    end
+end
+
+const ImGuiItemFlags = Cint
+
+struct ImGuiLastItemData
+    ID::ImGuiID
+    InFlags::ImGuiItemFlags
+    StatusFlags::ImGuiItemStatusFlags
+    Rect::ImRect
+    NavRect::ImRect
+    DisplayRect::ImRect
+end
+
+struct ImGuiStackSizes
+    SizeOfIDStack::Cshort
+    SizeOfColorStack::Cshort
+    SizeOfStyleVarStack::Cshort
+    SizeOfFontStack::Cshort
+    SizeOfFocusScopeStack::Cshort
+    SizeOfGroupStack::Cshort
+    SizeOfItemFlagsStack::Cshort
+    SizeOfBeginPopupStack::Cshort
+    SizeOfDisabledStack::Cshort
+end
+
+struct ImGuiWindowStackData
+    Window::Ptr{ImGuiWindow}
+    ParentLastItemDataBackup::ImGuiLastItemData
+    StackSizesOnBegin::ImGuiStackSizes
+end
+
+struct ImVector_ImGuiWindowStackData
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiWindowStackData}
+end
+
+struct ImGuiKeyOwnerData
+    OwnerCurr::ImGuiID
+    OwnerNext::ImGuiID
+    LockThisFrame::Bool
+    LockUntilRelease::Bool
+end
+
+const ImGuiKeyRoutingIndex = ImS16
+
+struct ImGuiKeyRoutingData
+    NextEntryIndex::ImGuiKeyRoutingIndex
+    Mods::ImU16
+    RoutingNextScore::ImU8
+    RoutingCurr::ImGuiID
+    RoutingNext::ImGuiID
+end
+
+struct ImVector_ImGuiKeyRoutingData
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiKeyRoutingData}
+end
+
+struct ImGuiKeyRoutingTable
+    Index::NTuple{140, ImGuiKeyRoutingIndex}
+    Entries::ImVector_ImGuiKeyRoutingData
+    EntriesNext::ImVector_ImGuiKeyRoutingData
+end
+
+const ImGuiNextItemDataFlags = Cint
+
+struct ImGuiNextItemData
+    Flags::ImGuiNextItemDataFlags
+    Width::Cfloat
+    FocusScopeId::ImGuiID
+    OpenCond::ImGuiCond
+    OpenVal::Bool
+end
+
+const ImGuiNextWindowDataFlags = Cint
+
+# typedef void ( * ImGuiSizeCallback ) ( ImGuiSizeCallbackData * data )
+const ImGuiSizeCallback = Ptr{Cvoid}
+
+struct ImGuiNextWindowData
+    Flags::ImGuiNextWindowDataFlags
+    PosCond::ImGuiCond
+    SizeCond::ImGuiCond
+    CollapsedCond::ImGuiCond
+    DockCond::ImGuiCond
+    PosVal::ImVec2
+    PosPivotVal::ImVec2
+    SizeVal::ImVec2
+    ContentSizeVal::ImVec2
+    ScrollVal::ImVec2
+    PosUndock::Bool
+    CollapsedVal::Bool
+    SizeConstraintRect::ImRect
+    SizeCallback::ImGuiSizeCallback
+    SizeCallbackUserData::Ptr{Cvoid}
+    BgAlphaVal::Cfloat
+    ViewportId::ImGuiID
+    DockId::ImGuiID
+    WindowClass::ImGuiWindowClass
+    MenuBarOffsetMinVal::ImVec2
+end
+
+const ImGuiCol = Cint
+
+struct ImGuiColorMod
+    Col::ImGuiCol
+    BackupValue::ImVec4
 end
 
 struct ImVector_ImGuiColorMod
     Size::Cint
     Capacity::Cint
     Data::Ptr{ImGuiColorMod}
+end
+
+const ImGuiStyleVar = Cint
+
+struct ImGuiStyleMod
+    data::NTuple{12, UInt8}
+end
+
+function Base.getproperty(x::Ptr{ImGuiStyleMod}, f::Symbol)
+    f === :VarIdx && return Ptr{ImGuiStyleVar}(x + 0)
+    f === :BackupInt && return Ptr{NTuple{2, Cint}}(x + 4)
+    f === :BackupFloat && return Ptr{NTuple{2, Cfloat}}(x + 4)
+    return getfield(x, f)
+end
+
+function Base.getproperty(x::ImGuiStyleMod, f::Symbol)
+    r = Ref{ImGuiStyleMod}(x)
+    ptr = Base.unsafe_convert(Ptr{ImGuiStyleMod}, r)
+    fptr = getproperty(ptr, f)
+    GC.@preserve r unsafe_load(fptr)
+end
+
+function Base.setproperty!(x::Ptr{ImGuiStyleMod}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
 end
 
 struct ImVector_ImGuiStyleMod
@@ -2184,10 +1788,35 @@ struct ImVector_ImGuiItemFlags
     Data::Ptr{ImGuiItemFlags}
 end
 
+struct ImGuiGroupData
+    WindowID::ImGuiID
+    BackupCursorPos::ImVec2
+    BackupCursorMaxPos::ImVec2
+    BackupIndent::ImVec1
+    BackupGroupOffset::ImVec1
+    BackupCurrLineSize::ImVec2
+    BackupCurrLineTextBaseOffset::Cfloat
+    BackupActiveIdIsAlive::ImGuiID
+    BackupActiveIdPreviousFrameIsAlive::Bool
+    BackupHoveredIdIsAlive::Bool
+    EmitItem::Bool
+end
+
 struct ImVector_ImGuiGroupData
     Size::Cint
     Capacity::Cint
     Data::Ptr{ImGuiGroupData}
+end
+
+struct ImGuiPopupData
+    PopupId::ImGuiID
+    Window::Ptr{ImGuiWindow}
+    BackupNavWindow::Ptr{ImGuiWindow}
+    ParentNavLayer::Cint
+    OpenFrameCount::Cint
+    OpenParentId::ImGuiID
+    OpenPopupPos::ImVec2
+    OpenMousePos::ImVec2
 end
 
 struct ImVector_ImGuiPopupData
@@ -2202,22 +1831,468 @@ struct ImVector_ImGuiViewportPPtr
     Data::Ptr{Ptr{ImGuiViewportP}}
 end
 
+const ImGuiActivateFlags = Cint
+
 const ImGuiNavMoveFlags = Cint
 
-@cenum ImGuiNavForward::UInt32 begin
-    ImGuiNavForward_None = 0
-    ImGuiNavForward_ForwardQueued = 1
-    ImGuiNavForward_ForwardActive = 2
+const ImGuiScrollFlags = Cint
+
+struct ImGuiNavItemData
+    Window::Ptr{ImGuiWindow}
+    ID::ImGuiID
+    FocusScopeId::ImGuiID
+    RectRel::ImRect
+    InFlags::ImGuiItemFlags
+    DistBox::Cfloat
+    DistCenter::Cfloat
+    DistAxial::Cfloat
 end
 
 const ImGuiMouseCursor = Cint
 
 const ImGuiDragDropFlags = Cint
 
+struct ImGuiPayload
+    Data::Ptr{Cvoid}
+    DataSize::Cint
+    SourceId::ImGuiID
+    SourceParentId::ImGuiID
+    DataFrameCount::Cint
+    DataType::NTuple{33, Cchar}
+    Preview::Bool
+    Delivery::Bool
+end
+
 struct ImVector_unsigned_char
     Size::Cint
     Capacity::Cint
     Data::Ptr{Cuchar}
+end
+
+struct ImGuiListClipper
+    Ctx::Ptr{Cvoid} # Ctx::Ptr{ImGuiContext}
+    DisplayStart::Cint
+    DisplayEnd::Cint
+    ItemsCount::Cint
+    ItemsHeight::Cfloat
+    StartPosY::Cfloat
+    TempData::Ptr{Cvoid}
+end
+
+function Base.getproperty(x::ImGuiListClipper, f::Symbol)
+    f === :Ctx && return Ptr{ImGuiContext}(getfield(x, f))
+    return getfield(x, f)
+end
+
+struct ImGuiListClipperRange
+    Min::Cint
+    Max::Cint
+    PosToIndexConvert::Bool
+    PosToIndexOffsetMin::ImS8
+    PosToIndexOffsetMax::ImS8
+end
+
+struct ImVector_ImGuiListClipperRange
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiListClipperRange}
+end
+
+struct ImGuiListClipperData
+    ListClipper::Ptr{ImGuiListClipper}
+    LossynessOffset::Cfloat
+    StepNo::Cint
+    ItemsFrozen::Cint
+    Ranges::ImVector_ImGuiListClipperRange
+end
+
+struct ImVector_ImGuiListClipperData
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiListClipperData}
+end
+
+const ImGuiTableFlags = Cint
+
+struct ImGuiTableTempData
+    TableIndex::Cint
+    LastTimeActive::Cfloat
+    UserOuterSize::ImVec2
+    DrawSplitter::ImDrawListSplitter
+    HostBackupWorkRect::ImRect
+    HostBackupParentWorkRect::ImRect
+    HostBackupPrevLineSize::ImVec2
+    HostBackupCurrLineSize::ImVec2
+    HostBackupCursorMaxPos::ImVec2
+    HostBackupColumnsOffset::ImVec1
+    HostBackupItemWidth::Cfloat
+    HostBackupItemWidthStackSize::Cint
+end
+
+const ImGuiTableColumnFlags = Cint
+
+const ImGuiTableColumnIdx = ImS16
+
+const ImGuiTableDrawChannelIdx = ImU16
+
+struct ImGuiTableColumn
+    data::NTuple{112, UInt8}
+end
+
+function Base.getproperty(x::Ptr{ImGuiTableColumn}, f::Symbol)
+    f === :Flags && return Ptr{ImGuiTableColumnFlags}(x + 0)
+    f === :WidthGiven && return Ptr{Cfloat}(x + 4)
+    f === :MinX && return Ptr{Cfloat}(x + 8)
+    f === :MaxX && return Ptr{Cfloat}(x + 12)
+    f === :WidthRequest && return Ptr{Cfloat}(x + 16)
+    f === :WidthAuto && return Ptr{Cfloat}(x + 20)
+    f === :StretchWeight && return Ptr{Cfloat}(x + 24)
+    f === :InitStretchWeightOrWidth && return Ptr{Cfloat}(x + 28)
+    f === :ClipRect && return Ptr{ImRect}(x + 32)
+    f === :UserID && return Ptr{ImGuiID}(x + 48)
+    f === :WorkMinX && return Ptr{Cfloat}(x + 52)
+    f === :WorkMaxX && return Ptr{Cfloat}(x + 56)
+    f === :ItemWidth && return Ptr{Cfloat}(x + 60)
+    f === :ContentMaxXFrozen && return Ptr{Cfloat}(x + 64)
+    f === :ContentMaxXUnfrozen && return Ptr{Cfloat}(x + 68)
+    f === :ContentMaxXHeadersUsed && return Ptr{Cfloat}(x + 72)
+    f === :ContentMaxXHeadersIdeal && return Ptr{Cfloat}(x + 76)
+    f === :NameOffset && return Ptr{ImS16}(x + 80)
+    f === :DisplayOrder && return Ptr{ImGuiTableColumnIdx}(x + 82)
+    f === :IndexWithinEnabledSet && return Ptr{ImGuiTableColumnIdx}(x + 84)
+    f === :PrevEnabledColumn && return Ptr{ImGuiTableColumnIdx}(x + 86)
+    f === :NextEnabledColumn && return Ptr{ImGuiTableColumnIdx}(x + 88)
+    f === :SortOrder && return Ptr{ImGuiTableColumnIdx}(x + 90)
+    f === :DrawChannelCurrent && return Ptr{ImGuiTableDrawChannelIdx}(x + 92)
+    f === :DrawChannelFrozen && return Ptr{ImGuiTableDrawChannelIdx}(x + 94)
+    f === :DrawChannelUnfrozen && return Ptr{ImGuiTableDrawChannelIdx}(x + 96)
+    f === :IsEnabled && return Ptr{Bool}(x + 98)
+    f === :IsUserEnabled && return Ptr{Bool}(x + 99)
+    f === :IsUserEnabledNextFrame && return Ptr{Bool}(x + 100)
+    f === :IsVisibleX && return Ptr{Bool}(x + 101)
+    f === :IsVisibleY && return Ptr{Bool}(x + 102)
+    f === :IsRequestOutput && return Ptr{Bool}(x + 103)
+    f === :IsSkipItems && return Ptr{Bool}(x + 104)
+    f === :IsPreserveWidthAuto && return Ptr{Bool}(x + 105)
+    f === :NavLayerCurrent && return Ptr{ImS8}(x + 106)
+    f === :AutoFitQueue && return Ptr{ImU8}(x + 107)
+    f === :CannotSkipItemsQueue && return Ptr{ImU8}(x + 108)
+    f === :SortDirection && return (Ptr{ImU8}(x + 108), 8, 2)
+    f === :SortDirectionsAvailCount && return (Ptr{ImU8}(x + 108), 10, 2)
+    f === :SortDirectionsAvailMask && return (Ptr{ImU8}(x + 108), 12, 4)
+    f === :SortDirectionsAvailList && return Ptr{ImU8}(x + 110)
+    return getfield(x, f)
+end
+
+function Base.getproperty(x::ImGuiTableColumn, f::Symbol)
+    r = Ref{ImGuiTableColumn}(x)
+    ptr = Base.unsafe_convert(Ptr{ImGuiTableColumn}, r)
+    fptr = getproperty(ptr, f)
+    begin
+        if fptr isa Ptr
+            return GC.@preserve(r, unsafe_load(fptr))
+        else
+            (baseptr, offset, width) = fptr
+            ty = eltype(baseptr)
+            baseptr32 = convert(Ptr{UInt32}, baseptr)
+            u64 = GC.@preserve(r, unsafe_load(baseptr32))
+            if offset + width > 32
+                u64 |= GC.@preserve(r, unsafe_load(baseptr32 + 4)) << 32
+            end
+            u64 = u64 >> offset & (1 << width - 1)
+            return u64 % ty
+        end
+    end
+end
+
+function Base.setproperty!(x::Ptr{ImGuiTableColumn}, f::Symbol, v)
+    fptr = getproperty(x, f)
+    if fptr isa Ptr
+        unsafe_store!(getproperty(x, f), v)
+    else
+        (baseptr, offset, width) = fptr
+        baseptr32 = convert(Ptr{UInt32}, baseptr)
+        u64 = unsafe_load(baseptr32)
+        straddle = offset + width > 32
+        if straddle
+            u64 |= unsafe_load(baseptr32 + 4) << 32
+        end
+        mask = 1 << width - 1
+        u64 &= ~(mask << offset)
+        u64 |= (unsigned(v) & mask) << offset
+        unsafe_store!(baseptr32, u64 & typemax(UInt32))
+        if straddle
+            unsafe_store!(baseptr32 + 4, u64 >> 32)
+        end
+    end
+end
+
+struct ImSpan_ImGuiTableColumn
+    Data::Ptr{ImGuiTableColumn}
+    DataEnd::Ptr{ImGuiTableColumn}
+end
+
+struct ImSpan_ImGuiTableColumnIdx
+    Data::Ptr{ImGuiTableColumnIdx}
+    DataEnd::Ptr{ImGuiTableColumnIdx}
+end
+
+struct ImGuiTableCellData
+    BgColor::ImU32
+    Column::ImGuiTableColumnIdx
+end
+
+struct ImSpan_ImGuiTableCellData
+    Data::Ptr{ImGuiTableCellData}
+    DataEnd::Ptr{ImGuiTableCellData}
+end
+
+const ImBitArrayPtr = Ptr{ImU32}
+
+const ImGuiTableRowFlags = Cint
+
+struct ImGuiTableInstanceData
+    TableInstanceID::ImGuiID
+    LastOuterHeight::Cfloat
+    LastFirstRowHeight::Cfloat
+    LastFrozenHeight::Cfloat
+end
+
+struct ImVector_ImGuiTableInstanceData
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiTableInstanceData}
+end
+
+const ImGuiSortDirection = Cint
+
+struct ImGuiTableColumnSortSpecs
+    data::NTuple{12, UInt8}
+end
+
+function Base.getproperty(x::Ptr{ImGuiTableColumnSortSpecs}, f::Symbol)
+    f === :ColumnUserID && return Ptr{ImGuiID}(x + 0)
+    f === :ColumnIndex && return Ptr{ImS16}(x + 4)
+    f === :SortOrder && return Ptr{ImS16}(x + 6)
+    f === :SortDirection && return (Ptr{ImGuiSortDirection}(x + 8), 0, 8)
+    return getfield(x, f)
+end
+
+function Base.getproperty(x::ImGuiTableColumnSortSpecs, f::Symbol)
+    r = Ref{ImGuiTableColumnSortSpecs}(x)
+    ptr = Base.unsafe_convert(Ptr{ImGuiTableColumnSortSpecs}, r)
+    fptr = getproperty(ptr, f)
+    begin
+        if fptr isa Ptr
+            return GC.@preserve(r, unsafe_load(fptr))
+        else
+            (baseptr, offset, width) = fptr
+            ty = eltype(baseptr)
+            baseptr32 = convert(Ptr{UInt32}, baseptr)
+            u64 = GC.@preserve(r, unsafe_load(baseptr32))
+            if offset + width > 32
+                u64 |= GC.@preserve(r, unsafe_load(baseptr32 + 4)) << 32
+            end
+            u64 = u64 >> offset & (1 << width - 1)
+            return u64 % ty
+        end
+    end
+end
+
+function Base.setproperty!(x::Ptr{ImGuiTableColumnSortSpecs}, f::Symbol, v)
+    fptr = getproperty(x, f)
+    if fptr isa Ptr
+        unsafe_store!(getproperty(x, f), v)
+    else
+        (baseptr, offset, width) = fptr
+        baseptr32 = convert(Ptr{UInt32}, baseptr)
+        u64 = unsafe_load(baseptr32)
+        straddle = offset + width > 32
+        if straddle
+            u64 |= unsafe_load(baseptr32 + 4) << 32
+        end
+        mask = 1 << width - 1
+        u64 &= ~(mask << offset)
+        u64 |= (unsigned(v) & mask) << offset
+        unsafe_store!(baseptr32, u64 & typemax(UInt32))
+        if straddle
+            unsafe_store!(baseptr32 + 4, u64 >> 32)
+        end
+    end
+end
+
+struct ImVector_ImGuiTableColumnSortSpecs
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiTableColumnSortSpecs}
+end
+
+struct ImGuiTableSortSpecs
+    Specs::Ptr{ImGuiTableColumnSortSpecs}
+    SpecsCount::Cint
+    SpecsDirty::Bool
+end
+
+struct ImGuiTable
+    data::NTuple{488, UInt8}
+end
+
+function Base.getproperty(x::Ptr{ImGuiTable}, f::Symbol)
+    f === :ID && return Ptr{ImGuiID}(x + 0)
+    f === :Flags && return Ptr{ImGuiTableFlags}(x + 4)
+    f === :RawData && return Ptr{Ptr{Cvoid}}(x + 8)
+    f === :TempData && return Ptr{Ptr{ImGuiTableTempData}}(x + 12)
+    f === :Columns && return Ptr{ImSpan_ImGuiTableColumn}(x + 16)
+    f === :DisplayOrderToIndex && return Ptr{ImSpan_ImGuiTableColumnIdx}(x + 24)
+    f === :RowCellData && return Ptr{ImSpan_ImGuiTableCellData}(x + 32)
+    f === :EnabledMaskByDisplayOrder && return Ptr{ImBitArrayPtr}(x + 40)
+    f === :EnabledMaskByIndex && return Ptr{ImBitArrayPtr}(x + 44)
+    f === :VisibleMaskByIndex && return Ptr{ImBitArrayPtr}(x + 48)
+    f === :SettingsLoadedFlags && return Ptr{ImGuiTableFlags}(x + 52)
+    f === :SettingsOffset && return Ptr{Cint}(x + 56)
+    f === :LastFrameActive && return Ptr{Cint}(x + 60)
+    f === :ColumnsCount && return Ptr{Cint}(x + 64)
+    f === :CurrentRow && return Ptr{Cint}(x + 68)
+    f === :CurrentColumn && return Ptr{Cint}(x + 72)
+    f === :InstanceCurrent && return Ptr{ImS16}(x + 76)
+    f === :InstanceInteracted && return Ptr{ImS16}(x + 78)
+    f === :RowPosY1 && return Ptr{Cfloat}(x + 80)
+    f === :RowPosY2 && return Ptr{Cfloat}(x + 84)
+    f === :RowMinHeight && return Ptr{Cfloat}(x + 88)
+    f === :RowTextBaseline && return Ptr{Cfloat}(x + 92)
+    f === :RowIndentOffsetX && return Ptr{Cfloat}(x + 96)
+    f === :RowFlags && return (Ptr{ImGuiTableRowFlags}(x + 100), 0, 16)
+    f === :LastRowFlags && return (Ptr{ImGuiTableRowFlags}(x + 100), 16, 16)
+    f === :RowBgColorCounter && return Ptr{Cint}(x + 104)
+    f === :RowBgColor && return Ptr{NTuple{2, ImU32}}(x + 108)
+    f === :BorderColorStrong && return Ptr{ImU32}(x + 116)
+    f === :BorderColorLight && return Ptr{ImU32}(x + 120)
+    f === :BorderX1 && return Ptr{Cfloat}(x + 124)
+    f === :BorderX2 && return Ptr{Cfloat}(x + 128)
+    f === :HostIndentX && return Ptr{Cfloat}(x + 132)
+    f === :MinColumnWidth && return Ptr{Cfloat}(x + 136)
+    f === :OuterPaddingX && return Ptr{Cfloat}(x + 140)
+    f === :CellPaddingX && return Ptr{Cfloat}(x + 144)
+    f === :CellPaddingY && return Ptr{Cfloat}(x + 148)
+    f === :CellSpacingX1 && return Ptr{Cfloat}(x + 152)
+    f === :CellSpacingX2 && return Ptr{Cfloat}(x + 156)
+    f === :InnerWidth && return Ptr{Cfloat}(x + 160)
+    f === :ColumnsGivenWidth && return Ptr{Cfloat}(x + 164)
+    f === :ColumnsAutoFitWidth && return Ptr{Cfloat}(x + 168)
+    f === :ColumnsStretchSumWeights && return Ptr{Cfloat}(x + 172)
+    f === :ResizedColumnNextWidth && return Ptr{Cfloat}(x + 176)
+    f === :ResizeLockMinContentsX2 && return Ptr{Cfloat}(x + 180)
+    f === :RefScale && return Ptr{Cfloat}(x + 184)
+    f === :OuterRect && return Ptr{ImRect}(x + 188)
+    f === :InnerRect && return Ptr{ImRect}(x + 204)
+    f === :WorkRect && return Ptr{ImRect}(x + 220)
+    f === :InnerClipRect && return Ptr{ImRect}(x + 236)
+    f === :BgClipRect && return Ptr{ImRect}(x + 252)
+    f === :Bg0ClipRectForDrawCmd && return Ptr{ImRect}(x + 268)
+    f === :Bg2ClipRectForDrawCmd && return Ptr{ImRect}(x + 284)
+    f === :HostClipRect && return Ptr{ImRect}(x + 300)
+    f === :HostBackupInnerClipRect && return Ptr{ImRect}(x + 316)
+    f === :OuterWindow && return Ptr{Ptr{ImGuiWindow}}(x + 332)
+    f === :InnerWindow && return Ptr{Ptr{ImGuiWindow}}(x + 336)
+    f === :ColumnsNames && return Ptr{ImGuiTextBuffer}(x + 340)
+    f === :DrawSplitter && return Ptr{Ptr{ImDrawListSplitter}}(x + 352)
+    f === :InstanceDataFirst && return Ptr{ImGuiTableInstanceData}(x + 356)
+    f === :InstanceDataExtra && return Ptr{ImVector_ImGuiTableInstanceData}(x + 372)
+    f === :SortSpecsSingle && return Ptr{ImGuiTableColumnSortSpecs}(x + 384)
+    f === :SortSpecsMulti && return Ptr{ImVector_ImGuiTableColumnSortSpecs}(x + 396)
+    f === :SortSpecs && return Ptr{ImGuiTableSortSpecs}(x + 408)
+    f === :SortSpecsCount && return Ptr{ImGuiTableColumnIdx}(x + 420)
+    f === :ColumnsEnabledCount && return Ptr{ImGuiTableColumnIdx}(x + 422)
+    f === :ColumnsEnabledFixedCount && return Ptr{ImGuiTableColumnIdx}(x + 424)
+    f === :DeclColumnsCount && return Ptr{ImGuiTableColumnIdx}(x + 426)
+    f === :HoveredColumnBody && return Ptr{ImGuiTableColumnIdx}(x + 428)
+    f === :HoveredColumnBorder && return Ptr{ImGuiTableColumnIdx}(x + 430)
+    f === :AutoFitSingleColumn && return Ptr{ImGuiTableColumnIdx}(x + 432)
+    f === :ResizedColumn && return Ptr{ImGuiTableColumnIdx}(x + 434)
+    f === :LastResizedColumn && return Ptr{ImGuiTableColumnIdx}(x + 436)
+    f === :HeldHeaderColumn && return Ptr{ImGuiTableColumnIdx}(x + 438)
+    f === :ReorderColumn && return Ptr{ImGuiTableColumnIdx}(x + 440)
+    f === :ReorderColumnDir && return Ptr{ImGuiTableColumnIdx}(x + 442)
+    f === :LeftMostEnabledColumn && return Ptr{ImGuiTableColumnIdx}(x + 444)
+    f === :RightMostEnabledColumn && return Ptr{ImGuiTableColumnIdx}(x + 446)
+    f === :LeftMostStretchedColumn && return Ptr{ImGuiTableColumnIdx}(x + 448)
+    f === :RightMostStretchedColumn && return Ptr{ImGuiTableColumnIdx}(x + 450)
+    f === :ContextPopupColumn && return Ptr{ImGuiTableColumnIdx}(x + 452)
+    f === :FreezeRowsRequest && return Ptr{ImGuiTableColumnIdx}(x + 454)
+    f === :FreezeRowsCount && return Ptr{ImGuiTableColumnIdx}(x + 456)
+    f === :FreezeColumnsRequest && return Ptr{ImGuiTableColumnIdx}(x + 458)
+    f === :FreezeColumnsCount && return Ptr{ImGuiTableColumnIdx}(x + 460)
+    f === :RowCellDataCurrent && return Ptr{ImGuiTableColumnIdx}(x + 462)
+    f === :DummyDrawChannel && return Ptr{ImGuiTableDrawChannelIdx}(x + 464)
+    f === :Bg2DrawChannelCurrent && return Ptr{ImGuiTableDrawChannelIdx}(x + 466)
+    f === :Bg2DrawChannelUnfrozen && return Ptr{ImGuiTableDrawChannelIdx}(x + 468)
+    f === :IsLayoutLocked && return Ptr{Bool}(x + 470)
+    f === :IsInsideRow && return Ptr{Bool}(x + 471)
+    f === :IsInitializing && return Ptr{Bool}(x + 472)
+    f === :IsSortSpecsDirty && return Ptr{Bool}(x + 473)
+    f === :IsUsingHeaders && return Ptr{Bool}(x + 474)
+    f === :IsContextPopupOpen && return Ptr{Bool}(x + 475)
+    f === :IsSettingsRequestLoad && return Ptr{Bool}(x + 476)
+    f === :IsSettingsDirty && return Ptr{Bool}(x + 477)
+    f === :IsDefaultDisplayOrder && return Ptr{Bool}(x + 478)
+    f === :IsResetAllRequest && return Ptr{Bool}(x + 479)
+    f === :IsResetDisplayOrderRequest && return Ptr{Bool}(x + 480)
+    f === :IsUnfrozenRows && return Ptr{Bool}(x + 481)
+    f === :IsDefaultSizingPolicy && return Ptr{Bool}(x + 482)
+    f === :HasScrollbarYCurr && return Ptr{Bool}(x + 483)
+    f === :HasScrollbarYPrev && return Ptr{Bool}(x + 484)
+    f === :MemoryCompacted && return Ptr{Bool}(x + 485)
+    f === :HostSkipItems && return Ptr{Bool}(x + 486)
+    return getfield(x, f)
+end
+
+function Base.getproperty(x::ImGuiTable, f::Symbol)
+    r = Ref{ImGuiTable}(x)
+    ptr = Base.unsafe_convert(Ptr{ImGuiTable}, r)
+    fptr = getproperty(ptr, f)
+    begin
+        if fptr isa Ptr
+            return GC.@preserve(r, unsafe_load(fptr))
+        else
+            (baseptr, offset, width) = fptr
+            ty = eltype(baseptr)
+            baseptr32 = convert(Ptr{UInt32}, baseptr)
+            u64 = GC.@preserve(r, unsafe_load(baseptr32))
+            if offset + width > 32
+                u64 |= GC.@preserve(r, unsafe_load(baseptr32 + 4)) << 32
+            end
+            u64 = u64 >> offset & (1 << width - 1)
+            return u64 % ty
+        end
+    end
+end
+
+function Base.setproperty!(x::Ptr{ImGuiTable}, f::Symbol, v)
+    fptr = getproperty(x, f)
+    if fptr isa Ptr
+        unsafe_store!(getproperty(x, f), v)
+    else
+        (baseptr, offset, width) = fptr
+        baseptr32 = convert(Ptr{UInt32}, baseptr)
+        u64 = unsafe_load(baseptr32)
+        straddle = offset + width > 32
+        if straddle
+            u64 |= unsafe_load(baseptr32 + 4) << 32
+        end
+        mask = 1 << width - 1
+        u64 &= ~(mask << offset)
+        u64 |= (unsigned(v) & mask) << offset
+        unsafe_store!(baseptr32, u64 & typemax(UInt32))
+        if straddle
+            unsafe_store!(baseptr32 + 4, u64 >> 32)
+        end
+    end
+end
+
+struct ImVector_ImGuiTableTempData
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiTableTempData}
 end
 
 struct ImVector_ImGuiTable
@@ -2232,12 +2307,7 @@ struct ImPool_ImGuiTable
     Buf::ImVector_ImGuiTable
     Map::ImGuiStorage
     FreeIdx::ImPoolIdx
-end
-
-struct ImVector_ImGuiPtrOrIndex
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImGuiPtrOrIndex}
+    AliveCount::ImPoolIdx
 end
 
 struct ImVector_ImGuiTabBar
@@ -2250,6 +2320,24 @@ struct ImPool_ImGuiTabBar
     Buf::ImVector_ImGuiTabBar
     Map::ImGuiStorage
     FreeIdx::ImPoolIdx
+    AliveCount::ImPoolIdx
+end
+
+struct ImGuiPtrOrIndex
+    Ptr::Ptr{Cvoid}
+    Index::Cint
+end
+
+struct ImVector_ImGuiPtrOrIndex
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiPtrOrIndex}
+end
+
+struct ImGuiShrinkWidthItem
+    Index::Cint
+    Width::Cfloat
+    InitialWidth::Cfloat
 end
 
 struct ImVector_ImGuiShrinkWidthItem
@@ -2258,7 +2346,116 @@ struct ImVector_ImGuiShrinkWidthItem
     Data::Ptr{ImGuiShrinkWidthItem}
 end
 
+struct StbUndoRecord
+    where::Cint
+    insert_length::Cint
+    delete_length::Cint
+    char_storage::Cint
+end
+
+struct StbUndoState
+    undo_rec::NTuple{99, StbUndoRecord}
+    undo_char::NTuple{999, ImWchar}
+    undo_point::Cshort
+    redo_point::Cshort
+    undo_char_point::Cint
+    redo_char_point::Cint
+end
+
+struct STB_TexteditState
+    cursor::Cint
+    select_start::Cint
+    select_end::Cint
+    insert_mode::Cuchar
+    row_count_per_page::Cint
+    cursor_at_end_of_line::Cuchar
+    initialized::Cuchar
+    has_preferred_x::Cuchar
+    single_line::Cuchar
+    padding1::Cuchar
+    padding2::Cuchar
+    padding3::Cuchar
+    preferred_x::Cfloat
+    undostate::StbUndoState
+end
+
+const ImGuiInputTextFlags = Cint
+
+struct ImGuiInputTextState
+    Ctx::Ptr{Cvoid} # Ctx::Ptr{ImGuiContext}
+    ID::ImGuiID
+    CurLenW::Cint
+    CurLenA::Cint
+    TextW::ImVector_ImWchar
+    TextA::ImVector_char
+    InitialTextA::ImVector_char
+    TextAIsValid::Bool
+    BufCapacityA::Cint
+    ScrollX::Cfloat
+    Stb::STB_TexteditState
+    CursorAnim::Cfloat
+    CursorFollow::Bool
+    SelectedAllMouseLock::Bool
+    Edited::Bool
+    Flags::ImGuiInputTextFlags
+end
+
+function Base.getproperty(x::ImGuiInputTextState, f::Symbol)
+    f === :Ctx && return Ptr{ImGuiContext}(getfield(x, f))
+    return getfield(x, f)
+end
+
 const ImGuiColorEditFlags = Cint
+
+struct ImGuiComboPreviewData
+    PreviewRect::ImRect
+    BackupCursorPos::ImVec2
+    BackupCursorMaxPos::ImVec2
+    BackupCursorPosPrevLine::ImVec2
+    BackupPrevLineTextBaseOffset::Cfloat
+    BackupLayout::ImGuiLayoutType
+end
+
+struct ImGuiPlatformImeData
+    WantVisible::Bool
+    InputPos::ImVec2
+    InputLineHeight::Cfloat
+end
+
+mutable struct ImGuiDockRequest end
+
+struct ImVector_ImGuiDockRequest
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiDockRequest}
+end
+
+mutable struct ImGuiDockNodeSettings end
+
+struct ImVector_ImGuiDockNodeSettings
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiDockNodeSettings}
+end
+
+struct ImGuiDockContext
+    Nodes::ImGuiStorage
+    Requests::ImVector_ImGuiDockRequest
+    NodesSettings::ImVector_ImGuiDockNodeSettings
+    WantFullRebuild::Bool
+end
+
+struct ImGuiSettingsHandler
+    TypeName::Ptr{Cchar}
+    TypeHash::ImGuiID
+    ClearAllFn::Ptr{Cvoid}
+    ReadInitFn::Ptr{Cvoid}
+    ReadOpenFn::Ptr{Cvoid}
+    ReadLineFn::Ptr{Cvoid}
+    ApplyAllFn::Ptr{Cvoid}
+    WriteAllFn::Ptr{Cvoid}
+    UserData::Ptr{Cvoid}
+end
 
 struct ImVector_ImGuiSettingsHandler
     Size::Cint
@@ -2266,24 +2463,34 @@ struct ImVector_ImGuiSettingsHandler
     Data::Ptr{ImGuiSettingsHandler}
 end
 
-struct ImVector_ImGuiWindowSettings
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImGuiWindowSettings}
-end
-
 struct ImChunkStream_ImGuiWindowSettings
-    Buf::ImVector_ImGuiWindowSettings
-end
-
-struct ImVector_ImGuiTableSettings
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImGuiTableSettings}
+    Buf::ImVector_char
 end
 
 struct ImChunkStream_ImGuiTableSettings
-    Buf::ImVector_ImGuiTableSettings
+    Buf::ImVector_char
+end
+
+@cenum ImGuiContextHookType::UInt32 begin
+    ImGuiContextHookType_NewFramePre = 0
+    ImGuiContextHookType_NewFramePost = 1
+    ImGuiContextHookType_EndFramePre = 2
+    ImGuiContextHookType_EndFramePost = 3
+    ImGuiContextHookType_RenderPre = 4
+    ImGuiContextHookType_RenderPost = 5
+    ImGuiContextHookType_Shutdown = 6
+    ImGuiContextHookType_PendingRemoval_ = 7
+end
+
+# typedef void ( * ImGuiContextHookCallback ) ( ImGuiContext * ctx , ImGuiContextHook * hook )
+const ImGuiContextHookCallback = Ptr{Cvoid}
+
+struct ImGuiContextHook
+    HookId::ImGuiID
+    Type::ImGuiContextHookType
+    Owner::ImGuiID
+    Callback::ImGuiContextHookCallback
+    UserData::Ptr{Cvoid}
 end
 
 struct ImVector_ImGuiContextHook
@@ -2302,11 +2509,113 @@ end
 
 const ImFileHandle = Ptr{Libc.FILE}
 
+const ImGuiDebugLogFlags = Cint
+
+struct ImVector_int
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{Cint}
+end
+
+struct ImGuiTextIndex
+    LineOffsets::ImVector_int
+    EndOffset::Cint
+end
+
+struct ImGuiMetricsConfig
+    ShowDebugLog::Bool
+    ShowStackTool::Bool
+    ShowWindowsRects::Bool
+    ShowWindowsBeginOrder::Bool
+    ShowTablesRects::Bool
+    ShowDrawCmdMesh::Bool
+    ShowDrawCmdBoundingBoxes::Bool
+    ShowAtlasTintedWithTextColor::Bool
+    ShowDockingNodes::Bool
+    ShowWindowsRectsType::Cint
+    ShowTablesRectsType::Cint
+end
+
+const ImGuiDataType = Cint
+
+struct ImGuiStackLevelInfo
+    data::NTuple{64, UInt8}
+end
+
+function Base.getproperty(x::Ptr{ImGuiStackLevelInfo}, f::Symbol)
+    f === :ID && return Ptr{ImGuiID}(x + 0)
+    f === :QueryFrameCount && return Ptr{ImS8}(x + 4)
+    f === :QuerySuccess && return Ptr{Bool}(x + 5)
+    f === :DataType && return (Ptr{ImGuiDataType}(x + 4), 16, 8)
+    f === :Desc && return Ptr{NTuple{57, Cchar}}(x + 7)
+    return getfield(x, f)
+end
+
+function Base.getproperty(x::ImGuiStackLevelInfo, f::Symbol)
+    r = Ref{ImGuiStackLevelInfo}(x)
+    ptr = Base.unsafe_convert(Ptr{ImGuiStackLevelInfo}, r)
+    fptr = getproperty(ptr, f)
+    begin
+        if fptr isa Ptr
+            return GC.@preserve(r, unsafe_load(fptr))
+        else
+            (baseptr, offset, width) = fptr
+            ty = eltype(baseptr)
+            baseptr32 = convert(Ptr{UInt32}, baseptr)
+            u64 = GC.@preserve(r, unsafe_load(baseptr32))
+            if offset + width > 32
+                u64 |= GC.@preserve(r, unsafe_load(baseptr32 + 4)) << 32
+            end
+            u64 = u64 >> offset & (1 << width - 1)
+            return u64 % ty
+        end
+    end
+end
+
+function Base.setproperty!(x::Ptr{ImGuiStackLevelInfo}, f::Symbol, v)
+    fptr = getproperty(x, f)
+    if fptr isa Ptr
+        unsafe_store!(getproperty(x, f), v)
+    else
+        (baseptr, offset, width) = fptr
+        baseptr32 = convert(Ptr{UInt32}, baseptr)
+        u64 = unsafe_load(baseptr32)
+        straddle = offset + width > 32
+        if straddle
+            u64 |= unsafe_load(baseptr32 + 4) << 32
+        end
+        mask = 1 << width - 1
+        u64 &= ~(mask << offset)
+        u64 |= (unsigned(v) & mask) << offset
+        unsafe_store!(baseptr32, u64 & typemax(UInt32))
+        if straddle
+            unsafe_store!(baseptr32 + 4, u64 >> 32)
+        end
+    end
+end
+
+struct ImVector_ImGuiStackLevelInfo
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiStackLevelInfo}
+end
+
+struct ImGuiStackTool
+    LastActiveFrame::Cint
+    StackLevel::Cint
+    QueryId::ImGuiID
+    Results::ImVector_ImGuiStackLevelInfo
+    CopyToClipboardOnCtrlC::Bool
+    CopyToClipboardLastTime::Cfloat
+end
+
 struct ImGuiContext
     Initialized::Bool
     FontAtlasOwnedByContext::Bool
     IO::ImGuiIO
     PlatformIO::ImGuiPlatformIO
+    InputEventsQueue::ImVector_ImGuiInputEvent
+    InputEventsTrail::ImVector_ImGuiInputEvent
     Style::ImGuiStyle
     ConfigFlagsCurrFrame::ImGuiConfigFlags
     ConfigFlagsLastFrame::ImGuiConfigFlags
@@ -2324,27 +2633,28 @@ struct ImGuiContext
     WithinEndChild::Bool
     GcCompactAll::Bool
     TestEngineHookItems::Bool
-    TestEngineHookIdInfo::ImGuiID
     TestEngine::Ptr{Cvoid}
     Windows::ImVector_ImGuiWindowPtr
     WindowsFocusOrder::ImVector_ImGuiWindowPtr
     WindowsTempSortBuffer::ImVector_ImGuiWindowPtr
-    CurrentWindowStack::ImVector_ImGuiWindowPtr
+    CurrentWindowStack::ImVector_ImGuiWindowStackData
     WindowsById::ImGuiStorage
     WindowsActiveCount::Cint
+    WindowsHoverPadding::ImVec2
     CurrentWindow::Ptr{ImGuiWindow}
     HoveredWindow::Ptr{ImGuiWindow}
     HoveredWindowUnderMovingWindow::Ptr{ImGuiWindow}
-    HoveredDockNode::Ptr{ImGuiDockNode}
     MovingWindow::Ptr{ImGuiWindow}
     WheelingWindow::Ptr{ImGuiWindow}
     WheelingWindowRefMousePos::ImVec2
-    WheelingWindowTimer::Cfloat
+    WheelingWindowStartFrame::Cint
+    WheelingWindowReleaseTimer::Cfloat
+    WheelingWindowWheelRemainder::ImVec2
+    WheelingAxisAvg::ImVec2
+    DebugHookIdInfo::ImGuiID
     HoveredId::ImGuiID
     HoveredIdPreviousFrame::ImGuiID
     HoveredIdAllowOverlap::Bool
-    HoveredIdUsingMouseWheel::Bool
-    HoveredIdPreviousFrameUsingMouseWheel::Bool
     HoveredIdDisabled::Bool
     HoveredIdTimer::Cfloat
     HoveredIdNotActiveTimer::Cfloat
@@ -2357,10 +2667,6 @@ struct ImGuiContext
     ActiveIdHasBeenPressedBefore::Bool
     ActiveIdHasBeenEditedBefore::Bool
     ActiveIdHasBeenEditedThisFrame::Bool
-    ActiveIdUsingMouseWheel::Bool
-    ActiveIdUsingNavDirMask::ImU32
-    ActiveIdUsingNavInputMask::ImU32
-    ActiveIdUsingKeyInputMask::ImU64
     ActiveIdClickOffset::ImVec2
     ActiveIdWindow::Ptr{ImGuiWindow}
     ActiveIdSource::ImGuiInputSource
@@ -2371,8 +2677,17 @@ struct ImGuiContext
     ActiveIdPreviousFrameWindow::Ptr{ImGuiWindow}
     LastActiveId::ImGuiID
     LastActiveIdTimer::Cfloat
-    NextWindowData::ImGuiNextWindowData
+    KeysOwnerData::NTuple{140, ImGuiKeyOwnerData}
+    KeysRoutingTable::ImGuiKeyRoutingTable
+    ActiveIdUsingNavDirMask::ImU32
+    ActiveIdUsingAllKeyboardKeys::Bool
+    ActiveIdUsingNavInputMask::ImU32
+    CurrentFocusScopeId::ImGuiID
+    CurrentItemFlags::ImGuiItemFlags
+    DebugLocateId::ImGuiID
     NextItemData::ImGuiNextItemData
+    LastItemData::ImGuiLastItemData
+    NextWindowData::ImGuiNextWindowData
     ColorStack::ImVector_ImGuiColorMod
     StyleVarStack::ImVector_ImGuiStyleMod
     FontStack::ImVector_ImFontPtr
@@ -2381,6 +2696,7 @@ struct ImGuiContext
     GroupStack::ImVector_ImGuiGroupData
     OpenPopupStack::ImVector_ImGuiPopupData
     BeginPopupStack::ImVector_ImGuiPopupData
+    BeginMenuCount::Cint
     Viewports::ImVector_ImGuiViewportPPtr
     CurrentDpiScale::Cfloat
     CurrentViewport::Ptr{ImGuiViewportP}
@@ -2395,17 +2711,14 @@ struct ImGuiContext
     NavActivateId::ImGuiID
     NavActivateDownId::ImGuiID
     NavActivatePressedId::ImGuiID
-    NavInputId::ImGuiID
-    NavJustTabbedId::ImGuiID
+    NavActivateFlags::ImGuiActivateFlags
     NavJustMovedToId::ImGuiID
     NavJustMovedToFocusScopeId::ImGuiID
-    NavJustMovedToKeyMods::ImGuiKeyModFlags
+    NavJustMovedToKeyMods::ImGuiKeyChord
     NavNextActivateId::ImGuiID
+    NavNextActivateFlags::ImGuiActivateFlags
     NavInputSource::ImGuiInputSource
-    NavScoringRect::ImRect
-    NavScoringCount::Cint
     NavLayer::ImGuiNavLayer
-    NavIdTabCounter::Cint
     NavIdIsAlive::Bool
     NavMousePosDirty::Bool
     NavDisableHighlight::Bool
@@ -2415,31 +2728,34 @@ struct ImGuiContext
     NavInitRequestFromMove::Bool
     NavInitResultId::ImGuiID
     NavInitResultRectRel::ImRect
-    NavMoveRequest::Bool
-    NavMoveRequestFlags::ImGuiNavMoveFlags
-    NavMoveRequestForward::ImGuiNavForward
-    NavMoveRequestKeyMods::ImGuiKeyModFlags
+    NavMoveSubmitted::Bool
+    NavMoveScoringItems::Bool
+    NavMoveForwardToNextFrame::Bool
+    NavMoveFlags::ImGuiNavMoveFlags
+    NavMoveScrollFlags::ImGuiScrollFlags
+    NavMoveKeyMods::ImGuiKeyChord
     NavMoveDir::ImGuiDir
-    NavMoveDirLast::ImGuiDir
+    NavMoveDirForDebug::ImGuiDir
     NavMoveClipDir::ImGuiDir
-    NavMoveResultLocal::ImGuiNavMoveResult
-    NavMoveResultLocalVisibleSet::ImGuiNavMoveResult
-    NavMoveResultOther::ImGuiNavMoveResult
-    NavWrapRequestWindow::Ptr{ImGuiWindow}
-    NavWrapRequestFlags::ImGuiNavMoveFlags
+    NavScoringRect::ImRect
+    NavScoringNoClipRect::ImRect
+    NavScoringDebugCount::Cint
+    NavTabbingDir::Cint
+    NavTabbingCounter::Cint
+    NavMoveResultLocal::ImGuiNavItemData
+    NavMoveResultLocalVisible::ImGuiNavItemData
+    NavMoveResultOther::ImGuiNavItemData
+    NavTabbingResultFirst::ImGuiNavItemData
+    ConfigNavWindowingKeyNext::ImGuiKeyChord
+    ConfigNavWindowingKeyPrev::ImGuiKeyChord
     NavWindowingTarget::Ptr{ImGuiWindow}
     NavWindowingTargetAnim::Ptr{ImGuiWindow}
     NavWindowingListWindow::Ptr{ImGuiWindow}
     NavWindowingTimer::Cfloat
     NavWindowingHighlightAlpha::Cfloat
     NavWindowingToggleLayer::Bool
-    TabFocusRequestCurrWindow::Ptr{ImGuiWindow}
-    TabFocusRequestNextWindow::Ptr{ImGuiWindow}
-    TabFocusRequestCurrCounterRegular::Cint
-    TabFocusRequestCurrCounterTabStop::Cint
-    TabFocusRequestNextCounterRegular::Cint
-    TabFocusRequestNextCounterTabStop::Cint
-    TabFocusPressed::Bool
+    NavWindowingAccumDeltaPos::ImVec2
+    NavWindowingAccumDeltaSize::ImVec2
     DimBgRatio::Cfloat
     MouseCursor::ImGuiMouseCursor
     DragDropActive::Bool
@@ -2459,39 +2775,52 @@ struct ImGuiContext
     DragDropHoldJustPressedId::ImGuiID
     DragDropPayloadBufHeap::ImVector_unsigned_char
     DragDropPayloadBufLocal::NTuple{16, Cuchar}
+    ClipperTempDataStacked::Cint
+    ClipperTempData::ImVector_ImGuiListClipperData
     CurrentTable::Ptr{ImGuiTable}
+    TablesTempDataStacked::Cint
+    TablesTempData::ImVector_ImGuiTableTempData
     Tables::ImPool_ImGuiTable
-    CurrentTableStack::ImVector_ImGuiPtrOrIndex
     TablesLastTimeActive::ImVector_float
     DrawChannelsTempMergeBuffer::ImVector_ImDrawChannel
     CurrentTabBar::Ptr{ImGuiTabBar}
     TabBars::ImPool_ImGuiTabBar
     CurrentTabBarStack::ImVector_ImGuiPtrOrIndex
     ShrinkWidthBuffer::ImVector_ImGuiShrinkWidthItem
-    LastValidMousePos::ImVec2
+    HoverDelayId::ImGuiID
+    HoverDelayIdPreviousFrame::ImGuiID
+    HoverDelayTimer::Cfloat
+    HoverDelayClearTimer::Cfloat
+    MouseLastValidPos::ImVec2
     InputTextState::ImGuiInputTextState
     InputTextPasswordFont::ImFont
     TempInputId::ImGuiID
     ColorEditOptions::ImGuiColorEditFlags
-    ColorEditLastHue::Cfloat
-    ColorEditLastSat::Cfloat
-    ColorEditLastColor::NTuple{3, Cfloat}
+    ColorEditCurrentID::ImGuiID
+    ColorEditSavedID::ImGuiID
+    ColorEditSavedHue::Cfloat
+    ColorEditSavedSat::Cfloat
+    ColorEditSavedColor::ImU32
     ColorPickerRef::ImVec4
+    ComboPreviewData::ImGuiComboPreviewData
+    SliderGrabClickOffset::Cfloat
     SliderCurrentAccum::Cfloat
     SliderCurrentAccumDirty::Bool
     DragCurrentAccumDirty::Bool
     DragCurrentAccum::Cfloat
     DragSpeedDefaultRatio::Cfloat
     ScrollbarClickDeltaToGrabCenter::Cfloat
-    TooltipOverrideCount::Cint
-    TooltipSlowDelay::Cfloat
+    DisabledAlphaBackup::Cfloat
+    DisabledStackSize::Cshort
+    TooltipOverrideCount::Cshort
     ClipboardHandlerData::ImVector_char
     MenusIdSubmittedThisFrame::ImVector_ImGuiID
-    PlatformImePos::ImVec2
-    PlatformImeLastPos::ImVec2
-    PlatformImePosViewport::Ptr{ImGuiViewportP}
+    PlatformImeData::ImGuiPlatformImeData
+    PlatformImeDataPrev::ImGuiPlatformImeData
+    PlatformImeViewport::ImGuiID
     PlatformLocaleDecimalPoint::Cchar
     DockContext::ImGuiDockContext
+    DockNodeWindowMenuHandler::Ptr{Cvoid}
     SettingsLoaded::Bool
     SettingsDirtyTimer::Cfloat
     SettingsIniData::ImGuiTextBuffer
@@ -2500,6 +2829,7 @@ struct ImGuiContext
     SettingsTables::ImChunkStream_ImGuiTableSettings
     Hooks::ImVector_ImGuiContextHook
     HookIdNext::ImGuiID
+    LocalizationTable::NTuple{8, Ptr{Cchar}}
     LogEnabled::Bool
     LogType::ImGuiLogType
     LogFile::ImFileHandle
@@ -2511,29 +2841,305 @@ struct ImGuiContext
     LogDepthRef::Cint
     LogDepthToExpand::Cint
     LogDepthToExpandDefault::Cint
+    DebugLogFlags::ImGuiDebugLogFlags
+    DebugLogBuf::ImGuiTextBuffer
+    DebugLogIndex::ImGuiTextIndex
+    DebugLogClipperAutoDisableFrames::ImU8
+    DebugLocateFrames::ImU8
+    DebugBeginReturnValueCullDepth::ImS8
     DebugItemPickerActive::Bool
+    DebugItemPickerMouseButton::ImU8
     DebugItemPickerBreakId::ImGuiID
     DebugMetricsConfig::ImGuiMetricsConfig
-    FramerateSecPerFrame::NTuple{120, Cfloat}
+    DebugStackTool::ImGuiStackTool
+    DebugHoveredDockNode::Ptr{ImGuiDockNode}
+    FramerateSecPerFrame::NTuple{60, Cfloat}
     FramerateSecPerFrameIdx::Cint
+    FramerateSecPerFrameCount::Cint
     FramerateSecPerFrameAccum::Cfloat
     WantCaptureMouseNextFrame::Cint
     WantCaptureKeyboardNextFrame::Cint
     WantTextInputNextFrame::Cint
-    TempBuffer::NTuple{3073, Cchar}
+    TempBuffer::ImVector_char
 end
 
-struct ImColor
-    Value::ImVec4
+@cenum ImGuiKey::UInt32 begin
+    ImGuiKey_None = 0
+    ImGuiKey_Tab = 512
+    ImGuiKey_LeftArrow = 513
+    ImGuiKey_RightArrow = 514
+    ImGuiKey_UpArrow = 515
+    ImGuiKey_DownArrow = 516
+    ImGuiKey_PageUp = 517
+    ImGuiKey_PageDown = 518
+    ImGuiKey_Home = 519
+    ImGuiKey_End = 520
+    ImGuiKey_Insert = 521
+    ImGuiKey_Delete = 522
+    ImGuiKey_Backspace = 523
+    ImGuiKey_Space = 524
+    ImGuiKey_Enter = 525
+    ImGuiKey_Escape = 526
+    ImGuiKey_LeftCtrl = 527
+    ImGuiKey_LeftShift = 528
+    ImGuiKey_LeftAlt = 529
+    ImGuiKey_LeftSuper = 530
+    ImGuiKey_RightCtrl = 531
+    ImGuiKey_RightShift = 532
+    ImGuiKey_RightAlt = 533
+    ImGuiKey_RightSuper = 534
+    ImGuiKey_Menu = 535
+    ImGuiKey_0 = 536
+    ImGuiKey_1 = 537
+    ImGuiKey_2 = 538
+    ImGuiKey_3 = 539
+    ImGuiKey_4 = 540
+    ImGuiKey_5 = 541
+    ImGuiKey_6 = 542
+    ImGuiKey_7 = 543
+    ImGuiKey_8 = 544
+    ImGuiKey_9 = 545
+    ImGuiKey_A = 546
+    ImGuiKey_B = 547
+    ImGuiKey_C = 548
+    ImGuiKey_D = 549
+    ImGuiKey_E = 550
+    ImGuiKey_F = 551
+    ImGuiKey_G = 552
+    ImGuiKey_H = 553
+    ImGuiKey_I = 554
+    ImGuiKey_J = 555
+    ImGuiKey_K = 556
+    ImGuiKey_L = 557
+    ImGuiKey_M = 558
+    ImGuiKey_N = 559
+    ImGuiKey_O = 560
+    ImGuiKey_P = 561
+    ImGuiKey_Q = 562
+    ImGuiKey_R = 563
+    ImGuiKey_S = 564
+    ImGuiKey_T = 565
+    ImGuiKey_U = 566
+    ImGuiKey_V = 567
+    ImGuiKey_W = 568
+    ImGuiKey_X = 569
+    ImGuiKey_Y = 570
+    ImGuiKey_Z = 571
+    ImGuiKey_F1 = 572
+    ImGuiKey_F2 = 573
+    ImGuiKey_F3 = 574
+    ImGuiKey_F4 = 575
+    ImGuiKey_F5 = 576
+    ImGuiKey_F6 = 577
+    ImGuiKey_F7 = 578
+    ImGuiKey_F8 = 579
+    ImGuiKey_F9 = 580
+    ImGuiKey_F10 = 581
+    ImGuiKey_F11 = 582
+    ImGuiKey_F12 = 583
+    ImGuiKey_Apostrophe = 584
+    ImGuiKey_Comma = 585
+    ImGuiKey_Minus = 586
+    ImGuiKey_Period = 587
+    ImGuiKey_Slash = 588
+    ImGuiKey_Semicolon = 589
+    ImGuiKey_Equal = 590
+    ImGuiKey_LeftBracket = 591
+    ImGuiKey_Backslash = 592
+    ImGuiKey_RightBracket = 593
+    ImGuiKey_GraveAccent = 594
+    ImGuiKey_CapsLock = 595
+    ImGuiKey_ScrollLock = 596
+    ImGuiKey_NumLock = 597
+    ImGuiKey_PrintScreen = 598
+    ImGuiKey_Pause = 599
+    ImGuiKey_Keypad0 = 600
+    ImGuiKey_Keypad1 = 601
+    ImGuiKey_Keypad2 = 602
+    ImGuiKey_Keypad3 = 603
+    ImGuiKey_Keypad4 = 604
+    ImGuiKey_Keypad5 = 605
+    ImGuiKey_Keypad6 = 606
+    ImGuiKey_Keypad7 = 607
+    ImGuiKey_Keypad8 = 608
+    ImGuiKey_Keypad9 = 609
+    ImGuiKey_KeypadDecimal = 610
+    ImGuiKey_KeypadDivide = 611
+    ImGuiKey_KeypadMultiply = 612
+    ImGuiKey_KeypadSubtract = 613
+    ImGuiKey_KeypadAdd = 614
+    ImGuiKey_KeypadEnter = 615
+    ImGuiKey_KeypadEqual = 616
+    ImGuiKey_GamepadStart = 617
+    ImGuiKey_GamepadBack = 618
+    ImGuiKey_GamepadFaceLeft = 619
+    ImGuiKey_GamepadFaceRight = 620
+    ImGuiKey_GamepadFaceUp = 621
+    ImGuiKey_GamepadFaceDown = 622
+    ImGuiKey_GamepadDpadLeft = 623
+    ImGuiKey_GamepadDpadRight = 624
+    ImGuiKey_GamepadDpadUp = 625
+    ImGuiKey_GamepadDpadDown = 626
+    ImGuiKey_GamepadL1 = 627
+    ImGuiKey_GamepadR1 = 628
+    ImGuiKey_GamepadL2 = 629
+    ImGuiKey_GamepadR2 = 630
+    ImGuiKey_GamepadL3 = 631
+    ImGuiKey_GamepadR3 = 632
+    ImGuiKey_GamepadLStickLeft = 633
+    ImGuiKey_GamepadLStickRight = 634
+    ImGuiKey_GamepadLStickUp = 635
+    ImGuiKey_GamepadLStickDown = 636
+    ImGuiKey_GamepadRStickLeft = 637
+    ImGuiKey_GamepadRStickRight = 638
+    ImGuiKey_GamepadRStickUp = 639
+    ImGuiKey_GamepadRStickDown = 640
+    ImGuiKey_MouseLeft = 641
+    ImGuiKey_MouseRight = 642
+    ImGuiKey_MouseMiddle = 643
+    ImGuiKey_MouseX1 = 644
+    ImGuiKey_MouseX2 = 645
+    ImGuiKey_MouseWheelX = 646
+    ImGuiKey_MouseWheelY = 647
+    ImGuiKey_ReservedForModCtrl = 648
+    ImGuiKey_ReservedForModShift = 649
+    ImGuiKey_ReservedForModAlt = 650
+    ImGuiKey_ReservedForModSuper = 651
+    ImGuiKey_COUNT = 652
+    ImGuiMod_None = 0
+    ImGuiMod_Ctrl = 4096
+    ImGuiMod_Shift = 8192
+    ImGuiMod_Alt = 16384
+    ImGuiMod_Super = 32768
+    ImGuiMod_Shortcut = 2048
+    ImGuiMod_Mask_ = 63488
+    ImGuiKey_NamedKey_BEGIN = 512
+    ImGuiKey_NamedKey_END = 652
+    ImGuiKey_NamedKey_COUNT = 140
+    ImGuiKey_KeysData_SIZE = 652
+    ImGuiKey_KeysData_OFFSET = 0
 end
 
-struct ImFontGlyphRangesBuilder
-    UsedChars::ImVector_ImU32
+struct ImGuiInputTextCallbackData
+    Ctx::Ptr{ImGuiContext}
+    EventFlag::ImGuiInputTextFlags
+    Flags::ImGuiInputTextFlags
+    UserData::Ptr{Cvoid}
+    EventChar::ImWchar
+    EventKey::ImGuiKey
+    Buf::Ptr{Cchar}
+    BufTextLen::Cint
+    BufSize::Cint
+    BufDirty::Bool
+    CursorPos::Cint
+    SelectionStart::Cint
+    SelectionEnd::Cint
 end
 
-const ImGuiDataType = Cint
+struct ImGuiOnceUponAFrame
+    RefFrame::Cint
+end
 
-const ImGuiNavInput = Cint
+struct ImGuiSizeCallbackData
+    UserData::Ptr{Cvoid}
+    Pos::ImVec2
+    CurrentSize::ImVec2
+    DesiredSize::ImVec2
+end
+function Base.getproperty(x::Ptr{ImGuiSizeCallbackData}, f::Symbol)
+    f === :UserData && return Ptr{Ptr{Cvoid}}(x + 0)
+    f === :Pos && return Ptr{ImVec2}(x + 4)
+    f === :CurrentSize && return Ptr{ImVec2}(x + 12)
+    f === :DesiredSize && return Ptr{ImVec2}(x + 20)
+    return getfield(x, f)
+end
+
+function Base.setproperty!(x::Ptr{ImGuiSizeCallbackData}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
+end
+
+
+struct ImGuiTextRange
+    b::Ptr{Cchar}
+    e::Ptr{Cchar}
+end
+
+struct ImVector_ImGuiTextRange
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImGuiTextRange}
+end
+
+struct ImGuiTextFilter
+    InputBuf::NTuple{256, Cchar}
+    Filters::ImVector_ImGuiTextRange
+    CountGrep::Cint
+end
+
+struct ImBitVector
+    Storage::ImVector_ImU32
+end
+
+struct ImGuiDataVarInfo
+    Type::ImGuiDataType
+    Count::ImU32
+    Offset::ImU32
+end
+
+struct ImGuiDataTypeInfo
+    Size::Csize_t
+    Name::Ptr{Cchar}
+    PrintFmt::Ptr{Cchar}
+    ScanFmt::Ptr{Cchar}
+end
+
+@cenum ImGuiLocKey::UInt32 begin
+    ImGuiLocKey_TableSizeOne = 0
+    ImGuiLocKey_TableSizeAllFit = 1
+    ImGuiLocKey_TableSizeAllDefault = 2
+    ImGuiLocKey_TableResetOrder = 3
+    ImGuiLocKey_WindowingMainMenuBar = 4
+    ImGuiLocKey_WindowingPopup = 5
+    ImGuiLocKey_WindowingUntitled = 6
+    ImGuiLocKey_DockingHideTabBar = 7
+    ImGuiLocKey_COUNT = 8
+end
+
+struct ImGuiLocEntry
+    Key::ImGuiLocKey
+    Text::Ptr{Cchar}
+end
+
+struct ImGuiTableSettings
+    ID::ImGuiID
+    SaveFlags::ImGuiTableFlags
+    RefScale::Cfloat
+    ColumnsCount::ImGuiTableColumnIdx
+    ColumnsCountMax::ImGuiTableColumnIdx
+    WantApply::Bool
+end
+
+mutable struct ImGuiTableColumnsSettings end
+
+struct ImGuiWindowSettings
+    ID::ImGuiID
+    Pos::ImVec2ih
+    Size::ImVec2ih
+    ViewportPos::ImVec2ih
+    ViewportId::ImGuiID
+    DockId::ImGuiID
+    ClassId::ImGuiID
+    DockOrder::Cshort
+    Collapsed::Bool
+    WantApply::Bool
+    WantDelete::Bool
+end
+
+struct ImVector_const_charPtr
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{Ptr{Cchar}}
+end
 
 const ImGuiMouseButton = Cint
 
@@ -2557,44 +3163,20 @@ const ImGuiSliderFlags = Cint
 
 const ImGuiTreeNodeFlags = Cint
 
+const ImS64 = Clonglong
+
+const ImU64 = Culonglong
+
+const ImWchar32 = Cuint
+
+# typedef int ( * ImGuiInputTextCallback ) ( ImGuiInputTextCallbackData * data )
+const ImGuiInputTextCallback = Ptr{Cvoid}
+
 # typedef void * ( * ImGuiMemAllocFunc ) ( size_t sz , void * user_data )
 const ImGuiMemAllocFunc = Ptr{Cvoid}
 
 # typedef void ( * ImGuiMemFreeFunc ) ( void * ptr , void * user_data )
 const ImGuiMemFreeFunc = Ptr{Cvoid}
-
-const ImWchar32 = Cuint
-
-const ImU16 = Cushort
-
-const ImS32 = Cint
-
-const ImS64 = Int64
-
-const ImGuiNavHighlightFlags = Cint
-
-const ImGuiNavDirSourceFlags = Cint
-
-const ImGuiSeparatorFlags = Cint
-
-const ImGuiTextFlags = Cint
-
-const ImGuiTooltipFlags = Cint
-
-# typedef void ( * ImGuiErrorLogCallback ) ( void * user_data , const char * fmt , ... )
-const ImGuiErrorLogCallback = Ptr{Cvoid}
-
-struct ImVector
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{Cvoid}
-end
-
-struct ImVector_const_charPtr
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{Ptr{Cchar}}
-end
 
 @cenum ImGuiWindowFlags_::UInt32 begin
     ImGuiWindowFlags_None = 0
@@ -2653,8 +3235,7 @@ end
     ImGuiInputTextFlags_CharsScientific = 131072
     ImGuiInputTextFlags_CallbackResize = 262144
     ImGuiInputTextFlags_CallbackEdit = 524288
-    ImGuiInputTextFlags_Multiline = 1048576
-    ImGuiInputTextFlags_NoMarkEdited = 2097152
+    ImGuiInputTextFlags_EscapeClearsAll = 1048576
 end
 
 @cenum ImGuiTreeNodeFlags_::UInt32 begin
@@ -2778,29 +3359,31 @@ end
 
 @cenum ImGuiTableColumnFlags_::UInt32 begin
     ImGuiTableColumnFlags_None = 0
-    ImGuiTableColumnFlags_DefaultHide = 1
-    ImGuiTableColumnFlags_DefaultSort = 2
-    ImGuiTableColumnFlags_WidthStretch = 4
-    ImGuiTableColumnFlags_WidthFixed = 8
-    ImGuiTableColumnFlags_NoResize = 16
-    ImGuiTableColumnFlags_NoReorder = 32
-    ImGuiTableColumnFlags_NoHide = 64
-    ImGuiTableColumnFlags_NoClip = 128
-    ImGuiTableColumnFlags_NoSort = 256
-    ImGuiTableColumnFlags_NoSortAscending = 512
-    ImGuiTableColumnFlags_NoSortDescending = 1024
-    ImGuiTableColumnFlags_NoHeaderWidth = 2048
-    ImGuiTableColumnFlags_PreferSortAscending = 4096
-    ImGuiTableColumnFlags_PreferSortDescending = 8192
-    ImGuiTableColumnFlags_IndentEnable = 16384
-    ImGuiTableColumnFlags_IndentDisable = 32768
-    ImGuiTableColumnFlags_IsEnabled = 1048576
-    ImGuiTableColumnFlags_IsVisible = 2097152
-    ImGuiTableColumnFlags_IsSorted = 4194304
-    ImGuiTableColumnFlags_IsHovered = 8388608
-    ImGuiTableColumnFlags_WidthMask_ = 12
-    ImGuiTableColumnFlags_IndentMask_ = 49152
-    ImGuiTableColumnFlags_StatusMask_ = 15728640
+    ImGuiTableColumnFlags_Disabled = 1
+    ImGuiTableColumnFlags_DefaultHide = 2
+    ImGuiTableColumnFlags_DefaultSort = 4
+    ImGuiTableColumnFlags_WidthStretch = 8
+    ImGuiTableColumnFlags_WidthFixed = 16
+    ImGuiTableColumnFlags_NoResize = 32
+    ImGuiTableColumnFlags_NoReorder = 64
+    ImGuiTableColumnFlags_NoHide = 128
+    ImGuiTableColumnFlags_NoClip = 256
+    ImGuiTableColumnFlags_NoSort = 512
+    ImGuiTableColumnFlags_NoSortAscending = 1024
+    ImGuiTableColumnFlags_NoSortDescending = 2048
+    ImGuiTableColumnFlags_NoHeaderLabel = 4096
+    ImGuiTableColumnFlags_NoHeaderWidth = 8192
+    ImGuiTableColumnFlags_PreferSortAscending = 16384
+    ImGuiTableColumnFlags_PreferSortDescending = 32768
+    ImGuiTableColumnFlags_IndentEnable = 65536
+    ImGuiTableColumnFlags_IndentDisable = 131072
+    ImGuiTableColumnFlags_IsEnabled = 16777216
+    ImGuiTableColumnFlags_IsVisible = 33554432
+    ImGuiTableColumnFlags_IsSorted = 67108864
+    ImGuiTableColumnFlags_IsHovered = 134217728
+    ImGuiTableColumnFlags_WidthMask_ = 24
+    ImGuiTableColumnFlags_IndentMask_ = 196608
+    ImGuiTableColumnFlags_StatusMask_ = 251658240
     ImGuiTableColumnFlags_NoDirectResize_ = 1073741824
 end
 
@@ -2821,6 +3404,8 @@ end
     ImGuiFocusedFlags_ChildWindows = 1
     ImGuiFocusedFlags_RootWindow = 2
     ImGuiFocusedFlags_AnyWindow = 4
+    ImGuiFocusedFlags_NoPopupHierarchy = 8
+    ImGuiFocusedFlags_DockHierarchy = 16
     ImGuiFocusedFlags_RootAndChildWindows = 3
 end
 
@@ -2829,12 +3414,18 @@ end
     ImGuiHoveredFlags_ChildWindows = 1
     ImGuiHoveredFlags_RootWindow = 2
     ImGuiHoveredFlags_AnyWindow = 4
-    ImGuiHoveredFlags_AllowWhenBlockedByPopup = 8
-    ImGuiHoveredFlags_AllowWhenBlockedByActiveItem = 32
-    ImGuiHoveredFlags_AllowWhenOverlapped = 64
-    ImGuiHoveredFlags_AllowWhenDisabled = 128
-    ImGuiHoveredFlags_RectOnly = 104
+    ImGuiHoveredFlags_NoPopupHierarchy = 8
+    ImGuiHoveredFlags_DockHierarchy = 16
+    ImGuiHoveredFlags_AllowWhenBlockedByPopup = 32
+    ImGuiHoveredFlags_AllowWhenBlockedByActiveItem = 128
+    ImGuiHoveredFlags_AllowWhenOverlapped = 256
+    ImGuiHoveredFlags_AllowWhenDisabled = 512
+    ImGuiHoveredFlags_NoNavOverride = 1024
+    ImGuiHoveredFlags_RectOnly = 416
     ImGuiHoveredFlags_RootAndChildWindows = 3
+    ImGuiHoveredFlags_DelayNormal = 2048
+    ImGuiHoveredFlags_DelayShort = 4096
+    ImGuiHoveredFlags_NoSharedDelay = 8192
 end
 
 @cenum ImGuiDockNodeFlags_::UInt32 begin
@@ -2890,41 +3481,7 @@ end
     ImGuiSortDirection_Descending = 2
 end
 
-@cenum ImGuiKey_::UInt32 begin
-    ImGuiKey_Tab = 0
-    ImGuiKey_LeftArrow = 1
-    ImGuiKey_RightArrow = 2
-    ImGuiKey_UpArrow = 3
-    ImGuiKey_DownArrow = 4
-    ImGuiKey_PageUp = 5
-    ImGuiKey_PageDown = 6
-    ImGuiKey_Home = 7
-    ImGuiKey_End = 8
-    ImGuiKey_Insert = 9
-    ImGuiKey_Delete = 10
-    ImGuiKey_Backspace = 11
-    ImGuiKey_Space = 12
-    ImGuiKey_Enter = 13
-    ImGuiKey_Escape = 14
-    ImGuiKey_KeyPadEnter = 15
-    ImGuiKey_A = 16
-    ImGuiKey_C = 17
-    ImGuiKey_V = 18
-    ImGuiKey_X = 19
-    ImGuiKey_Y = 20
-    ImGuiKey_Z = 21
-    ImGuiKey_COUNT = 22
-end
-
-@cenum ImGuiKeyModFlags_::UInt32 begin
-    ImGuiKeyModFlags_None = 0
-    ImGuiKeyModFlags_Ctrl = 1
-    ImGuiKeyModFlags_Shift = 2
-    ImGuiKeyModFlags_Alt = 4
-    ImGuiKeyModFlags_Super = 8
-end
-
-@cenum ImGuiNavInput_::UInt32 begin
+@cenum ImGuiNavInput::UInt32 begin
     ImGuiNavInput_Activate = 0
     ImGuiNavInput_Cancel = 1
     ImGuiNavInput_Input = 2
@@ -2941,13 +3498,7 @@ end
     ImGuiNavInput_FocusNext = 13
     ImGuiNavInput_TweakSlow = 14
     ImGuiNavInput_TweakFast = 15
-    ImGuiNavInput_KeyMenu_ = 16
-    ImGuiNavInput_KeyLeft_ = 17
-    ImGuiNavInput_KeyRight_ = 18
-    ImGuiNavInput_KeyUp_ = 19
-    ImGuiNavInput_KeyDown_ = 20
-    ImGuiNavInput_COUNT = 21
-    ImGuiNavInput_InternalStart_ = 16
+    ImGuiNavInput_COUNT = 16
 end
 
 @cenum ImGuiConfigFlags_::UInt32 begin
@@ -3038,30 +3589,34 @@ end
 
 @cenum ImGuiStyleVar_::UInt32 begin
     ImGuiStyleVar_Alpha = 0
-    ImGuiStyleVar_WindowPadding = 1
-    ImGuiStyleVar_WindowRounding = 2
-    ImGuiStyleVar_WindowBorderSize = 3
-    ImGuiStyleVar_WindowMinSize = 4
-    ImGuiStyleVar_WindowTitleAlign = 5
-    ImGuiStyleVar_ChildRounding = 6
-    ImGuiStyleVar_ChildBorderSize = 7
-    ImGuiStyleVar_PopupRounding = 8
-    ImGuiStyleVar_PopupBorderSize = 9
-    ImGuiStyleVar_FramePadding = 10
-    ImGuiStyleVar_FrameRounding = 11
-    ImGuiStyleVar_FrameBorderSize = 12
-    ImGuiStyleVar_ItemSpacing = 13
-    ImGuiStyleVar_ItemInnerSpacing = 14
-    ImGuiStyleVar_IndentSpacing = 15
-    ImGuiStyleVar_CellPadding = 16
-    ImGuiStyleVar_ScrollbarSize = 17
-    ImGuiStyleVar_ScrollbarRounding = 18
-    ImGuiStyleVar_GrabMinSize = 19
-    ImGuiStyleVar_GrabRounding = 20
-    ImGuiStyleVar_TabRounding = 21
-    ImGuiStyleVar_ButtonTextAlign = 22
-    ImGuiStyleVar_SelectableTextAlign = 23
-    ImGuiStyleVar_COUNT = 24
+    ImGuiStyleVar_DisabledAlpha = 1
+    ImGuiStyleVar_WindowPadding = 2
+    ImGuiStyleVar_WindowRounding = 3
+    ImGuiStyleVar_WindowBorderSize = 4
+    ImGuiStyleVar_WindowMinSize = 5
+    ImGuiStyleVar_WindowTitleAlign = 6
+    ImGuiStyleVar_ChildRounding = 7
+    ImGuiStyleVar_ChildBorderSize = 8
+    ImGuiStyleVar_PopupRounding = 9
+    ImGuiStyleVar_PopupBorderSize = 10
+    ImGuiStyleVar_FramePadding = 11
+    ImGuiStyleVar_FrameRounding = 12
+    ImGuiStyleVar_FrameBorderSize = 13
+    ImGuiStyleVar_ItemSpacing = 14
+    ImGuiStyleVar_ItemInnerSpacing = 15
+    ImGuiStyleVar_IndentSpacing = 16
+    ImGuiStyleVar_CellPadding = 17
+    ImGuiStyleVar_ScrollbarSize = 18
+    ImGuiStyleVar_ScrollbarRounding = 19
+    ImGuiStyleVar_GrabMinSize = 20
+    ImGuiStyleVar_GrabRounding = 21
+    ImGuiStyleVar_TabRounding = 22
+    ImGuiStyleVar_ButtonTextAlign = 23
+    ImGuiStyleVar_SelectableTextAlign = 24
+    ImGuiStyleVar_SeparatorTextBorderSize = 25
+    ImGuiStyleVar_SeparatorTextAlign = 26
+    ImGuiStyleVar_SeparatorTextPadding = 27
+    ImGuiStyleVar_COUNT = 28
 end
 
 @cenum ImGuiButtonFlags_::UInt32 begin
@@ -3098,11 +3653,11 @@ end
     ImGuiColorEditFlags_PickerHueWheel = 67108864
     ImGuiColorEditFlags_InputRGB = 134217728
     ImGuiColorEditFlags_InputHSV = 268435456
-    ImGuiColorEditFlags__OptionsDefault = 177209344
-    ImGuiColorEditFlags__DisplayMask = 7340032
-    ImGuiColorEditFlags__DataTypeMask = 25165824
-    ImGuiColorEditFlags__PickerMask = 100663296
-    ImGuiColorEditFlags__InputMask = 402653184
+    ImGuiColorEditFlags_DefaultOptions_ = 177209344
+    ImGuiColorEditFlags_DisplayMask_ = 7340032
+    ImGuiColorEditFlags_DataTypeMask_ = 25165824
+    ImGuiColorEditFlags_PickerMask_ = 100663296
+    ImGuiColorEditFlags_InputMask_ = 402653184
 end
 
 @cenum ImGuiSliderFlags_::UInt32 begin
@@ -3192,6 +3747,28 @@ end
     ImGuiViewportFlags_CanHostOtherWindows = 4096
 end
 
+const ImGuiInputFlags = Cint
+
+const ImGuiNavHighlightFlags = Cint
+
+const ImGuiSeparatorFlags = Cint
+
+const ImGuiTextFlags = Cint
+
+const ImGuiTooltipFlags = Cint
+
+# typedef void ( * ImGuiErrorLogCallback ) ( void * user_data , const char * fmt , ... )
+const ImGuiErrorLogCallback = Ptr{Cvoid}
+
+struct StbTexteditRow
+    x0::Cfloat
+    x1::Cfloat
+    baseline_y_delta::Cfloat
+    ymin::Cfloat
+    ymax::Cfloat
+    num_chars::Cint
+end
+
 @cenum ImGuiItemFlags_::UInt32 begin
     ImGuiItemFlags_None = 0
     ImGuiItemFlags_NoTabStop = 1
@@ -3202,7 +3779,8 @@ end
     ImGuiItemFlags_SelectableDontClosePopup = 32
     ImGuiItemFlags_MixedValue = 64
     ImGuiItemFlags_ReadOnly = 128
-    ImGuiItemFlags_Default_ = 0
+    ImGuiItemFlags_NoWindowHoverableCheck = 256
+    ImGuiItemFlags_Inputable = 1024
 end
 
 @cenum ImGuiItemStatusFlags_::UInt32 begin
@@ -3215,6 +3793,14 @@ end
     ImGuiItemStatusFlags_HasDeactivated = 32
     ImGuiItemStatusFlags_Deactivated = 64
     ImGuiItemStatusFlags_HoveredWindow = 128
+    ImGuiItemStatusFlags_FocusedByTabbing = 256
+    ImGuiItemStatusFlags_Visible = 512
+end
+
+@cenum ImGuiInputTextFlagsPrivate_::UInt32 begin
+    ImGuiInputTextFlags_Multiline = 67108864
+    ImGuiInputTextFlags_NoMarkEdited = 134217728
+    ImGuiInputTextFlags_MergedItem = 268435456
 end
 
 @cenum ImGuiButtonFlagsPrivate_::UInt32 begin
@@ -3228,14 +3814,19 @@ end
     ImGuiButtonFlags_FlattenChildren = 2048
     ImGuiButtonFlags_AllowItemOverlap = 4096
     ImGuiButtonFlags_DontClosePopups = 8192
-    ImGuiButtonFlags_Disabled = 16384
     ImGuiButtonFlags_AlignTextBaseLine = 32768
     ImGuiButtonFlags_NoKeyModifiers = 65536
     ImGuiButtonFlags_NoHoldingActiveId = 131072
     ImGuiButtonFlags_NoNavFocus = 262144
     ImGuiButtonFlags_NoHoveredOnFocus = 524288
+    ImGuiButtonFlags_NoSetKeyOwner = 1048576
+    ImGuiButtonFlags_NoTestKeyOwner = 2097152
     ImGuiButtonFlags_PressedOnMask_ = 1008
     ImGuiButtonFlags_PressedOnDefault_ = 32
+end
+
+@cenum ImGuiComboFlagsPrivate_::UInt32 begin
+    ImGuiComboFlags_CustomPreview = 1048576
 end
 
 @cenum ImGuiSliderFlagsPrivate_::UInt32 begin
@@ -3245,12 +3836,13 @@ end
 
 @cenum ImGuiSelectableFlagsPrivate_::UInt32 begin
     ImGuiSelectableFlags_NoHoldingActiveID = 1048576
-    ImGuiSelectableFlags_SelectOnClick = 2097152
-    ImGuiSelectableFlags_SelectOnRelease = 4194304
-    ImGuiSelectableFlags_SpanAvailWidth = 8388608
-    ImGuiSelectableFlags_DrawHoveredWhenHeld = 16777216
+    ImGuiSelectableFlags_SelectOnNav = 2097152
+    ImGuiSelectableFlags_SelectOnClick = 4194304
+    ImGuiSelectableFlags_SelectOnRelease = 8388608
+    ImGuiSelectableFlags_SpanAvailWidth = 16777216
     ImGuiSelectableFlags_SetNavIdOnHover = 33554432
     ImGuiSelectableFlags_NoPadWithHalfSpacing = 67108864
+    ImGuiSelectableFlags_NoSetKeyOwner = 134217728
 end
 
 @cenum ImGuiTreeNodeFlagsPrivate_::UInt32 begin
@@ -3284,45 +3876,14 @@ end
     ImGuiPlotType_Histogram = 1
 end
 
-@cenum ImGuiInputReadMode::UInt32 begin
-    ImGuiInputReadMode_Down = 0
-    ImGuiInputReadMode_Pressed = 1
-    ImGuiInputReadMode_Released = 2
-    ImGuiInputReadMode_Repeat = 3
-    ImGuiInputReadMode_RepeatSlow = 4
-    ImGuiInputReadMode_RepeatFast = 5
-end
-
-@cenum ImGuiNavHighlightFlags_::UInt32 begin
-    ImGuiNavHighlightFlags_None = 0
-    ImGuiNavHighlightFlags_TypeDefault = 1
-    ImGuiNavHighlightFlags_TypeThin = 2
-    ImGuiNavHighlightFlags_AlwaysDraw = 4
-    ImGuiNavHighlightFlags_NoRounding = 8
-end
-
-@cenum ImGuiNavDirSourceFlags_::UInt32 begin
-    ImGuiNavDirSourceFlags_None = 0
-    ImGuiNavDirSourceFlags_Keyboard = 1
-    ImGuiNavDirSourceFlags_PadDPad = 2
-    ImGuiNavDirSourceFlags_PadLStick = 4
-end
-
-@cenum ImGuiNavMoveFlags_::UInt32 begin
-    ImGuiNavMoveFlags_None = 0
-    ImGuiNavMoveFlags_LoopX = 1
-    ImGuiNavMoveFlags_LoopY = 2
-    ImGuiNavMoveFlags_WrapX = 4
-    ImGuiNavMoveFlags_WrapY = 8
-    ImGuiNavMoveFlags_AllowCurrentNavId = 16
-    ImGuiNavMoveFlags_AlsoScoreVisibleSet = 32
-    ImGuiNavMoveFlags_ScrollToEdge = 64
-end
-
 @cenum ImGuiPopupPositionPolicy::UInt32 begin
     ImGuiPopupPositionPolicy_Default = 0
     ImGuiPopupPositionPolicy_ComboBox = 1
     ImGuiPopupPositionPolicy_Tooltip = 2
+end
+
+struct ImGuiDataTypeTempStorage
+    Data::NTuple{8, ImU8}
 end
 
 @cenum ImGuiDataTypePrivate_::UInt32 begin
@@ -3352,6 +3913,117 @@ end
     ImGuiNextItemDataFlags_HasOpen = 2
 end
 
+struct ImBitArray_ImGuiKey_NamedKey_COUNT__lessImGuiKey_NamedKey_BEGIN
+    Storage::NTuple{5, ImU32}
+end
+
+const ImBitArrayForNamedKeys = ImBitArray_ImGuiKey_NamedKey_COUNT__lessImGuiKey_NamedKey_BEGIN
+
+struct ImGuiInputEventMousePos
+    PosX::Cfloat
+    PosY::Cfloat
+end
+
+struct ImGuiInputEventMouseWheel
+    WheelX::Cfloat
+    WheelY::Cfloat
+end
+
+struct ImGuiInputEventMouseButton
+    Button::Cint
+    Down::Bool
+end
+
+struct ImGuiInputEventMouseViewport
+    HoveredViewportID::ImGuiID
+end
+
+struct ImGuiInputEventKey
+    Key::ImGuiKey
+    Down::Bool
+    AnalogValue::Cfloat
+end
+
+struct ImGuiInputEventText
+    Char::Cuint
+end
+
+struct ImGuiInputEventAppFocused
+    Focused::Bool
+end
+
+@cenum ImGuiInputFlags_::UInt32 begin
+    ImGuiInputFlags_None = 0
+    ImGuiInputFlags_Repeat = 1
+    ImGuiInputFlags_RepeatRateDefault = 2
+    ImGuiInputFlags_RepeatRateNavMove = 4
+    ImGuiInputFlags_RepeatRateNavTweak = 8
+    ImGuiInputFlags_RepeatRateMask_ = 14
+    ImGuiInputFlags_CondHovered = 16
+    ImGuiInputFlags_CondActive = 32
+    ImGuiInputFlags_CondDefault_ = 48
+    ImGuiInputFlags_CondMask_ = 48
+    ImGuiInputFlags_LockThisFrame = 64
+    ImGuiInputFlags_LockUntilRelease = 128
+    ImGuiInputFlags_RouteFocused = 256
+    ImGuiInputFlags_RouteGlobalLow = 512
+    ImGuiInputFlags_RouteGlobal = 1024
+    ImGuiInputFlags_RouteGlobalHigh = 2048
+    ImGuiInputFlags_RouteMask_ = 3840
+    ImGuiInputFlags_RouteAlways = 4096
+    ImGuiInputFlags_RouteUnlessBgFocused = 8192
+    ImGuiInputFlags_RouteExtraMask_ = 12288
+    ImGuiInputFlags_SupportedByIsKeyPressed = 15
+    ImGuiInputFlags_SupportedByShortcut = 16143
+    ImGuiInputFlags_SupportedBySetKeyOwner = 192
+    ImGuiInputFlags_SupportedBySetItemKeyOwner = 240
+end
+
+@cenum ImGuiActivateFlags_::UInt32 begin
+    ImGuiActivateFlags_None = 0
+    ImGuiActivateFlags_PreferInput = 1
+    ImGuiActivateFlags_PreferTweak = 2
+    ImGuiActivateFlags_TryToPreserveState = 4
+end
+
+@cenum ImGuiScrollFlags_::UInt32 begin
+    ImGuiScrollFlags_None = 0
+    ImGuiScrollFlags_KeepVisibleEdgeX = 1
+    ImGuiScrollFlags_KeepVisibleEdgeY = 2
+    ImGuiScrollFlags_KeepVisibleCenterX = 4
+    ImGuiScrollFlags_KeepVisibleCenterY = 8
+    ImGuiScrollFlags_AlwaysCenterX = 16
+    ImGuiScrollFlags_AlwaysCenterY = 32
+    ImGuiScrollFlags_NoScrollParent = 64
+    ImGuiScrollFlags_MaskX_ = 21
+    ImGuiScrollFlags_MaskY_ = 42
+end
+
+@cenum ImGuiNavHighlightFlags_::UInt32 begin
+    ImGuiNavHighlightFlags_None = 0
+    ImGuiNavHighlightFlags_TypeDefault = 1
+    ImGuiNavHighlightFlags_TypeThin = 2
+    ImGuiNavHighlightFlags_AlwaysDraw = 4
+    ImGuiNavHighlightFlags_NoRounding = 8
+end
+
+@cenum ImGuiNavMoveFlags_::UInt32 begin
+    ImGuiNavMoveFlags_None = 0
+    ImGuiNavMoveFlags_LoopX = 1
+    ImGuiNavMoveFlags_LoopY = 2
+    ImGuiNavMoveFlags_WrapX = 4
+    ImGuiNavMoveFlags_WrapY = 8
+    ImGuiNavMoveFlags_AllowCurrentNavId = 16
+    ImGuiNavMoveFlags_AlsoScoreVisibleSet = 32
+    ImGuiNavMoveFlags_ScrollToEdgeY = 64
+    ImGuiNavMoveFlags_Forwarded = 128
+    ImGuiNavMoveFlags_DebugNoResult = 256
+    ImGuiNavMoveFlags_FocusApi = 512
+    ImGuiNavMoveFlags_Tabbing = 1024
+    ImGuiNavMoveFlags_Activate = 2048
+    ImGuiNavMoveFlags_DontSetNavHighlight = 4096
+end
+
 @cenum ImGuiOldColumnFlags_::UInt32 begin
     ImGuiOldColumnFlags_None = 0
     ImGuiOldColumnFlags_NoBorder = 1
@@ -3373,13 +4045,14 @@ end
     ImGuiDockNodeFlags_NoDockingSplitOther = 262144
     ImGuiDockNodeFlags_NoDockingOverMe = 524288
     ImGuiDockNodeFlags_NoDockingOverOther = 1048576
-    ImGuiDockNodeFlags_NoResizeX = 2097152
-    ImGuiDockNodeFlags_NoResizeY = 4194304
+    ImGuiDockNodeFlags_NoDockingOverEmpty = 2097152
+    ImGuiDockNodeFlags_NoResizeX = 4194304
+    ImGuiDockNodeFlags_NoResizeY = 8388608
     ImGuiDockNodeFlags_SharedFlagsInheritMask_ = -1
-    ImGuiDockNodeFlags_NoResizeFlagsMask_ = 6291488
-    ImGuiDockNodeFlags_LocalFlagsMask_ = 6421616
-    ImGuiDockNodeFlags_LocalFlagsTransferMask_ = 6420592
-    ImGuiDockNodeFlags_SavedFlagsMask_ = 6421536
+    ImGuiDockNodeFlags_NoResizeFlagsMask_ = 12582944
+    ImGuiDockNodeFlags_LocalFlagsMask_ = 12713072
+    ImGuiDockNodeFlags_LocalFlagsTransferMask_ = 12712048
+    ImGuiDockNodeFlags_SavedFlagsMask_ = 12712992
 end
 
 @cenum ImGuiDataAuthority_::UInt32 begin
@@ -3398,6 +4071,20 @@ end
     ImGuiWindowDockStyleCol_COUNT = 6
 end
 
+@cenum ImGuiDebugLogFlags_::UInt32 begin
+    ImGuiDebugLogFlags_None = 0
+    ImGuiDebugLogFlags_EventActiveId = 1
+    ImGuiDebugLogFlags_EventFocus = 2
+    ImGuiDebugLogFlags_EventPopup = 4
+    ImGuiDebugLogFlags_EventNav = 8
+    ImGuiDebugLogFlags_EventClipper = 16
+    ImGuiDebugLogFlags_EventIO = 32
+    ImGuiDebugLogFlags_EventDocking = 64
+    ImGuiDebugLogFlags_EventViewport = 128
+    ImGuiDebugLogFlags_EventMask_ = 255
+    ImGuiDebugLogFlags_OutputToTTY = 1024
+end
+
 @cenum ImGuiTabBarFlagsPrivate_::UInt32 begin
     ImGuiTabBarFlags_DockNode = 1048576
     ImGuiTabBarFlags_IsFocused = 2097152
@@ -3405,34 +4092,94 @@ end
 end
 
 @cenum ImGuiTabItemFlagsPrivate_::UInt32 begin
+    ImGuiTabItemFlags_SectionMask_ = 192
     ImGuiTabItemFlags_NoCloseButton = 1048576
     ImGuiTabItemFlags_Button = 2097152
     ImGuiTabItemFlags_Unsorted = 4194304
     ImGuiTabItemFlags_Preview = 8388608
 end
 
-function ImVec2_ImVec2Nil()
-    ccall((:ImVec2_ImVec2Nil, libcimgui), Ptr{ImVec2}, ())
+struct ImGuiTableColumnSettings
+    data::NTuple{16, UInt8}
+end
+
+function Base.getproperty(x::Ptr{ImGuiTableColumnSettings}, f::Symbol)
+    f === :WidthOrWeight && return Ptr{Cfloat}(x + 0)
+    f === :UserID && return Ptr{ImGuiID}(x + 4)
+    f === :Index && return Ptr{ImGuiTableColumnIdx}(x + 8)
+    f === :DisplayOrder && return Ptr{ImGuiTableColumnIdx}(x + 10)
+    f === :SortOrder && return Ptr{ImGuiTableColumnIdx}(x + 12)
+    f === :SortDirection && return (Ptr{ImU8}(x + 12), 16, 2)
+    f === :IsEnabled && return (Ptr{ImU8}(x + 12), 18, 1)
+    f === :IsStretch && return (Ptr{ImU8}(x + 12), 19, 1)
+    return getfield(x, f)
+end
+
+function Base.getproperty(x::ImGuiTableColumnSettings, f::Symbol)
+    r = Ref{ImGuiTableColumnSettings}(x)
+    ptr = Base.unsafe_convert(Ptr{ImGuiTableColumnSettings}, r)
+    fptr = getproperty(ptr, f)
+    begin
+        if fptr isa Ptr
+            return GC.@preserve(r, unsafe_load(fptr))
+        else
+            (baseptr, offset, width) = fptr
+            ty = eltype(baseptr)
+            baseptr32 = convert(Ptr{UInt32}, baseptr)
+            u64 = GC.@preserve(r, unsafe_load(baseptr32))
+            if offset + width > 32
+                u64 |= GC.@preserve(r, unsafe_load(baseptr32 + 4)) << 32
+            end
+            u64 = u64 >> offset & (1 << width - 1)
+            return u64 % ty
+        end
+    end
+end
+
+function Base.setproperty!(x::Ptr{ImGuiTableColumnSettings}, f::Symbol, v)
+    fptr = getproperty(x, f)
+    if fptr isa Ptr
+        unsafe_store!(getproperty(x, f), v)
+    else
+        (baseptr, offset, width) = fptr
+        baseptr32 = convert(Ptr{UInt32}, baseptr)
+        u64 = unsafe_load(baseptr32)
+        straddle = offset + width > 32
+        if straddle
+            u64 |= unsafe_load(baseptr32 + 4) << 32
+        end
+        mask = 1 << width - 1
+        u64 &= ~(mask << offset)
+        u64 |= (unsigned(v) & mask) << offset
+        unsafe_store!(baseptr32, u64 & typemax(UInt32))
+        if straddle
+            unsafe_store!(baseptr32 + 4, u64 >> 32)
+        end
+    end
+end
+
+function ImVec2_ImVec2_Nil()
+    ccall((:ImVec2_ImVec2_Nil, libcimgui), Ptr{ImVec2}, ())
 end
 
 function ImVec2_destroy(self)
     ccall((:ImVec2_destroy, libcimgui), Cvoid, (Ptr{ImVec2},), self)
 end
 
-function ImVec2_ImVec2Float(_x, _y)
-    ccall((:ImVec2_ImVec2Float, libcimgui), Ptr{ImVec2}, (Cfloat, Cfloat), _x, _y)
+function ImVec2_ImVec2_Float(_x, _y)
+    ccall((:ImVec2_ImVec2_Float, libcimgui), Ptr{ImVec2}, (Cfloat, Cfloat), _x, _y)
 end
 
-function ImVec4_ImVec4Nil()
-    ccall((:ImVec4_ImVec4Nil, libcimgui), Ptr{ImVec4}, ())
+function ImVec4_ImVec4_Nil()
+    ccall((:ImVec4_ImVec4_Nil, libcimgui), Ptr{ImVec4}, ())
 end
 
 function ImVec4_destroy(self)
     ccall((:ImVec4_destroy, libcimgui), Cvoid, (Ptr{ImVec4},), self)
 end
 
-function ImVec4_ImVec4Float(_x, _y, _z, _w)
-    ccall((:ImVec4_ImVec4Float, libcimgui), Ptr{ImVec4}, (Cfloat, Cfloat, Cfloat, Cfloat), _x, _y, _z, _w)
+function ImVec4_ImVec4_Float(_x, _y, _z, _w)
+    ccall((:ImVec4_ImVec4_Float, libcimgui), Ptr{ImVec4}, (Cfloat, Cfloat, Cfloat, Cfloat), _x, _y, _z, _w)
 end
 
 function igCreateContext(shared_font_atlas)
@@ -3483,6 +4230,14 @@ function igShowMetricsWindow(p_open)
     ccall((:igShowMetricsWindow, libcimgui), Cvoid, (Ptr{Bool},), p_open)
 end
 
+function igShowDebugLogWindow(p_open)
+    ccall((:igShowDebugLogWindow, libcimgui), Cvoid, (Ptr{Bool},), p_open)
+end
+
+function igShowStackToolWindow(p_open)
+    ccall((:igShowStackToolWindow, libcimgui), Cvoid, (Ptr{Bool},), p_open)
+end
+
 function igShowAboutWindow(p_open)
     ccall((:igShowAboutWindow, libcimgui), Cvoid, (Ptr{Bool},), p_open)
 end
@@ -3527,12 +4282,12 @@ function igEnd()
     ccall((:igEnd, libcimgui), Cvoid, ())
 end
 
-function igBeginChildStr(str_id, size, border, flags)
-    ccall((:igBeginChildStr, libcimgui), Bool, (Ptr{Cchar}, ImVec2, Bool, ImGuiWindowFlags), str_id, size, border, flags)
+function igBeginChild_Str(str_id, size, border, flags)
+    ccall((:igBeginChild_Str, libcimgui), Bool, (Ptr{Cchar}, ImVec2, Bool, ImGuiWindowFlags), str_id, size, border, flags)
 end
 
-function igBeginChildID(id, size, border, flags)
-    ccall((:igBeginChildID, libcimgui), Bool, (ImGuiID, ImVec2, Bool, ImGuiWindowFlags), id, size, border, flags)
+function igBeginChild_ID(id, size, border, flags)
+    ccall((:igBeginChild_ID, libcimgui), Bool, (ImGuiID, ImVec2, Bool, ImGuiWindowFlags), id, size, border, flags)
 end
 
 function igEndChild()
@@ -3607,6 +4362,10 @@ function igSetNextWindowFocus()
     ccall((:igSetNextWindowFocus, libcimgui), Cvoid, ())
 end
 
+function igSetNextWindowScroll(scroll)
+    ccall((:igSetNextWindowScroll, libcimgui), Cvoid, (ImVec2,), scroll)
+end
+
 function igSetNextWindowBgAlpha(alpha)
     ccall((:igSetNextWindowBgAlpha, libcimgui), Cvoid, (Cfloat,), alpha)
 end
@@ -3615,40 +4374,40 @@ function igSetNextWindowViewport(viewport_id)
     ccall((:igSetNextWindowViewport, libcimgui), Cvoid, (ImGuiID,), viewport_id)
 end
 
-function igSetWindowPosVec2(pos, cond)
-    ccall((:igSetWindowPosVec2, libcimgui), Cvoid, (ImVec2, ImGuiCond), pos, cond)
+function igSetWindowPos_Vec2(pos, cond)
+    ccall((:igSetWindowPos_Vec2, libcimgui), Cvoid, (ImVec2, ImGuiCond), pos, cond)
 end
 
-function igSetWindowSizeVec2(size, cond)
-    ccall((:igSetWindowSizeVec2, libcimgui), Cvoid, (ImVec2, ImGuiCond), size, cond)
+function igSetWindowSize_Vec2(size, cond)
+    ccall((:igSetWindowSize_Vec2, libcimgui), Cvoid, (ImVec2, ImGuiCond), size, cond)
 end
 
-function igSetWindowCollapsedBool(collapsed, cond)
-    ccall((:igSetWindowCollapsedBool, libcimgui), Cvoid, (Bool, ImGuiCond), collapsed, cond)
+function igSetWindowCollapsed_Bool(collapsed, cond)
+    ccall((:igSetWindowCollapsed_Bool, libcimgui), Cvoid, (Bool, ImGuiCond), collapsed, cond)
 end
 
-function igSetWindowFocusNil()
-    ccall((:igSetWindowFocusNil, libcimgui), Cvoid, ())
+function igSetWindowFocus_Nil()
+    ccall((:igSetWindowFocus_Nil, libcimgui), Cvoid, ())
 end
 
 function igSetWindowFontScale(scale)
     ccall((:igSetWindowFontScale, libcimgui), Cvoid, (Cfloat,), scale)
 end
 
-function igSetWindowPosStr(name, pos, cond)
-    ccall((:igSetWindowPosStr, libcimgui), Cvoid, (Ptr{Cchar}, ImVec2, ImGuiCond), name, pos, cond)
+function igSetWindowPos_Str(name, pos, cond)
+    ccall((:igSetWindowPos_Str, libcimgui), Cvoid, (Ptr{Cchar}, ImVec2, ImGuiCond), name, pos, cond)
 end
 
-function igSetWindowSizeStr(name, size, cond)
-    ccall((:igSetWindowSizeStr, libcimgui), Cvoid, (Ptr{Cchar}, ImVec2, ImGuiCond), name, size, cond)
+function igSetWindowSize_Str(name, size, cond)
+    ccall((:igSetWindowSize_Str, libcimgui), Cvoid, (Ptr{Cchar}, ImVec2, ImGuiCond), name, size, cond)
 end
 
-function igSetWindowCollapsedStr(name, collapsed, cond)
-    ccall((:igSetWindowCollapsedStr, libcimgui), Cvoid, (Ptr{Cchar}, Bool, ImGuiCond), name, collapsed, cond)
+function igSetWindowCollapsed_Str(name, collapsed, cond)
+    ccall((:igSetWindowCollapsed_Str, libcimgui), Cvoid, (Ptr{Cchar}, Bool, ImGuiCond), name, collapsed, cond)
 end
 
-function igSetWindowFocusStr(name)
-    ccall((:igSetWindowFocusStr, libcimgui), Cvoid, (Ptr{Cchar},), name)
+function igSetWindowFocus_Str(name)
+    ccall((:igSetWindowFocus_Str, libcimgui), Cvoid, (Ptr{Cchar},), name)
 end
 
 function igGetContentRegionAvail(pOut)
@@ -3667,10 +4426,6 @@ function igGetWindowContentRegionMax(pOut)
     ccall((:igGetWindowContentRegionMax, libcimgui), Cvoid, (Ptr{ImVec2},), pOut)
 end
 
-function igGetWindowContentRegionWidth()
-    ccall((:igGetWindowContentRegionWidth, libcimgui), Cfloat, ())
-end
-
 function igGetScrollX()
     ccall((:igGetScrollX, libcimgui), Cfloat, ())
 end
@@ -3679,12 +4434,12 @@ function igGetScrollY()
     ccall((:igGetScrollY, libcimgui), Cfloat, ())
 end
 
-function igSetScrollXFloat(scroll_x)
-    ccall((:igSetScrollXFloat, libcimgui), Cvoid, (Cfloat,), scroll_x)
+function igSetScrollX_Float(scroll_x)
+    ccall((:igSetScrollX_Float, libcimgui), Cvoid, (Cfloat,), scroll_x)
 end
 
-function igSetScrollYFloat(scroll_y)
-    ccall((:igSetScrollYFloat, libcimgui), Cvoid, (Cfloat,), scroll_y)
+function igSetScrollY_Float(scroll_y)
+    ccall((:igSetScrollY_Float, libcimgui), Cvoid, (Cfloat,), scroll_y)
 end
 
 function igGetScrollMaxX()
@@ -3703,12 +4458,12 @@ function igSetScrollHereY(center_y_ratio)
     ccall((:igSetScrollHereY, libcimgui), Cvoid, (Cfloat,), center_y_ratio)
 end
 
-function igSetScrollFromPosXFloat(local_x, center_x_ratio)
-    ccall((:igSetScrollFromPosXFloat, libcimgui), Cvoid, (Cfloat, Cfloat), local_x, center_x_ratio)
+function igSetScrollFromPosX_Float(local_x, center_x_ratio)
+    ccall((:igSetScrollFromPosX_Float, libcimgui), Cvoid, (Cfloat, Cfloat), local_x, center_x_ratio)
 end
 
-function igSetScrollFromPosYFloat(local_y, center_y_ratio)
-    ccall((:igSetScrollFromPosYFloat, libcimgui), Cvoid, (Cfloat, Cfloat), local_y, center_y_ratio)
+function igSetScrollFromPosY_Float(local_y, center_y_ratio)
+    ccall((:igSetScrollFromPosY_Float, libcimgui), Cvoid, (Cfloat, Cfloat), local_y, center_y_ratio)
 end
 
 function igPushFont(font)
@@ -3719,36 +4474,36 @@ function igPopFont()
     ccall((:igPopFont, libcimgui), Cvoid, ())
 end
 
-function igPushStyleColorU32(idx, col)
-    ccall((:igPushStyleColorU32, libcimgui), Cvoid, (ImGuiCol, ImU32), idx, col)
+function igPushStyleColor_U32(idx, col)
+    ccall((:igPushStyleColor_U32, libcimgui), Cvoid, (ImGuiCol, ImU32), idx, col)
 end
 
-function igPushStyleColorVec4(idx, col)
-    ccall((:igPushStyleColorVec4, libcimgui), Cvoid, (ImGuiCol, ImVec4), idx, col)
+function igPushStyleColor_Vec4(idx, col)
+    ccall((:igPushStyleColor_Vec4, libcimgui), Cvoid, (ImGuiCol, ImVec4), idx, col)
 end
 
 function igPopStyleColor(count)
     ccall((:igPopStyleColor, libcimgui), Cvoid, (Cint,), count)
 end
 
-function igPushStyleVarFloat(idx, val)
-    ccall((:igPushStyleVarFloat, libcimgui), Cvoid, (ImGuiStyleVar, Cfloat), idx, val)
+function igPushStyleVar_Float(idx, val)
+    ccall((:igPushStyleVar_Float, libcimgui), Cvoid, (ImGuiStyleVar, Cfloat), idx, val)
 end
 
-function igPushStyleVarVec2(idx, val)
-    ccall((:igPushStyleVarVec2, libcimgui), Cvoid, (ImGuiStyleVar, ImVec2), idx, val)
+function igPushStyleVar_Vec2(idx, val)
+    ccall((:igPushStyleVar_Vec2, libcimgui), Cvoid, (ImGuiStyleVar, ImVec2), idx, val)
 end
 
 function igPopStyleVar(count)
     ccall((:igPopStyleVar, libcimgui), Cvoid, (Cint,), count)
 end
 
-function igPushAllowKeyboardFocus(allow_keyboard_focus)
-    ccall((:igPushAllowKeyboardFocus, libcimgui), Cvoid, (Bool,), allow_keyboard_focus)
+function igPushTabStop(tab_stop)
+    ccall((:igPushTabStop, libcimgui), Cvoid, (Bool,), tab_stop)
 end
 
-function igPopAllowKeyboardFocus()
-    ccall((:igPopAllowKeyboardFocus, libcimgui), Cvoid, ())
+function igPopTabStop()
+    ccall((:igPopTabStop, libcimgui), Cvoid, ())
 end
 
 function igPushButtonRepeat(repeat)
@@ -3795,16 +4550,16 @@ function igGetFontTexUvWhitePixel(pOut)
     ccall((:igGetFontTexUvWhitePixel, libcimgui), Cvoid, (Ptr{ImVec2},), pOut)
 end
 
-function igGetColorU32Col(idx, alpha_mul)
-    ccall((:igGetColorU32Col, libcimgui), ImU32, (ImGuiCol, Cfloat), idx, alpha_mul)
+function igGetColorU32_Col(idx, alpha_mul)
+    ccall((:igGetColorU32_Col, libcimgui), ImU32, (ImGuiCol, Cfloat), idx, alpha_mul)
 end
 
-function igGetColorU32Vec4(col)
-    ccall((:igGetColorU32Vec4, libcimgui), ImU32, (ImVec4,), col)
+function igGetColorU32_Vec4(col)
+    ccall((:igGetColorU32_Vec4, libcimgui), ImU32, (ImVec4,), col)
 end
 
-function igGetColorU32U32(col)
-    ccall((:igGetColorU32U32, libcimgui), ImU32, (ImU32,), col)
+function igGetColorU32_U32(col)
+    ccall((:igGetColorU32_U32, libcimgui), ImU32, (ImU32,), col)
 end
 
 function igGetStyleColorVec4(idx)
@@ -3903,40 +4658,74 @@ function igGetFrameHeightWithSpacing()
     ccall((:igGetFrameHeightWithSpacing, libcimgui), Cfloat, ())
 end
 
-function igPushIDStr(str_id)
-    ccall((:igPushIDStr, libcimgui), Cvoid, (Ptr{Cchar},), str_id)
+function igPushID_Str(str_id)
+    ccall((:igPushID_Str, libcimgui), Cvoid, (Ptr{Cchar},), str_id)
 end
 
-function igPushIDStrStr(str_id_begin, str_id_end)
-    ccall((:igPushIDStrStr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cchar}), str_id_begin, str_id_end)
+function igPushID_StrStr(str_id_begin, str_id_end)
+    ccall((:igPushID_StrStr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cchar}), str_id_begin, str_id_end)
 end
 
-function igPushIDPtr(ptr_id)
-    ccall((:igPushIDPtr, libcimgui), Cvoid, (Ptr{Cvoid},), ptr_id)
+function igPushID_Ptr(ptr_id)
+    ccall((:igPushID_Ptr, libcimgui), Cvoid, (Ptr{Cvoid},), ptr_id)
 end
 
-function igPushIDInt(int_id)
-    ccall((:igPushIDInt, libcimgui), Cvoid, (Cint,), int_id)
+function igPushID_Int(int_id)
+    ccall((:igPushID_Int, libcimgui), Cvoid, (Cint,), int_id)
 end
 
 function igPopID()
     ccall((:igPopID, libcimgui), Cvoid, ())
 end
 
-function igGetIDStr(str_id)
-    ccall((:igGetIDStr, libcimgui), ImGuiID, (Ptr{Cchar},), str_id)
+function igGetID_Str(str_id)
+    ccall((:igGetID_Str, libcimgui), ImGuiID, (Ptr{Cchar},), str_id)
 end
 
-function igGetIDStrStr(str_id_begin, str_id_end)
-    ccall((:igGetIDStrStr, libcimgui), ImGuiID, (Ptr{Cchar}, Ptr{Cchar}), str_id_begin, str_id_end)
+function igGetID_StrStr(str_id_begin, str_id_end)
+    ccall((:igGetID_StrStr, libcimgui), ImGuiID, (Ptr{Cchar}, Ptr{Cchar}), str_id_begin, str_id_end)
 end
 
-function igGetIDPtr(ptr_id)
-    ccall((:igGetIDPtr, libcimgui), ImGuiID, (Ptr{Cvoid},), ptr_id)
+function igGetID_Ptr(ptr_id)
+    ccall((:igGetID_Ptr, libcimgui), ImGuiID, (Ptr{Cvoid},), ptr_id)
 end
 
 function igTextUnformatted(text, text_end)
     ccall((:igTextUnformatted, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cchar}), text, text_end)
+end
+
+# automatic type deduction for variadic arguments may not be what you want, please use with caution
+@generated function igText(fmt, va_list...)
+        :(@ccall(libcimgui.igText(fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
+    end
+
+# automatic type deduction for variadic arguments may not be what you want, please use with caution
+@generated function igTextColored(col, fmt, va_list...)
+        :(@ccall(libcimgui.igTextColored(col::ImVec4, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
+    end
+
+# automatic type deduction for variadic arguments may not be what you want, please use with caution
+@generated function igTextDisabled(fmt, va_list...)
+        :(@ccall(libcimgui.igTextDisabled(fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
+    end
+
+# automatic type deduction for variadic arguments may not be what you want, please use with caution
+@generated function igTextWrapped(fmt, va_list...)
+        :(@ccall(libcimgui.igTextWrapped(fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
+    end
+
+# automatic type deduction for variadic arguments may not be what you want, please use with caution
+@generated function igLabelText(label, fmt, va_list...)
+        :(@ccall(libcimgui.igLabelText(label::Ptr{Cchar}, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
+    end
+
+# automatic type deduction for variadic arguments may not be what you want, please use with caution
+@generated function igBulletText(fmt, va_list...)
+        :(@ccall(libcimgui.igBulletText(fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
+    end
+
+function igSeparatorText(label)
+    ccall((:igSeparatorText, libcimgui), Cvoid, (Ptr{Cchar},), label)
 end
 
 function igButton(label, size)
@@ -3955,32 +4744,24 @@ function igArrowButton(str_id, dir)
     ccall((:igArrowButton, libcimgui), Bool, (Ptr{Cchar}, ImGuiDir), str_id, dir)
 end
 
-function igImage(user_texture_id, size, uv0, uv1, tint_col, border_col)
-    ccall((:igImage, libcimgui), Cvoid, (ImTextureID, ImVec2, ImVec2, ImVec2, ImVec4, ImVec4), user_texture_id, size, uv0, uv1, tint_col, border_col)
-end
-
-function igImageButton(user_texture_id, size, uv0, uv1, frame_padding, bg_col, tint_col)
-    ccall((:igImageButton, libcimgui), Bool, (ImTextureID, ImVec2, ImVec2, ImVec2, Cint, ImVec4, ImVec4), user_texture_id, size, uv0, uv1, frame_padding, bg_col, tint_col)
-end
-
 function igCheckbox(label, v)
     ccall((:igCheckbox, libcimgui), Bool, (Ptr{Cchar}, Ptr{Bool}), label, v)
 end
 
-function igCheckboxFlagsIntPtr(label, flags, flags_value)
-    ccall((:igCheckboxFlagsIntPtr, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cint}, Cint), label, flags, flags_value)
+function igCheckboxFlags_IntPtr(label, flags, flags_value)
+    ccall((:igCheckboxFlags_IntPtr, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cint}, Cint), label, flags, flags_value)
 end
 
-function igCheckboxFlagsUintPtr(label, flags, flags_value)
-    ccall((:igCheckboxFlagsUintPtr, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cuint}, Cuint), label, flags, flags_value)
+function igCheckboxFlags_UintPtr(label, flags, flags_value)
+    ccall((:igCheckboxFlags_UintPtr, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cuint}, Cuint), label, flags, flags_value)
 end
 
-function igRadioButtonBool(label, active)
-    ccall((:igRadioButtonBool, libcimgui), Bool, (Ptr{Cchar}, Bool), label, active)
+function igRadioButton_Bool(label, active)
+    ccall((:igRadioButton_Bool, libcimgui), Bool, (Ptr{Cchar}, Bool), label, active)
 end
 
-function igRadioButtonIntPtr(label, v, v_button)
-    ccall((:igRadioButtonIntPtr, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cint}, Cint), label, v, v_button)
+function igRadioButton_IntPtr(label, v, v_button)
+    ccall((:igRadioButton_IntPtr, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cint}, Cint), label, v, v_button)
 end
 
 function igProgressBar(fraction, size_arg, overlay)
@@ -3991,6 +4772,14 @@ function igBullet()
     ccall((:igBullet, libcimgui), Cvoid, ())
 end
 
+function igImage(user_texture_id, size, uv0, uv1, tint_col, border_col)
+    ccall((:igImage, libcimgui), Cvoid, (ImTextureID, ImVec2, ImVec2, ImVec2, ImVec4, ImVec4), user_texture_id, size, uv0, uv1, tint_col, border_col)
+end
+
+function igImageButton(str_id, user_texture_id, size, uv0, uv1, bg_col, tint_col)
+    ccall((:igImageButton, libcimgui), Bool, (Ptr{Cchar}, ImTextureID, ImVec2, ImVec2, ImVec2, ImVec4, ImVec4), str_id, user_texture_id, size, uv0, uv1, bg_col, tint_col)
+end
+
 function igBeginCombo(label, preview_value, flags)
     ccall((:igBeginCombo, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cchar}, ImGuiComboFlags), label, preview_value, flags)
 end
@@ -3999,16 +4788,16 @@ function igEndCombo()
     ccall((:igEndCombo, libcimgui), Cvoid, ())
 end
 
-function igComboStr_arr(label, current_item, items, items_count, popup_max_height_in_items)
-    ccall((:igComboStr_arr, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cint}, Ptr{Ptr{Cchar}}, Cint, Cint), label, current_item, items, items_count, popup_max_height_in_items)
+function igCombo_Str_arr(label, current_item, items, items_count, popup_max_height_in_items)
+    ccall((:igCombo_Str_arr, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cint}, Ptr{Ptr{Cchar}}, Cint, Cint), label, current_item, items, items_count, popup_max_height_in_items)
 end
 
-function igComboStr(label, current_item, items_separated_by_zeros, popup_max_height_in_items)
-    ccall((:igComboStr, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cint}, Ptr{Cchar}, Cint), label, current_item, items_separated_by_zeros, popup_max_height_in_items)
+function igCombo_Str(label, current_item, items_separated_by_zeros, popup_max_height_in_items)
+    ccall((:igCombo_Str, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cint}, Ptr{Cchar}, Cint), label, current_item, items_separated_by_zeros, popup_max_height_in_items)
 end
 
-function igComboFnBoolPtr(label, current_item, items_getter, data, items_count, popup_max_height_in_items)
-    ccall((:igComboFnBoolPtr, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cint}, Ptr{Cvoid}, Ptr{Cvoid}, Cint, Cint), label, current_item, items_getter, data, items_count, popup_max_height_in_items)
+function igCombo_FnBoolPtr(label, current_item, items_getter, data, items_count, popup_max_height_in_items)
+    ccall((:igCombo_FnBoolPtr, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cint}, Ptr{Cvoid}, Ptr{Cvoid}, Cint, Cint), label, current_item, items_getter, data, items_count, popup_max_height_in_items)
 end
 
 function igDragFloat(label, v, v_speed, v_min, v_max, format, flags)
@@ -4195,20 +4984,40 @@ function igSetColorEditOptions(flags)
     ccall((:igSetColorEditOptions, libcimgui), Cvoid, (ImGuiColorEditFlags,), flags)
 end
 
-function igTreeNodeStr(label)
-    ccall((:igTreeNodeStr, libcimgui), Bool, (Ptr{Cchar},), label)
+function igTreeNode_Str(label)
+    ccall((:igTreeNode_Str, libcimgui), Bool, (Ptr{Cchar},), label)
 end
 
-function igTreeNodeExStr(label, flags)
-    ccall((:igTreeNodeExStr, libcimgui), Bool, (Ptr{Cchar}, ImGuiTreeNodeFlags), label, flags)
+# automatic type deduction for variadic arguments may not be what you want, please use with caution
+@generated function igTreeNode_StrStr(str_id, fmt, va_list...)
+        :(@ccall(libcimgui.igTreeNode_StrStr(str_id::Ptr{Cchar}, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Bool))
+    end
+
+# automatic type deduction for variadic arguments may not be what you want, please use with caution
+@generated function igTreeNode_Ptr(ptr_id, fmt, va_list...)
+        :(@ccall(libcimgui.igTreeNode_Ptr(ptr_id::Ptr{Cvoid}, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Bool))
+    end
+
+function igTreeNodeEx_Str(label, flags)
+    ccall((:igTreeNodeEx_Str, libcimgui), Bool, (Ptr{Cchar}, ImGuiTreeNodeFlags), label, flags)
 end
 
-function igTreePushStr(str_id)
-    ccall((:igTreePushStr, libcimgui), Cvoid, (Ptr{Cchar},), str_id)
+# automatic type deduction for variadic arguments may not be what you want, please use with caution
+@generated function igTreeNodeEx_StrStr(str_id, flags, fmt, va_list...)
+        :(@ccall(libcimgui.igTreeNodeEx_StrStr(str_id::Ptr{Cchar}, flags::ImGuiTreeNodeFlags, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Bool))
+    end
+
+# automatic type deduction for variadic arguments may not be what you want, please use with caution
+@generated function igTreeNodeEx_Ptr(ptr_id, flags, fmt, va_list...)
+        :(@ccall(libcimgui.igTreeNodeEx_Ptr(ptr_id::Ptr{Cvoid}, flags::ImGuiTreeNodeFlags, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Bool))
+    end
+
+function igTreePush_Str(str_id)
+    ccall((:igTreePush_Str, libcimgui), Cvoid, (Ptr{Cchar},), str_id)
 end
 
-function igTreePushPtr(ptr_id)
-    ccall((:igTreePushPtr, libcimgui), Cvoid, (Ptr{Cvoid},), ptr_id)
+function igTreePush_Ptr(ptr_id)
+    ccall((:igTreePush_Ptr, libcimgui), Cvoid, (Ptr{Cvoid},), ptr_id)
 end
 
 function igTreePop()
@@ -4219,24 +5028,24 @@ function igGetTreeNodeToLabelSpacing()
     ccall((:igGetTreeNodeToLabelSpacing, libcimgui), Cfloat, ())
 end
 
-function igCollapsingHeaderTreeNodeFlags(label, flags)
-    ccall((:igCollapsingHeaderTreeNodeFlags, libcimgui), Bool, (Ptr{Cchar}, ImGuiTreeNodeFlags), label, flags)
+function igCollapsingHeader_TreeNodeFlags(label, flags)
+    ccall((:igCollapsingHeader_TreeNodeFlags, libcimgui), Bool, (Ptr{Cchar}, ImGuiTreeNodeFlags), label, flags)
 end
 
-function igCollapsingHeaderBoolPtr(label, p_visible, flags)
-    ccall((:igCollapsingHeaderBoolPtr, libcimgui), Bool, (Ptr{Cchar}, Ptr{Bool}, ImGuiTreeNodeFlags), label, p_visible, flags)
+function igCollapsingHeader_BoolPtr(label, p_visible, flags)
+    ccall((:igCollapsingHeader_BoolPtr, libcimgui), Bool, (Ptr{Cchar}, Ptr{Bool}, ImGuiTreeNodeFlags), label, p_visible, flags)
 end
 
 function igSetNextItemOpen(is_open, cond)
     ccall((:igSetNextItemOpen, libcimgui), Cvoid, (Bool, ImGuiCond), is_open, cond)
 end
 
-function igSelectableBool(label, selected, flags, size)
-    ccall((:igSelectableBool, libcimgui), Bool, (Ptr{Cchar}, Bool, ImGuiSelectableFlags, ImVec2), label, selected, flags, size)
+function igSelectable_Bool(label, selected, flags, size)
+    ccall((:igSelectable_Bool, libcimgui), Bool, (Ptr{Cchar}, Bool, ImGuiSelectableFlags, ImVec2), label, selected, flags, size)
 end
 
-function igSelectableBoolPtr(label, p_selected, flags, size)
-    ccall((:igSelectableBoolPtr, libcimgui), Bool, (Ptr{Cchar}, Ptr{Bool}, ImGuiSelectableFlags, ImVec2), label, p_selected, flags, size)
+function igSelectable_BoolPtr(label, p_selected, flags, size)
+    ccall((:igSelectable_BoolPtr, libcimgui), Bool, (Ptr{Cchar}, Ptr{Bool}, ImGuiSelectableFlags, ImVec2), label, p_selected, flags, size)
 end
 
 function igBeginListBox(label, size)
@@ -4247,44 +5056,44 @@ function igEndListBox()
     ccall((:igEndListBox, libcimgui), Cvoid, ())
 end
 
-function igListBoxStr_arr(label, current_item, items, items_count, height_in_items)
-    ccall((:igListBoxStr_arr, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cint}, Ptr{Ptr{Cchar}}, Cint, Cint), label, current_item, items, items_count, height_in_items)
+function igListBox_Str_arr(label, current_item, items, items_count, height_in_items)
+    ccall((:igListBox_Str_arr, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cint}, Ptr{Ptr{Cchar}}, Cint, Cint), label, current_item, items, items_count, height_in_items)
 end
 
-function igListBoxFnBoolPtr(label, current_item, items_getter, data, items_count, height_in_items)
-    ccall((:igListBoxFnBoolPtr, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cint}, Ptr{Cvoid}, Ptr{Cvoid}, Cint, Cint), label, current_item, items_getter, data, items_count, height_in_items)
+function igListBox_FnBoolPtr(label, current_item, items_getter, data, items_count, height_in_items)
+    ccall((:igListBox_FnBoolPtr, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cint}, Ptr{Cvoid}, Ptr{Cvoid}, Cint, Cint), label, current_item, items_getter, data, items_count, height_in_items)
 end
 
-function igPlotLinesFloatPtr(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
-    ccall((:igPlotLinesFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cint, Ptr{Cchar}, Cfloat, Cfloat, ImVec2, Cint), label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
+function igPlotLines_FloatPtr(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
+    ccall((:igPlotLines_FloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cint, Ptr{Cchar}, Cfloat, Cfloat, ImVec2, Cint), label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
 end
 
-function igPlotLinesFnFloatPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
-    ccall((:igPlotLinesFnFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cvoid}, Ptr{Cvoid}, Cint, Cint, Ptr{Cchar}, Cfloat, Cfloat, ImVec2), label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
+function igPlotLines_FnFloatPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
+    ccall((:igPlotLines_FnFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cvoid}, Ptr{Cvoid}, Cint, Cint, Ptr{Cchar}, Cfloat, Cfloat, ImVec2), label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
 end
 
-function igPlotHistogramFloatPtr(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
-    ccall((:igPlotHistogramFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cint, Ptr{Cchar}, Cfloat, Cfloat, ImVec2, Cint), label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
+function igPlotHistogram_FloatPtr(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
+    ccall((:igPlotHistogram_FloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cint, Ptr{Cchar}, Cfloat, Cfloat, ImVec2, Cint), label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
 end
 
-function igPlotHistogramFnFloatPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
-    ccall((:igPlotHistogramFnFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cvoid}, Ptr{Cvoid}, Cint, Cint, Ptr{Cchar}, Cfloat, Cfloat, ImVec2), label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
+function igPlotHistogram_FnFloatPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
+    ccall((:igPlotHistogram_FnFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cvoid}, Ptr{Cvoid}, Cint, Cint, Ptr{Cchar}, Cfloat, Cfloat, ImVec2), label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
 end
 
-function igValueBool(prefix, b)
-    ccall((:igValueBool, libcimgui), Cvoid, (Ptr{Cchar}, Bool), prefix, b)
+function igValue_Bool(prefix, b)
+    ccall((:igValue_Bool, libcimgui), Cvoid, (Ptr{Cchar}, Bool), prefix, b)
 end
 
-function igValueInt(prefix, v)
-    ccall((:igValueInt, libcimgui), Cvoid, (Ptr{Cchar}, Cint), prefix, v)
+function igValue_Int(prefix, v)
+    ccall((:igValue_Int, libcimgui), Cvoid, (Ptr{Cchar}, Cint), prefix, v)
 end
 
-function igValueUint(prefix, v)
-    ccall((:igValueUint, libcimgui), Cvoid, (Ptr{Cchar}, Cuint), prefix, v)
+function igValue_Uint(prefix, v)
+    ccall((:igValue_Uint, libcimgui), Cvoid, (Ptr{Cchar}, Cuint), prefix, v)
 end
 
-function igValueFloat(prefix, v, float_format)
-    ccall((:igValueFloat, libcimgui), Cvoid, (Ptr{Cchar}, Cfloat, Ptr{Cchar}), prefix, v, float_format)
+function igValue_Float(prefix, v, float_format)
+    ccall((:igValue_Float, libcimgui), Cvoid, (Ptr{Cchar}, Cfloat, Ptr{Cchar}), prefix, v, float_format)
 end
 
 function igBeginMenuBar()
@@ -4311,21 +5120,26 @@ function igEndMenu()
     ccall((:igEndMenu, libcimgui), Cvoid, ())
 end
 
-function igMenuItemBool(label, shortcut, selected, enabled)
-    ccall((:igMenuItemBool, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cchar}, Bool, Bool), label, shortcut, selected, enabled)
+function igMenuItem_Bool(label, shortcut, selected, enabled)
+    ccall((:igMenuItem_Bool, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cchar}, Bool, Bool), label, shortcut, selected, enabled)
 end
 
-function igMenuItemBoolPtr(label, shortcut, p_selected, enabled)
-    ccall((:igMenuItemBoolPtr, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cchar}, Ptr{Bool}, Bool), label, shortcut, p_selected, enabled)
+function igMenuItem_BoolPtr(label, shortcut, p_selected, enabled)
+    ccall((:igMenuItem_BoolPtr, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cchar}, Ptr{Bool}, Bool), label, shortcut, p_selected, enabled)
 end
 
 function igBeginTooltip()
-    ccall((:igBeginTooltip, libcimgui), Cvoid, ())
+    ccall((:igBeginTooltip, libcimgui), Bool, ())
 end
 
 function igEndTooltip()
     ccall((:igEndTooltip, libcimgui), Cvoid, ())
 end
+
+# automatic type deduction for variadic arguments may not be what you want, please use with caution
+@generated function igSetTooltip(fmt, va_list...)
+        :(@ccall(libcimgui.igSetTooltip(fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
+    end
 
 function igBeginPopup(str_id, flags)
     ccall((:igBeginPopup, libcimgui), Bool, (Ptr{Cchar}, ImGuiWindowFlags), str_id, flags)
@@ -4339,8 +5153,12 @@ function igEndPopup()
     ccall((:igEndPopup, libcimgui), Cvoid, ())
 end
 
-function igOpenPopup(str_id, popup_flags)
-    ccall((:igOpenPopup, libcimgui), Cvoid, (Ptr{Cchar}, ImGuiPopupFlags), str_id, popup_flags)
+function igOpenPopup_Str(str_id, popup_flags)
+    ccall((:igOpenPopup_Str, libcimgui), Cvoid, (Ptr{Cchar}, ImGuiPopupFlags), str_id, popup_flags)
+end
+
+function igOpenPopup_ID(id, popup_flags)
+    ccall((:igOpenPopup_ID, libcimgui), Cvoid, (ImGuiID, ImGuiPopupFlags), id, popup_flags)
 end
 
 function igOpenPopupOnItemClick(str_id, popup_flags)
@@ -4363,8 +5181,8 @@ function igBeginPopupContextVoid(str_id, popup_flags)
     ccall((:igBeginPopupContextVoid, libcimgui), Bool, (Ptr{Cchar}, ImGuiPopupFlags), str_id, popup_flags)
 end
 
-function igIsPopupOpenStr(str_id, flags)
-    ccall((:igIsPopupOpenStr, libcimgui), Bool, (Ptr{Cchar}, ImGuiPopupFlags), str_id, flags)
+function igIsPopupOpen_Str(str_id, flags)
+    ccall((:igIsPopupOpen_Str, libcimgui), Bool, (Ptr{Cchar}, ImGuiPopupFlags), str_id, flags)
 end
 
 function igBeginTable(str_id, column, flags, outer_size, inner_width)
@@ -4419,12 +5237,16 @@ function igTableGetRowIndex()
     ccall((:igTableGetRowIndex, libcimgui), Cint, ())
 end
 
-function igTableGetColumnNameInt(column_n)
-    ccall((:igTableGetColumnNameInt, libcimgui), Ptr{Cchar}, (Cint,), column_n)
+function igTableGetColumnName_Int(column_n)
+    ccall((:igTableGetColumnName_Int, libcimgui), Ptr{Cchar}, (Cint,), column_n)
 end
 
 function igTableGetColumnFlags(column_n)
     ccall((:igTableGetColumnFlags, libcimgui), ImGuiTableColumnFlags, (Cint,), column_n)
+end
+
+function igTableSetColumnEnabled(column_n, v)
+    ccall((:igTableSetColumnEnabled, libcimgui), Cvoid, (Cint, Bool), column_n, v)
 end
 
 function igTableSetBgColor(target, color, column_n)
@@ -4488,7 +5310,7 @@ function igSetTabItemClosed(tab_or_docked_window_label)
 end
 
 function igDockSpace(id, size, flags, window_class)
-    ccall((:igDockSpace, libcimgui), Cvoid, (ImGuiID, ImVec2, ImGuiDockNodeFlags, Ptr{ImGuiWindowClass}), id, size, flags, window_class)
+    ccall((:igDockSpace, libcimgui), ImGuiID, (ImGuiID, ImVec2, ImGuiDockNodeFlags, Ptr{ImGuiWindowClass}), id, size, flags, window_class)
 end
 
 function igDockSpaceOverViewport(viewport, flags, window_class)
@@ -4559,6 +5381,14 @@ function igGetDragDropPayload()
     ccall((:igGetDragDropPayload, libcimgui), Ptr{ImGuiPayload}, ())
 end
 
+function igBeginDisabled(disabled)
+    ccall((:igBeginDisabled, libcimgui), Cvoid, (Bool,), disabled)
+end
+
+function igEndDisabled()
+    ccall((:igEndDisabled, libcimgui), Cvoid, ())
+end
+
 function igPushClipRect(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect)
     ccall((:igPushClipRect, libcimgui), Cvoid, (ImVec2, ImVec2, Bool), clip_rect_min, clip_rect_max, intersect_with_current_clip_rect)
 end
@@ -4627,6 +5457,10 @@ function igIsAnyItemFocused()
     ccall((:igIsAnyItemFocused, libcimgui), Bool, ())
 end
 
+function igGetItemID()
+    ccall((:igGetItemID, libcimgui), ImGuiID, ())
+end
+
 function igGetItemRectMin(pOut)
     ccall((:igGetItemRectMin, libcimgui), Cvoid, (Ptr{ImVec2},), pOut)
 end
@@ -4647,12 +5481,28 @@ function igGetMainViewport()
     ccall((:igGetMainViewport, libcimgui), Ptr{ImGuiViewport}, ())
 end
 
-function igIsRectVisibleNil(size)
-    ccall((:igIsRectVisibleNil, libcimgui), Bool, (ImVec2,), size)
+function igGetBackgroundDrawList_Nil()
+    ccall((:igGetBackgroundDrawList_Nil, libcimgui), Ptr{ImDrawList}, ())
 end
 
-function igIsRectVisibleVec2(rect_min, rect_max)
-    ccall((:igIsRectVisibleVec2, libcimgui), Bool, (ImVec2, ImVec2), rect_min, rect_max)
+function igGetForegroundDrawList_Nil()
+    ccall((:igGetForegroundDrawList_Nil, libcimgui), Ptr{ImDrawList}, ())
+end
+
+function igGetBackgroundDrawList_ViewportPtr(viewport)
+    ccall((:igGetBackgroundDrawList_ViewportPtr, libcimgui), Ptr{ImDrawList}, (Ptr{ImGuiViewport},), viewport)
+end
+
+function igGetForegroundDrawList_ViewportPtr(viewport)
+    ccall((:igGetForegroundDrawList_ViewportPtr, libcimgui), Ptr{ImDrawList}, (Ptr{ImGuiViewport},), viewport)
+end
+
+function igIsRectVisible_Nil(size)
+    ccall((:igIsRectVisible_Nil, libcimgui), Bool, (ImVec2,), size)
+end
+
+function igIsRectVisible_Vec2(rect_min, rect_max)
+    ccall((:igIsRectVisible_Vec2, libcimgui), Bool, (ImVec2, ImVec2), rect_min, rect_max)
 end
 
 function igGetTime()
@@ -4661,22 +5511,6 @@ end
 
 function igGetFrameCount()
     ccall((:igGetFrameCount, libcimgui), Cint, ())
-end
-
-function igGetBackgroundDrawListNil()
-    ccall((:igGetBackgroundDrawListNil, libcimgui), Ptr{ImDrawList}, ())
-end
-
-function igGetForegroundDrawListNil()
-    ccall((:igGetForegroundDrawListNil, libcimgui), Ptr{ImDrawList}, ())
-end
-
-function igGetBackgroundDrawListViewportPtr(viewport)
-    ccall((:igGetBackgroundDrawListViewportPtr, libcimgui), Ptr{ImDrawList}, (Ptr{ImGuiViewport},), viewport)
-end
-
-function igGetForegroundDrawListViewportPtr(viewport)
-    ccall((:igGetForegroundDrawListViewportPtr, libcimgui), Ptr{ImDrawList}, (Ptr{ImGuiViewport},), viewport)
 end
 
 function igGetDrawListSharedData()
@@ -4693,10 +5527,6 @@ end
 
 function igGetStateStorage()
     ccall((:igGetStateStorage, libcimgui), Ptr{ImGuiStorage}, ())
-end
-
-function igCalcListClipping(items_count, items_height, out_items_display_start, out_items_display_end)
-    ccall((:igCalcListClipping, libcimgui), Cvoid, (Cint, Cfloat, Ptr{Cint}, Ptr{Cint}), items_count, items_height, out_items_display_start, out_items_display_end)
 end
 
 function igBeginChildFrame(id, size, flags)
@@ -4727,44 +5557,48 @@ function igColorConvertHSVtoRGB(h, s, v, out_r, out_g, out_b)
     ccall((:igColorConvertHSVtoRGB, libcimgui), Cvoid, (Cfloat, Cfloat, Cfloat, Ptr{Cfloat}, Ptr{Cfloat}, Ptr{Cfloat}), h, s, v, out_r, out_g, out_b)
 end
 
-function igGetKeyIndex(imgui_key)
-    ccall((:igGetKeyIndex, libcimgui), Cint, (ImGuiKey,), imgui_key)
+function igIsKeyDown_Nil(key)
+    ccall((:igIsKeyDown_Nil, libcimgui), Bool, (ImGuiKey,), key)
 end
 
-function igIsKeyDown(user_key_index)
-    ccall((:igIsKeyDown, libcimgui), Bool, (Cint,), user_key_index)
+function igIsKeyPressed_Bool(key, repeat)
+    ccall((:igIsKeyPressed_Bool, libcimgui), Bool, (ImGuiKey, Bool), key, repeat)
 end
 
-function igIsKeyPressed(user_key_index, repeat)
-    ccall((:igIsKeyPressed, libcimgui), Bool, (Cint, Bool), user_key_index, repeat)
+function igIsKeyReleased_Nil(key)
+    ccall((:igIsKeyReleased_Nil, libcimgui), Bool, (ImGuiKey,), key)
 end
 
-function igIsKeyReleased(user_key_index)
-    ccall((:igIsKeyReleased, libcimgui), Bool, (Cint,), user_key_index)
+function igGetKeyPressedAmount(key, repeat_delay, rate)
+    ccall((:igGetKeyPressedAmount, libcimgui), Cint, (ImGuiKey, Cfloat, Cfloat), key, repeat_delay, rate)
 end
 
-function igGetKeyPressedAmount(key_index, repeat_delay, rate)
-    ccall((:igGetKeyPressedAmount, libcimgui), Cint, (Cint, Cfloat, Cfloat), key_index, repeat_delay, rate)
+function igGetKeyName(key)
+    ccall((:igGetKeyName, libcimgui), Ptr{Cchar}, (ImGuiKey,), key)
 end
 
-function igCaptureKeyboardFromApp(want_capture_keyboard_value)
-    ccall((:igCaptureKeyboardFromApp, libcimgui), Cvoid, (Bool,), want_capture_keyboard_value)
+function igSetNextFrameWantCaptureKeyboard(want_capture_keyboard)
+    ccall((:igSetNextFrameWantCaptureKeyboard, libcimgui), Cvoid, (Bool,), want_capture_keyboard)
 end
 
-function igIsMouseDown(button)
-    ccall((:igIsMouseDown, libcimgui), Bool, (ImGuiMouseButton,), button)
+function igIsMouseDown_Nil(button)
+    ccall((:igIsMouseDown_Nil, libcimgui), Bool, (ImGuiMouseButton,), button)
 end
 
-function igIsMouseClicked(button, repeat)
-    ccall((:igIsMouseClicked, libcimgui), Bool, (ImGuiMouseButton, Bool), button, repeat)
+function igIsMouseClicked_Bool(button, repeat)
+    ccall((:igIsMouseClicked_Bool, libcimgui), Bool, (ImGuiMouseButton, Bool), button, repeat)
 end
 
-function igIsMouseReleased(button)
-    ccall((:igIsMouseReleased, libcimgui), Bool, (ImGuiMouseButton,), button)
+function igIsMouseReleased_Nil(button)
+    ccall((:igIsMouseReleased_Nil, libcimgui), Bool, (ImGuiMouseButton,), button)
 end
 
 function igIsMouseDoubleClicked(button)
     ccall((:igIsMouseDoubleClicked, libcimgui), Bool, (ImGuiMouseButton,), button)
+end
+
+function igGetMouseClickedCount(button)
+    ccall((:igGetMouseClickedCount, libcimgui), Cint, (ImGuiMouseButton,), button)
 end
 
 function igIsMouseHoveringRect(r_min, r_max, clip)
@@ -4807,8 +5641,8 @@ function igSetMouseCursor(cursor_type)
     ccall((:igSetMouseCursor, libcimgui), Cvoid, (ImGuiMouseCursor,), cursor_type)
 end
 
-function igCaptureMouseFromApp(want_capture_mouse_value)
-    ccall((:igCaptureMouseFromApp, libcimgui), Cvoid, (Bool,), want_capture_mouse_value)
+function igSetNextFrameWantCaptureMouse(want_capture_mouse)
+    ccall((:igSetNextFrameWantCaptureMouse, libcimgui), Cvoid, (Bool,), want_capture_mouse)
 end
 
 function igGetClipboardText()
@@ -4833,6 +5667,10 @@ end
 
 function igSaveIniSettingsToMemory(out_ini_size)
     ccall((:igSaveIniSettingsToMemory, libcimgui), Ptr{Cchar}, (Ptr{Csize_t},), out_ini_size)
+end
+
+function igDebugTextEncoding(text)
+    ccall((:igDebugTextEncoding, libcimgui), Cvoid, (Ptr{Cchar},), text)
 end
 
 function igDebugCheckVersionAndDataLayout(version_str, sz_io, sz_style, sz_vec2, sz_vec4, sz_drawvert, sz_drawidx)
@@ -4891,6 +5729,34 @@ function ImGuiStyle_ScaleAllSizes(self, scale_factor)
     ccall((:ImGuiStyle_ScaleAllSizes, libcimgui), Cvoid, (Ptr{ImGuiStyle}, Cfloat), self, scale_factor)
 end
 
+function ImGuiIO_AddKeyEvent(self, key, down)
+    ccall((:ImGuiIO_AddKeyEvent, libcimgui), Cvoid, (Ptr{ImGuiIO}, ImGuiKey, Bool), self, key, down)
+end
+
+function ImGuiIO_AddKeyAnalogEvent(self, key, down, v)
+    ccall((:ImGuiIO_AddKeyAnalogEvent, libcimgui), Cvoid, (Ptr{ImGuiIO}, ImGuiKey, Bool, Cfloat), self, key, down, v)
+end
+
+function ImGuiIO_AddMousePosEvent(self, x, y)
+    ccall((:ImGuiIO_AddMousePosEvent, libcimgui), Cvoid, (Ptr{ImGuiIO}, Cfloat, Cfloat), self, x, y)
+end
+
+function ImGuiIO_AddMouseButtonEvent(self, button, down)
+    ccall((:ImGuiIO_AddMouseButtonEvent, libcimgui), Cvoid, (Ptr{ImGuiIO}, Cint, Bool), self, button, down)
+end
+
+function ImGuiIO_AddMouseWheelEvent(self, wheel_x, wheel_y)
+    ccall((:ImGuiIO_AddMouseWheelEvent, libcimgui), Cvoid, (Ptr{ImGuiIO}, Cfloat, Cfloat), self, wheel_x, wheel_y)
+end
+
+function ImGuiIO_AddMouseViewportEvent(self, id)
+    ccall((:ImGuiIO_AddMouseViewportEvent, libcimgui), Cvoid, (Ptr{ImGuiIO}, ImGuiID), self, id)
+end
+
+function ImGuiIO_AddFocusEvent(self, focused)
+    ccall((:ImGuiIO_AddFocusEvent, libcimgui), Cvoid, (Ptr{ImGuiIO}, Bool), self, focused)
+end
+
 function ImGuiIO_AddInputCharacter(self, c)
     ccall((:ImGuiIO_AddInputCharacter, libcimgui), Cvoid, (Ptr{ImGuiIO}, Cuint), self, c)
 end
@@ -4903,8 +5769,20 @@ function ImGuiIO_AddInputCharactersUTF8(self, str)
     ccall((:ImGuiIO_AddInputCharactersUTF8, libcimgui), Cvoid, (Ptr{ImGuiIO}, Ptr{Cchar}), self, str)
 end
 
+function ImGuiIO_SetKeyEventNativeData(self, key, native_keycode, native_scancode, native_legacy_index)
+    ccall((:ImGuiIO_SetKeyEventNativeData, libcimgui), Cvoid, (Ptr{ImGuiIO}, ImGuiKey, Cint, Cint, Cint), self, key, native_keycode, native_scancode, native_legacy_index)
+end
+
+function ImGuiIO_SetAppAcceptingEvents(self, accepting_events)
+    ccall((:ImGuiIO_SetAppAcceptingEvents, libcimgui), Cvoid, (Ptr{ImGuiIO}, Bool), self, accepting_events)
+end
+
 function ImGuiIO_ClearInputCharacters(self)
     ccall((:ImGuiIO_ClearInputCharacters, libcimgui), Cvoid, (Ptr{ImGuiIO},), self)
+end
+
+function ImGuiIO_ClearInputKeys(self)
+    ccall((:ImGuiIO_ClearInputKeys, libcimgui), Cvoid, (Ptr{ImGuiIO},), self)
 end
 
 function ImGuiIO_ImGuiIO()
@@ -5027,16 +5905,16 @@ function ImGuiTextFilter_IsActive(self)
     ccall((:ImGuiTextFilter_IsActive, libcimgui), Bool, (Ptr{ImGuiTextFilter},), self)
 end
 
-function ImGuiTextRange_ImGuiTextRangeNil()
-    ccall((:ImGuiTextRange_ImGuiTextRangeNil, libcimgui), Ptr{ImGuiTextRange}, ())
+function ImGuiTextRange_ImGuiTextRange_Nil()
+    ccall((:ImGuiTextRange_ImGuiTextRange_Nil, libcimgui), Ptr{ImGuiTextRange}, ())
 end
 
 function ImGuiTextRange_destroy(self)
     ccall((:ImGuiTextRange_destroy, libcimgui), Cvoid, (Ptr{ImGuiTextRange},), self)
 end
 
-function ImGuiTextRange_ImGuiTextRangeStr(_b, _e)
-    ccall((:ImGuiTextRange_ImGuiTextRangeStr, libcimgui), Ptr{ImGuiTextRange}, (Ptr{Cchar}, Ptr{Cchar}), _b, _e)
+function ImGuiTextRange_ImGuiTextRange_Str(_b, _e)
+    ccall((:ImGuiTextRange_ImGuiTextRange_Str, libcimgui), Ptr{ImGuiTextRange}, (Ptr{Cchar}, Ptr{Cchar}), _b, _e)
 end
 
 function ImGuiTextRange_empty(self)
@@ -5087,20 +5965,20 @@ function ImGuiTextBuffer_append(self, str, str_end)
     ccall((:ImGuiTextBuffer_append, libcimgui), Cvoid, (Ptr{ImGuiTextBuffer}, Ptr{Cchar}, Ptr{Cchar}), self, str, str_end)
 end
 
-function ImGuiStoragePair_ImGuiStoragePairInt(_key, _val_i)
-    ccall((:ImGuiStoragePair_ImGuiStoragePairInt, libcimgui), Ptr{ImGuiStoragePair}, (ImGuiID, Cint), _key, _val_i)
+function ImGuiStoragePair_ImGuiStoragePair_Int(_key, _val_i)
+    ccall((:ImGuiStoragePair_ImGuiStoragePair_Int, libcimgui), Ptr{ImGuiStoragePair}, (ImGuiID, Cint), _key, _val_i)
 end
 
 function ImGuiStoragePair_destroy(self)
     ccall((:ImGuiStoragePair_destroy, libcimgui), Cvoid, (Ptr{ImGuiStoragePair},), self)
 end
 
-function ImGuiStoragePair_ImGuiStoragePairFloat(_key, _val_f)
-    ccall((:ImGuiStoragePair_ImGuiStoragePairFloat, libcimgui), Ptr{ImGuiStoragePair}, (ImGuiID, Cfloat), _key, _val_f)
+function ImGuiStoragePair_ImGuiStoragePair_Float(_key, _val_f)
+    ccall((:ImGuiStoragePair_ImGuiStoragePair_Float, libcimgui), Ptr{ImGuiStoragePair}, (ImGuiID, Cfloat), _key, _val_f)
 end
 
-function ImGuiStoragePair_ImGuiStoragePairPtr(_key, _val_p)
-    ccall((:ImGuiStoragePair_ImGuiStoragePairPtr, libcimgui), Ptr{ImGuiStoragePair}, (ImGuiID, Ptr{Cvoid}), _key, _val_p)
+function ImGuiStoragePair_ImGuiStoragePair_Ptr(_key, _val_p)
+    ccall((:ImGuiStoragePair_ImGuiStoragePair_Ptr, libcimgui), Ptr{ImGuiStoragePair}, (ImGuiID, Ptr{Cvoid}), _key, _val_p)
 end
 
 function ImGuiStorage_Clear(self)
@@ -5183,28 +6061,32 @@ function ImGuiListClipper_Step(self)
     ccall((:ImGuiListClipper_Step, libcimgui), Bool, (Ptr{ImGuiListClipper},), self)
 end
 
-function ImColor_ImColorNil()
-    ccall((:ImColor_ImColorNil, libcimgui), Ptr{ImColor}, ())
+function ImGuiListClipper_ForceDisplayRangeByIndices(self, item_min, item_max)
+    ccall((:ImGuiListClipper_ForceDisplayRangeByIndices, libcimgui), Cvoid, (Ptr{ImGuiListClipper}, Cint, Cint), self, item_min, item_max)
+end
+
+function ImColor_ImColor_Nil()
+    ccall((:ImColor_ImColor_Nil, libcimgui), Ptr{ImColor}, ())
 end
 
 function ImColor_destroy(self)
     ccall((:ImColor_destroy, libcimgui), Cvoid, (Ptr{ImColor},), self)
 end
 
-function ImColor_ImColorInt(r, g, b, a)
-    ccall((:ImColor_ImColorInt, libcimgui), Ptr{ImColor}, (Cint, Cint, Cint, Cint), r, g, b, a)
+function ImColor_ImColor_Float(r, g, b, a)
+    ccall((:ImColor_ImColor_Float, libcimgui), Ptr{ImColor}, (Cfloat, Cfloat, Cfloat, Cfloat), r, g, b, a)
 end
 
-function ImColor_ImColorU32(rgba)
-    ccall((:ImColor_ImColorU32, libcimgui), Ptr{ImColor}, (ImU32,), rgba)
+function ImColor_ImColor_Vec4(col)
+    ccall((:ImColor_ImColor_Vec4, libcimgui), Ptr{ImColor}, (ImVec4,), col)
 end
 
-function ImColor_ImColorFloat(r, g, b, a)
-    ccall((:ImColor_ImColorFloat, libcimgui), Ptr{ImColor}, (Cfloat, Cfloat, Cfloat, Cfloat), r, g, b, a)
+function ImColor_ImColor_Int(r, g, b, a)
+    ccall((:ImColor_ImColor_Int, libcimgui), Ptr{ImColor}, (Cint, Cint, Cint, Cint), r, g, b, a)
 end
 
-function ImColor_ImColorVec4(col)
-    ccall((:ImColor_ImColorVec4, libcimgui), Ptr{ImColor}, (ImVec4,), col)
+function ImColor_ImColor_U32(rgba)
+    ccall((:ImColor_ImColor_U32, libcimgui), Ptr{ImColor}, (ImU32,), rgba)
 end
 
 function ImColor_SetHSV(self, h, s, v, a)
@@ -5221,6 +6103,10 @@ end
 
 function ImDrawCmd_destroy(self)
     ccall((:ImDrawCmd_destroy, libcimgui), Cvoid, (Ptr{ImDrawCmd},), self)
+end
+
+function ImDrawCmd_GetTexID(self)
+    ccall((:ImDrawCmd_GetTexID, libcimgui), ImTextureID, (Ptr{ImDrawCmd},), self)
 end
 
 function ImDrawListSplitter_ImDrawListSplitter()
@@ -5335,12 +6221,12 @@ function ImDrawList_AddNgonFilled(self, center, radius, col, num_segments)
     ccall((:ImDrawList_AddNgonFilled, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, Cfloat, ImU32, Cint), self, center, radius, col, num_segments)
 end
 
-function ImDrawList_AddTextVec2(self, pos, col, text_begin, text_end)
-    ccall((:ImDrawList_AddTextVec2, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImU32, Ptr{Cchar}, Ptr{Cchar}), self, pos, col, text_begin, text_end)
+function ImDrawList_AddText_Vec2(self, pos, col, text_begin, text_end)
+    ccall((:ImDrawList_AddText_Vec2, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImU32, Ptr{Cchar}, Ptr{Cchar}), self, pos, col, text_begin, text_end)
 end
 
-function ImDrawList_AddTextFontPtr(self, font, font_size, pos, col, text_begin, text_end, wrap_width, cpu_fine_clip_rect)
-    ccall((:ImDrawList_AddTextFontPtr, libcimgui), Cvoid, (Ptr{ImDrawList}, Ptr{ImFont}, Cfloat, ImVec2, ImU32, Ptr{Cchar}, Ptr{Cchar}, Cfloat, Ptr{ImVec4}), self, font, font_size, pos, col, text_begin, text_end, wrap_width, cpu_fine_clip_rect)
+function ImDrawList_AddText_FontPtr(self, font, font_size, pos, col, text_begin, text_end, wrap_width, cpu_fine_clip_rect)
+    ccall((:ImDrawList_AddText_FontPtr, libcimgui), Cvoid, (Ptr{ImDrawList}, Ptr{ImFont}, Cfloat, ImVec2, ImU32, Ptr{Cchar}, Ptr{Cchar}, Cfloat, Ptr{ImVec4}), self, font, font_size, pos, col, text_begin, text_end, wrap_width, cpu_fine_clip_rect)
 end
 
 function ImDrawList_AddPolyline(self, points, num_points, col, flags, thickness)
@@ -5477,6 +6363,10 @@ end
 
 function ImDrawList__PopUnusedDrawCmd(self)
     ccall((:ImDrawList__PopUnusedDrawCmd, libcimgui), Cvoid, (Ptr{ImDrawList},), self)
+end
+
+function ImDrawList__TryMergeDrawCmds(self)
+    ccall((:ImDrawList__TryMergeDrawCmds, libcimgui), Cvoid, (Ptr{ImDrawList},), self)
 end
 
 function ImDrawList__OnChangedClipRect(self)
@@ -5651,6 +6541,10 @@ function ImFontAtlas_GetGlyphRangesDefault(self)
     ccall((:ImFontAtlas_GetGlyphRangesDefault, libcimgui), Ptr{ImWchar}, (Ptr{ImFontAtlas},), self)
 end
 
+function ImFontAtlas_GetGlyphRangesGreek(self)
+    ccall((:ImFontAtlas_GetGlyphRangesGreek, libcimgui), Ptr{ImWchar}, (Ptr{ImFontAtlas},), self)
+end
+
 function ImFontAtlas_GetGlyphRangesKorean(self)
     ccall((:ImFontAtlas_GetGlyphRangesKorean, libcimgui), Ptr{ImWchar}, (Ptr{ImFontAtlas},), self)
 end
@@ -5767,10 +6661,6 @@ function ImFont_SetGlyphVisible(self, c, visible)
     ccall((:ImFont_SetGlyphVisible, libcimgui), Cvoid, (Ptr{ImFont}, ImWchar, Bool), self, c, visible)
 end
 
-function ImFont_SetFallbackChar(self, c)
-    ccall((:ImFont_SetFallbackChar, libcimgui), Cvoid, (Ptr{ImFont}, ImWchar), self, c)
-end
-
 function ImFont_IsGlyphRangeUnused(self, c_begin, c_last)
     ccall((:ImFont_IsGlyphRangeUnused, libcimgui), Bool, (Ptr{ImFont}, Cuint, Cuint), self, c_begin, c_last)
 end
@@ -5807,24 +6697,40 @@ function ImGuiPlatformMonitor_destroy(self)
     ccall((:ImGuiPlatformMonitor_destroy, libcimgui), Cvoid, (Ptr{ImGuiPlatformMonitor},), self)
 end
 
+function ImGuiPlatformImeData_ImGuiPlatformImeData()
+    ccall((:ImGuiPlatformImeData_ImGuiPlatformImeData, libcimgui), Ptr{ImGuiPlatformImeData}, ())
+end
+
+function ImGuiPlatformImeData_destroy(self)
+    ccall((:ImGuiPlatformImeData_destroy, libcimgui), Cvoid, (Ptr{ImGuiPlatformImeData},), self)
+end
+
+function igGetKeyIndex(key)
+    ccall((:igGetKeyIndex, libcimgui), ImGuiKey, (ImGuiKey,), key)
+end
+
 function igImHashData(data, data_size, seed)
-    ccall((:igImHashData, libcimgui), ImGuiID, (Ptr{Cvoid}, Csize_t, ImU32), data, data_size, seed)
+    ccall((:igImHashData, libcimgui), ImGuiID, (Ptr{Cvoid}, Csize_t, ImGuiID), data, data_size, seed)
 end
 
 function igImHashStr(data, data_size, seed)
-    ccall((:igImHashStr, libcimgui), ImGuiID, (Ptr{Cchar}, Csize_t, ImU32), data, data_size, seed)
+    ccall((:igImHashStr, libcimgui), ImGuiID, (Ptr{Cchar}, Csize_t, ImGuiID), data, data_size, seed)
+end
+
+function igImQsort(base, count, size_of_element, compare_func)
+    ccall((:igImQsort, libcimgui), Cvoid, (Ptr{Cvoid}, Csize_t, Csize_t, Ptr{Cvoid}), base, count, size_of_element, compare_func)
 end
 
 function igImAlphaBlendColors(col_a, col_b)
     ccall((:igImAlphaBlendColors, libcimgui), ImU32, (ImU32, ImU32), col_a, col_b)
 end
 
-function igImIsPowerOfTwoInt(v)
-    ccall((:igImIsPowerOfTwoInt, libcimgui), Bool, (Cint,), v)
+function igImIsPowerOfTwo_Int(v)
+    ccall((:igImIsPowerOfTwo_Int, libcimgui), Bool, (Cint,), v)
 end
 
-function igImIsPowerOfTwoU64(v)
-    ccall((:igImIsPowerOfTwoU64, libcimgui), Bool, (ImU64,), v)
+function igImIsPowerOfTwo_U64(v)
+    ccall((:igImIsPowerOfTwo_U64, libcimgui), Bool, (ImU64,), v)
 end
 
 function igImUpperPowerOfTwo(v)
@@ -5879,6 +6785,28 @@ function igImStrSkipBlank(str)
     ccall((:igImStrSkipBlank, libcimgui), Ptr{Cchar}, (Ptr{Cchar},), str)
 end
 
+function igImToUpper(c)
+    ccall((:igImToUpper, libcimgui), Cchar, (Cchar,), c)
+end
+
+function igImCharIsBlankA(c)
+    ccall((:igImCharIsBlankA, libcimgui), Bool, (Cchar,), c)
+end
+
+function igImCharIsBlankW(c)
+    ccall((:igImCharIsBlankW, libcimgui), Bool, (Cuint,), c)
+end
+
+# automatic type deduction for variadic arguments may not be what you want, please use with caution
+@generated function igImFormatString(buf, buf_size, fmt, va_list...)
+        :(@ccall(libcimgui.igImFormatString(buf::Ptr{Cchar}, buf_size::Csize_t, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cint))
+    end
+
+# automatic type deduction for variadic arguments may not be what you want, please use with caution
+@generated function igImFormatStringToTempBuffer(out_buf, out_buf_end, fmt, va_list...)
+        :(@ccall(libcimgui.igImFormatStringToTempBuffer(out_buf::Ptr{Ptr{Cchar}}, out_buf_end::Ptr{Ptr{Cchar}}, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
+    end
+
 function igImParseFormatFindStart(format)
     ccall((:igImParseFormatFindStart, libcimgui), Ptr{Cchar}, (Ptr{Cchar},), format)
 end
@@ -5891,28 +6819,32 @@ function igImParseFormatTrimDecorations(format, buf, buf_size)
     ccall((:igImParseFormatTrimDecorations, libcimgui), Ptr{Cchar}, (Ptr{Cchar}, Ptr{Cchar}, Csize_t), format, buf, buf_size)
 end
 
+function igImParseFormatSanitizeForPrinting(fmt_in, fmt_out, fmt_out_size)
+    ccall((:igImParseFormatSanitizeForPrinting, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cchar}, Csize_t), fmt_in, fmt_out, fmt_out_size)
+end
+
+function igImParseFormatSanitizeForScanning(fmt_in, fmt_out, fmt_out_size)
+    ccall((:igImParseFormatSanitizeForScanning, libcimgui), Ptr{Cchar}, (Ptr{Cchar}, Ptr{Cchar}, Csize_t), fmt_in, fmt_out, fmt_out_size)
+end
+
 function igImParseFormatPrecision(format, default_value)
     ccall((:igImParseFormatPrecision, libcimgui), Cint, (Ptr{Cchar}, Cint), format, default_value)
 end
 
-function igImCharIsBlankA(c)
-    ccall((:igImCharIsBlankA, libcimgui), Bool, (Cchar,), c)
+function igImTextCharToUtf8(out_buf, c)
+    ccall((:igImTextCharToUtf8, libcimgui), Ptr{Cchar}, (Ptr{Cchar}, Cuint), out_buf, c)
 end
 
-function igImCharIsBlankW(c)
-    ccall((:igImCharIsBlankW, libcimgui), Bool, (Cuint,), c)
-end
-
-function igImTextStrToUtf8(buf, buf_size, in_text, in_text_end)
-    ccall((:igImTextStrToUtf8, libcimgui), Cint, (Ptr{Cchar}, Cint, Ptr{ImWchar}, Ptr{ImWchar}), buf, buf_size, in_text, in_text_end)
+function igImTextStrToUtf8(out_buf, out_buf_size, in_text, in_text_end)
+    ccall((:igImTextStrToUtf8, libcimgui), Cint, (Ptr{Cchar}, Cint, Ptr{ImWchar}, Ptr{ImWchar}), out_buf, out_buf_size, in_text, in_text_end)
 end
 
 function igImTextCharFromUtf8(out_char, in_text, in_text_end)
     ccall((:igImTextCharFromUtf8, libcimgui), Cint, (Ptr{Cuint}, Ptr{Cchar}, Ptr{Cchar}), out_char, in_text, in_text_end)
 end
 
-function igImTextStrFromUtf8(buf, buf_size, in_text, in_text_end, in_remaining)
-    ccall((:igImTextStrFromUtf8, libcimgui), Cint, (Ptr{ImWchar}, Cint, Ptr{Cchar}, Ptr{Cchar}, Ptr{Ptr{Cchar}}), buf, buf_size, in_text, in_text_end, in_remaining)
+function igImTextStrFromUtf8(out_buf, out_buf_size, in_text, in_text_end, in_remaining)
+    ccall((:igImTextStrFromUtf8, libcimgui), Cint, (Ptr{ImWchar}, Cint, Ptr{Cchar}, Ptr{Cchar}, Ptr{Ptr{Cchar}}), out_buf, out_buf_size, in_text, in_text_end, in_remaining)
 end
 
 function igImTextCountCharsFromUtf8(in_text, in_text_end)
@@ -5951,36 +6883,48 @@ function igImFileLoadToMemory(filename, mode, out_file_size, padding_bytes)
     ccall((:igImFileLoadToMemory, libcimgui), Ptr{Cvoid}, (Ptr{Cchar}, Ptr{Cchar}, Ptr{Csize_t}, Cint), filename, mode, out_file_size, padding_bytes)
 end
 
-function igImPowFloat(x, y)
-    ccall((:igImPowFloat, libcimgui), Cfloat, (Cfloat, Cfloat), x, y)
+function igImPow_Float(x, y)
+    ccall((:igImPow_Float, libcimgui), Cfloat, (Cfloat, Cfloat), x, y)
 end
 
-function igImPowdouble(x, y)
-    ccall((:igImPowdouble, libcimgui), Cdouble, (Cdouble, Cdouble), x, y)
+function igImPow_double(x, y)
+    ccall((:igImPow_double, libcimgui), Cdouble, (Cdouble, Cdouble), x, y)
 end
 
-function igImLogFloat(x)
-    ccall((:igImLogFloat, libcimgui), Cfloat, (Cfloat,), x)
+function igImLog_Float(x)
+    ccall((:igImLog_Float, libcimgui), Cfloat, (Cfloat,), x)
 end
 
-function igImLogdouble(x)
-    ccall((:igImLogdouble, libcimgui), Cdouble, (Cdouble,), x)
+function igImLog_double(x)
+    ccall((:igImLog_double, libcimgui), Cdouble, (Cdouble,), x)
 end
 
-function igImAbsFloat(x)
-    ccall((:igImAbsFloat, libcimgui), Cfloat, (Cfloat,), x)
+function igImAbs_Int(x)
+    ccall((:igImAbs_Int, libcimgui), Cint, (Cint,), x)
 end
 
-function igImAbsdouble(x)
-    ccall((:igImAbsdouble, libcimgui), Cdouble, (Cdouble,), x)
+function igImAbs_Float(x)
+    ccall((:igImAbs_Float, libcimgui), Cfloat, (Cfloat,), x)
 end
 
-function igImSignFloat(x)
-    ccall((:igImSignFloat, libcimgui), Cfloat, (Cfloat,), x)
+function igImAbs_double(x)
+    ccall((:igImAbs_double, libcimgui), Cdouble, (Cdouble,), x)
 end
 
-function igImSigndouble(x)
-    ccall((:igImSigndouble, libcimgui), Cdouble, (Cdouble,), x)
+function igImSign_Float(x)
+    ccall((:igImSign_Float, libcimgui), Cfloat, (Cfloat,), x)
+end
+
+function igImSign_double(x)
+    ccall((:igImSign_double, libcimgui), Cdouble, (Cdouble,), x)
+end
+
+function igImRsqrt_Float(x)
+    ccall((:igImRsqrt_Float, libcimgui), Cfloat, (Cfloat,), x)
+end
+
+function igImRsqrt_double(x)
+    ccall((:igImRsqrt_double, libcimgui), Cdouble, (Cdouble,), x)
 end
 
 function igImMin(pOut, lhs, rhs)
@@ -5995,40 +6939,48 @@ function igImClamp(pOut, v, mn, mx)
     ccall((:igImClamp, libcimgui), Cvoid, (Ptr{ImVec2}, ImVec2, ImVec2, ImVec2), pOut, v, mn, mx)
 end
 
-function igImLerpVec2Float(pOut, a, b, t)
-    ccall((:igImLerpVec2Float, libcimgui), Cvoid, (Ptr{ImVec2}, ImVec2, ImVec2, Cfloat), pOut, a, b, t)
+function igImLerp_Vec2Float(pOut, a, b, t)
+    ccall((:igImLerp_Vec2Float, libcimgui), Cvoid, (Ptr{ImVec2}, ImVec2, ImVec2, Cfloat), pOut, a, b, t)
 end
 
-function igImLerpVec2Vec2(pOut, a, b, t)
-    ccall((:igImLerpVec2Vec2, libcimgui), Cvoid, (Ptr{ImVec2}, ImVec2, ImVec2, ImVec2), pOut, a, b, t)
+function igImLerp_Vec2Vec2(pOut, a, b, t)
+    ccall((:igImLerp_Vec2Vec2, libcimgui), Cvoid, (Ptr{ImVec2}, ImVec2, ImVec2, ImVec2), pOut, a, b, t)
 end
 
-function igImLerpVec4(pOut, a, b, t)
-    ccall((:igImLerpVec4, libcimgui), Cvoid, (Ptr{ImVec4}, ImVec4, ImVec4, Cfloat), pOut, a, b, t)
+function igImLerp_Vec4(pOut, a, b, t)
+    ccall((:igImLerp_Vec4, libcimgui), Cvoid, (Ptr{ImVec4}, ImVec4, ImVec4, Cfloat), pOut, a, b, t)
 end
 
 function igImSaturate(f)
     ccall((:igImSaturate, libcimgui), Cfloat, (Cfloat,), f)
 end
 
-function igImLengthSqrVec2(lhs)
-    ccall((:igImLengthSqrVec2, libcimgui), Cfloat, (ImVec2,), lhs)
+function igImLengthSqr_Vec2(lhs)
+    ccall((:igImLengthSqr_Vec2, libcimgui), Cfloat, (ImVec2,), lhs)
 end
 
-function igImLengthSqrVec4(lhs)
-    ccall((:igImLengthSqrVec4, libcimgui), Cfloat, (ImVec4,), lhs)
+function igImLengthSqr_Vec4(lhs)
+    ccall((:igImLengthSqr_Vec4, libcimgui), Cfloat, (ImVec4,), lhs)
 end
 
 function igImInvLength(lhs, fail_value)
     ccall((:igImInvLength, libcimgui), Cfloat, (ImVec2, Cfloat), lhs, fail_value)
 end
 
-function igImFloorFloat(f)
-    ccall((:igImFloorFloat, libcimgui), Cfloat, (Cfloat,), f)
+function igImFloor_Float(f)
+    ccall((:igImFloor_Float, libcimgui), Cfloat, (Cfloat,), f)
 end
 
-function igImFloorVec2(pOut, v)
-    ccall((:igImFloorVec2, libcimgui), Cvoid, (Ptr{ImVec2}, ImVec2), pOut, v)
+function igImFloorSigned_Float(f)
+    ccall((:igImFloorSigned_Float, libcimgui), Cfloat, (Cfloat,), f)
+end
+
+function igImFloor_Vec2(pOut, v)
+    ccall((:igImFloor_Vec2, libcimgui), Cvoid, (Ptr{ImVec2}, ImVec2), pOut, v)
+end
+
+function igImFloorSigned_Vec2(pOut, v)
+    ccall((:igImFloorSigned_Vec2, libcimgui), Cvoid, (Ptr{ImVec2}, ImVec2), pOut, v)
 end
 
 function igImModPositive(a, b)
@@ -6049,6 +7001,14 @@ end
 
 function igImMul(pOut, lhs, rhs)
     ccall((:igImMul, libcimgui), Cvoid, (Ptr{ImVec2}, ImVec2, ImVec2), pOut, lhs, rhs)
+end
+
+function igImIsFloatAboveGuaranteedIntegerPrecision(f)
+    ccall((:igImIsFloatAboveGuaranteedIntegerPrecision, libcimgui), Bool, (Cfloat,), f)
+end
+
+function igImExponentialMovingAverage(avg, sample, n)
+    ccall((:igImExponentialMovingAverage, libcimgui), Cfloat, (Cfloat, Cfloat, Cint), avg, sample, n)
 end
 
 function igImBezierCubicCalc(pOut, p1, p2, p3, p4, t)
@@ -6091,52 +7051,52 @@ function igImGetDirQuadrantFromDelta(dx, dy)
     ccall((:igImGetDirQuadrantFromDelta, libcimgui), ImGuiDir, (Cfloat, Cfloat), dx, dy)
 end
 
-function ImVec1_ImVec1Nil()
-    ccall((:ImVec1_ImVec1Nil, libcimgui), Ptr{ImVec1}, ())
+function ImVec1_ImVec1_Nil()
+    ccall((:ImVec1_ImVec1_Nil, libcimgui), Ptr{ImVec1}, ())
 end
 
 function ImVec1_destroy(self)
     ccall((:ImVec1_destroy, libcimgui), Cvoid, (Ptr{ImVec1},), self)
 end
 
-function ImVec1_ImVec1Float(_x)
-    ccall((:ImVec1_ImVec1Float, libcimgui), Ptr{ImVec1}, (Cfloat,), _x)
+function ImVec1_ImVec1_Float(_x)
+    ccall((:ImVec1_ImVec1_Float, libcimgui), Ptr{ImVec1}, (Cfloat,), _x)
 end
 
-function ImVec2ih_ImVec2ihNil()
-    ccall((:ImVec2ih_ImVec2ihNil, libcimgui), Ptr{ImVec2ih}, ())
+function ImVec2ih_ImVec2ih_Nil()
+    ccall((:ImVec2ih_ImVec2ih_Nil, libcimgui), Ptr{ImVec2ih}, ())
 end
 
 function ImVec2ih_destroy(self)
     ccall((:ImVec2ih_destroy, libcimgui), Cvoid, (Ptr{ImVec2ih},), self)
 end
 
-function ImVec2ih_ImVec2ihshort(_x, _y)
-    ccall((:ImVec2ih_ImVec2ihshort, libcimgui), Ptr{ImVec2ih}, (Cshort, Cshort), _x, _y)
+function ImVec2ih_ImVec2ih_short(_x, _y)
+    ccall((:ImVec2ih_ImVec2ih_short, libcimgui), Ptr{ImVec2ih}, (Cshort, Cshort), _x, _y)
 end
 
-function ImVec2ih_ImVec2ihVec2(rhs)
-    ccall((:ImVec2ih_ImVec2ihVec2, libcimgui), Ptr{ImVec2ih}, (ImVec2,), rhs)
+function ImVec2ih_ImVec2ih_Vec2(rhs)
+    ccall((:ImVec2ih_ImVec2ih_Vec2, libcimgui), Ptr{ImVec2ih}, (ImVec2,), rhs)
 end
 
-function ImRect_ImRectNil()
-    ccall((:ImRect_ImRectNil, libcimgui), Ptr{ImRect}, ())
+function ImRect_ImRect_Nil()
+    ccall((:ImRect_ImRect_Nil, libcimgui), Ptr{ImRect}, ())
 end
 
 function ImRect_destroy(self)
     ccall((:ImRect_destroy, libcimgui), Cvoid, (Ptr{ImRect},), self)
 end
 
-function ImRect_ImRectVec2(min, max)
-    ccall((:ImRect_ImRectVec2, libcimgui), Ptr{ImRect}, (ImVec2, ImVec2), min, max)
+function ImRect_ImRect_Vec2(min, max)
+    ccall((:ImRect_ImRect_Vec2, libcimgui), Ptr{ImRect}, (ImVec2, ImVec2), min, max)
 end
 
-function ImRect_ImRectVec4(v)
-    ccall((:ImRect_ImRectVec4, libcimgui), Ptr{ImRect}, (ImVec4,), v)
+function ImRect_ImRect_Vec4(v)
+    ccall((:ImRect_ImRect_Vec4, libcimgui), Ptr{ImRect}, (ImVec4,), v)
 end
 
-function ImRect_ImRectFloat(x1, y1, x2, y2)
-    ccall((:ImRect_ImRectFloat, libcimgui), Ptr{ImRect}, (Cfloat, Cfloat, Cfloat, Cfloat), x1, y1, x2, y2)
+function ImRect_ImRect_Float(x1, y1, x2, y2)
+    ccall((:ImRect_ImRect_Float, libcimgui), Ptr{ImRect}, (Cfloat, Cfloat, Cfloat, Cfloat), x1, y1, x2, y2)
 end
 
 function ImRect_GetCenter(pOut, self)
@@ -6175,32 +7135,32 @@ function ImRect_GetBR(pOut, self)
     ccall((:ImRect_GetBR, libcimgui), Cvoid, (Ptr{ImVec2}, Ptr{ImRect}), pOut, self)
 end
 
-function ImRect_ContainsVec2(self, p)
-    ccall((:ImRect_ContainsVec2, libcimgui), Bool, (Ptr{ImRect}, ImVec2), self, p)
+function ImRect_Contains_Vec2(self, p)
+    ccall((:ImRect_Contains_Vec2, libcimgui), Bool, (Ptr{ImRect}, ImVec2), self, p)
 end
 
-function ImRect_ContainsRect(self, r)
-    ccall((:ImRect_ContainsRect, libcimgui), Bool, (Ptr{ImRect}, ImRect), self, r)
+function ImRect_Contains_Rect(self, r)
+    ccall((:ImRect_Contains_Rect, libcimgui), Bool, (Ptr{ImRect}, ImRect), self, r)
 end
 
 function ImRect_Overlaps(self, r)
     ccall((:ImRect_Overlaps, libcimgui), Bool, (Ptr{ImRect}, ImRect), self, r)
 end
 
-function ImRect_AddVec2(self, p)
-    ccall((:ImRect_AddVec2, libcimgui), Cvoid, (Ptr{ImRect}, ImVec2), self, p)
+function ImRect_Add_Vec2(self, p)
+    ccall((:ImRect_Add_Vec2, libcimgui), Cvoid, (Ptr{ImRect}, ImVec2), self, p)
 end
 
-function ImRect_AddRect(self, r)
-    ccall((:ImRect_AddRect, libcimgui), Cvoid, (Ptr{ImRect}, ImRect), self, r)
+function ImRect_Add_Rect(self, r)
+    ccall((:ImRect_Add_Rect, libcimgui), Cvoid, (Ptr{ImRect}, ImRect), self, r)
 end
 
-function ImRect_ExpandFloat(self, amount)
-    ccall((:ImRect_ExpandFloat, libcimgui), Cvoid, (Ptr{ImRect}, Cfloat), self, amount)
+function ImRect_Expand_Float(self, amount)
+    ccall((:ImRect_Expand_Float, libcimgui), Cvoid, (Ptr{ImRect}, Cfloat), self, amount)
 end
 
-function ImRect_ExpandVec2(self, amount)
-    ccall((:ImRect_ExpandVec2, libcimgui), Cvoid, (Ptr{ImRect}, ImVec2), self, amount)
+function ImRect_Expand_Vec2(self, amount)
+    ccall((:ImRect_Expand_Vec2, libcimgui), Cvoid, (Ptr{ImRect}, ImVec2), self, amount)
 end
 
 function ImRect_Translate(self, d)
@@ -6233,6 +7193,14 @@ end
 
 function ImRect_ToVec4(pOut, self)
     ccall((:ImRect_ToVec4, libcimgui), Cvoid, (Ptr{ImVec4}, Ptr{ImRect}), pOut, self)
+end
+
+function igImBitArrayGetStorageSizeInBytes(bitcount)
+    ccall((:igImBitArrayGetStorageSizeInBytes, libcimgui), Csize_t, (Cint,), bitcount)
+end
+
+function igImBitArrayClearAllBits(arr, bitcount)
+    ccall((:igImBitArrayClearAllBits, libcimgui), Cvoid, (Ptr{ImU32}, Cint), arr, bitcount)
 end
 
 function igImBitArrayTestBit(arr, n)
@@ -6271,6 +7239,26 @@ function ImBitVector_ClearBit(self, n)
     ccall((:ImBitVector_ClearBit, libcimgui), Cvoid, (Ptr{ImBitVector}, Cint), self, n)
 end
 
+function ImGuiTextIndex_clear(self)
+    ccall((:ImGuiTextIndex_clear, libcimgui), Cvoid, (Ptr{ImGuiTextIndex},), self)
+end
+
+function ImGuiTextIndex_size(self)
+    ccall((:ImGuiTextIndex_size, libcimgui), Cint, (Ptr{ImGuiTextIndex},), self)
+end
+
+function ImGuiTextIndex_get_line_begin(self, base, n)
+    ccall((:ImGuiTextIndex_get_line_begin, libcimgui), Ptr{Cchar}, (Ptr{ImGuiTextIndex}, Ptr{Cchar}, Cint), self, base, n)
+end
+
+function ImGuiTextIndex_get_line_end(self, base, n)
+    ccall((:ImGuiTextIndex_get_line_end, libcimgui), Ptr{Cchar}, (Ptr{ImGuiTextIndex}, Ptr{Cchar}, Cint), self, base, n)
+end
+
+function ImGuiTextIndex_append(self, base, old_size, new_size)
+    ccall((:ImGuiTextIndex_append, libcimgui), Cvoid, (Ptr{ImGuiTextIndex}, Ptr{Cchar}, Cint, Cint), self, base, old_size, new_size)
+end
+
 function ImDrawListSharedData_ImDrawListSharedData()
     ccall((:ImDrawListSharedData_ImDrawListSharedData, libcimgui), Ptr{ImDrawListSharedData}, ())
 end
@@ -6299,20 +7287,32 @@ function ImDrawDataBuilder_FlattenIntoSingleLayer(self)
     ccall((:ImDrawDataBuilder_FlattenIntoSingleLayer, libcimgui), Cvoid, (Ptr{ImDrawDataBuilder},), self)
 end
 
-function ImGuiStyleMod_ImGuiStyleModInt(idx, v)
-    ccall((:ImGuiStyleMod_ImGuiStyleModInt, libcimgui), Ptr{ImGuiStyleMod}, (ImGuiStyleVar, Cint), idx, v)
+function ImGuiDataVarInfo_GetVarPtr(self, parent)
+    ccall((:ImGuiDataVarInfo_GetVarPtr, libcimgui), Ptr{Cvoid}, (Ptr{ImGuiDataVarInfo}, Ptr{Cvoid}), self, parent)
+end
+
+function ImGuiStyleMod_ImGuiStyleMod_Int(idx, v)
+    ccall((:ImGuiStyleMod_ImGuiStyleMod_Int, libcimgui), Ptr{ImGuiStyleMod}, (ImGuiStyleVar, Cint), idx, v)
 end
 
 function ImGuiStyleMod_destroy(self)
     ccall((:ImGuiStyleMod_destroy, libcimgui), Cvoid, (Ptr{ImGuiStyleMod},), self)
 end
 
-function ImGuiStyleMod_ImGuiStyleModFloat(idx, v)
-    ccall((:ImGuiStyleMod_ImGuiStyleModFloat, libcimgui), Ptr{ImGuiStyleMod}, (ImGuiStyleVar, Cfloat), idx, v)
+function ImGuiStyleMod_ImGuiStyleMod_Float(idx, v)
+    ccall((:ImGuiStyleMod_ImGuiStyleMod_Float, libcimgui), Ptr{ImGuiStyleMod}, (ImGuiStyleVar, Cfloat), idx, v)
 end
 
-function ImGuiStyleMod_ImGuiStyleModVec2(idx, v)
-    ccall((:ImGuiStyleMod_ImGuiStyleModVec2, libcimgui), Ptr{ImGuiStyleMod}, (ImGuiStyleVar, ImVec2), idx, v)
+function ImGuiStyleMod_ImGuiStyleMod_Vec2(idx, v)
+    ccall((:ImGuiStyleMod_ImGuiStyleMod_Vec2, libcimgui), Ptr{ImGuiStyleMod}, (ImGuiStyleVar, ImVec2), idx, v)
+end
+
+function ImGuiComboPreviewData_ImGuiComboPreviewData()
+    ccall((:ImGuiComboPreviewData_ImGuiComboPreviewData, libcimgui), Ptr{ImGuiComboPreviewData}, ())
+end
+
+function ImGuiComboPreviewData_destroy(self)
+    ccall((:ImGuiComboPreviewData_destroy, libcimgui), Cvoid, (Ptr{ImGuiComboPreviewData},), self)
 end
 
 function ImGuiMenuColumns_ImGuiMenuColumns()
@@ -6323,16 +7323,16 @@ function ImGuiMenuColumns_destroy(self)
     ccall((:ImGuiMenuColumns_destroy, libcimgui), Cvoid, (Ptr{ImGuiMenuColumns},), self)
 end
 
-function ImGuiMenuColumns_Update(self, count, spacing, clear)
-    ccall((:ImGuiMenuColumns_Update, libcimgui), Cvoid, (Ptr{ImGuiMenuColumns}, Cint, Cfloat, Bool), self, count, spacing, clear)
+function ImGuiMenuColumns_Update(self, spacing, window_reappearing)
+    ccall((:ImGuiMenuColumns_Update, libcimgui), Cvoid, (Ptr{ImGuiMenuColumns}, Cfloat, Bool), self, spacing, window_reappearing)
 end
 
-function ImGuiMenuColumns_DeclColumns(self, w0, w1, w2)
-    ccall((:ImGuiMenuColumns_DeclColumns, libcimgui), Cfloat, (Ptr{ImGuiMenuColumns}, Cfloat, Cfloat, Cfloat), self, w0, w1, w2)
+function ImGuiMenuColumns_DeclColumns(self, w_icon, w_label, w_shortcut, w_mark)
+    ccall((:ImGuiMenuColumns_DeclColumns, libcimgui), Cfloat, (Ptr{ImGuiMenuColumns}, Cfloat, Cfloat, Cfloat, Cfloat), self, w_icon, w_label, w_shortcut, w_mark)
 end
 
-function ImGuiMenuColumns_CalcExtraSpace(self, avail_w)
-    ccall((:ImGuiMenuColumns_CalcExtraSpace, libcimgui), Cfloat, (Ptr{ImGuiMenuColumns}, Cfloat), self, avail_w)
+function ImGuiMenuColumns_CalcNextTotalWidth(self, update_offsets)
+    ccall((:ImGuiMenuColumns_CalcNextTotalWidth, libcimgui), Cvoid, (Ptr{ImGuiMenuColumns}, Bool), self, update_offsets)
 end
 
 function ImGuiInputTextState_ImGuiInputTextState()
@@ -6379,6 +7379,18 @@ function ImGuiInputTextState_ClearSelection(self)
     ccall((:ImGuiInputTextState_ClearSelection, libcimgui), Cvoid, (Ptr{ImGuiInputTextState},), self)
 end
 
+function ImGuiInputTextState_GetCursorPos(self)
+    ccall((:ImGuiInputTextState_GetCursorPos, libcimgui), Cint, (Ptr{ImGuiInputTextState},), self)
+end
+
+function ImGuiInputTextState_GetSelectionStart(self)
+    ccall((:ImGuiInputTextState_GetSelectionStart, libcimgui), Cint, (Ptr{ImGuiInputTextState},), self)
+end
+
+function ImGuiInputTextState_GetSelectionEnd(self)
+    ccall((:ImGuiInputTextState_GetSelectionEnd, libcimgui), Cint, (Ptr{ImGuiInputTextState},), self)
+end
+
 function ImGuiInputTextState_SelectAll(self)
     ccall((:ImGuiInputTextState_SelectAll, libcimgui), Cvoid, (Ptr{ImGuiInputTextState},), self)
 end
@@ -6389,18 +7401,6 @@ end
 
 function ImGuiPopupData_destroy(self)
     ccall((:ImGuiPopupData_destroy, libcimgui), Cvoid, (Ptr{ImGuiPopupData},), self)
-end
-
-function ImGuiNavMoveResult_ImGuiNavMoveResult()
-    ccall((:ImGuiNavMoveResult_ImGuiNavMoveResult, libcimgui), Ptr{ImGuiNavMoveResult}, ())
-end
-
-function ImGuiNavMoveResult_destroy(self)
-    ccall((:ImGuiNavMoveResult_destroy, libcimgui), Cvoid, (Ptr{ImGuiNavMoveResult},), self)
-end
-
-function ImGuiNavMoveResult_Clear(self)
-    ccall((:ImGuiNavMoveResult_Clear, libcimgui), Cvoid, (Ptr{ImGuiNavMoveResult},), self)
 end
 
 function ImGuiNextWindowData_ImGuiNextWindowData()
@@ -6427,16 +7427,108 @@ function ImGuiNextItemData_ClearFlags(self)
     ccall((:ImGuiNextItemData_ClearFlags, libcimgui), Cvoid, (Ptr{ImGuiNextItemData},), self)
 end
 
-function ImGuiPtrOrIndex_ImGuiPtrOrIndexPtr(ptr)
-    ccall((:ImGuiPtrOrIndex_ImGuiPtrOrIndexPtr, libcimgui), Ptr{ImGuiPtrOrIndex}, (Ptr{Cvoid},), ptr)
+function ImGuiLastItemData_ImGuiLastItemData()
+    ccall((:ImGuiLastItemData_ImGuiLastItemData, libcimgui), Ptr{ImGuiLastItemData}, ())
+end
+
+function ImGuiLastItemData_destroy(self)
+    ccall((:ImGuiLastItemData_destroy, libcimgui), Cvoid, (Ptr{ImGuiLastItemData},), self)
+end
+
+function ImGuiStackSizes_ImGuiStackSizes()
+    ccall((:ImGuiStackSizes_ImGuiStackSizes, libcimgui), Ptr{ImGuiStackSizes}, ())
+end
+
+function ImGuiStackSizes_destroy(self)
+    ccall((:ImGuiStackSizes_destroy, libcimgui), Cvoid, (Ptr{ImGuiStackSizes},), self)
+end
+
+function ImGuiStackSizes_SetToContextState(self, ctx)
+    ccall((:ImGuiStackSizes_SetToContextState, libcimgui), Cvoid, (Ptr{ImGuiStackSizes}, Ptr{ImGuiContext}), self, ctx)
+end
+
+function ImGuiStackSizes_CompareWithContextState(self, ctx)
+    ccall((:ImGuiStackSizes_CompareWithContextState, libcimgui), Cvoid, (Ptr{ImGuiStackSizes}, Ptr{ImGuiContext}), self, ctx)
+end
+
+function ImGuiPtrOrIndex_ImGuiPtrOrIndex_Ptr(ptr)
+    ccall((:ImGuiPtrOrIndex_ImGuiPtrOrIndex_Ptr, libcimgui), Ptr{ImGuiPtrOrIndex}, (Ptr{Cvoid},), ptr)
 end
 
 function ImGuiPtrOrIndex_destroy(self)
     ccall((:ImGuiPtrOrIndex_destroy, libcimgui), Cvoid, (Ptr{ImGuiPtrOrIndex},), self)
 end
 
-function ImGuiPtrOrIndex_ImGuiPtrOrIndexInt(index)
-    ccall((:ImGuiPtrOrIndex_ImGuiPtrOrIndexInt, libcimgui), Ptr{ImGuiPtrOrIndex}, (Cint,), index)
+function ImGuiPtrOrIndex_ImGuiPtrOrIndex_Int(index)
+    ccall((:ImGuiPtrOrIndex_ImGuiPtrOrIndex_Int, libcimgui), Ptr{ImGuiPtrOrIndex}, (Cint,), index)
+end
+
+function ImGuiInputEvent_ImGuiInputEvent()
+    ccall((:ImGuiInputEvent_ImGuiInputEvent, libcimgui), Ptr{ImGuiInputEvent}, ())
+end
+
+function ImGuiInputEvent_destroy(self)
+    ccall((:ImGuiInputEvent_destroy, libcimgui), Cvoid, (Ptr{ImGuiInputEvent},), self)
+end
+
+function ImGuiKeyRoutingData_ImGuiKeyRoutingData()
+    ccall((:ImGuiKeyRoutingData_ImGuiKeyRoutingData, libcimgui), Ptr{ImGuiKeyRoutingData}, ())
+end
+
+function ImGuiKeyRoutingData_destroy(self)
+    ccall((:ImGuiKeyRoutingData_destroy, libcimgui), Cvoid, (Ptr{ImGuiKeyRoutingData},), self)
+end
+
+function ImGuiKeyRoutingTable_ImGuiKeyRoutingTable()
+    ccall((:ImGuiKeyRoutingTable_ImGuiKeyRoutingTable, libcimgui), Ptr{ImGuiKeyRoutingTable}, ())
+end
+
+function ImGuiKeyRoutingTable_destroy(self)
+    ccall((:ImGuiKeyRoutingTable_destroy, libcimgui), Cvoid, (Ptr{ImGuiKeyRoutingTable},), self)
+end
+
+function ImGuiKeyRoutingTable_Clear(self)
+    ccall((:ImGuiKeyRoutingTable_Clear, libcimgui), Cvoid, (Ptr{ImGuiKeyRoutingTable},), self)
+end
+
+function ImGuiKeyOwnerData_ImGuiKeyOwnerData()
+    ccall((:ImGuiKeyOwnerData_ImGuiKeyOwnerData, libcimgui), Ptr{ImGuiKeyOwnerData}, ())
+end
+
+function ImGuiKeyOwnerData_destroy(self)
+    ccall((:ImGuiKeyOwnerData_destroy, libcimgui), Cvoid, (Ptr{ImGuiKeyOwnerData},), self)
+end
+
+function ImGuiListClipperRange_FromIndices(min, max)
+    ccall((:ImGuiListClipperRange_FromIndices, libcimgui), ImGuiListClipperRange, (Cint, Cint), min, max)
+end
+
+function ImGuiListClipperRange_FromPositions(y1, y2, off_min, off_max)
+    ccall((:ImGuiListClipperRange_FromPositions, libcimgui), ImGuiListClipperRange, (Cfloat, Cfloat, Cint, Cint), y1, y2, off_min, off_max)
+end
+
+function ImGuiListClipperData_ImGuiListClipperData()
+    ccall((:ImGuiListClipperData_ImGuiListClipperData, libcimgui), Ptr{ImGuiListClipperData}, ())
+end
+
+function ImGuiListClipperData_destroy(self)
+    ccall((:ImGuiListClipperData_destroy, libcimgui), Cvoid, (Ptr{ImGuiListClipperData},), self)
+end
+
+function ImGuiListClipperData_Reset(self, clipper)
+    ccall((:ImGuiListClipperData_Reset, libcimgui), Cvoid, (Ptr{ImGuiListClipperData}, Ptr{ImGuiListClipper}), self, clipper)
+end
+
+function ImGuiNavItemData_ImGuiNavItemData()
+    ccall((:ImGuiNavItemData_ImGuiNavItemData, libcimgui), Ptr{ImGuiNavItemData}, ())
+end
+
+function ImGuiNavItemData_destroy(self)
+    ccall((:ImGuiNavItemData_destroy, libcimgui), Cvoid, (Ptr{ImGuiNavItemData},), self)
+end
+
+function ImGuiNavItemData_Clear(self)
+    ccall((:ImGuiNavItemData_Clear, libcimgui), Cvoid, (Ptr{ImGuiNavItemData},), self)
 end
 
 function ImGuiOldColumnData_ImGuiOldColumnData()
@@ -6499,12 +7591,16 @@ function ImGuiDockNode_IsEmpty(self)
     ccall((:ImGuiDockNode_IsEmpty, libcimgui), Bool, (Ptr{ImGuiDockNode},), self)
 end
 
-function ImGuiDockNode_GetMergedFlags(self)
-    ccall((:ImGuiDockNode_GetMergedFlags, libcimgui), ImGuiDockNodeFlags, (Ptr{ImGuiDockNode},), self)
-end
-
 function ImGuiDockNode_Rect(pOut, self)
     ccall((:ImGuiDockNode_Rect, libcimgui), Cvoid, (Ptr{ImRect}, Ptr{ImGuiDockNode}), pOut, self)
+end
+
+function ImGuiDockNode_SetLocalFlags(self, flags)
+    ccall((:ImGuiDockNode_SetLocalFlags, libcimgui), Cvoid, (Ptr{ImGuiDockNode}, ImGuiDockNodeFlags), self, flags)
+end
+
+function ImGuiDockNode_UpdateMergedFlags(self)
+    ccall((:ImGuiDockNode_UpdateMergedFlags, libcimgui), Cvoid, (Ptr{ImGuiDockNode},), self)
 end
 
 function ImGuiDockContext_ImGuiDockContext()
@@ -6523,6 +7619,22 @@ function ImGuiViewportP_destroy(self)
     ccall((:ImGuiViewportP_destroy, libcimgui), Cvoid, (Ptr{ImGuiViewportP},), self)
 end
 
+function ImGuiViewportP_ClearRequestFlags(self)
+    ccall((:ImGuiViewportP_ClearRequestFlags, libcimgui), Cvoid, (Ptr{ImGuiViewportP},), self)
+end
+
+function ImGuiViewportP_CalcWorkRectPos(pOut, self, off_min)
+    ccall((:ImGuiViewportP_CalcWorkRectPos, libcimgui), Cvoid, (Ptr{ImVec2}, Ptr{ImGuiViewportP}, ImVec2), pOut, self, off_min)
+end
+
+function ImGuiViewportP_CalcWorkRectSize(pOut, self, off_min, off_max)
+    ccall((:ImGuiViewportP_CalcWorkRectSize, libcimgui), Cvoid, (Ptr{ImVec2}, Ptr{ImGuiViewportP}, ImVec2, ImVec2), pOut, self, off_min, off_max)
+end
+
+function ImGuiViewportP_UpdateWorkRect(self)
+    ccall((:ImGuiViewportP_UpdateWorkRect, libcimgui), Cvoid, (Ptr{ImGuiViewportP},), self)
+end
+
 function ImGuiViewportP_GetMainRect(pOut, self)
     ccall((:ImGuiViewportP_GetMainRect, libcimgui), Cvoid, (Ptr{ImRect}, Ptr{ImGuiViewportP}), pOut, self)
 end
@@ -6531,12 +7643,8 @@ function ImGuiViewportP_GetWorkRect(pOut, self)
     ccall((:ImGuiViewportP_GetWorkRect, libcimgui), Cvoid, (Ptr{ImRect}, Ptr{ImGuiViewportP}), pOut, self)
 end
 
-function ImGuiViewportP_UpdateWorkRect(self)
-    ccall((:ImGuiViewportP_UpdateWorkRect, libcimgui), Cvoid, (Ptr{ImGuiViewportP},), self)
-end
-
-function ImGuiViewportP_ClearRequestFlags(self)
-    ccall((:ImGuiViewportP_ClearRequestFlags, libcimgui), Cvoid, (Ptr{ImGuiViewportP},), self)
+function ImGuiViewportP_GetBuildWorkRect(pOut, self)
+    ccall((:ImGuiViewportP_GetBuildWorkRect, libcimgui), Cvoid, (Ptr{ImRect}, Ptr{ImGuiViewportP}), pOut, self)
 end
 
 function ImGuiWindowSettings_ImGuiWindowSettings()
@@ -6559,28 +7667,20 @@ function ImGuiSettingsHandler_destroy(self)
     ccall((:ImGuiSettingsHandler_destroy, libcimgui), Cvoid, (Ptr{ImGuiSettingsHandler},), self)
 end
 
-function ImGuiMetricsConfig_ImGuiMetricsConfig()
-    ccall((:ImGuiMetricsConfig_ImGuiMetricsConfig, libcimgui), Ptr{ImGuiMetricsConfig}, ())
+function ImGuiStackLevelInfo_ImGuiStackLevelInfo()
+    ccall((:ImGuiStackLevelInfo_ImGuiStackLevelInfo, libcimgui), Ptr{ImGuiStackLevelInfo}, ())
 end
 
-function ImGuiMetricsConfig_destroy(self)
-    ccall((:ImGuiMetricsConfig_destroy, libcimgui), Cvoid, (Ptr{ImGuiMetricsConfig},), self)
+function ImGuiStackLevelInfo_destroy(self)
+    ccall((:ImGuiStackLevelInfo_destroy, libcimgui), Cvoid, (Ptr{ImGuiStackLevelInfo},), self)
 end
 
-function ImGuiStackSizes_ImGuiStackSizes()
-    ccall((:ImGuiStackSizes_ImGuiStackSizes, libcimgui), Ptr{ImGuiStackSizes}, ())
+function ImGuiStackTool_ImGuiStackTool()
+    ccall((:ImGuiStackTool_ImGuiStackTool, libcimgui), Ptr{ImGuiStackTool}, ())
 end
 
-function ImGuiStackSizes_destroy(self)
-    ccall((:ImGuiStackSizes_destroy, libcimgui), Cvoid, (Ptr{ImGuiStackSizes},), self)
-end
-
-function ImGuiStackSizes_SetToCurrentState(self)
-    ccall((:ImGuiStackSizes_SetToCurrentState, libcimgui), Cvoid, (Ptr{ImGuiStackSizes},), self)
-end
-
-function ImGuiStackSizes_CompareWithCurrentState(self)
-    ccall((:ImGuiStackSizes_CompareWithCurrentState, libcimgui), Cvoid, (Ptr{ImGuiStackSizes},), self)
+function ImGuiStackTool_destroy(self)
+    ccall((:ImGuiStackTool_destroy, libcimgui), Cvoid, (Ptr{ImGuiStackTool},), self)
 end
 
 function ImGuiContextHook_ImGuiContextHook()
@@ -6607,28 +7707,16 @@ function ImGuiWindow_destroy(self)
     ccall((:ImGuiWindow_destroy, libcimgui), Cvoid, (Ptr{ImGuiWindow},), self)
 end
 
-function ImGuiWindow_GetIDStr(self, str, str_end)
-    ccall((:ImGuiWindow_GetIDStr, libcimgui), ImGuiID, (Ptr{ImGuiWindow}, Ptr{Cchar}, Ptr{Cchar}), self, str, str_end)
+function ImGuiWindow_GetID_Str(self, str, str_end)
+    ccall((:ImGuiWindow_GetID_Str, libcimgui), ImGuiID, (Ptr{ImGuiWindow}, Ptr{Cchar}, Ptr{Cchar}), self, str, str_end)
 end
 
-function ImGuiWindow_GetIDPtr(self, ptr)
-    ccall((:ImGuiWindow_GetIDPtr, libcimgui), ImGuiID, (Ptr{ImGuiWindow}, Ptr{Cvoid}), self, ptr)
+function ImGuiWindow_GetID_Ptr(self, ptr)
+    ccall((:ImGuiWindow_GetID_Ptr, libcimgui), ImGuiID, (Ptr{ImGuiWindow}, Ptr{Cvoid}), self, ptr)
 end
 
-function ImGuiWindow_GetIDInt(self, n)
-    ccall((:ImGuiWindow_GetIDInt, libcimgui), ImGuiID, (Ptr{ImGuiWindow}, Cint), self, n)
-end
-
-function ImGuiWindow_GetIDNoKeepAliveStr(self, str, str_end)
-    ccall((:ImGuiWindow_GetIDNoKeepAliveStr, libcimgui), ImGuiID, (Ptr{ImGuiWindow}, Ptr{Cchar}, Ptr{Cchar}), self, str, str_end)
-end
-
-function ImGuiWindow_GetIDNoKeepAlivePtr(self, ptr)
-    ccall((:ImGuiWindow_GetIDNoKeepAlivePtr, libcimgui), ImGuiID, (Ptr{ImGuiWindow}, Ptr{Cvoid}), self, ptr)
-end
-
-function ImGuiWindow_GetIDNoKeepAliveInt(self, n)
-    ccall((:ImGuiWindow_GetIDNoKeepAliveInt, libcimgui), ImGuiID, (Ptr{ImGuiWindow}, Cint), self, n)
+function ImGuiWindow_GetID_Int(self, n)
+    ccall((:ImGuiWindow_GetID_Int, libcimgui), ImGuiID, (Ptr{ImGuiWindow}, Cint), self, n)
 end
 
 function ImGuiWindow_GetIDFromRectangle(self, r_abs)
@@ -6659,22 +7747,6 @@ function ImGuiWindow_MenuBarRect(pOut, self)
     ccall((:ImGuiWindow_MenuBarRect, libcimgui), Cvoid, (Ptr{ImRect}, Ptr{ImGuiWindow}), pOut, self)
 end
 
-function ImGuiLastItemDataBackup_ImGuiLastItemDataBackup()
-    ccall((:ImGuiLastItemDataBackup_ImGuiLastItemDataBackup, libcimgui), Ptr{ImGuiLastItemDataBackup}, ())
-end
-
-function ImGuiLastItemDataBackup_destroy(self)
-    ccall((:ImGuiLastItemDataBackup_destroy, libcimgui), Cvoid, (Ptr{ImGuiLastItemDataBackup},), self)
-end
-
-function ImGuiLastItemDataBackup_Backup(self)
-    ccall((:ImGuiLastItemDataBackup_Backup, libcimgui), Cvoid, (Ptr{ImGuiLastItemDataBackup},), self)
-end
-
-function ImGuiLastItemDataBackup_Restore(self)
-    ccall((:ImGuiLastItemDataBackup_Restore, libcimgui), Cvoid, (Ptr{ImGuiLastItemDataBackup},), self)
-end
-
 function ImGuiTabItem_ImGuiTabItem()
     ccall((:ImGuiTabItem_ImGuiTabItem, libcimgui), Ptr{ImGuiTabItem}, ())
 end
@@ -6691,14 +7763,6 @@ function ImGuiTabBar_destroy(self)
     ccall((:ImGuiTabBar_destroy, libcimgui), Cvoid, (Ptr{ImGuiTabBar},), self)
 end
 
-function ImGuiTabBar_GetTabOrder(self, tab)
-    ccall((:ImGuiTabBar_GetTabOrder, libcimgui), Cint, (Ptr{ImGuiTabBar}, Ptr{ImGuiTabItem}), self, tab)
-end
-
-function ImGuiTabBar_GetTabName(self, tab)
-    ccall((:ImGuiTabBar_GetTabName, libcimgui), Ptr{Cchar}, (Ptr{ImGuiTabBar}, Ptr{ImGuiTabItem}), self, tab)
-end
-
 function ImGuiTableColumn_ImGuiTableColumn()
     ccall((:ImGuiTableColumn_ImGuiTableColumn, libcimgui), Ptr{ImGuiTableColumn}, ())
 end
@@ -6707,12 +7771,28 @@ function ImGuiTableColumn_destroy(self)
     ccall((:ImGuiTableColumn_destroy, libcimgui), Cvoid, (Ptr{ImGuiTableColumn},), self)
 end
 
+function ImGuiTableInstanceData_ImGuiTableInstanceData()
+    ccall((:ImGuiTableInstanceData_ImGuiTableInstanceData, libcimgui), Ptr{ImGuiTableInstanceData}, ())
+end
+
+function ImGuiTableInstanceData_destroy(self)
+    ccall((:ImGuiTableInstanceData_destroy, libcimgui), Cvoid, (Ptr{ImGuiTableInstanceData},), self)
+end
+
 function ImGuiTable_ImGuiTable()
     ccall((:ImGuiTable_ImGuiTable, libcimgui), Ptr{ImGuiTable}, ())
 end
 
 function ImGuiTable_destroy(self)
     ccall((:ImGuiTable_destroy, libcimgui), Cvoid, (Ptr{ImGuiTable},), self)
+end
+
+function ImGuiTableTempData_ImGuiTableTempData()
+    ccall((:ImGuiTableTempData_ImGuiTableTempData, libcimgui), Ptr{ImGuiTableTempData}, ())
+end
+
+function ImGuiTableTempData_destroy(self)
+    ccall((:ImGuiTableTempData_destroy, libcimgui), Cvoid, (Ptr{ImGuiTableTempData},), self)
 end
 
 function ImGuiTableColumnSettings_ImGuiTableColumnSettings()
@@ -6759,8 +7839,12 @@ function igCalcWindowNextAutoFitSize(pOut, window)
     ccall((:igCalcWindowNextAutoFitSize, libcimgui), Cvoid, (Ptr{ImVec2}, Ptr{ImGuiWindow}), pOut, window)
 end
 
-function igIsWindowChildOf(window, potential_parent)
-    ccall((:igIsWindowChildOf, libcimgui), Bool, (Ptr{ImGuiWindow}, Ptr{ImGuiWindow}), window, potential_parent)
+function igIsWindowChildOf(window, potential_parent, popup_hierarchy, dock_hierarchy)
+    ccall((:igIsWindowChildOf, libcimgui), Bool, (Ptr{ImGuiWindow}, Ptr{ImGuiWindow}, Bool, Bool), window, potential_parent, popup_hierarchy, dock_hierarchy)
+end
+
+function igIsWindowWithinBeginStackOf(window, potential_parent)
+    ccall((:igIsWindowWithinBeginStackOf, libcimgui), Bool, (Ptr{ImGuiWindow}, Ptr{ImGuiWindow}), window, potential_parent)
 end
 
 function igIsWindowAbove(potential_above, potential_below)
@@ -6771,24 +7855,32 @@ function igIsWindowNavFocusable(window)
     ccall((:igIsWindowNavFocusable, libcimgui), Bool, (Ptr{ImGuiWindow},), window)
 end
 
-function igGetWindowAllowedExtentRect(pOut, window)
-    ccall((:igGetWindowAllowedExtentRect, libcimgui), Cvoid, (Ptr{ImRect}, Ptr{ImGuiWindow}), pOut, window)
+function igSetWindowPos_WindowPtr(window, pos, cond)
+    ccall((:igSetWindowPos_WindowPtr, libcimgui), Cvoid, (Ptr{ImGuiWindow}, ImVec2, ImGuiCond), window, pos, cond)
 end
 
-function igSetWindowPosWindowPtr(window, pos, cond)
-    ccall((:igSetWindowPosWindowPtr, libcimgui), Cvoid, (Ptr{ImGuiWindow}, ImVec2, ImGuiCond), window, pos, cond)
+function igSetWindowSize_WindowPtr(window, size, cond)
+    ccall((:igSetWindowSize_WindowPtr, libcimgui), Cvoid, (Ptr{ImGuiWindow}, ImVec2, ImGuiCond), window, size, cond)
 end
 
-function igSetWindowSizeWindowPtr(window, size, cond)
-    ccall((:igSetWindowSizeWindowPtr, libcimgui), Cvoid, (Ptr{ImGuiWindow}, ImVec2, ImGuiCond), window, size, cond)
-end
-
-function igSetWindowCollapsedWindowPtr(window, collapsed, cond)
-    ccall((:igSetWindowCollapsedWindowPtr, libcimgui), Cvoid, (Ptr{ImGuiWindow}, Bool, ImGuiCond), window, collapsed, cond)
+function igSetWindowCollapsed_WindowPtr(window, collapsed, cond)
+    ccall((:igSetWindowCollapsed_WindowPtr, libcimgui), Cvoid, (Ptr{ImGuiWindow}, Bool, ImGuiCond), window, collapsed, cond)
 end
 
 function igSetWindowHitTestHole(window, pos, size)
     ccall((:igSetWindowHitTestHole, libcimgui), Cvoid, (Ptr{ImGuiWindow}, ImVec2, ImVec2), window, pos, size)
+end
+
+function igSetWindowHiddendAndSkipItemsForCurrentFrame(window)
+    ccall((:igSetWindowHiddendAndSkipItemsForCurrentFrame, libcimgui), Cvoid, (Ptr{ImGuiWindow},), window)
+end
+
+function igWindowRectAbsToRel(pOut, window, r)
+    ccall((:igWindowRectAbsToRel, libcimgui), Cvoid, (Ptr{ImRect}, Ptr{ImGuiWindow}, ImRect), pOut, window, r)
+end
+
+function igWindowRectRelToAbs(pOut, window, r)
+    ccall((:igWindowRectRelToAbs, libcimgui), Cvoid, (Ptr{ImRect}, Ptr{ImGuiWindow}, ImRect), pOut, window, r)
 end
 
 function igFocusWindow(window)
@@ -6811,6 +7903,18 @@ function igBringWindowToDisplayBack(window)
     ccall((:igBringWindowToDisplayBack, libcimgui), Cvoid, (Ptr{ImGuiWindow},), window)
 end
 
+function igBringWindowToDisplayBehind(window, above_window)
+    ccall((:igBringWindowToDisplayBehind, libcimgui), Cvoid, (Ptr{ImGuiWindow}, Ptr{ImGuiWindow}), window, above_window)
+end
+
+function igFindWindowDisplayIndex(window)
+    ccall((:igFindWindowDisplayIndex, libcimgui), Cint, (Ptr{ImGuiWindow},), window)
+end
+
+function igFindBottomMostVisibleWindowWithinBeginStack(window)
+    ccall((:igFindBottomMostVisibleWindowWithinBeginStack, libcimgui), Ptr{ImGuiWindow}, (Ptr{ImGuiWindow},), window)
+end
+
 function igSetCurrentFont(font)
     ccall((:igSetCurrentFont, libcimgui), Cvoid, (Ptr{ImFont},), font)
 end
@@ -6819,16 +7923,20 @@ function igGetDefaultFont()
     ccall((:igGetDefaultFont, libcimgui), Ptr{ImFont}, ())
 end
 
-function igGetForegroundDrawListWindowPtr(window)
-    ccall((:igGetForegroundDrawListWindowPtr, libcimgui), Ptr{ImDrawList}, (Ptr{ImGuiWindow},), window)
+function igGetForegroundDrawList_WindowPtr(window)
+    ccall((:igGetForegroundDrawList_WindowPtr, libcimgui), Ptr{ImDrawList}, (Ptr{ImGuiWindow},), window)
 end
 
-function igInitialize(context)
-    ccall((:igInitialize, libcimgui), Cvoid, (Ptr{ImGuiContext},), context)
+function igInitialize()
+    ccall((:igInitialize, libcimgui), Cvoid, ())
 end
 
-function igShutdown(context)
-    ccall((:igShutdown, libcimgui), Cvoid, (Ptr{ImGuiContext},), context)
+function igShutdown()
+    ccall((:igShutdown, libcimgui), Cvoid, ())
+end
+
+function igUpdateInputEvents(trickle_fast_inputs)
+    ccall((:igUpdateInputEvents, libcimgui), Cvoid, (Bool,), trickle_fast_inputs)
 end
 
 function igUpdateHoveredWindowAndCaptureFlags()
@@ -6875,68 +7983,108 @@ function igDestroyPlatformWindow(viewport)
     ccall((:igDestroyPlatformWindow, libcimgui), Cvoid, (Ptr{ImGuiViewportP},), viewport)
 end
 
+function igSetWindowViewport(window, viewport)
+    ccall((:igSetWindowViewport, libcimgui), Cvoid, (Ptr{ImGuiWindow}, Ptr{ImGuiViewportP}), window, viewport)
+end
+
+function igSetCurrentViewport(window, viewport)
+    ccall((:igSetCurrentViewport, libcimgui), Cvoid, (Ptr{ImGuiWindow}, Ptr{ImGuiViewportP}), window, viewport)
+end
+
 function igGetViewportPlatformMonitor(viewport)
     ccall((:igGetViewportPlatformMonitor, libcimgui), Ptr{ImGuiPlatformMonitor}, (Ptr{ImGuiViewport},), viewport)
 end
 
-function igMarkIniSettingsDirtyNil()
-    ccall((:igMarkIniSettingsDirtyNil, libcimgui), Cvoid, ())
+function igFindHoveredViewportFromPlatformWindowStack(mouse_platform_pos)
+    ccall((:igFindHoveredViewportFromPlatformWindowStack, libcimgui), Ptr{ImGuiViewportP}, (ImVec2,), mouse_platform_pos)
 end
 
-function igMarkIniSettingsDirtyWindowPtr(window)
-    ccall((:igMarkIniSettingsDirtyWindowPtr, libcimgui), Cvoid, (Ptr{ImGuiWindow},), window)
+function igMarkIniSettingsDirty_Nil()
+    ccall((:igMarkIniSettingsDirty_Nil, libcimgui), Cvoid, ())
+end
+
+function igMarkIniSettingsDirty_WindowPtr(window)
+    ccall((:igMarkIniSettingsDirty_WindowPtr, libcimgui), Cvoid, (Ptr{ImGuiWindow},), window)
 end
 
 function igClearIniSettings()
     ccall((:igClearIniSettings, libcimgui), Cvoid, ())
 end
 
-function igCreateNewWindowSettings(name)
-    ccall((:igCreateNewWindowSettings, libcimgui), Ptr{ImGuiWindowSettings}, (Ptr{Cchar},), name)
+function igAddSettingsHandler(handler)
+    ccall((:igAddSettingsHandler, libcimgui), Cvoid, (Ptr{ImGuiSettingsHandler},), handler)
 end
 
-function igFindWindowSettings(id)
-    ccall((:igFindWindowSettings, libcimgui), Ptr{ImGuiWindowSettings}, (ImGuiID,), id)
-end
-
-function igFindOrCreateWindowSettings(name)
-    ccall((:igFindOrCreateWindowSettings, libcimgui), Ptr{ImGuiWindowSettings}, (Ptr{Cchar},), name)
+function igRemoveSettingsHandler(type_name)
+    ccall((:igRemoveSettingsHandler, libcimgui), Cvoid, (Ptr{Cchar},), type_name)
 end
 
 function igFindSettingsHandler(type_name)
     ccall((:igFindSettingsHandler, libcimgui), Ptr{ImGuiSettingsHandler}, (Ptr{Cchar},), type_name)
 end
 
-function igSetNextWindowScroll(scroll)
-    ccall((:igSetNextWindowScroll, libcimgui), Cvoid, (ImVec2,), scroll)
+function igCreateNewWindowSettings(name)
+    ccall((:igCreateNewWindowSettings, libcimgui), Ptr{ImGuiWindowSettings}, (Ptr{Cchar},), name)
 end
 
-function igSetScrollXWindowPtr(window, scroll_x)
-    ccall((:igSetScrollXWindowPtr, libcimgui), Cvoid, (Ptr{ImGuiWindow}, Cfloat), window, scroll_x)
+function igFindWindowSettingsByID(id)
+    ccall((:igFindWindowSettingsByID, libcimgui), Ptr{ImGuiWindowSettings}, (ImGuiID,), id)
 end
 
-function igSetScrollYWindowPtr(window, scroll_y)
-    ccall((:igSetScrollYWindowPtr, libcimgui), Cvoid, (Ptr{ImGuiWindow}, Cfloat), window, scroll_y)
+function igFindWindowSettingsByWindow(window)
+    ccall((:igFindWindowSettingsByWindow, libcimgui), Ptr{ImGuiWindowSettings}, (Ptr{ImGuiWindow},), window)
 end
 
-function igSetScrollFromPosXWindowPtr(window, local_x, center_x_ratio)
-    ccall((:igSetScrollFromPosXWindowPtr, libcimgui), Cvoid, (Ptr{ImGuiWindow}, Cfloat, Cfloat), window, local_x, center_x_ratio)
+function igClearWindowSettings(name)
+    ccall((:igClearWindowSettings, libcimgui), Cvoid, (Ptr{Cchar},), name)
 end
 
-function igSetScrollFromPosYWindowPtr(window, local_y, center_y_ratio)
-    ccall((:igSetScrollFromPosYWindowPtr, libcimgui), Cvoid, (Ptr{ImGuiWindow}, Cfloat, Cfloat), window, local_y, center_y_ratio)
+function igLocalizeRegisterEntries(entries, count)
+    ccall((:igLocalizeRegisterEntries, libcimgui), Cvoid, (Ptr{ImGuiLocEntry}, Cint), entries, count)
 end
 
-function igScrollToBringRectIntoView(pOut, window, item_rect)
-    ccall((:igScrollToBringRectIntoView, libcimgui), Cvoid, (Ptr{ImVec2}, Ptr{ImGuiWindow}, ImRect), pOut, window, item_rect)
+function igLocalizeGetMsg(key)
+    ccall((:igLocalizeGetMsg, libcimgui), Ptr{Cchar}, (ImGuiLocKey,), key)
 end
 
-function igGetItemID()
-    ccall((:igGetItemID, libcimgui), ImGuiID, ())
+function igSetScrollX_WindowPtr(window, scroll_x)
+    ccall((:igSetScrollX_WindowPtr, libcimgui), Cvoid, (Ptr{ImGuiWindow}, Cfloat), window, scroll_x)
+end
+
+function igSetScrollY_WindowPtr(window, scroll_y)
+    ccall((:igSetScrollY_WindowPtr, libcimgui), Cvoid, (Ptr{ImGuiWindow}, Cfloat), window, scroll_y)
+end
+
+function igSetScrollFromPosX_WindowPtr(window, local_x, center_x_ratio)
+    ccall((:igSetScrollFromPosX_WindowPtr, libcimgui), Cvoid, (Ptr{ImGuiWindow}, Cfloat, Cfloat), window, local_x, center_x_ratio)
+end
+
+function igSetScrollFromPosY_WindowPtr(window, local_y, center_y_ratio)
+    ccall((:igSetScrollFromPosY_WindowPtr, libcimgui), Cvoid, (Ptr{ImGuiWindow}, Cfloat, Cfloat), window, local_y, center_y_ratio)
+end
+
+function igScrollToItem(flags)
+    ccall((:igScrollToItem, libcimgui), Cvoid, (ImGuiScrollFlags,), flags)
+end
+
+function igScrollToRect(window, rect, flags)
+    ccall((:igScrollToRect, libcimgui), Cvoid, (Ptr{ImGuiWindow}, ImRect, ImGuiScrollFlags), window, rect, flags)
+end
+
+function igScrollToRectEx(pOut, window, rect, flags)
+    ccall((:igScrollToRectEx, libcimgui), Cvoid, (Ptr{ImVec2}, Ptr{ImGuiWindow}, ImRect, ImGuiScrollFlags), pOut, window, rect, flags)
+end
+
+function igScrollToBringRectIntoView(window, rect)
+    ccall((:igScrollToBringRectIntoView, libcimgui), Cvoid, (Ptr{ImGuiWindow}, ImRect), window, rect)
 end
 
 function igGetItemStatusFlags()
     ccall((:igGetItemStatusFlags, libcimgui), ImGuiItemStatusFlags, ())
+end
+
+function igGetItemFlags()
+    ccall((:igGetItemFlags, libcimgui), ImGuiItemFlags, ())
 end
 
 function igGetActiveID()
@@ -6945,10 +8093,6 @@ end
 
 function igGetFocusID()
     ccall((:igGetFocusID, libcimgui), ImGuiID, ())
-end
-
-function igGetItemsFlags()
-    ccall((:igGetItemsFlags, libcimgui), ImGuiItemFlags, ())
 end
 
 function igSetActiveID(id, window)
@@ -6983,40 +8127,36 @@ function igPushOverrideID(id)
     ccall((:igPushOverrideID, libcimgui), Cvoid, (ImGuiID,), id)
 end
 
-function igGetIDWithSeed(str_id_begin, str_id_end, seed)
-    ccall((:igGetIDWithSeed, libcimgui), ImGuiID, (Ptr{Cchar}, Ptr{Cchar}, ImGuiID), str_id_begin, str_id_end, seed)
+function igGetIDWithSeed_Str(str_id_begin, str_id_end, seed)
+    ccall((:igGetIDWithSeed_Str, libcimgui), ImGuiID, (Ptr{Cchar}, Ptr{Cchar}, ImGuiID), str_id_begin, str_id_end, seed)
 end
 
-function igItemSizeVec2(size, text_baseline_y)
-    ccall((:igItemSizeVec2, libcimgui), Cvoid, (ImVec2, Cfloat), size, text_baseline_y)
+function igGetIDWithSeed_Int(n, seed)
+    ccall((:igGetIDWithSeed_Int, libcimgui), ImGuiID, (Cint, ImGuiID), n, seed)
 end
 
-function igItemSizeRect(bb, text_baseline_y)
-    ccall((:igItemSizeRect, libcimgui), Cvoid, (ImRect, Cfloat), bb, text_baseline_y)
+function igItemSize_Vec2(size, text_baseline_y)
+    ccall((:igItemSize_Vec2, libcimgui), Cvoid, (ImVec2, Cfloat), size, text_baseline_y)
 end
 
-function igItemAdd(bb, id, nav_bb)
-    ccall((:igItemAdd, libcimgui), Bool, (ImRect, ImGuiID, Ptr{ImRect}), bb, id, nav_bb)
+function igItemSize_Rect(bb, text_baseline_y)
+    ccall((:igItemSize_Rect, libcimgui), Cvoid, (ImRect, Cfloat), bb, text_baseline_y)
+end
+
+function igItemAdd(bb, id, nav_bb, extra_flags)
+    ccall((:igItemAdd, libcimgui), Bool, (ImRect, ImGuiID, Ptr{ImRect}, ImGuiItemFlags), bb, id, nav_bb, extra_flags)
 end
 
 function igItemHoverable(bb, id)
     ccall((:igItemHoverable, libcimgui), Bool, (ImRect, ImGuiID), bb, id)
 end
 
-function igIsClippedEx(bb, id, clip_even_when_logged)
-    ccall((:igIsClippedEx, libcimgui), Bool, (ImRect, ImGuiID, Bool), bb, id, clip_even_when_logged)
+function igIsClippedEx(bb, id)
+    ccall((:igIsClippedEx, libcimgui), Bool, (ImRect, ImGuiID), bb, id)
 end
 
-function igSetLastItemData(window, item_id, status_flags, item_rect)
-    ccall((:igSetLastItemData, libcimgui), Cvoid, (Ptr{ImGuiWindow}, ImGuiID, ImGuiItemStatusFlags, ImRect), window, item_id, status_flags, item_rect)
-end
-
-function igFocusableItemRegister(window, id)
-    ccall((:igFocusableItemRegister, libcimgui), Bool, (Ptr{ImGuiWindow}, ImGuiID), window, id)
-end
-
-function igFocusableItemUnregister(window)
-    ccall((:igFocusableItemUnregister, libcimgui), Cvoid, (Ptr{ImGuiWindow},), window)
+function igSetLastItemData(item_id, in_flags, status_flags, item_rect)
+    ccall((:igSetLastItemData, libcimgui), Cvoid, (ImGuiID, ImGuiItemFlags, ImGuiItemStatusFlags, ImRect), item_id, in_flags, status_flags, item_rect)
 end
 
 function igCalcItemSize(pOut, size, default_w, default_h)
@@ -7031,14 +8171,6 @@ function igPushMultiItemsWidths(components, width_full)
     ccall((:igPushMultiItemsWidths, libcimgui), Cvoid, (Cint, Cfloat), components, width_full)
 end
 
-function igPushItemFlag(option, enabled)
-    ccall((:igPushItemFlag, libcimgui), Cvoid, (ImGuiItemFlags, Bool), option, enabled)
-end
-
-function igPopItemFlag()
-    ccall((:igPopItemFlag, libcimgui), Cvoid, ())
-end
-
 function igIsItemToggledSelection()
     ccall((:igIsItemToggledSelection, libcimgui), Bool, ())
 end
@@ -7049,6 +8181,18 @@ end
 
 function igShrinkWidths(items, count, width_excess)
     ccall((:igShrinkWidths, libcimgui), Cvoid, (Ptr{ImGuiShrinkWidthItem}, Cint, Cfloat), items, count, width_excess)
+end
+
+function igPushItemFlag(option, enabled)
+    ccall((:igPushItemFlag, libcimgui), Cvoid, (ImGuiItemFlags, Bool), option, enabled)
+end
+
+function igPopItemFlag()
+    ccall((:igPopItemFlag, libcimgui), Cvoid, ())
+end
+
+function igGetStyleVarInfo(idx)
+    ccall((:igGetStyleVarInfo, libcimgui), Ptr{ImGuiDataVarInfo}, (ImGuiStyleVar,), idx)
 end
 
 function igLogBegin(type, auto_open_depth)
@@ -7083,20 +8227,32 @@ function igClosePopupsOverWindow(ref_window, restore_focus_to_window_under_popup
     ccall((:igClosePopupsOverWindow, libcimgui), Cvoid, (Ptr{ImGuiWindow}, Bool), ref_window, restore_focus_to_window_under_popup)
 end
 
-function igIsPopupOpenID(id, popup_flags)
-    ccall((:igIsPopupOpenID, libcimgui), Bool, (ImGuiID, ImGuiPopupFlags), id, popup_flags)
+function igClosePopupsExceptModals()
+    ccall((:igClosePopupsExceptModals, libcimgui), Cvoid, ())
+end
+
+function igIsPopupOpen_ID(id, popup_flags)
+    ccall((:igIsPopupOpen_ID, libcimgui), Bool, (ImGuiID, ImGuiPopupFlags), id, popup_flags)
 end
 
 function igBeginPopupEx(id, extra_flags)
     ccall((:igBeginPopupEx, libcimgui), Bool, (ImGuiID, ImGuiWindowFlags), id, extra_flags)
 end
 
-function igBeginTooltipEx(extra_flags, tooltip_flags)
-    ccall((:igBeginTooltipEx, libcimgui), Cvoid, (ImGuiWindowFlags, ImGuiTooltipFlags), extra_flags, tooltip_flags)
+function igBeginTooltipEx(tooltip_flags, extra_window_flags)
+    ccall((:igBeginTooltipEx, libcimgui), Bool, (ImGuiTooltipFlags, ImGuiWindowFlags), tooltip_flags, extra_window_flags)
+end
+
+function igGetPopupAllowedExtentRect(pOut, window)
+    ccall((:igGetPopupAllowedExtentRect, libcimgui), Cvoid, (Ptr{ImRect}, Ptr{ImGuiWindow}), pOut, window)
 end
 
 function igGetTopMostPopupModal()
     ccall((:igGetTopMostPopupModal, libcimgui), Ptr{ImGuiWindow}, ())
+end
+
+function igGetTopMostAndVisiblePopupModal()
+    ccall((:igGetTopMostAndVisiblePopupModal, libcimgui), Ptr{ImGuiWindow}, ())
 end
 
 function igFindBestWindowPosForPopup(pOut, window)
@@ -7107,96 +8263,212 @@ function igFindBestWindowPosForPopupEx(pOut, ref_pos, size, last_dir, r_outer, r
     ccall((:igFindBestWindowPosForPopupEx, libcimgui), Cvoid, (Ptr{ImVec2}, ImVec2, ImVec2, Ptr{ImGuiDir}, ImRect, ImRect, ImGuiPopupPositionPolicy), pOut, ref_pos, size, last_dir, r_outer, r_avoid, policy)
 end
 
+function igBeginViewportSideBar(name, viewport, dir, size, window_flags)
+    ccall((:igBeginViewportSideBar, libcimgui), Bool, (Ptr{Cchar}, Ptr{ImGuiViewport}, ImGuiDir, Cfloat, ImGuiWindowFlags), name, viewport, dir, size, window_flags)
+end
+
+function igBeginMenuEx(label, icon, enabled)
+    ccall((:igBeginMenuEx, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cchar}, Bool), label, icon, enabled)
+end
+
+function igMenuItemEx(label, icon, shortcut, selected, enabled)
+    ccall((:igMenuItemEx, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cchar}, Ptr{Cchar}, Bool, Bool), label, icon, shortcut, selected, enabled)
+end
+
+function igBeginComboPopup(popup_id, bb, flags)
+    ccall((:igBeginComboPopup, libcimgui), Bool, (ImGuiID, ImRect, ImGuiComboFlags), popup_id, bb, flags)
+end
+
+function igBeginComboPreview()
+    ccall((:igBeginComboPreview, libcimgui), Bool, ())
+end
+
+function igEndComboPreview()
+    ccall((:igEndComboPreview, libcimgui), Cvoid, ())
+end
+
 function igNavInitWindow(window, force_reinit)
     ccall((:igNavInitWindow, libcimgui), Cvoid, (Ptr{ImGuiWindow}, Bool), window, force_reinit)
+end
+
+function igNavInitRequestApplyResult()
+    ccall((:igNavInitRequestApplyResult, libcimgui), Cvoid, ())
 end
 
 function igNavMoveRequestButNoResultYet()
     ccall((:igNavMoveRequestButNoResultYet, libcimgui), Bool, ())
 end
 
+function igNavMoveRequestSubmit(move_dir, clip_dir, move_flags, scroll_flags)
+    ccall((:igNavMoveRequestSubmit, libcimgui), Cvoid, (ImGuiDir, ImGuiDir, ImGuiNavMoveFlags, ImGuiScrollFlags), move_dir, clip_dir, move_flags, scroll_flags)
+end
+
+function igNavMoveRequestForward(move_dir, clip_dir, move_flags, scroll_flags)
+    ccall((:igNavMoveRequestForward, libcimgui), Cvoid, (ImGuiDir, ImGuiDir, ImGuiNavMoveFlags, ImGuiScrollFlags), move_dir, clip_dir, move_flags, scroll_flags)
+end
+
+function igNavMoveRequestResolveWithLastItem(result)
+    ccall((:igNavMoveRequestResolveWithLastItem, libcimgui), Cvoid, (Ptr{ImGuiNavItemData},), result)
+end
+
 function igNavMoveRequestCancel()
     ccall((:igNavMoveRequestCancel, libcimgui), Cvoid, ())
 end
 
-function igNavMoveRequestForward(move_dir, clip_dir, bb_rel, move_flags)
-    ccall((:igNavMoveRequestForward, libcimgui), Cvoid, (ImGuiDir, ImGuiDir, ImRect, ImGuiNavMoveFlags), move_dir, clip_dir, bb_rel, move_flags)
+function igNavMoveRequestApplyResult()
+    ccall((:igNavMoveRequestApplyResult, libcimgui), Cvoid, ())
 end
 
 function igNavMoveRequestTryWrapping(window, move_flags)
     ccall((:igNavMoveRequestTryWrapping, libcimgui), Cvoid, (Ptr{ImGuiWindow}, ImGuiNavMoveFlags), window, move_flags)
 end
 
-function igGetNavInputAmount(n, mode)
-    ccall((:igGetNavInputAmount, libcimgui), Cfloat, (ImGuiNavInput, ImGuiInputReadMode), n, mode)
-end
-
-function igGetNavInputAmount2d(pOut, dir_sources, mode, slow_factor, fast_factor)
-    ccall((:igGetNavInputAmount2d, libcimgui), Cvoid, (Ptr{ImVec2}, ImGuiNavDirSourceFlags, ImGuiInputReadMode, Cfloat, Cfloat), pOut, dir_sources, mode, slow_factor, fast_factor)
-end
-
-function igCalcTypematicRepeatAmount(t0, t1, repeat_delay, repeat_rate)
-    ccall((:igCalcTypematicRepeatAmount, libcimgui), Cint, (Cfloat, Cfloat, Cfloat, Cfloat), t0, t1, repeat_delay, repeat_rate)
-end
-
 function igActivateItem(id)
     ccall((:igActivateItem, libcimgui), Cvoid, (ImGuiID,), id)
 end
 
+function igSetNavWindow(window)
+    ccall((:igSetNavWindow, libcimgui), Cvoid, (Ptr{ImGuiWindow},), window)
+end
+
 function igSetNavID(id, nav_layer, focus_scope_id, rect_rel)
-    ccall((:igSetNavID, libcimgui), Cvoid, (ImGuiID, Cint, ImGuiID, ImRect), id, nav_layer, focus_scope_id, rect_rel)
+    ccall((:igSetNavID, libcimgui), Cvoid, (ImGuiID, ImGuiNavLayer, ImGuiID, ImRect), id, nav_layer, focus_scope_id, rect_rel)
 end
 
-function igPushFocusScope(id)
-    ccall((:igPushFocusScope, libcimgui), Cvoid, (ImGuiID,), id)
+function igIsNamedKey(key)
+    ccall((:igIsNamedKey, libcimgui), Bool, (ImGuiKey,), key)
 end
 
-function igPopFocusScope()
-    ccall((:igPopFocusScope, libcimgui), Cvoid, ())
+function igIsNamedKeyOrModKey(key)
+    ccall((:igIsNamedKeyOrModKey, libcimgui), Bool, (ImGuiKey,), key)
 end
 
-function igGetFocusedFocusScope()
-    ccall((:igGetFocusedFocusScope, libcimgui), ImGuiID, ())
+function igIsLegacyKey(key)
+    ccall((:igIsLegacyKey, libcimgui), Bool, (ImGuiKey,), key)
 end
 
-function igGetFocusScope()
-    ccall((:igGetFocusScope, libcimgui), ImGuiID, ())
+function igIsKeyboardKey(key)
+    ccall((:igIsKeyboardKey, libcimgui), Bool, (ImGuiKey,), key)
 end
 
-function igSetItemUsingMouseWheel()
-    ccall((:igSetItemUsingMouseWheel, libcimgui), Cvoid, ())
+function igIsGamepadKey(key)
+    ccall((:igIsGamepadKey, libcimgui), Bool, (ImGuiKey,), key)
 end
 
-function igIsActiveIdUsingNavDir(dir)
-    ccall((:igIsActiveIdUsingNavDir, libcimgui), Bool, (ImGuiDir,), dir)
+function igIsMouseKey(key)
+    ccall((:igIsMouseKey, libcimgui), Bool, (ImGuiKey,), key)
 end
 
-function igIsActiveIdUsingNavInput(input)
-    ccall((:igIsActiveIdUsingNavInput, libcimgui), Bool, (ImGuiNavInput,), input)
+function igIsAliasKey(key)
+    ccall((:igIsAliasKey, libcimgui), Bool, (ImGuiKey,), key)
 end
 
-function igIsActiveIdUsingKey(key)
-    ccall((:igIsActiveIdUsingKey, libcimgui), Bool, (ImGuiKey,), key)
+function igConvertShortcutMod(key_chord)
+    ccall((:igConvertShortcutMod, libcimgui), ImGuiKeyChord, (ImGuiKeyChord,), key_chord)
+end
+
+function igConvertSingleModFlagToKey(key)
+    ccall((:igConvertSingleModFlagToKey, libcimgui), ImGuiKey, (ImGuiKey,), key)
+end
+
+function igGetKeyData(key)
+    ccall((:igGetKeyData, libcimgui), Ptr{ImGuiKeyData}, (ImGuiKey,), key)
+end
+
+function igGetKeyChordName(key_chord, out_buf, out_buf_size)
+    ccall((:igGetKeyChordName, libcimgui), Cvoid, (ImGuiKeyChord, Ptr{Cchar}, Cint), key_chord, out_buf, out_buf_size)
+end
+
+function igMouseButtonToKey(button)
+    ccall((:igMouseButtonToKey, libcimgui), ImGuiKey, (ImGuiMouseButton,), button)
 end
 
 function igIsMouseDragPastThreshold(button, lock_threshold)
     ccall((:igIsMouseDragPastThreshold, libcimgui), Bool, (ImGuiMouseButton, Cfloat), button, lock_threshold)
 end
 
-function igIsKeyPressedMap(key, repeat)
-    ccall((:igIsKeyPressedMap, libcimgui), Bool, (ImGuiKey, Bool), key, repeat)
+function igGetKeyMagnitude2d(pOut, key_left, key_right, key_up, key_down)
+    ccall((:igGetKeyMagnitude2d, libcimgui), Cvoid, (Ptr{ImVec2}, ImGuiKey, ImGuiKey, ImGuiKey, ImGuiKey), pOut, key_left, key_right, key_up, key_down)
 end
 
-function igIsNavInputDown(n)
-    ccall((:igIsNavInputDown, libcimgui), Bool, (ImGuiNavInput,), n)
+function igGetNavTweakPressedAmount(axis)
+    ccall((:igGetNavTweakPressedAmount, libcimgui), Cfloat, (ImGuiAxis,), axis)
 end
 
-function igIsNavInputTest(n, rm)
-    ccall((:igIsNavInputTest, libcimgui), Bool, (ImGuiNavInput, ImGuiInputReadMode), n, rm)
+function igCalcTypematicRepeatAmount(t0, t1, repeat_delay, repeat_rate)
+    ccall((:igCalcTypematicRepeatAmount, libcimgui), Cint, (Cfloat, Cfloat, Cfloat, Cfloat), t0, t1, repeat_delay, repeat_rate)
 end
 
-function igGetMergedKeyModFlags()
-    ccall((:igGetMergedKeyModFlags, libcimgui), ImGuiKeyModFlags, ())
+function igGetTypematicRepeatRate(flags, repeat_delay, repeat_rate)
+    ccall((:igGetTypematicRepeatRate, libcimgui), Cvoid, (ImGuiInputFlags, Ptr{Cfloat}, Ptr{Cfloat}), flags, repeat_delay, repeat_rate)
+end
+
+function igSetActiveIdUsingAllKeyboardKeys()
+    ccall((:igSetActiveIdUsingAllKeyboardKeys, libcimgui), Cvoid, ())
+end
+
+function igIsActiveIdUsingNavDir(dir)
+    ccall((:igIsActiveIdUsingNavDir, libcimgui), Bool, (ImGuiDir,), dir)
+end
+
+function igGetKeyOwner(key)
+    ccall((:igGetKeyOwner, libcimgui), ImGuiID, (ImGuiKey,), key)
+end
+
+function igSetKeyOwner(key, owner_id, flags)
+    ccall((:igSetKeyOwner, libcimgui), Cvoid, (ImGuiKey, ImGuiID, ImGuiInputFlags), key, owner_id, flags)
+end
+
+function igSetItemKeyOwner(key, flags)
+    ccall((:igSetItemKeyOwner, libcimgui), Cvoid, (ImGuiKey, ImGuiInputFlags), key, flags)
+end
+
+function igTestKeyOwner(key, owner_id)
+    ccall((:igTestKeyOwner, libcimgui), Bool, (ImGuiKey, ImGuiID), key, owner_id)
+end
+
+function igGetKeyOwnerData(key)
+    ccall((:igGetKeyOwnerData, libcimgui), Ptr{ImGuiKeyOwnerData}, (ImGuiKey,), key)
+end
+
+function igIsKeyDown_ID(key, owner_id)
+    ccall((:igIsKeyDown_ID, libcimgui), Bool, (ImGuiKey, ImGuiID), key, owner_id)
+end
+
+function igIsKeyPressed_ID(key, owner_id, flags)
+    ccall((:igIsKeyPressed_ID, libcimgui), Bool, (ImGuiKey, ImGuiID, ImGuiInputFlags), key, owner_id, flags)
+end
+
+function igIsKeyReleased_ID(key, owner_id)
+    ccall((:igIsKeyReleased_ID, libcimgui), Bool, (ImGuiKey, ImGuiID), key, owner_id)
+end
+
+function igIsMouseDown_ID(button, owner_id)
+    ccall((:igIsMouseDown_ID, libcimgui), Bool, (ImGuiMouseButton, ImGuiID), button, owner_id)
+end
+
+function igIsMouseClicked_ID(button, owner_id, flags)
+    ccall((:igIsMouseClicked_ID, libcimgui), Bool, (ImGuiMouseButton, ImGuiID, ImGuiInputFlags), button, owner_id, flags)
+end
+
+function igIsMouseReleased_ID(button, owner_id)
+    ccall((:igIsMouseReleased_ID, libcimgui), Bool, (ImGuiMouseButton, ImGuiID), button, owner_id)
+end
+
+function igShortcut(key_chord, owner_id, flags)
+    ccall((:igShortcut, libcimgui), Bool, (ImGuiKeyChord, ImGuiID, ImGuiInputFlags), key_chord, owner_id, flags)
+end
+
+function igSetShortcutRouting(key_chord, owner_id, flags)
+    ccall((:igSetShortcutRouting, libcimgui), Bool, (ImGuiKeyChord, ImGuiID, ImGuiInputFlags), key_chord, owner_id, flags)
+end
+
+function igTestShortcutRouting(key_chord, owner_id)
+    ccall((:igTestShortcutRouting, libcimgui), Bool, (ImGuiKeyChord, ImGuiID), key_chord, owner_id)
+end
+
+function igGetShortcutRoutingData(key_chord)
+    ccall((:igGetShortcutRoutingData, libcimgui), Ptr{ImGuiKeyRoutingData}, (ImGuiKeyChord,), key_chord)
 end
 
 function igDockContextInitialize(ctx)
@@ -7223,6 +8495,10 @@ function igDockContextNewFrameUpdateDocking(ctx)
     ccall((:igDockContextNewFrameUpdateDocking, libcimgui), Cvoid, (Ptr{ImGuiContext},), ctx)
 end
 
+function igDockContextEndFrame(ctx)
+    ccall((:igDockContextEndFrame, libcimgui), Cvoid, (Ptr{ImGuiContext},), ctx)
+end
+
 function igDockContextGenNodeID(ctx)
     ccall((:igDockContextGenNodeID, libcimgui), ImGuiID, (Ptr{ImGuiContext},), ctx)
 end
@@ -7239,8 +8515,24 @@ function igDockContextQueueUndockNode(ctx, node)
     ccall((:igDockContextQueueUndockNode, libcimgui), Cvoid, (Ptr{ImGuiContext}, Ptr{ImGuiDockNode}), ctx, node)
 end
 
-function igDockContextCalcDropPosForDocking(target, target_node, payload, split_dir, split_outer, out_pos)
-    ccall((:igDockContextCalcDropPosForDocking, libcimgui), Bool, (Ptr{ImGuiWindow}, Ptr{ImGuiDockNode}, Ptr{ImGuiWindow}, ImGuiDir, Bool, Ptr{ImVec2}), target, target_node, payload, split_dir, split_outer, out_pos)
+function igDockContextProcessUndockWindow(ctx, window, clear_persistent_docking_ref)
+    ccall((:igDockContextProcessUndockWindow, libcimgui), Cvoid, (Ptr{ImGuiContext}, Ptr{ImGuiWindow}, Bool), ctx, window, clear_persistent_docking_ref)
+end
+
+function igDockContextProcessUndockNode(ctx, node)
+    ccall((:igDockContextProcessUndockNode, libcimgui), Cvoid, (Ptr{ImGuiContext}, Ptr{ImGuiDockNode}), ctx, node)
+end
+
+function igDockContextCalcDropPosForDocking(target, target_node, payload_window, payload_node, split_dir, split_outer, out_pos)
+    ccall((:igDockContextCalcDropPosForDocking, libcimgui), Bool, (Ptr{ImGuiWindow}, Ptr{ImGuiDockNode}, Ptr{ImGuiWindow}, Ptr{ImGuiDockNode}, ImGuiDir, Bool, Ptr{ImVec2}), target, target_node, payload_window, payload_node, split_dir, split_outer, out_pos)
+end
+
+function igDockContextFindNodeByID(ctx, id)
+    ccall((:igDockContextFindNodeByID, libcimgui), Ptr{ImGuiDockNode}, (Ptr{ImGuiContext}, ImGuiID), ctx, id)
+end
+
+function igDockNodeWindowMenuHandler_Default(ctx, node, tab_bar)
+    ccall((:igDockNodeWindowMenuHandler_Default, libcimgui), Cvoid, (Ptr{ImGuiContext}, Ptr{ImGuiDockNode}, Ptr{ImGuiTabBar}), ctx, node, tab_bar)
 end
 
 function igDockNodeBeginAmendTabBar(node)
@@ -7255,8 +8547,16 @@ function igDockNodeGetRootNode(node)
     ccall((:igDockNodeGetRootNode, libcimgui), Ptr{ImGuiDockNode}, (Ptr{ImGuiDockNode},), node)
 end
 
+function igDockNodeIsInHierarchyOf(node, parent)
+    ccall((:igDockNodeIsInHierarchyOf, libcimgui), Bool, (Ptr{ImGuiDockNode}, Ptr{ImGuiDockNode}), node, parent)
+end
+
 function igDockNodeGetDepth(node)
     ccall((:igDockNodeGetDepth, libcimgui), Cint, (Ptr{ImGuiDockNode},), node)
+end
+
+function igDockNodeGetWindowMenuButtonId(node)
+    ccall((:igDockNodeGetWindowMenuButtonId, libcimgui), ImGuiID, (Ptr{ImGuiDockNode},), node)
 end
 
 function igGetWindowDockNode()
@@ -7339,6 +8639,22 @@ function igDockBuilderFinish(node_id)
     ccall((:igDockBuilderFinish, libcimgui), Cvoid, (ImGuiID,), node_id)
 end
 
+function igPushFocusScope(id)
+    ccall((:igPushFocusScope, libcimgui), Cvoid, (ImGuiID,), id)
+end
+
+function igPopFocusScope()
+    ccall((:igPopFocusScope, libcimgui), Cvoid, ())
+end
+
+function igGetCurrentFocusScope()
+    ccall((:igGetCurrentFocusScope, libcimgui), ImGuiID, ())
+end
+
+function igIsDragDropActive()
+    ccall((:igIsDragDropActive, libcimgui), Bool, ())
+end
+
 function igBeginDragDropTargetCustom(bb, id)
     ccall((:igBeginDragDropTargetCustom, libcimgui), Bool, (ImRect, ImGuiID), bb, id)
 end
@@ -7349,6 +8665,10 @@ end
 
 function igIsDragDropPayloadBeingAccepted()
     ccall((:igIsDragDropPayloadBeingAccepted, libcimgui), Bool, ())
+end
+
+function igRenderDragDropTargetRect(bb)
+    ccall((:igRenderDragDropTargetRect, libcimgui), Cvoid, (ImRect,), bb)
 end
 
 function igSetWindowClipRectBeforeSetChannel(window, clip_rect)
@@ -7393,10 +8713,6 @@ end
 
 function igTableOpenContextMenu(column_n)
     ccall((:igTableOpenContextMenu, libcimgui), Cvoid, (Cint,), column_n)
-end
-
-function igTableSetColumnEnabled(column_n, enabled)
-    ccall((:igTableSetColumnEnabled, libcimgui), Cvoid, (Cint, Bool), column_n, enabled)
 end
 
 function igTableSetColumnWidth(column_n, width)
@@ -7467,8 +8783,20 @@ function igTableDrawContextMenu(table)
     ccall((:igTableDrawContextMenu, libcimgui), Cvoid, (Ptr{ImGuiTable},), table)
 end
 
+function igTableBeginContextMenuPopup(table)
+    ccall((:igTableBeginContextMenuPopup, libcimgui), Bool, (Ptr{ImGuiTable},), table)
+end
+
 function igTableMergeDrawChannels(table)
     ccall((:igTableMergeDrawChannels, libcimgui), Cvoid, (Ptr{ImGuiTable},), table)
+end
+
+function igTableGetInstanceData(table, instance_no)
+    ccall((:igTableGetInstanceData, libcimgui), Ptr{ImGuiTableInstanceData}, (Ptr{ImGuiTable}, Cint), table, instance_no)
+end
+
+function igTableGetInstanceID(table, instance_no)
+    ccall((:igTableGetInstanceID, libcimgui), ImGuiID, (Ptr{ImGuiTable}, Cint), table, instance_no)
 end
 
 function igTableSortSpecsSanitize(table)
@@ -7511,8 +8839,8 @@ function igTableGetCellBgRect(pOut, table, column_n)
     ccall((:igTableGetCellBgRect, libcimgui), Cvoid, (Ptr{ImRect}, Ptr{ImGuiTable}, Cint), pOut, table, column_n)
 end
 
-function igTableGetColumnNameTablePtr(table, column_n)
-    ccall((:igTableGetColumnNameTablePtr, libcimgui), Ptr{Cchar}, (Ptr{ImGuiTable}, Cint), table, column_n)
+function igTableGetColumnName_TablePtr(table, column_n)
+    ccall((:igTableGetColumnName_TablePtr, libcimgui), Ptr{Cchar}, (Ptr{ImGuiTable}, Cint), table, column_n)
 end
 
 function igTableGetColumnResizeID(table, column_n, instance_no)
@@ -7535,8 +8863,12 @@ function igTableRemove(table)
     ccall((:igTableRemove, libcimgui), Cvoid, (Ptr{ImGuiTable},), table)
 end
 
-function igTableGcCompactTransientBuffers(table)
-    ccall((:igTableGcCompactTransientBuffers, libcimgui), Cvoid, (Ptr{ImGuiTable},), table)
+function igTableGcCompactTransientBuffers_TablePtr(table)
+    ccall((:igTableGcCompactTransientBuffers_TablePtr, libcimgui), Cvoid, (Ptr{ImGuiTable},), table)
+end
+
+function igTableGcCompactTransientBuffers_TableTempDataPtr(table)
+    ccall((:igTableGcCompactTransientBuffers_TableTempDataPtr, libcimgui), Cvoid, (Ptr{ImGuiTableTempData},), table)
 end
 
 function igTableGcCompactSettings()
@@ -7559,8 +8891,8 @@ function igTableGetBoundSettings(table)
     ccall((:igTableGetBoundSettings, libcimgui), Ptr{ImGuiTableSettings}, (Ptr{ImGuiTable},), table)
 end
 
-function igTableSettingsInstallHandler(context)
-    ccall((:igTableSettingsInstallHandler, libcimgui), Cvoid, (Ptr{ImGuiContext},), context)
+function igTableSettingsAddSettingsHandler()
+    ccall((:igTableSettingsAddSettingsHandler, libcimgui), Cvoid, ())
 end
 
 function igTableSettingsCreate(id, columns_count)
@@ -7571,6 +8903,10 @@ function igTableSettingsFindByID(id)
     ccall((:igTableSettingsFindByID, libcimgui), Ptr{ImGuiTableSettings}, (ImGuiID,), id)
 end
 
+function igGetCurrentTabBar()
+    ccall((:igGetCurrentTabBar, libcimgui), Ptr{ImGuiTabBar}, ())
+end
+
 function igBeginTabBarEx(tab_bar, bb, flags, dock_node)
     ccall((:igBeginTabBarEx, libcimgui), Bool, (Ptr{ImGuiTabBar}, ImRect, ImGuiTabBarFlags, Ptr{ImGuiDockNode}), tab_bar, bb, flags, dock_node)
 end
@@ -7579,8 +8915,24 @@ function igTabBarFindTabByID(tab_bar, tab_id)
     ccall((:igTabBarFindTabByID, libcimgui), Ptr{ImGuiTabItem}, (Ptr{ImGuiTabBar}, ImGuiID), tab_bar, tab_id)
 end
 
+function igTabBarFindTabByOrder(tab_bar, order)
+    ccall((:igTabBarFindTabByOrder, libcimgui), Ptr{ImGuiTabItem}, (Ptr{ImGuiTabBar}, Cint), tab_bar, order)
+end
+
 function igTabBarFindMostRecentlySelectedTabForActiveWindow(tab_bar)
     ccall((:igTabBarFindMostRecentlySelectedTabForActiveWindow, libcimgui), Ptr{ImGuiTabItem}, (Ptr{ImGuiTabBar},), tab_bar)
+end
+
+function igTabBarGetCurrentTab(tab_bar)
+    ccall((:igTabBarGetCurrentTab, libcimgui), Ptr{ImGuiTabItem}, (Ptr{ImGuiTabBar},), tab_bar)
+end
+
+function igTabBarGetTabOrder(tab_bar, tab)
+    ccall((:igTabBarGetTabOrder, libcimgui), Cint, (Ptr{ImGuiTabBar}, Ptr{ImGuiTabItem}), tab_bar, tab)
+end
+
+function igTabBarGetTabName(tab_bar, tab)
+    ccall((:igTabBarGetTabName, libcimgui), Ptr{Cchar}, (Ptr{ImGuiTabBar}, Ptr{ImGuiTabItem}), tab_bar, tab)
 end
 
 function igTabBarAddTab(tab_bar, tab_flags, window)
@@ -7595,8 +8947,16 @@ function igTabBarCloseTab(tab_bar, tab)
     ccall((:igTabBarCloseTab, libcimgui), Cvoid, (Ptr{ImGuiTabBar}, Ptr{ImGuiTabItem}), tab_bar, tab)
 end
 
-function igTabBarQueueReorder(tab_bar, tab, dir)
-    ccall((:igTabBarQueueReorder, libcimgui), Cvoid, (Ptr{ImGuiTabBar}, Ptr{ImGuiTabItem}, Cint), tab_bar, tab, dir)
+function igTabBarQueueFocus(tab_bar, tab)
+    ccall((:igTabBarQueueFocus, libcimgui), Cvoid, (Ptr{ImGuiTabBar}, Ptr{ImGuiTabItem}), tab_bar, tab)
+end
+
+function igTabBarQueueReorder(tab_bar, tab, offset)
+    ccall((:igTabBarQueueReorder, libcimgui), Cvoid, (Ptr{ImGuiTabBar}, Ptr{ImGuiTabItem}, Cint), tab_bar, tab, offset)
+end
+
+function igTabBarQueueReorderFromMousePos(tab_bar, tab, mouse_pos)
+    ccall((:igTabBarQueueReorderFromMousePos, libcimgui), Cvoid, (Ptr{ImGuiTabBar}, Ptr{ImGuiTabItem}, ImVec2), tab_bar, tab, mouse_pos)
 end
 
 function igTabBarProcessReorder(tab_bar)
@@ -7607,8 +8967,12 @@ function igTabItemEx(tab_bar, label, p_open, flags, docked_window)
     ccall((:igTabItemEx, libcimgui), Bool, (Ptr{ImGuiTabBar}, Ptr{Cchar}, Ptr{Bool}, ImGuiTabItemFlags, Ptr{ImGuiWindow}), tab_bar, label, p_open, flags, docked_window)
 end
 
-function igTabItemCalcSize(pOut, label, has_close_button)
-    ccall((:igTabItemCalcSize, libcimgui), Cvoid, (Ptr{ImVec2}, Ptr{Cchar}, Bool), pOut, label, has_close_button)
+function igTabItemCalcSize_Str(pOut, label, has_close_button_or_unsaved_marker)
+    ccall((:igTabItemCalcSize_Str, libcimgui), Cvoid, (Ptr{ImVec2}, Ptr{Cchar}, Bool), pOut, label, has_close_button_or_unsaved_marker)
+end
+
+function igTabItemCalcSize_WindowPtr(pOut, window)
+    ccall((:igTabItemCalcSize_WindowPtr, libcimgui), Cvoid, (Ptr{ImVec2}, Ptr{ImGuiWindow}), pOut, window)
 end
 
 function igTabItemBackground(draw_list, bb, flags, col)
@@ -7659,6 +9023,10 @@ function igFindRenderedTextEnd(text, text_end)
     ccall((:igFindRenderedTextEnd, libcimgui), Ptr{Cchar}, (Ptr{Cchar}, Ptr{Cchar}), text, text_end)
 end
 
+function igRenderMouseCursor(pos, scale, mouse_cursor, col_fill, col_border, col_shadow)
+    ccall((:igRenderMouseCursor, libcimgui), Cvoid, (ImVec2, Cfloat, ImGuiMouseCursor, ImU32, ImU32, ImU32), pos, scale, mouse_cursor, col_fill, col_border, col_shadow)
+end
+
 function igRenderArrow(draw_list, pos, col, dir, scale)
     ccall((:igRenderArrow, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImU32, ImGuiDir, Cfloat), draw_list, pos, col, dir, scale)
 end
@@ -7669,10 +9037,6 @@ end
 
 function igRenderCheckMark(draw_list, pos, col, sz)
     ccall((:igRenderCheckMark, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImU32, Cfloat), draw_list, pos, col, sz)
-end
-
-function igRenderMouseCursor(draw_list, pos, scale, mouse_cursor, col_fill, col_border, col_shadow)
-    ccall((:igRenderMouseCursor, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, Cfloat, ImGuiMouseCursor, ImU32, ImU32, ImU32), draw_list, pos, scale, mouse_cursor, col_fill, col_border, col_shadow)
 end
 
 function igRenderArrowPointingAt(draw_list, pos, half_sz, direction, col)
@@ -7691,12 +9055,40 @@ function igRenderRectFilledWithHole(draw_list, outer, inner, col, rounding)
     ccall((:igRenderRectFilledWithHole, libcimgui), Cvoid, (Ptr{ImDrawList}, ImRect, ImRect, ImU32, Cfloat), draw_list, outer, inner, col, rounding)
 end
 
+function igCalcRoundingFlagsForRectInRect(r_in, r_outer, threshold)
+    ccall((:igCalcRoundingFlagsForRectInRect, libcimgui), ImDrawFlags, (ImRect, ImRect, Cfloat), r_in, r_outer, threshold)
+end
+
 function igTextEx(text, text_end, flags)
     ccall((:igTextEx, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cchar}, ImGuiTextFlags), text, text_end, flags)
 end
 
 function igButtonEx(label, size_arg, flags)
     ccall((:igButtonEx, libcimgui), Bool, (Ptr{Cchar}, ImVec2, ImGuiButtonFlags), label, size_arg, flags)
+end
+
+function igArrowButtonEx(str_id, dir, size_arg, flags)
+    ccall((:igArrowButtonEx, libcimgui), Bool, (Ptr{Cchar}, ImGuiDir, ImVec2, ImGuiButtonFlags), str_id, dir, size_arg, flags)
+end
+
+function igImageButtonEx(id, texture_id, size, uv0, uv1, bg_col, tint_col, flags)
+    ccall((:igImageButtonEx, libcimgui), Bool, (ImGuiID, ImTextureID, ImVec2, ImVec2, ImVec2, ImVec4, ImVec4, ImGuiButtonFlags), id, texture_id, size, uv0, uv1, bg_col, tint_col, flags)
+end
+
+function igSeparatorEx(flags)
+    ccall((:igSeparatorEx, libcimgui), Cvoid, (ImGuiSeparatorFlags,), flags)
+end
+
+function igSeparatorTextEx(id, label, label_end, extra_width)
+    ccall((:igSeparatorTextEx, libcimgui), Cvoid, (ImGuiID, Ptr{Cchar}, Ptr{Cchar}, Cfloat), id, label, label_end, extra_width)
+end
+
+function igCheckboxFlags_S64Ptr(label, flags, flags_value)
+    ccall((:igCheckboxFlags_S64Ptr, libcimgui), Bool, (Ptr{Cchar}, Ptr{ImS64}, ImS64), label, flags, flags_value)
+end
+
+function igCheckboxFlags_U64Ptr(label, flags, flags_value)
+    ccall((:igCheckboxFlags_U64Ptr, libcimgui), Bool, (Ptr{Cchar}, Ptr{ImU64}, ImU64), label, flags, flags_value)
 end
 
 function igCloseButton(id, pos)
@@ -7707,20 +9099,12 @@ function igCollapseButton(id, pos, dock_node)
     ccall((:igCollapseButton, libcimgui), Bool, (ImGuiID, ImVec2, Ptr{ImGuiDockNode}), id, pos, dock_node)
 end
 
-function igArrowButtonEx(str_id, dir, size_arg, flags)
-    ccall((:igArrowButtonEx, libcimgui), Bool, (Ptr{Cchar}, ImGuiDir, ImVec2, ImGuiButtonFlags), str_id, dir, size_arg, flags)
-end
-
 function igScrollbar(axis)
     ccall((:igScrollbar, libcimgui), Cvoid, (ImGuiAxis,), axis)
 end
 
 function igScrollbarEx(bb, id, axis, p_scroll_v, avail_v, contents_v, flags)
-    ccall((:igScrollbarEx, libcimgui), Bool, (ImRect, ImGuiID, ImGuiAxis, Ptr{Cfloat}, Cfloat, Cfloat, ImDrawFlags), bb, id, axis, p_scroll_v, avail_v, contents_v, flags)
-end
-
-function igImageButtonEx(id, texture_id, size, uv0, uv1, padding, bg_col, tint_col)
-    ccall((:igImageButtonEx, libcimgui), Bool, (ImGuiID, ImTextureID, ImVec2, ImVec2, ImVec2, ImVec2, ImVec4, ImVec4), id, texture_id, size, uv0, uv1, padding, bg_col, tint_col)
+    ccall((:igScrollbarEx, libcimgui), Bool, (ImRect, ImGuiID, ImGuiAxis, Ptr{ImS64}, ImS64, ImS64, ImDrawFlags), bb, id, axis, p_scroll_v, avail_v, contents_v, flags)
 end
 
 function igGetWindowScrollbarRect(pOut, window, axis)
@@ -7731,20 +9115,12 @@ function igGetWindowScrollbarID(window, axis)
     ccall((:igGetWindowScrollbarID, libcimgui), ImGuiID, (Ptr{ImGuiWindow}, ImGuiAxis), window, axis)
 end
 
-function igGetWindowResizeID(window, n)
-    ccall((:igGetWindowResizeID, libcimgui), ImGuiID, (Ptr{ImGuiWindow}, Cint), window, n)
+function igGetWindowResizeCornerID(window, n)
+    ccall((:igGetWindowResizeCornerID, libcimgui), ImGuiID, (Ptr{ImGuiWindow}, Cint), window, n)
 end
 
-function igSeparatorEx(flags)
-    ccall((:igSeparatorEx, libcimgui), Cvoid, (ImGuiSeparatorFlags,), flags)
-end
-
-function igCheckboxFlagsS64Ptr(label, flags, flags_value)
-    ccall((:igCheckboxFlagsS64Ptr, libcimgui), Bool, (Ptr{Cchar}, Ptr{ImS64}, ImS64), label, flags, flags_value)
-end
-
-function igCheckboxFlagsU64Ptr(label, flags, flags_value)
-    ccall((:igCheckboxFlagsU64Ptr, libcimgui), Bool, (Ptr{Cchar}, Ptr{ImU64}, ImU64), label, flags, flags_value)
+function igGetWindowResizeBorderID(window, dir)
+    ccall((:igGetWindowResizeBorderID, libcimgui), ImGuiID, (Ptr{ImGuiWindow}, ImGuiDir), window, dir)
 end
 
 function igButtonBehavior(bb, id, out_hovered, out_held, flags)
@@ -7759,20 +9135,24 @@ function igSliderBehavior(bb, id, data_type, p_v, p_min, p_max, format, flags, o
     ccall((:igSliderBehavior, libcimgui), Bool, (ImRect, ImGuiID, ImGuiDataType, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cchar}, ImGuiSliderFlags, Ptr{ImRect}), bb, id, data_type, p_v, p_min, p_max, format, flags, out_grab_bb)
 end
 
-function igSplitterBehavior(bb, id, axis, size1, size2, min_size1, min_size2, hover_extend, hover_visibility_delay)
-    ccall((:igSplitterBehavior, libcimgui), Bool, (ImRect, ImGuiID, ImGuiAxis, Ptr{Cfloat}, Ptr{Cfloat}, Cfloat, Cfloat, Cfloat, Cfloat), bb, id, axis, size1, size2, min_size1, min_size2, hover_extend, hover_visibility_delay)
+function igSplitterBehavior(bb, id, axis, size1, size2, min_size1, min_size2, hover_extend, hover_visibility_delay, bg_col)
+    ccall((:igSplitterBehavior, libcimgui), Bool, (ImRect, ImGuiID, ImGuiAxis, Ptr{Cfloat}, Ptr{Cfloat}, Cfloat, Cfloat, Cfloat, Cfloat, ImU32), bb, id, axis, size1, size2, min_size1, min_size2, hover_extend, hover_visibility_delay, bg_col)
 end
 
 function igTreeNodeBehavior(id, flags, label, label_end)
     ccall((:igTreeNodeBehavior, libcimgui), Bool, (ImGuiID, ImGuiTreeNodeFlags, Ptr{Cchar}, Ptr{Cchar}), id, flags, label, label_end)
 end
 
-function igTreeNodeBehaviorIsOpen(id, flags)
-    ccall((:igTreeNodeBehaviorIsOpen, libcimgui), Bool, (ImGuiID, ImGuiTreeNodeFlags), id, flags)
-end
-
 function igTreePushOverrideID(id)
     ccall((:igTreePushOverrideID, libcimgui), Cvoid, (ImGuiID,), id)
+end
+
+function igTreeNodeSetOpen(id, open)
+    ccall((:igTreeNodeSetOpen, libcimgui), Cvoid, (ImGuiID, Bool), id, open)
+end
+
+function igTreeNodeUpdateNextOpen(id, flags)
+    ccall((:igTreeNodeUpdateNextOpen, libcimgui), Bool, (ImGuiID, ImGuiTreeNodeFlags), id, flags)
 end
 
 function igDataTypeGetInfo(data_type)
@@ -7787,8 +9167,8 @@ function igDataTypeApplyOp(data_type, op, output, arg_1, arg_2)
     ccall((:igDataTypeApplyOp, libcimgui), Cvoid, (ImGuiDataType, Cint, Ptr{Cvoid}, Ptr{Cvoid}, Ptr{Cvoid}), data_type, op, output, arg_1, arg_2)
 end
 
-function igDataTypeApplyOpFromText(buf, initial_value_buf, data_type, p_data, format)
-    ccall((:igDataTypeApplyOpFromText, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cchar}, ImGuiDataType, Ptr{Cvoid}, Ptr{Cchar}), buf, initial_value_buf, data_type, p_data, format)
+function igDataTypeApplyFromText(buf, data_type, p_data, format)
+    ccall((:igDataTypeApplyFromText, libcimgui), Bool, (Ptr{Cchar}, ImGuiDataType, Ptr{Cvoid}, Ptr{Cchar}), buf, data_type, p_data, format)
 end
 
 function igDataTypeCompare(data_type, arg_1, arg_2)
@@ -7831,8 +9211,8 @@ function igColorPickerOptionsPopup(ref_col, flags)
     ccall((:igColorPickerOptionsPopup, libcimgui), Cvoid, (Ptr{Cfloat}, ImGuiColorEditFlags), ref_col, flags)
 end
 
-function igPlotEx(plot_type, label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, frame_size)
-    ccall((:igPlotEx, libcimgui), Cint, (ImGuiPlotType, Ptr{Cchar}, Ptr{Cvoid}, Ptr{Cvoid}, Cint, Cint, Ptr{Cchar}, Cfloat, Cfloat, ImVec2), plot_type, label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, frame_size)
+function igPlotEx(plot_type, label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, size_arg)
+    ccall((:igPlotEx, libcimgui), Cint, (ImGuiPlotType, Ptr{Cchar}, Ptr{Cvoid}, Ptr{Cvoid}, Cint, Cint, Ptr{Cchar}, Cfloat, Cfloat, ImVec2), plot_type, label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, size_arg)
 end
 
 function igShadeVertsLinearColorGradientKeepAlpha(draw_list, vert_start_idx, vert_end_idx, gradient_p0, gradient_p1, col0, col1)
@@ -7855,8 +9235,33 @@ function igGcAwakeTransientWindowBuffers(window)
     ccall((:igGcAwakeTransientWindowBuffers, libcimgui), Cvoid, (Ptr{ImGuiWindow},), window)
 end
 
+# automatic type deduction for variadic arguments may not be what you want, please use with caution
+@generated function igDebugLog(fmt, va_list...)
+        :(@ccall(libcimgui.igDebugLog(fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
+    end
+
 function igErrorCheckEndFrameRecover(log_callback, user_data)
     ccall((:igErrorCheckEndFrameRecover, libcimgui), Cvoid, (ImGuiErrorLogCallback, Ptr{Cvoid}), log_callback, user_data)
+end
+
+function igErrorCheckEndWindowRecover(log_callback, user_data)
+    ccall((:igErrorCheckEndWindowRecover, libcimgui), Cvoid, (ImGuiErrorLogCallback, Ptr{Cvoid}), log_callback, user_data)
+end
+
+function igErrorCheckUsingSetCursorPosToExtendParentBoundaries()
+    ccall((:igErrorCheckUsingSetCursorPosToExtendParentBoundaries, libcimgui), Cvoid, ())
+end
+
+function igDebugLocateItem(target_id)
+    ccall((:igDebugLocateItem, libcimgui), Cvoid, (ImGuiID,), target_id)
+end
+
+function igDebugLocateItemOnHover(target_id)
+    ccall((:igDebugLocateItemOnHover, libcimgui), Cvoid, (ImGuiID,), target_id)
+end
+
+function igDebugLocateItemResolveWithLastItem()
+    ccall((:igDebugLocateItemResolveWithLastItem, libcimgui), Cvoid, ())
 end
 
 function igDebugDrawItemRect(col)
@@ -7865,6 +9270,14 @@ end
 
 function igDebugStartItemPicker()
     ccall((:igDebugStartItemPicker, libcimgui), Cvoid, ())
+end
+
+function igShowFontAtlas(atlas)
+    ccall((:igShowFontAtlas, libcimgui), Cvoid, (Ptr{ImFontAtlas},), atlas)
+end
+
+function igDebugHookIdInfo(id, data_type, data_id, data_id_end)
+    ccall((:igDebugHookIdInfo, libcimgui), Cvoid, (ImGuiID, ImGuiDataType, Ptr{Cvoid}, Ptr{Cvoid}), id, data_type, data_id, data_id_end)
 end
 
 function igDebugNodeColumns(columns)
@@ -7883,6 +9296,14 @@ function igDebugNodeDrawCmdShowMeshAndBoundingBox(out_draw_list, draw_list, draw
     ccall((:igDebugNodeDrawCmdShowMeshAndBoundingBox, libcimgui), Cvoid, (Ptr{ImDrawList}, Ptr{ImDrawList}, Ptr{ImDrawCmd}, Bool, Bool), out_draw_list, draw_list, draw_cmd, show_mesh, show_aabb)
 end
 
+function igDebugNodeFont(font)
+    ccall((:igDebugNodeFont, libcimgui), Cvoid, (Ptr{ImFont},), font)
+end
+
+function igDebugNodeFontGlyph(font, glyph)
+    ccall((:igDebugNodeFontGlyph, libcimgui), Cvoid, (Ptr{ImFont}, Ptr{ImFontGlyph}), font, glyph)
+end
+
 function igDebugNodeStorage(storage, label)
     ccall((:igDebugNodeStorage, libcimgui), Cvoid, (Ptr{ImGuiStorage}, Ptr{Cchar}), storage, label)
 end
@@ -7899,6 +9320,10 @@ function igDebugNodeTableSettings(settings)
     ccall((:igDebugNodeTableSettings, libcimgui), Cvoid, (Ptr{ImGuiTableSettings},), settings)
 end
 
+function igDebugNodeInputTextState(state)
+    ccall((:igDebugNodeInputTextState, libcimgui), Cvoid, (Ptr{ImGuiInputTextState},), state)
+end
+
 function igDebugNodeWindow(window, label)
     ccall((:igDebugNodeWindow, libcimgui), Cvoid, (Ptr{ImGuiWindow}, Ptr{Cchar}), window, label)
 end
@@ -7911,12 +9336,24 @@ function igDebugNodeWindowsList(windows, label)
     ccall((:igDebugNodeWindowsList, libcimgui), Cvoid, (Ptr{ImVector_ImGuiWindowPtr}, Ptr{Cchar}), windows, label)
 end
 
+function igDebugNodeWindowsListByBeginStackParent(windows, windows_size, parent_in_begin_stack)
+    ccall((:igDebugNodeWindowsListByBeginStackParent, libcimgui), Cvoid, (Ptr{Ptr{ImGuiWindow}}, Cint, Ptr{ImGuiWindow}), windows, windows_size, parent_in_begin_stack)
+end
+
 function igDebugNodeViewport(viewport)
     ccall((:igDebugNodeViewport, libcimgui), Cvoid, (Ptr{ImGuiViewportP},), viewport)
 end
 
+function igDebugRenderKeyboardPreview(draw_list)
+    ccall((:igDebugRenderKeyboardPreview, libcimgui), Cvoid, (Ptr{ImDrawList},), draw_list)
+end
+
 function igDebugRenderViewportThumbnail(draw_list, viewport, bb)
     ccall((:igDebugRenderViewportThumbnail, libcimgui), Cvoid, (Ptr{ImDrawList}, Ptr{ImGuiViewportP}, ImRect), draw_list, viewport, bb)
+end
+
+function igIsKeyPressedMap(key, repeat)
+    ccall((:igIsKeyPressedMap, libcimgui), Bool, (ImGuiKey, Bool), key, repeat)
 end
 
 function igImFontAtlasGetBuilderForStbTruetype()
@@ -7955,17 +9392,24 @@ function igImFontAtlasBuildMultiplyRectAlpha8(table, pixels, x, y, w, h, stride)
     ccall((:igImFontAtlasBuildMultiplyRectAlpha8, libcimgui), Cvoid, (Ptr{Cuchar}, Ptr{Cuchar}, Cint, Cint, Cint, Cint, Cint), table, pixels, x, y, w, h, stride)
 end
 
-# no prototype is found for this function at cimgui.h:3747:18, please use with caution
+# automatic type deduction for variadic arguments may not be what you want, please use with caution
+@generated function igLogText(fmt, va_list...)
+        :(@ccall(libcimgui.igLogText(fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
+    end
+
+# automatic type deduction for variadic arguments may not be what you want, please use with caution
+@generated function ImGuiTextBuffer_appendf(buffer, fmt, va_list...)
+        :(@ccall(libcimgui.ImGuiTextBuffer_appendf(buffer::Ptr{ImGuiTextBuffer}, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
+    end
+
 function igGET_FLT_MAX()
     ccall((:igGET_FLT_MAX, libcimgui), Cfloat, ())
 end
 
-# no prototype is found for this function at cimgui.h:3749:18, please use with caution
 function igGET_FLT_MIN()
     ccall((:igGET_FLT_MIN, libcimgui), Cfloat, ())
 end
 
-# no prototype is found for this function at cimgui.h:3752:30, please use with caution
 function ImVector_ImWchar_create()
     ccall((:ImVector_ImWchar_create, libcimgui), Ptr{ImVector_ImWchar}, ())
 end
@@ -7982,27 +9426,22 @@ function ImVector_ImWchar_UnInit(p)
     ccall((:ImVector_ImWchar_UnInit, libcimgui), Cvoid, (Ptr{ImVector_ImWchar},), p)
 end
 
-const ImPlotMarker = Cint
+const ImPlotFlags = Cint
 
-struct ImPlotNextItemData
-    Colors::NTuple{5, ImVec4}
-    LineWeight::Cfloat
-    Marker::ImPlotMarker
-    MarkerSize::Cfloat
-    MarkerWeight::Cfloat
-    FillAlpha::Cfloat
-    ErrorBarSize::Cfloat
-    ErrorBarWeight::Cfloat
-    DigitalBitHeight::Cfloat
-    DigitalBitGap::Cfloat
-    RenderLine::Bool
-    RenderFill::Bool
-    RenderMarkerLine::Bool
-    RenderMarkerFill::Bool
-    HasHidden::Bool
-    Hidden::Bool
-    HiddenCond::ImGuiCond
+const ImPlotLocation = Cint
+
+const ImPlotMouseTextFlags = Cint
+
+const ImPlotAxisFlags = Cint
+
+struct ImPlotRange
+    Min::Cdouble
+    Max::Cdouble
 end
+
+const ImPlotCond = Cint
+
+const ImPlotScale = Cint
 
 struct ImPlotTick
     PlotPos::Cdouble
@@ -8012,6 +9451,7 @@ struct ImPlotTick
     Major::Bool
     ShowLabel::Bool
     Level::Cint
+    Idx::Cint
 end
 
 struct ImVector_ImPlotTick
@@ -8020,14 +9460,223 @@ struct ImVector_ImPlotTick
     Data::Ptr{ImPlotTick}
 end
 
-struct ImPlotTickCollection
+struct ImPlotTicker
     Ticks::ImVector_ImPlotTick
     TextBuffer::ImGuiTextBuffer
-    TotalWidth::Cfloat
-    TotalHeight::Cfloat
-    MaxWidth::Cfloat
-    MaxHeight::Cfloat
+    MaxSize::ImVec2
+    LateSize::ImVec2
+    Levels::Cint
+end
+
+# typedef int ( * ImPlotFormatter ) ( double value , char * buff , int size , void * user_data )
+const ImPlotFormatter = Ptr{Cvoid}
+
+# typedef void ( * ImPlotLocator ) ( ImPlotTicker * ticker , const ImPlotRange range , float pixels , bool vertical , ImPlotFormatter formatter , void * formatter_data )
+const ImPlotLocator = Ptr{Cvoid}
+
+struct ImPlotTime
+    S::time_t
+    Us::Cint
+end
+
+# typedef double ( * ImPlotTransform ) ( double value , void * user_data )
+const ImPlotTransform = Ptr{Cvoid}
+
+struct ImPlotAxis
+    ID::ImGuiID
+    Flags::ImPlotAxisFlags
+    PreviousFlags::ImPlotAxisFlags
+    Range::ImPlotRange
+    RangeCond::ImPlotCond
+    Scale::ImPlotScale
+    FitExtents::ImPlotRange
+    OrthoAxis::Ptr{ImPlotAxis}
+    ConstraintRange::ImPlotRange
+    ConstraintZoom::ImPlotRange
+    Ticker::ImPlotTicker
+    Formatter::ImPlotFormatter
+    FormatterData::Ptr{Cvoid}
+    FormatSpec::NTuple{16, Cchar}
+    Locator::ImPlotLocator
+    LinkedMin::Ptr{Cdouble}
+    LinkedMax::Ptr{Cdouble}
+    PickerLevel::Cint
+    PickerTimeMin::ImPlotTime
+    PickerTimeMax::ImPlotTime
+    TransformForward::ImPlotTransform
+    TransformInverse::ImPlotTransform
+    TransformData::Ptr{Cvoid}
+    PixelMin::Cfloat
+    PixelMax::Cfloat
+    ScaleMin::Cdouble
+    ScaleMax::Cdouble
+    ScaleToPixel::Cdouble
+    Datum1::Cfloat
+    Datum2::Cfloat
+    HoverRect::ImRect
+    LabelOffset::Cint
+    ColorMaj::ImU32
+    ColorMin::ImU32
+    ColorTick::ImU32
+    ColorTxt::ImU32
+    ColorBg::ImU32
+    ColorHov::ImU32
+    ColorAct::ImU32
+    ColorHiLi::ImU32
+    Enabled::Bool
+    Vertical::Bool
+    FitThisFrame::Bool
+    HasRange::Bool
+    HasFormatSpec::Bool
+    ShowDefaultTicks::Bool
+    Hovered::Bool
+    Held::Bool
+end
+
+const ImPlotLegendFlags = Cint
+
+struct ImPlotLegend
+    Flags::ImPlotLegendFlags
+    PreviousFlags::ImPlotLegendFlags
+    Location::ImPlotLocation
+    PreviousLocation::ImPlotLocation
+    Indices::ImVector_int
+    Labels::ImGuiTextBuffer
+    Rect::ImRect
+    Hovered::Bool
+    Held::Bool
+    CanGoInside::Bool
+end
+
+struct ImPlotItem
+    ID::ImGuiID
+    Color::ImU32
+    LegendHoverRect::ImRect
+    NameOffset::Cint
+    Show::Bool
+    LegendHovered::Bool
+    SeenThisFrame::Bool
+end
+
+struct ImVector_ImPlotItem
     Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImPlotItem}
+end
+
+struct ImPool_ImPlotItem
+    Buf::ImVector_ImPlotItem
+    Map::ImGuiStorage
+    FreeIdx::ImPoolIdx
+    AliveCount::ImPoolIdx
+end
+
+struct ImPlotItemGroup
+    ID::ImGuiID
+    Legend::ImPlotLegend
+    ItemPool::ImPool_ImPlotItem
+    ColormapIdx::Cint
+end
+
+const ImAxis = Cint
+
+struct ImPlotPlot
+    ID::ImGuiID
+    Flags::ImPlotFlags
+    PreviousFlags::ImPlotFlags
+    MouseTextLocation::ImPlotLocation
+    MouseTextFlags::ImPlotMouseTextFlags
+    Axes::NTuple{6, ImPlotAxis}
+    TextBuffer::ImGuiTextBuffer
+    Items::ImPlotItemGroup
+    CurrentX::ImAxis
+    CurrentY::ImAxis
+    FrameRect::ImRect
+    CanvasRect::ImRect
+    PlotRect::ImRect
+    AxesRect::ImRect
+    SelectRect::ImRect
+    SelectStart::ImVec2
+    TitleOffset::Cint
+    JustCreated::Bool
+    Initialized::Bool
+    SetupLocked::Bool
+    FitThisFrame::Bool
+    Hovered::Bool
+    Held::Bool
+    Selecting::Bool
+    Selected::Bool
+    ContextLocked::Bool
+end
+
+struct ImVector_ImPlotPlot
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImPlotPlot}
+end
+
+struct ImPool_ImPlotPlot
+    Buf::ImVector_ImPlotPlot
+    Map::ImGuiStorage
+    FreeIdx::ImPoolIdx
+    AliveCount::ImPoolIdx
+end
+
+const ImPlotSubplotFlags = Cint
+
+struct ImPlotAlignmentData
+    Vertical::Bool
+    PadA::Cfloat
+    PadB::Cfloat
+    PadAMax::Cfloat
+    PadBMax::Cfloat
+end
+
+struct ImVector_ImPlotAlignmentData
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImPlotAlignmentData}
+end
+
+struct ImVector_ImPlotRange
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImPlotRange}
+end
+
+struct ImPlotSubplot
+    ID::ImGuiID
+    Flags::ImPlotSubplotFlags
+    PreviousFlags::ImPlotSubplotFlags
+    Items::ImPlotItemGroup
+    Rows::Cint
+    Cols::Cint
+    CurrentIdx::Cint
+    FrameRect::ImRect
+    GridRect::ImRect
+    CellSize::ImVec2
+    RowAlignmentData::ImVector_ImPlotAlignmentData
+    ColAlignmentData::ImVector_ImPlotAlignmentData
+    RowRatios::ImVector_float
+    ColRatios::ImVector_float
+    RowLinkData::ImVector_ImPlotRange
+    ColLinkData::ImVector_ImPlotRange
+    TempSizes::NTuple{2, Cfloat}
+    FrameHovered::Bool
+    HasTitle::Bool
+end
+
+struct ImVector_ImPlotSubplot
+    Size::Cint
+    Capacity::Cint
+    Data::Ptr{ImPlotSubplot}
+end
+
+struct ImPool_ImPlotSubplot
+    Buf::ImVector_ImPlotSubplot
+    Map::ImGuiStorage
+    FreeIdx::ImPoolIdx
+    AliveCount::ImPoolIdx
 end
 
 struct ImPlotAnnotation
@@ -8051,189 +9700,25 @@ struct ImPlotAnnotationCollection
     Size::Cint
 end
 
-struct ImPlotPointError
-    X::Cdouble
-    Y::Cdouble
-    Neg::Cdouble
-    Pos::Cdouble
+struct ImPlotTag
+    Axis::ImAxis
+    Value::Cdouble
+    ColorBg::ImU32
+    ColorFg::ImU32
+    TextOffset::Cint
 end
 
-struct ImVector_int
+struct ImVector_ImPlotTag
     Size::Cint
     Capacity::Cint
-    Data::Ptr{Cint}
+    Data::Ptr{ImPlotTag}
 end
 
-struct ImVector_bool
+struct ImPlotTagCollection
+    Tags::ImVector_ImPlotTag
+    TextBuffer::ImGuiTextBuffer
     Size::Cint
-    Capacity::Cint
-    Data::Ptr{Bool}
 end
-
-struct ImPlotColormapData
-    Keys::ImVector_ImU32
-    KeyCounts::ImVector_int
-    KeyOffsets::ImVector_int
-    Tables::ImVector_ImU32
-    TableSizes::ImVector_int
-    TableOffsets::ImVector_int
-    Text::ImGuiTextBuffer
-    TextOffsets::ImVector_int
-    Quals::ImVector_bool
-    Map::ImGuiStorage
-    Count::Cint
-end
-
-struct ImPlotTime
-    S::time_t
-    Us::Cint
-end
-
-const ImPlotDateFmt = Cint
-
-const ImPlotTimeFmt = Cint
-
-struct ImPlotDateTimeFmt
-    Date::ImPlotDateFmt
-    Time::ImPlotTimeFmt
-    UseISO8601::Bool
-    Use24HourClock::Bool
-end
-
-struct ImPlotInputMap
-    PanButton::ImGuiMouseButton
-    PanMod::ImGuiKeyModFlags
-    FitButton::ImGuiMouseButton
-    ContextMenuButton::ImGuiMouseButton
-    BoxSelectButton::ImGuiMouseButton
-    BoxSelectMod::ImGuiKeyModFlags
-    BoxSelectCancelButton::ImGuiMouseButton
-    QueryButton::ImGuiMouseButton
-    QueryMod::ImGuiKeyModFlags
-    QueryToggleMod::ImGuiKeyModFlags
-    HorizontalMod::ImGuiKeyModFlags
-    VerticalMod::ImGuiKeyModFlags
-end
-
-struct ImBufferWriter
-    Buffer::Ptr{Cchar}
-    Size::Cint
-    Pos::Cint
-end
-
-struct ImPlotRange
-    Min::Cdouble
-    Max::Cdouble
-end
-
-struct ImPlotNextPlotData
-    XRangeCond::ImGuiCond
-    YRangeCond::NTuple{3, ImGuiCond}
-    X::ImPlotRange
-    Y::NTuple{3, ImPlotRange}
-    HasXRange::Bool
-    HasYRange::NTuple{3, Bool}
-    ShowDefaultTicksX::Bool
-    ShowDefaultTicksY::NTuple{3, Bool}
-    FitX::Bool
-    FitY::NTuple{3, Bool}
-    LinkedXmin::Ptr{Cdouble}
-    LinkedXmax::Ptr{Cdouble}
-    LinkedYmin::NTuple{3, Ptr{Cdouble}}
-    LinkedYmax::NTuple{3, Ptr{Cdouble}}
-end
-
-const ImPlotFlags = Cint
-
-const ImPlotAxisFlags = Cint
-
-const ImPlotOrientation = Cint
-
-struct ImPlotAxis
-    Flags::ImPlotAxisFlags
-    PreviousFlags::ImPlotAxisFlags
-    Range::ImPlotRange
-    Pixels::Cfloat
-    Orientation::ImPlotOrientation
-    Dragging::Bool
-    ExtHovered::Bool
-    AllHovered::Bool
-    Present::Bool
-    HasRange::Bool
-    LinkedMin::Ptr{Cdouble}
-    LinkedMax::Ptr{Cdouble}
-    PickerTimeMin::ImPlotTime
-    PickerTimeMax::ImPlotTime
-    PickerLevel::Cint
-    ColorMaj::ImU32
-    ColorMin::ImU32
-    ColorTxt::ImU32
-    RangeCond::ImGuiCond
-    HoverRect::ImRect
-end
-
-struct ImPlotLegendData
-    Indices::ImVector_int
-    Labels::ImGuiTextBuffer
-end
-
-struct ImPlotItem
-    ID::ImGuiID
-    Color::ImU32
-    NameOffset::Cint
-    Show::Bool
-    LegendHovered::Bool
-    SeenThisFrame::Bool
-end
-
-struct ImVector_ImPlotItem
-    Size::Cint
-    Capacity::Cint
-    Data::Ptr{ImPlotItem}
-end
-
-struct ImPool_ImPlotItem
-    Buf::ImVector_ImPlotItem
-    Map::ImGuiStorage
-    FreeIdx::ImPoolIdx
-end
-
-const ImPlotLocation = Cint
-
-struct ImPlotPlot
-    ID::ImGuiID
-    Flags::ImPlotFlags
-    PreviousFlags::ImPlotFlags
-    XAxis::ImPlotAxis
-    YAxis::NTuple{3, ImPlotAxis}
-    LegendData::ImPlotLegendData
-    Items::ImPool_ImPlotItem
-    SelectStart::ImVec2
-    QueryStart::ImVec2
-    QueryRect::ImRect
-    Selecting::Bool
-    ContextLocked::Bool
-    Querying::Bool
-    Queried::Bool
-    DraggingQuery::Bool
-    LegendHovered::Bool
-    LegendOutside::Bool
-    LegendFlipSideNextFrame::Bool
-    FrameHovered::Bool
-    PlotHovered::Bool
-    ColormapIdx::Cint
-    CurrentYAxis::Cint
-    MousePosLocation::ImPlotLocation
-    LegendLocation::ImPlotLocation
-    LegendOrientation::ImPlotOrientation
-    FrameRect::ImRect
-    CanvasRect::ImRect
-    PlotRect::ImRect
-    AxesRect::ImRect
-    LegendRect::ImRect
-end
-
-mutable struct ImPlotAxisColor end
 
 const ImPlotColormap = Cint
 
@@ -8265,37 +9750,32 @@ struct ImPlotStyle
     FitPadding::ImVec2
     PlotDefaultSize::ImVec2
     PlotMinSize::ImVec2
-    Colors::NTuple{24, ImVec4}
+    Colors::NTuple{21, ImVec4}
     Colormap::ImPlotColormap
-    AntiAliasedLines::Bool
     UseLocalTime::Bool
     UseISO8601::Bool
     Use24HourClock::Bool
 end
 
-struct ImPlotLimits
-    X::ImPlotRange
-    Y::ImPlotRange
-end
-
-struct ImPlotPoint
-    x::Cdouble
-    y::Cdouble
-end
-
-struct ImVector_ImPlotPlot
+struct ImVector_bool
     Size::Cint
     Capacity::Cint
-    Data::Ptr{ImPlotPlot}
+    Data::Ptr{Bool}
 end
 
-struct ImPool_ImPlotPlot
-    Buf::ImVector_ImPlotPlot
+struct ImPlotColormapData
+    Keys::ImVector_ImU32
+    KeyCounts::ImVector_int
+    KeyOffsets::ImVector_int
+    Tables::ImVector_ImU32
+    TableSizes::ImVector_int
+    TableOffsets::ImVector_int
+    Text::ImGuiTextBuffer
+    TextOffsets::ImVector_int
+    Quals::ImVector_bool
     Map::ImGuiStorage
-    FreeIdx::ImPoolIdx
+    Count::Cint
 end
-
-const ImPlotScale = Cint
 
 struct ImVector_ImPlotColormap
     Size::Cint
@@ -8309,29 +9789,70 @@ struct ImVector_double
     Data::Ptr{Cdouble}
 end
 
+struct ImPlotNextPlotData
+    RangeCond::NTuple{6, ImPlotCond}
+    Range::NTuple{6, ImPlotRange}
+    HasRange::NTuple{6, Bool}
+    Fit::NTuple{6, Bool}
+    LinkedMin::NTuple{6, Ptr{Cdouble}}
+    LinkedMax::NTuple{6, Ptr{Cdouble}}
+end
+
+const ImPlotMarker = Cint
+
+struct ImPlotNextItemData
+    Colors::NTuple{5, ImVec4}
+    LineWeight::Cfloat
+    Marker::ImPlotMarker
+    MarkerSize::Cfloat
+    MarkerWeight::Cfloat
+    FillAlpha::Cfloat
+    ErrorBarSize::Cfloat
+    ErrorBarWeight::Cfloat
+    DigitalBitHeight::Cfloat
+    DigitalBitGap::Cfloat
+    RenderLine::Bool
+    RenderFill::Bool
+    RenderMarkerLine::Bool
+    RenderMarkerFill::Bool
+    HasHidden::Bool
+    Hidden::Bool
+    HiddenCond::ImPlotCond
+end
+
+struct ImPlotInputMap
+    Pan::ImGuiMouseButton
+    PanMod::Cint
+    Fit::ImGuiMouseButton
+    Select::ImGuiMouseButton
+    SelectCancel::ImGuiMouseButton
+    SelectMod::Cint
+    SelectHorzMod::Cint
+    SelectVertMod::Cint
+    Menu::ImGuiMouseButton
+    OverrideMod::Cint
+    ZoomMod::Cint
+    ZoomRate::Cfloat
+end
+
+struct ImPool_ImPlotAlignmentData
+    Buf::ImVector_ImPlotAlignmentData
+    Map::ImGuiStorage
+    FreeIdx::ImPoolIdx
+    AliveCount::ImPoolIdx
+end
+
 struct ImPlotContext
     Plots::ImPool_ImPlotPlot
+    Subplots::ImPool_ImPlotSubplot
     CurrentPlot::Ptr{ImPlotPlot}
+    CurrentSubplot::Ptr{ImPlotSubplot}
+    CurrentItems::Ptr{ImPlotItemGroup}
     CurrentItem::Ptr{ImPlotItem}
     PreviousItem::Ptr{ImPlotItem}
-    CTicks::ImPlotTickCollection
-    XTicks::ImPlotTickCollection
-    YTicks::NTuple{3, ImPlotTickCollection}
-    YAxisReference::NTuple{3, Cfloat}
+    CTicker::ImPlotTicker
     Annotations::ImPlotAnnotationCollection
-    Scales::NTuple{3, ImPlotScale}
-    PixelRange::NTuple{3, ImRect}
-    Mx::Cdouble
-    My::NTuple{3, Cdouble}
-    LogDenX::Cdouble
-    LogDenY::NTuple{3, Cdouble}
-    ExtentsX::ImPlotRange
-    ExtentsY::NTuple{3, ImPlotRange}
-    FitThisFrame::Bool
-    FitX::Bool
-    FitY::NTuple{3, Bool}
-    RenderX::Bool
-    RenderY::NTuple{3, Bool}
+    Tags::ImPlotTagCollection
     ChildWindowMade::Bool
     Style::ImPlotStyle
     ColorModifiers::ImVector_ImGuiColorMod
@@ -8339,26 +9860,23 @@ struct ImPlotContext
     ColormapData::ImPlotColormapData
     ColormapModifiers::ImVector_ImPlotColormap
     Tm::tm
-    Temp1::ImVector_double
-    Temp2::ImVector_double
-    VisibleItemCount::Cint
+    TempDouble1::ImVector_double
+    TempDouble2::ImVector_double
+    TempInt1::ImVector_int
     DigitalPlotItemCnt::Cint
     DigitalPlotOffset::Cint
     NextPlotData::ImPlotNextPlotData
     NextItemData::ImPlotNextItemData
     InputMap::ImPlotInputMap
-    MousePos::NTuple{3, ImPlotPoint}
+    OpenContextThisFrame::Bool
+    MousePosStringBuilder::ImGuiTextBuffer
+    SortItems::Ptr{ImPlotItemGroup}
+    AlignmentData::ImPool_ImPlotAlignmentData
+    CurrentAlignmentH::Ptr{ImPlotAlignmentData}
+    CurrentAlignmentV::Ptr{ImPlotAlignmentData}
 end
 
-const ImPlotCol = Cint
-
-const ImPlotStyleVar = Cint
-
-const ImPlotYAxis = Cint
-
-const ImPlotBin = Cint
-
-const ImPlotTimeUnit = Cint
+mutable struct ImPlotAxisColor end
 
 struct ImVector_ImS16
     Size::Cint
@@ -8402,22 +9920,73 @@ struct ImVector_ImU8
     Data::Ptr{ImU8}
 end
 
+const ImPlotDragToolFlags = Cint
+
+const ImPlotColormapScaleFlags = Cint
+
+const ImPlotItemFlags = Cint
+
+const ImPlotLineFlags = Cint
+
+const ImPlotScatterFlags = Cint
+
+const ImPlotStairsFlags = Cint
+
+const ImPlotShadedFlags = Cint
+
+const ImPlotBarsFlags = Cint
+
+const ImPlotBarGroupsFlags = Cint
+
+const ImPlotErrorBarsFlags = Cint
+
+const ImPlotStemsFlags = Cint
+
+const ImPlotInfLinesFlags = Cint
+
+const ImPlotPieChartFlags = Cint
+
+const ImPlotHeatmapFlags = Cint
+
+const ImPlotHistogramFlags = Cint
+
+const ImPlotDigitalFlags = Cint
+
+const ImPlotImageFlags = Cint
+
+const ImPlotTextFlags = Cint
+
+const ImPlotDummyFlags = Cint
+
+const ImPlotCol = Cint
+
+const ImPlotStyleVar = Cint
+
+const ImPlotBin = Cint
+
+@cenum ImAxis_::UInt32 begin
+    ImAxis_X1 = 0
+    ImAxis_X2 = 1
+    ImAxis_X3 = 2
+    ImAxis_Y1 = 3
+    ImAxis_Y2 = 4
+    ImAxis_Y3 = 5
+    ImAxis_COUNT = 6
+end
+
 @cenum ImPlotFlags_::UInt32 begin
     ImPlotFlags_None = 0
     ImPlotFlags_NoTitle = 1
     ImPlotFlags_NoLegend = 2
-    ImPlotFlags_NoMenus = 4
-    ImPlotFlags_NoBoxSelect = 8
-    ImPlotFlags_NoMousePos = 16
-    ImPlotFlags_NoHighlight = 32
+    ImPlotFlags_NoMouseText = 4
+    ImPlotFlags_NoInputs = 8
+    ImPlotFlags_NoMenus = 16
+    ImPlotFlags_NoBoxSelect = 32
     ImPlotFlags_NoChild = 64
-    ImPlotFlags_Equal = 128
-    ImPlotFlags_YAxis2 = 256
-    ImPlotFlags_YAxis3 = 512
-    ImPlotFlags_Query = 1024
-    ImPlotFlags_Crosshairs = 2048
-    ImPlotFlags_AntiAliased = 4096
-    ImPlotFlags_CanvasOnly = 31
+    ImPlotFlags_NoFrame = 128
+    ImPlotFlags_Equal = 256
+    ImPlotFlags_Crosshairs = 512
+    ImPlotFlags_CanvasOnly = 55
 end
 
 @cenum ImPlotAxisFlags_::UInt32 begin
@@ -8426,14 +9995,167 @@ end
     ImPlotAxisFlags_NoGridLines = 2
     ImPlotAxisFlags_NoTickMarks = 4
     ImPlotAxisFlags_NoTickLabels = 8
-    ImPlotAxisFlags_LogScale = 16
-    ImPlotAxisFlags_Time = 32
-    ImPlotAxisFlags_Invert = 64
-    ImPlotAxisFlags_AutoFit = 128
-    ImPlotAxisFlags_LockMin = 256
-    ImPlotAxisFlags_LockMax = 512
-    ImPlotAxisFlags_Lock = 768
+    ImPlotAxisFlags_NoInitialFit = 16
+    ImPlotAxisFlags_NoMenus = 32
+    ImPlotAxisFlags_NoSideSwitch = 64
+    ImPlotAxisFlags_NoHighlight = 128
+    ImPlotAxisFlags_Opposite = 256
+    ImPlotAxisFlags_Foreground = 512
+    ImPlotAxisFlags_Invert = 1024
+    ImPlotAxisFlags_AutoFit = 2048
+    ImPlotAxisFlags_RangeFit = 4096
+    ImPlotAxisFlags_PanStretch = 8192
+    ImPlotAxisFlags_LockMin = 16384
+    ImPlotAxisFlags_LockMax = 32768
+    ImPlotAxisFlags_Lock = 49152
     ImPlotAxisFlags_NoDecorations = 15
+    ImPlotAxisFlags_AuxDefault = 258
+end
+
+@cenum ImPlotSubplotFlags_::UInt32 begin
+    ImPlotSubplotFlags_None = 0
+    ImPlotSubplotFlags_NoTitle = 1
+    ImPlotSubplotFlags_NoLegend = 2
+    ImPlotSubplotFlags_NoMenus = 4
+    ImPlotSubplotFlags_NoResize = 8
+    ImPlotSubplotFlags_NoAlign = 16
+    ImPlotSubplotFlags_ShareItems = 32
+    ImPlotSubplotFlags_LinkRows = 64
+    ImPlotSubplotFlags_LinkCols = 128
+    ImPlotSubplotFlags_LinkAllX = 256
+    ImPlotSubplotFlags_LinkAllY = 512
+    ImPlotSubplotFlags_ColMajor = 1024
+end
+
+@cenum ImPlotLegendFlags_::UInt32 begin
+    ImPlotLegendFlags_None = 0
+    ImPlotLegendFlags_NoButtons = 1
+    ImPlotLegendFlags_NoHighlightItem = 2
+    ImPlotLegendFlags_NoHighlightAxis = 4
+    ImPlotLegendFlags_NoMenus = 8
+    ImPlotLegendFlags_Outside = 16
+    ImPlotLegendFlags_Horizontal = 32
+    ImPlotLegendFlags_Sort = 64
+end
+
+@cenum ImPlotMouseTextFlags_::UInt32 begin
+    ImPlotMouseTextFlags_None = 0
+    ImPlotMouseTextFlags_NoAuxAxes = 1
+    ImPlotMouseTextFlags_NoFormat = 2
+    ImPlotMouseTextFlags_ShowAlways = 4
+end
+
+@cenum ImPlotDragToolFlags_::UInt32 begin
+    ImPlotDragToolFlags_None = 0
+    ImPlotDragToolFlags_NoCursors = 1
+    ImPlotDragToolFlags_NoFit = 2
+    ImPlotDragToolFlags_NoInputs = 4
+    ImPlotDragToolFlags_Delayed = 8
+end
+
+@cenum ImPlotColormapScaleFlags_::UInt32 begin
+    ImPlotColormapScaleFlags_None = 0
+    ImPlotColormapScaleFlags_NoLabel = 1
+    ImPlotColormapScaleFlags_Opposite = 2
+    ImPlotColormapScaleFlags_Invert = 4
+end
+
+@cenum ImPlotItemFlags_::UInt32 begin
+    ImPlotItemFlags_None = 0
+    ImPlotItemFlags_NoLegend = 1
+    ImPlotItemFlags_NoFit = 2
+end
+
+@cenum ImPlotLineFlags_::UInt32 begin
+    ImPlotLineFlags_None = 0
+    ImPlotLineFlags_Segments = 1024
+    ImPlotLineFlags_Loop = 2048
+    ImPlotLineFlags_SkipNaN = 4096
+    ImPlotLineFlags_NoClip = 8192
+    ImPlotLineFlags_Shaded = 16384
+end
+
+@cenum ImPlotScatterFlags_::UInt32 begin
+    ImPlotScatterFlags_None = 0
+    ImPlotScatterFlags_NoClip = 1024
+end
+
+@cenum ImPlotStairsFlags_::UInt32 begin
+    ImPlotStairsFlags_None = 0
+    ImPlotStairsFlags_PreStep = 1024
+    ImPlotStairsFlags_Shaded = 2048
+end
+
+@cenum ImPlotShadedFlags_::UInt32 begin
+    ImPlotShadedFlags_None = 0
+end
+
+@cenum ImPlotBarsFlags_::UInt32 begin
+    ImPlotBarsFlags_None = 0
+    ImPlotBarsFlags_Horizontal = 1024
+end
+
+@cenum ImPlotBarGroupsFlags_::UInt32 begin
+    ImPlotBarGroupsFlags_None = 0
+    ImPlotBarGroupsFlags_Horizontal = 1024
+    ImPlotBarGroupsFlags_Stacked = 2048
+end
+
+@cenum ImPlotErrorBarsFlags_::UInt32 begin
+    ImPlotErrorBarsFlags_None = 0
+    ImPlotErrorBarsFlags_Horizontal = 1024
+end
+
+@cenum ImPlotStemsFlags_::UInt32 begin
+    ImPlotStemsFlags_None = 0
+    ImPlotStemsFlags_Horizontal = 1024
+end
+
+@cenum ImPlotInfLinesFlags_::UInt32 begin
+    ImPlotInfLinesFlags_None = 0
+    ImPlotInfLinesFlags_Horizontal = 1024
+end
+
+@cenum ImPlotPieChartFlags_::UInt32 begin
+    ImPlotPieChartFlags_None = 0
+    ImPlotPieChartFlags_Normalize = 1024
+end
+
+@cenum ImPlotHeatmapFlags_::UInt32 begin
+    ImPlotHeatmapFlags_None = 0
+    ImPlotHeatmapFlags_ColMajor = 1024
+end
+
+@cenum ImPlotHistogramFlags_::UInt32 begin
+    ImPlotHistogramFlags_None = 0
+    ImPlotHistogramFlags_Horizontal = 1024
+    ImPlotHistogramFlags_Cumulative = 2048
+    ImPlotHistogramFlags_Density = 4096
+    ImPlotHistogramFlags_NoOutliers = 8192
+    ImPlotHistogramFlags_ColMajor = 16384
+end
+
+@cenum ImPlotDigitalFlags_::UInt32 begin
+    ImPlotDigitalFlags_None = 0
+end
+
+@cenum ImPlotImageFlags_::UInt32 begin
+    ImPlotImageFlags_None = 0
+end
+
+@cenum ImPlotTextFlags_::UInt32 begin
+    ImPlotTextFlags_None = 0
+    ImPlotTextFlags_Vertical = 1024
+end
+
+@cenum ImPlotDummyFlags_::UInt32 begin
+    ImPlotDummyFlags_None = 0
+end
+
+@cenum ImPlotCond_::UInt32 begin
+    ImPlotCond_None = 0
+    ImPlotCond_Always = 1
+    ImPlotCond_Once = 2
 end
 
 @cenum ImPlotCol_::UInt32 begin
@@ -8450,18 +10172,15 @@ end
     ImPlotCol_LegendText = 10
     ImPlotCol_TitleText = 11
     ImPlotCol_InlayText = 12
-    ImPlotCol_XAxis = 13
-    ImPlotCol_XAxisGrid = 14
-    ImPlotCol_YAxis = 15
-    ImPlotCol_YAxisGrid = 16
-    ImPlotCol_YAxis2 = 17
-    ImPlotCol_YAxisGrid2 = 18
-    ImPlotCol_YAxis3 = 19
-    ImPlotCol_YAxisGrid3 = 20
-    ImPlotCol_Selection = 21
-    ImPlotCol_Query = 22
-    ImPlotCol_Crosshairs = 23
-    ImPlotCol_COUNT = 24
+    ImPlotCol_AxisText = 13
+    ImPlotCol_AxisGrid = 14
+    ImPlotCol_AxisTick = 15
+    ImPlotCol_AxisBg = 16
+    ImPlotCol_AxisBgHovered = 17
+    ImPlotCol_AxisBgActive = 18
+    ImPlotCol_Selection = 19
+    ImPlotCol_Crosshairs = 20
+    ImPlotCol_COUNT = 21
 end
 
 @cenum ImPlotStyleVar_::UInt32 begin
@@ -8493,6 +10212,13 @@ end
     ImPlotStyleVar_PlotDefaultSize = 25
     ImPlotStyleVar_PlotMinSize = 26
     ImPlotStyleVar_COUNT = 27
+end
+
+@cenum ImPlotScale_::UInt32 begin
+    ImPlotScale_Linear = 0
+    ImPlotScale_Time = 1
+    ImPlotScale_Log10 = 2
+    ImPlotScale_SymLog = 3
 end
 
 @cenum ImPlotMarker_::Int32 begin
@@ -8541,17 +10267,6 @@ end
     ImPlotLocation_SouthEast = 10
 end
 
-@cenum ImPlotOrientation_::UInt32 begin
-    ImPlotOrientation_Horizontal = 0
-    ImPlotOrientation_Vertical = 1
-end
-
-@cenum ImPlotYAxis_::UInt32 begin
-    ImPlotYAxis_1 = 0
-    ImPlotYAxis_2 = 1
-    ImPlotYAxis_3 = 2
-end
-
 @cenum ImPlotBin_::Int32 begin
     ImPlotBin_Sqrt = -1
     ImPlotBin_Sturges = -2
@@ -8559,12 +10274,24 @@ end
     ImPlotBin_Scott = -4
 end
 
-@cenum ImPlotScale_::UInt32 begin
-    ImPlotScale_LinLin = 0
-    ImPlotScale_LogLin = 1
-    ImPlotScale_LinLog = 2
-    ImPlotScale_LogLog = 3
+struct ImPlotPoint
+    x::Cdouble
+    y::Cdouble
 end
+
+struct ImPlotRect
+    X::ImPlotRange
+    Y::ImPlotRange
+end
+
+# typedef ImPlotPoint ( * ImPlotGetter ) ( int idx , void * user_data )
+const ImPlotGetter = Ptr{Cvoid}
+
+const ImPlotTimeUnit = Cint
+
+const ImPlotDateFmt = Cint
+
+const ImPlotTimeFmt = Cint
 
 @cenum ImPlotTimeUnit_::UInt32 begin
     ImPlotTimeUnit_Us = 0
@@ -8593,11 +10320,36 @@ end
     ImPlotTimeFmt_SUs = 2
     ImPlotTimeFmt_SMs = 3
     ImPlotTimeFmt_S = 4
-    ImPlotTimeFmt_HrMinSMs = 5
-    ImPlotTimeFmt_HrMinS = 6
-    ImPlotTimeFmt_HrMin = 7
-    ImPlotTimeFmt_Hr = 8
+    ImPlotTimeFmt_MinSMs = 5
+    ImPlotTimeFmt_HrMinSMs = 6
+    ImPlotTimeFmt_HrMinS = 7
+    ImPlotTimeFmt_HrMin = 8
+    ImPlotTimeFmt_Hr = 9
 end
+
+struct ImPlotDateTimeSpec
+    Date::ImPlotDateFmt
+    Time::ImPlotTimeFmt
+    UseISO8601::Bool
+    Use24HourClock::Bool
+end
+
+struct ImPlotPointError
+    X::Cdouble
+    Y::Cdouble
+    Neg::Cdouble
+    Pos::Cdouble
+end
+
+struct Formatter_Time_Data
+    Time::ImPlotTime
+    Spec::ImPlotDateTimeSpec
+    UserFormatter::ImPlotFormatter
+    UserFormatterData::Ptr{Cvoid}
+end
+
+# typedef void * ( * ImPlotPoint_getter ) ( void * data , int idx , ImPlotPoint * point )
+const ImPlotPoint_getter = Ptr{Cvoid}
 
 function ImPlotPoint_ImPlotPoint_Nil()
     ccall((:ImPlotPoint_ImPlotPoint_Nil, libcimgui), Ptr{ImPlotPoint}, ())
@@ -8635,32 +10387,48 @@ function ImPlotRange_Size(self)
     ccall((:ImPlotRange_Size, libcimgui), Cdouble, (Ptr{ImPlotRange},), self)
 end
 
-function ImPlotLimits_ImPlotLimits_Nil()
-    ccall((:ImPlotLimits_ImPlotLimits_Nil, libcimgui), Ptr{ImPlotLimits}, ())
+function ImPlotRange_Clamp(self, value)
+    ccall((:ImPlotRange_Clamp, libcimgui), Cdouble, (Ptr{ImPlotRange}, Cdouble), self, value)
 end
 
-function ImPlotLimits_destroy(self)
-    ccall((:ImPlotLimits_destroy, libcimgui), Cvoid, (Ptr{ImPlotLimits},), self)
+function ImPlotRect_ImPlotRect_Nil()
+    ccall((:ImPlotRect_ImPlotRect_Nil, libcimgui), Ptr{ImPlotRect}, ())
 end
 
-function ImPlotLimits_ImPlotLimits_double(x_min, x_max, y_min, y_max)
-    ccall((:ImPlotLimits_ImPlotLimits_double, libcimgui), Ptr{ImPlotLimits}, (Cdouble, Cdouble, Cdouble, Cdouble), x_min, x_max, y_min, y_max)
+function ImPlotRect_destroy(self)
+    ccall((:ImPlotRect_destroy, libcimgui), Cvoid, (Ptr{ImPlotRect},), self)
 end
 
-function ImPlotLimits_Contains_PlotPoInt(self, p)
-    ccall((:ImPlotLimits_Contains_PlotPoInt, libcimgui), Bool, (Ptr{ImPlotLimits}, ImPlotPoint), self, p)
+function ImPlotRect_ImPlotRect_double(x_min, x_max, y_min, y_max)
+    ccall((:ImPlotRect_ImPlotRect_double, libcimgui), Ptr{ImPlotRect}, (Cdouble, Cdouble, Cdouble, Cdouble), x_min, x_max, y_min, y_max)
 end
 
-function ImPlotLimits_Contains_double(self, x, y)
-    ccall((:ImPlotLimits_Contains_double, libcimgui), Bool, (Ptr{ImPlotLimits}, Cdouble, Cdouble), self, x, y)
+function ImPlotRect_Contains_PlotPoInt(self, p)
+    ccall((:ImPlotRect_Contains_PlotPoInt, libcimgui), Bool, (Ptr{ImPlotRect}, ImPlotPoint), self, p)
 end
 
-function ImPlotLimits_Min(pOut, self)
-    ccall((:ImPlotLimits_Min, libcimgui), Cvoid, (Ptr{ImPlotPoint}, Ptr{ImPlotLimits}), pOut, self)
+function ImPlotRect_Contains_double(self, x, y)
+    ccall((:ImPlotRect_Contains_double, libcimgui), Bool, (Ptr{ImPlotRect}, Cdouble, Cdouble), self, x, y)
 end
 
-function ImPlotLimits_Max(pOut, self)
-    ccall((:ImPlotLimits_Max, libcimgui), Cvoid, (Ptr{ImPlotPoint}, Ptr{ImPlotLimits}), pOut, self)
+function ImPlotRect_Size(pOut, self)
+    ccall((:ImPlotRect_Size, libcimgui), Cvoid, (Ptr{ImPlotPoint}, Ptr{ImPlotRect}), pOut, self)
+end
+
+function ImPlotRect_Clamp_PlotPoInt(pOut, self, p)
+    ccall((:ImPlotRect_Clamp_PlotPoInt, libcimgui), Cvoid, (Ptr{ImPlotPoint}, Ptr{ImPlotRect}, ImPlotPoint), pOut, self, p)
+end
+
+function ImPlotRect_Clamp_double(pOut, self, x, y)
+    ccall((:ImPlotRect_Clamp_double, libcimgui), Cvoid, (Ptr{ImPlotPoint}, Ptr{ImPlotRect}, Cdouble, Cdouble), pOut, self, x, y)
+end
+
+function ImPlotRect_Min(pOut, self)
+    ccall((:ImPlotRect_Min, libcimgui), Cvoid, (Ptr{ImPlotPoint}, Ptr{ImPlotRect}), pOut, self)
+end
+
+function ImPlotRect_Max(pOut, self)
+    ccall((:ImPlotRect_Max, libcimgui), Cvoid, (Ptr{ImPlotPoint}, Ptr{ImPlotRect}), pOut, self)
 end
 
 function ImPlotStyle_ImPlotStyle()
@@ -8669,6 +10437,14 @@ end
 
 function ImPlotStyle_destroy(self)
     ccall((:ImPlotStyle_destroy, libcimgui), Cvoid, (Ptr{ImPlotStyle},), self)
+end
+
+function ImPlotInputMap_ImPlotInputMap()
+    ccall((:ImPlotInputMap_ImPlotInputMap, libcimgui), Ptr{ImPlotInputMap}, ())
+end
+
+function ImPlotInputMap_destroy(self)
+    ccall((:ImPlotInputMap_destroy, libcimgui), Cvoid, (Ptr{ImPlotInputMap},), self)
 end
 
 function ImPlot_CreateContext()
@@ -8691,1128 +10467,1087 @@ function ImPlot_SetImGuiContext(ctx)
     ccall((:ImPlot_SetImGuiContext, libcimgui), Cvoid, (Ptr{ImGuiContext},), ctx)
 end
 
-function ImPlot_BeginPlot(title_id, x_label, y_label, size, flags, x_flags, y_flags, y2_flags, y3_flags, y2_label, y3_label)
-    ccall((:ImPlot_BeginPlot, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cchar}, Ptr{Cchar}, ImVec2, ImPlotFlags, ImPlotAxisFlags, ImPlotAxisFlags, ImPlotAxisFlags, ImPlotAxisFlags, Ptr{Cchar}, Ptr{Cchar}), title_id, x_label, y_label, size, flags, x_flags, y_flags, y2_flags, y3_flags, y2_label, y3_label)
+function ImPlot_BeginPlot(title_id, size, flags)
+    ccall((:ImPlot_BeginPlot, libcimgui), Bool, (Ptr{Cchar}, ImVec2, ImPlotFlags), title_id, size, flags)
 end
 
 function ImPlot_EndPlot()
     ccall((:ImPlot_EndPlot, libcimgui), Cvoid, ())
 end
 
-function ImPlot_PlotLine_FloatPtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotLine_FloatPtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_BeginSubplots(title_id, rows, cols, size, flags, row_ratios, col_ratios)
+    ccall((:ImPlot_BeginSubplots, libcimgui), Bool, (Ptr{Cchar}, Cint, Cint, ImVec2, ImPlotSubplotFlags, Ptr{Cfloat}, Ptr{Cfloat}), title_id, rows, cols, size, flags, row_ratios, col_ratios)
 end
 
-function ImPlot_PlotLine_doublePtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotLine_doublePtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_EndSubplots()
+    ccall((:ImPlot_EndSubplots, libcimgui), Cvoid, ())
 end
 
-function ImPlot_PlotLine_S8PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotLine_S8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_SetupAxis(axis, label, flags)
+    ccall((:ImPlot_SetupAxis, libcimgui), Cvoid, (ImAxis, Ptr{Cchar}, ImPlotAxisFlags), axis, label, flags)
 end
 
-function ImPlot_PlotLine_U8PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotLine_U8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_SetupAxisLimits(axis, v_min, v_max, cond)
+    ccall((:ImPlot_SetupAxisLimits, libcimgui), Cvoid, (ImAxis, Cdouble, Cdouble, ImPlotCond), axis, v_min, v_max, cond)
 end
 
-function ImPlot_PlotLine_S16PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotLine_S16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_SetupAxisLinks(axis, link_min, link_max)
+    ccall((:ImPlot_SetupAxisLinks, libcimgui), Cvoid, (ImAxis, Ptr{Cdouble}, Ptr{Cdouble}), axis, link_min, link_max)
 end
 
-function ImPlot_PlotLine_U16PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotLine_U16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_SetupAxisFormat_Str(axis, fmt)
+    ccall((:ImPlot_SetupAxisFormat_Str, libcimgui), Cvoid, (ImAxis, Ptr{Cchar}), axis, fmt)
 end
 
-function ImPlot_PlotLine_S32PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotLine_S32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_SetupAxisFormat_PlotFormatter(axis, formatter, data)
+    ccall((:ImPlot_SetupAxisFormat_PlotFormatter, libcimgui), Cvoid, (ImAxis, ImPlotFormatter, Ptr{Cvoid}), axis, formatter, data)
 end
 
-function ImPlot_PlotLine_U32PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotLine_U32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_SetupAxisTicks_doublePtr(axis, values, n_ticks, labels, keep_default)
+    ccall((:ImPlot_SetupAxisTicks_doublePtr, libcimgui), Cvoid, (ImAxis, Ptr{Cdouble}, Cint, Ptr{Ptr{Cchar}}, Bool), axis, values, n_ticks, labels, keep_default)
 end
 
-function ImPlot_PlotLine_S64PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotLine_S64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_SetupAxisTicks_double(axis, v_min, v_max, n_ticks, labels, keep_default)
+    ccall((:ImPlot_SetupAxisTicks_double, libcimgui), Cvoid, (ImAxis, Cdouble, Cdouble, Cint, Ptr{Ptr{Cchar}}, Bool), axis, v_min, v_max, n_ticks, labels, keep_default)
 end
 
-function ImPlot_PlotLine_U64PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotLine_U64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_SetupAxisScale_PlotScale(axis, scale)
+    ccall((:ImPlot_SetupAxisScale_PlotScale, libcimgui), Cvoid, (ImAxis, ImPlotScale), axis, scale)
 end
 
-function ImPlot_PlotLine_FloatPtrFloatPtr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotLine_FloatPtrFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_SetupAxisScale_PlotTransform(axis, forward, inverse, data)
+    ccall((:ImPlot_SetupAxisScale_PlotTransform, libcimgui), Cvoid, (ImAxis, ImPlotTransform, ImPlotTransform, Ptr{Cvoid}), axis, forward, inverse, data)
 end
 
-function ImPlot_PlotLine_doublePtrdoublePtr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotLine_doublePtrdoublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_SetupAxisLimitsConstraints(axis, v_min, v_max)
+    ccall((:ImPlot_SetupAxisLimitsConstraints, libcimgui), Cvoid, (ImAxis, Cdouble, Cdouble), axis, v_min, v_max)
 end
 
-function ImPlot_PlotLine_S8PtrS8Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotLine_S8PtrS8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_SetupAxisZoomConstraints(axis, z_min, z_max)
+    ccall((:ImPlot_SetupAxisZoomConstraints, libcimgui), Cvoid, (ImAxis, Cdouble, Cdouble), axis, z_min, z_max)
 end
 
-function ImPlot_PlotLine_U8PtrU8Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotLine_U8PtrU8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_SetupAxes(x_label, y_label, x_flags, y_flags)
+    ccall((:ImPlot_SetupAxes, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cchar}, ImPlotAxisFlags, ImPlotAxisFlags), x_label, y_label, x_flags, y_flags)
 end
 
-function ImPlot_PlotLine_S16PtrS16Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotLine_S16PtrS16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_SetupAxesLimits(x_min, x_max, y_min, y_max, cond)
+    ccall((:ImPlot_SetupAxesLimits, libcimgui), Cvoid, (Cdouble, Cdouble, Cdouble, Cdouble, ImPlotCond), x_min, x_max, y_min, y_max, cond)
 end
 
-function ImPlot_PlotLine_U16PtrU16Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotLine_U16PtrU16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_SetupLegend(location, flags)
+    ccall((:ImPlot_SetupLegend, libcimgui), Cvoid, (ImPlotLocation, ImPlotLegendFlags), location, flags)
 end
 
-function ImPlot_PlotLine_S32PtrS32Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotLine_S32PtrS32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_SetupMouseText(location, flags)
+    ccall((:ImPlot_SetupMouseText, libcimgui), Cvoid, (ImPlotLocation, ImPlotMouseTextFlags), location, flags)
 end
 
-function ImPlot_PlotLine_U32PtrU32Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotLine_U32PtrU32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_SetupFinish()
+    ccall((:ImPlot_SetupFinish, libcimgui), Cvoid, ())
 end
 
-function ImPlot_PlotLine_S64PtrS64Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotLine_S64PtrS64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_SetNextAxisLimits(axis, v_min, v_max, cond)
+    ccall((:ImPlot_SetNextAxisLimits, libcimgui), Cvoid, (ImAxis, Cdouble, Cdouble, ImPlotCond), axis, v_min, v_max, cond)
 end
 
-function ImPlot_PlotLine_U64PtrU64Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotLine_U64PtrU64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_SetNextAxisLinks(axis, link_min, link_max)
+    ccall((:ImPlot_SetNextAxisLinks, libcimgui), Cvoid, (ImAxis, Ptr{Cdouble}, Ptr{Cdouble}), axis, link_min, link_max)
 end
 
-function ImPlot_PlotScatter_FloatPtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotScatter_FloatPtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_SetNextAxisToFit(axis)
+    ccall((:ImPlot_SetNextAxisToFit, libcimgui), Cvoid, (ImAxis,), axis)
 end
 
-function ImPlot_PlotScatter_doublePtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotScatter_doublePtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_SetNextAxesLimits(x_min, x_max, y_min, y_max, cond)
+    ccall((:ImPlot_SetNextAxesLimits, libcimgui), Cvoid, (Cdouble, Cdouble, Cdouble, Cdouble, ImPlotCond), x_min, x_max, y_min, y_max, cond)
 end
 
-function ImPlot_PlotScatter_S8PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotScatter_S8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_SetNextAxesToFit()
+    ccall((:ImPlot_SetNextAxesToFit, libcimgui), Cvoid, ())
 end
 
-function ImPlot_PlotScatter_U8PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotScatter_U8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_PlotLine_FloatPtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotLine_FloatPtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cdouble, Cdouble, ImPlotLineFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotScatter_S16PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotScatter_S16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_PlotLine_doublePtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotLine_doublePtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Cint, Cdouble, Cdouble, ImPlotLineFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotScatter_U16PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotScatter_U16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_PlotLine_S8PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotLine_S8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Cint, Cdouble, Cdouble, ImPlotLineFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotScatter_S32PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotScatter_S32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_PlotLine_U8PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotLine_U8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Cint, Cdouble, Cdouble, ImPlotLineFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotScatter_U32PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotScatter_U32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_PlotLine_S16PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotLine_S16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Cint, Cdouble, Cdouble, ImPlotLineFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotScatter_S64PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotScatter_S64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_PlotLine_U16PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotLine_U16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Cint, Cdouble, Cdouble, ImPlotLineFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotScatter_U64PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotScatter_U64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_PlotLine_S32PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotLine_S32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Cint, Cdouble, Cdouble, ImPlotLineFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotScatter_FloatPtrFloatPtr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotScatter_FloatPtrFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_PlotLine_U32PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotLine_U32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Cint, Cdouble, Cdouble, ImPlotLineFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotScatter_doublePtrdoublePtr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotScatter_doublePtrdoublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_PlotLine_S64PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotLine_S64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Cint, Cdouble, Cdouble, ImPlotLineFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotScatter_S8PtrS8Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotScatter_S8PtrS8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_PlotLine_U64PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotLine_U64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Cint, Cdouble, Cdouble, ImPlotLineFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotScatter_U8PtrU8Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotScatter_U8PtrU8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_PlotLine_FloatPtrFloatPtr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotLine_FloatPtrFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, ImPlotLineFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotScatter_S16PtrS16Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotScatter_S16PtrS16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_PlotLine_doublePtrdoublePtr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotLine_doublePtrdoublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, ImPlotLineFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotScatter_U16PtrU16Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotScatter_U16PtrU16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_PlotLine_S8PtrS8Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotLine_S8PtrS8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Cint, ImPlotLineFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotScatter_S32PtrS32Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotScatter_S32PtrS32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_PlotLine_U8PtrU8Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotLine_U8PtrU8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Cint, ImPlotLineFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotScatter_U32PtrU32Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotScatter_U32PtrU32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_PlotLine_S16PtrS16Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotLine_S16PtrS16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Cint, ImPlotLineFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotScatter_S64PtrS64Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotScatter_S64PtrS64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_PlotLine_U16PtrU16Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotLine_U16PtrU16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Cint, ImPlotLineFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotScatter_U64PtrU64Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotScatter_U64PtrU64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_PlotLine_S32PtrS32Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotLine_S32PtrS32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Cint, ImPlotLineFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotStairs_FloatPtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotStairs_FloatPtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_PlotLine_U32PtrU32Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotLine_U32PtrU32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Cint, ImPlotLineFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotStairs_doublePtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotStairs_doublePtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_PlotLine_S64PtrS64Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotLine_S64PtrS64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Cint, ImPlotLineFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotStairs_S8PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotStairs_S8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_PlotLine_U64PtrU64Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotLine_U64PtrU64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Cint, ImPlotLineFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotStairs_U8PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotStairs_U8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_PlotLineG(label_id, getter, data, count, flags)
+    ccall((:ImPlot_PlotLineG, libcimgui), Cvoid, (Ptr{Cchar}, ImPlotPoint_getter, Ptr{Cvoid}, Cint, ImPlotLineFlags), label_id, getter, data, count, flags)
 end
 
-function ImPlot_PlotStairs_S16PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotStairs_S16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_PlotScatter_FloatPtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotScatter_FloatPtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cdouble, Cdouble, ImPlotScatterFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotStairs_U16PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotStairs_U16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_PlotScatter_doublePtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotScatter_doublePtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Cint, Cdouble, Cdouble, ImPlotScatterFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotStairs_S32PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotStairs_S32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_PlotScatter_S8PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotScatter_S8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Cint, Cdouble, Cdouble, ImPlotScatterFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotStairs_U32PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotStairs_U32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_PlotScatter_U8PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotScatter_U8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Cint, Cdouble, Cdouble, ImPlotScatterFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotStairs_S64PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotStairs_S64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_PlotScatter_S16PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotScatter_S16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Cint, Cdouble, Cdouble, ImPlotScatterFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotStairs_U64PtrInt(label_id, values, count, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotStairs_U64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, xscale, x0, offset, stride)
+function ImPlot_PlotScatter_U16PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotScatter_U16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Cint, Cdouble, Cdouble, ImPlotScatterFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotStairs_FloatPtrFloatPtr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotStairs_FloatPtrFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_PlotScatter_S32PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotScatter_S32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Cint, Cdouble, Cdouble, ImPlotScatterFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotStairs_doublePtrdoublePtr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotStairs_doublePtrdoublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_PlotScatter_U32PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotScatter_U32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Cint, Cdouble, Cdouble, ImPlotScatterFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotStairs_S8PtrS8Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotStairs_S8PtrS8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_PlotScatter_S64PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotScatter_S64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Cint, Cdouble, Cdouble, ImPlotScatterFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotStairs_U8PtrU8Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotStairs_U8PtrU8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_PlotScatter_U64PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotScatter_U64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Cint, Cdouble, Cdouble, ImPlotScatterFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotStairs_S16PtrS16Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotStairs_S16PtrS16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_PlotScatter_FloatPtrFloatPtr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotScatter_FloatPtrFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, ImPlotScatterFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotStairs_U16PtrU16Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotStairs_U16PtrU16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_PlotScatter_doublePtrdoublePtr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotScatter_doublePtrdoublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, ImPlotScatterFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotStairs_S32PtrS32Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotStairs_S32PtrS32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_PlotScatter_S8PtrS8Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotScatter_S8PtrS8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Cint, ImPlotScatterFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotStairs_U32PtrU32Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotStairs_U32PtrU32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_PlotScatter_U8PtrU8Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotScatter_U8PtrU8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Cint, ImPlotScatterFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotStairs_S64PtrS64Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotStairs_S64PtrS64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_PlotScatter_S16PtrS16Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotScatter_S16PtrS16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Cint, ImPlotScatterFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotStairs_U64PtrU64Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotStairs_U64PtrU64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_PlotScatter_U16PtrU16Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotScatter_U16PtrU16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Cint, ImPlotScatterFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotStairsG(label_id, getter, data, count, offset)
-    ccall((:ImPlot_PlotStairsG, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cvoid}, Ptr{Cvoid}, Cint, Cint), label_id, getter, data, count, offset)
+function ImPlot_PlotScatter_S32PtrS32Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotScatter_S32PtrS32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Cint, ImPlotScatterFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_FloatPtrInt(label_id, values, count, y_ref, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotShaded_FloatPtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cdouble, Cdouble, Cdouble, Cint, Cint), label_id, values, count, y_ref, xscale, x0, offset, stride)
+function ImPlot_PlotScatter_U32PtrU32Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotScatter_U32PtrU32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Cint, ImPlotScatterFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_doublePtrInt(label_id, values, count, y_ref, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotShaded_doublePtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Cint, Cdouble, Cdouble, Cdouble, Cint, Cint), label_id, values, count, y_ref, xscale, x0, offset, stride)
+function ImPlot_PlotScatter_S64PtrS64Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotScatter_S64PtrS64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Cint, ImPlotScatterFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_S8PtrInt(label_id, values, count, y_ref, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotShaded_S8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Cint, Cdouble, Cdouble, Cdouble, Cint, Cint), label_id, values, count, y_ref, xscale, x0, offset, stride)
+function ImPlot_PlotScatter_U64PtrU64Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotScatter_U64PtrU64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Cint, ImPlotScatterFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_U8PtrInt(label_id, values, count, y_ref, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotShaded_U8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Cint, Cdouble, Cdouble, Cdouble, Cint, Cint), label_id, values, count, y_ref, xscale, x0, offset, stride)
+function ImPlot_PlotScatterG(label_id, getter, data, count, flags)
+    ccall((:ImPlot_PlotScatterG, libcimgui), Cvoid, (Ptr{Cchar}, ImPlotPoint_getter, Ptr{Cvoid}, Cint, ImPlotScatterFlags), label_id, getter, data, count, flags)
 end
 
-function ImPlot_PlotShaded_S16PtrInt(label_id, values, count, y_ref, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotShaded_S16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Cint, Cdouble, Cdouble, Cdouble, Cint, Cint), label_id, values, count, y_ref, xscale, x0, offset, stride)
+function ImPlot_PlotStairs_FloatPtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotStairs_FloatPtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cdouble, Cdouble, ImPlotStairsFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_U16PtrInt(label_id, values, count, y_ref, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotShaded_U16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Cint, Cdouble, Cdouble, Cdouble, Cint, Cint), label_id, values, count, y_ref, xscale, x0, offset, stride)
+function ImPlot_PlotStairs_doublePtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotStairs_doublePtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Cint, Cdouble, Cdouble, ImPlotStairsFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_S32PtrInt(label_id, values, count, y_ref, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotShaded_S32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Cint, Cdouble, Cdouble, Cdouble, Cint, Cint), label_id, values, count, y_ref, xscale, x0, offset, stride)
+function ImPlot_PlotStairs_S8PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotStairs_S8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Cint, Cdouble, Cdouble, ImPlotStairsFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_U32PtrInt(label_id, values, count, y_ref, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotShaded_U32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Cint, Cdouble, Cdouble, Cdouble, Cint, Cint), label_id, values, count, y_ref, xscale, x0, offset, stride)
+function ImPlot_PlotStairs_U8PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotStairs_U8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Cint, Cdouble, Cdouble, ImPlotStairsFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_S64PtrInt(label_id, values, count, y_ref, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotShaded_S64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Cint, Cdouble, Cdouble, Cdouble, Cint, Cint), label_id, values, count, y_ref, xscale, x0, offset, stride)
+function ImPlot_PlotStairs_S16PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotStairs_S16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Cint, Cdouble, Cdouble, ImPlotStairsFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_U64PtrInt(label_id, values, count, y_ref, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotShaded_U64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Cint, Cdouble, Cdouble, Cdouble, Cint, Cint), label_id, values, count, y_ref, xscale, x0, offset, stride)
+function ImPlot_PlotStairs_U16PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotStairs_U16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Cint, Cdouble, Cdouble, ImPlotStairsFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_FloatPtrFloatPtrInt(label_id, xs, ys, count, y_ref, offset, stride)
-    ccall((:ImPlot_PlotShaded_FloatPtrFloatPtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, y_ref, offset, stride)
+function ImPlot_PlotStairs_S32PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotStairs_S32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Cint, Cdouble, Cdouble, ImPlotStairsFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_doublePtrdoublePtrInt(label_id, xs, ys, count, y_ref, offset, stride)
-    ccall((:ImPlot_PlotShaded_doublePtrdoublePtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, y_ref, offset, stride)
+function ImPlot_PlotStairs_U32PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotStairs_U32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Cint, Cdouble, Cdouble, ImPlotStairsFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_S8PtrS8PtrInt(label_id, xs, ys, count, y_ref, offset, stride)
-    ccall((:ImPlot_PlotShaded_S8PtrS8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, y_ref, offset, stride)
+function ImPlot_PlotStairs_S64PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotStairs_S64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Cint, Cdouble, Cdouble, ImPlotStairsFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_U8PtrU8PtrInt(label_id, xs, ys, count, y_ref, offset, stride)
-    ccall((:ImPlot_PlotShaded_U8PtrU8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, y_ref, offset, stride)
+function ImPlot_PlotStairs_U64PtrInt(label_id, values, count, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotStairs_U64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Cint, Cdouble, Cdouble, ImPlotStairsFlags, Cint, Cint), label_id, values, count, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_S16PtrS16PtrInt(label_id, xs, ys, count, y_ref, offset, stride)
-    ccall((:ImPlot_PlotShaded_S16PtrS16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, y_ref, offset, stride)
+function ImPlot_PlotStairs_FloatPtrFloatPtr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotStairs_FloatPtrFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, ImPlotStairsFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_U16PtrU16PtrInt(label_id, xs, ys, count, y_ref, offset, stride)
-    ccall((:ImPlot_PlotShaded_U16PtrU16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, y_ref, offset, stride)
+function ImPlot_PlotStairs_doublePtrdoublePtr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotStairs_doublePtrdoublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, ImPlotStairsFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_S32PtrS32PtrInt(label_id, xs, ys, count, y_ref, offset, stride)
-    ccall((:ImPlot_PlotShaded_S32PtrS32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, y_ref, offset, stride)
+function ImPlot_PlotStairs_S8PtrS8Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotStairs_S8PtrS8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Cint, ImPlotStairsFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_U32PtrU32PtrInt(label_id, xs, ys, count, y_ref, offset, stride)
-    ccall((:ImPlot_PlotShaded_U32PtrU32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, y_ref, offset, stride)
+function ImPlot_PlotStairs_U8PtrU8Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotStairs_U8PtrU8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Cint, ImPlotStairsFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_S64PtrS64PtrInt(label_id, xs, ys, count, y_ref, offset, stride)
-    ccall((:ImPlot_PlotShaded_S64PtrS64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, y_ref, offset, stride)
+function ImPlot_PlotStairs_S16PtrS16Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotStairs_S16PtrS16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Cint, ImPlotStairsFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_U64PtrU64PtrInt(label_id, xs, ys, count, y_ref, offset, stride)
-    ccall((:ImPlot_PlotShaded_U64PtrU64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, y_ref, offset, stride)
+function ImPlot_PlotStairs_U16PtrU16Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotStairs_U16PtrU16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Cint, ImPlotStairsFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_FloatPtrFloatPtrFloatPtr(label_id, xs, ys1, ys2, count, offset, stride)
-    ccall((:ImPlot_PlotShaded_FloatPtrFloatPtrFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, Cint, Cint), label_id, xs, ys1, ys2, count, offset, stride)
+function ImPlot_PlotStairs_S32PtrS32Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotStairs_S32PtrS32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Cint, ImPlotStairsFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_doublePtrdoublePtrdoublePtr(label_id, xs, ys1, ys2, count, offset, stride)
-    ccall((:ImPlot_PlotShaded_doublePtrdoublePtrdoublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, Cint, Cint), label_id, xs, ys1, ys2, count, offset, stride)
+function ImPlot_PlotStairs_U32PtrU32Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotStairs_U32PtrU32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Cint, ImPlotStairsFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_S8PtrS8PtrS8Ptr(label_id, xs, ys1, ys2, count, offset, stride)
-    ccall((:ImPlot_PlotShaded_S8PtrS8PtrS8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Ptr{ImS8}, Cint, Cint, Cint), label_id, xs, ys1, ys2, count, offset, stride)
+function ImPlot_PlotStairs_S64PtrS64Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotStairs_S64PtrS64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Cint, ImPlotStairsFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_U8PtrU8PtrU8Ptr(label_id, xs, ys1, ys2, count, offset, stride)
-    ccall((:ImPlot_PlotShaded_U8PtrU8PtrU8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Ptr{ImU8}, Cint, Cint, Cint), label_id, xs, ys1, ys2, count, offset, stride)
+function ImPlot_PlotStairs_U64PtrU64Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotStairs_U64PtrU64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Cint, ImPlotStairsFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_S16PtrS16PtrS16Ptr(label_id, xs, ys1, ys2, count, offset, stride)
-    ccall((:ImPlot_PlotShaded_S16PtrS16PtrS16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Ptr{ImS16}, Cint, Cint, Cint), label_id, xs, ys1, ys2, count, offset, stride)
+function ImPlot_PlotStairsG(label_id, getter, data, count, flags)
+    ccall((:ImPlot_PlotStairsG, libcimgui), Cvoid, (Ptr{Cchar}, ImPlotPoint_getter, Ptr{Cvoid}, Cint, ImPlotStairsFlags), label_id, getter, data, count, flags)
 end
 
-function ImPlot_PlotShaded_U16PtrU16PtrU16Ptr(label_id, xs, ys1, ys2, count, offset, stride)
-    ccall((:ImPlot_PlotShaded_U16PtrU16PtrU16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Ptr{ImU16}, Cint, Cint, Cint), label_id, xs, ys1, ys2, count, offset, stride)
+function ImPlot_PlotShaded_FloatPtrInt(label_id, values, count, yref, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_FloatPtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cdouble, Cdouble, Cdouble, ImPlotShadedFlags, Cint, Cint), label_id, values, count, yref, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_S32PtrS32PtrS32Ptr(label_id, xs, ys1, ys2, count, offset, stride)
-    ccall((:ImPlot_PlotShaded_S32PtrS32PtrS32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Ptr{ImS32}, Cint, Cint, Cint), label_id, xs, ys1, ys2, count, offset, stride)
+function ImPlot_PlotShaded_doublePtrInt(label_id, values, count, yref, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_doublePtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Cint, Cdouble, Cdouble, Cdouble, ImPlotShadedFlags, Cint, Cint), label_id, values, count, yref, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_U32PtrU32PtrU32Ptr(label_id, xs, ys1, ys2, count, offset, stride)
-    ccall((:ImPlot_PlotShaded_U32PtrU32PtrU32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Ptr{ImU32}, Cint, Cint, Cint), label_id, xs, ys1, ys2, count, offset, stride)
+function ImPlot_PlotShaded_S8PtrInt(label_id, values, count, yref, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_S8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Cint, Cdouble, Cdouble, Cdouble, ImPlotShadedFlags, Cint, Cint), label_id, values, count, yref, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_S64PtrS64PtrS64Ptr(label_id, xs, ys1, ys2, count, offset, stride)
-    ccall((:ImPlot_PlotShaded_S64PtrS64PtrS64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Ptr{ImS64}, Cint, Cint, Cint), label_id, xs, ys1, ys2, count, offset, stride)
+function ImPlot_PlotShaded_U8PtrInt(label_id, values, count, yref, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_U8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Cint, Cdouble, Cdouble, Cdouble, ImPlotShadedFlags, Cint, Cint), label_id, values, count, yref, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotShaded_U64PtrU64PtrU64Ptr(label_id, xs, ys1, ys2, count, offset, stride)
-    ccall((:ImPlot_PlotShaded_U64PtrU64PtrU64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Ptr{ImU64}, Cint, Cint, Cint), label_id, xs, ys1, ys2, count, offset, stride)
+function ImPlot_PlotShaded_S16PtrInt(label_id, values, count, yref, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_S16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Cint, Cdouble, Cdouble, Cdouble, ImPlotShadedFlags, Cint, Cint), label_id, values, count, yref, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotBars_FloatPtrInt(label_id, values, count, width, shift, offset, stride)
-    ccall((:ImPlot_PlotBars_FloatPtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, width, shift, offset, stride)
+function ImPlot_PlotShaded_U16PtrInt(label_id, values, count, yref, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_U16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Cint, Cdouble, Cdouble, Cdouble, ImPlotShadedFlags, Cint, Cint), label_id, values, count, yref, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotBars_doublePtrInt(label_id, values, count, width, shift, offset, stride)
-    ccall((:ImPlot_PlotBars_doublePtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, width, shift, offset, stride)
+function ImPlot_PlotShaded_S32PtrInt(label_id, values, count, yref, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_S32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Cint, Cdouble, Cdouble, Cdouble, ImPlotShadedFlags, Cint, Cint), label_id, values, count, yref, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotBars_S8PtrInt(label_id, values, count, width, shift, offset, stride)
-    ccall((:ImPlot_PlotBars_S8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, width, shift, offset, stride)
+function ImPlot_PlotShaded_U32PtrInt(label_id, values, count, yref, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_U32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Cint, Cdouble, Cdouble, Cdouble, ImPlotShadedFlags, Cint, Cint), label_id, values, count, yref, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotBars_U8PtrInt(label_id, values, count, width, shift, offset, stride)
-    ccall((:ImPlot_PlotBars_U8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, width, shift, offset, stride)
+function ImPlot_PlotShaded_S64PtrInt(label_id, values, count, yref, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_S64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Cint, Cdouble, Cdouble, Cdouble, ImPlotShadedFlags, Cint, Cint), label_id, values, count, yref, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotBars_S16PtrInt(label_id, values, count, width, shift, offset, stride)
-    ccall((:ImPlot_PlotBars_S16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, width, shift, offset, stride)
+function ImPlot_PlotShaded_U64PtrInt(label_id, values, count, yref, xscale, xstart, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_U64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Cint, Cdouble, Cdouble, Cdouble, ImPlotShadedFlags, Cint, Cint), label_id, values, count, yref, xscale, xstart, flags, offset, stride)
 end
 
-function ImPlot_PlotBars_U16PtrInt(label_id, values, count, width, shift, offset, stride)
-    ccall((:ImPlot_PlotBars_U16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, width, shift, offset, stride)
+function ImPlot_PlotShaded_FloatPtrFloatPtrInt(label_id, xs, ys, count, yref, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_FloatPtrFloatPtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, Cdouble, ImPlotShadedFlags, Cint, Cint), label_id, xs, ys, count, yref, flags, offset, stride)
 end
 
-function ImPlot_PlotBars_S32PtrInt(label_id, values, count, width, shift, offset, stride)
-    ccall((:ImPlot_PlotBars_S32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, width, shift, offset, stride)
+function ImPlot_PlotShaded_doublePtrdoublePtrInt(label_id, xs, ys, count, yref, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_doublePtrdoublePtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, Cdouble, ImPlotShadedFlags, Cint, Cint), label_id, xs, ys, count, yref, flags, offset, stride)
 end
 
-function ImPlot_PlotBars_U32PtrInt(label_id, values, count, width, shift, offset, stride)
-    ccall((:ImPlot_PlotBars_U32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, width, shift, offset, stride)
+function ImPlot_PlotShaded_S8PtrS8PtrInt(label_id, xs, ys, count, yref, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_S8PtrS8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Cint, Cdouble, ImPlotShadedFlags, Cint, Cint), label_id, xs, ys, count, yref, flags, offset, stride)
 end
 
-function ImPlot_PlotBars_S64PtrInt(label_id, values, count, width, shift, offset, stride)
-    ccall((:ImPlot_PlotBars_S64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, width, shift, offset, stride)
+function ImPlot_PlotShaded_U8PtrU8PtrInt(label_id, xs, ys, count, yref, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_U8PtrU8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Cint, Cdouble, ImPlotShadedFlags, Cint, Cint), label_id, xs, ys, count, yref, flags, offset, stride)
 end
 
-function ImPlot_PlotBars_U64PtrInt(label_id, values, count, width, shift, offset, stride)
-    ccall((:ImPlot_PlotBars_U64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, width, shift, offset, stride)
+function ImPlot_PlotShaded_S16PtrS16PtrInt(label_id, xs, ys, count, yref, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_S16PtrS16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Cint, Cdouble, ImPlotShadedFlags, Cint, Cint), label_id, xs, ys, count, yref, flags, offset, stride)
 end
 
-function ImPlot_PlotBars_FloatPtrFloatPtr(label_id, xs, ys, count, width, offset, stride)
-    ccall((:ImPlot_PlotBars_FloatPtrFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, width, offset, stride)
+function ImPlot_PlotShaded_U16PtrU16PtrInt(label_id, xs, ys, count, yref, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_U16PtrU16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Cint, Cdouble, ImPlotShadedFlags, Cint, Cint), label_id, xs, ys, count, yref, flags, offset, stride)
 end
 
-function ImPlot_PlotBars_doublePtrdoublePtr(label_id, xs, ys, count, width, offset, stride)
-    ccall((:ImPlot_PlotBars_doublePtrdoublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, width, offset, stride)
+function ImPlot_PlotShaded_S32PtrS32PtrInt(label_id, xs, ys, count, yref, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_S32PtrS32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Cint, Cdouble, ImPlotShadedFlags, Cint, Cint), label_id, xs, ys, count, yref, flags, offset, stride)
 end
 
-function ImPlot_PlotBars_S8PtrS8Ptr(label_id, xs, ys, count, width, offset, stride)
-    ccall((:ImPlot_PlotBars_S8PtrS8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, width, offset, stride)
+function ImPlot_PlotShaded_U32PtrU32PtrInt(label_id, xs, ys, count, yref, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_U32PtrU32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Cint, Cdouble, ImPlotShadedFlags, Cint, Cint), label_id, xs, ys, count, yref, flags, offset, stride)
 end
 
-function ImPlot_PlotBars_U8PtrU8Ptr(label_id, xs, ys, count, width, offset, stride)
-    ccall((:ImPlot_PlotBars_U8PtrU8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, width, offset, stride)
+function ImPlot_PlotShaded_S64PtrS64PtrInt(label_id, xs, ys, count, yref, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_S64PtrS64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Cint, Cdouble, ImPlotShadedFlags, Cint, Cint), label_id, xs, ys, count, yref, flags, offset, stride)
 end
 
-function ImPlot_PlotBars_S16PtrS16Ptr(label_id, xs, ys, count, width, offset, stride)
-    ccall((:ImPlot_PlotBars_S16PtrS16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, width, offset, stride)
+function ImPlot_PlotShaded_U64PtrU64PtrInt(label_id, xs, ys, count, yref, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_U64PtrU64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Cint, Cdouble, ImPlotShadedFlags, Cint, Cint), label_id, xs, ys, count, yref, flags, offset, stride)
 end
 
-function ImPlot_PlotBars_U16PtrU16Ptr(label_id, xs, ys, count, width, offset, stride)
-    ccall((:ImPlot_PlotBars_U16PtrU16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, width, offset, stride)
+function ImPlot_PlotShaded_FloatPtrFloatPtrFloatPtr(label_id, xs, ys1, ys2, count, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_FloatPtrFloatPtrFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, ImPlotShadedFlags, Cint, Cint), label_id, xs, ys1, ys2, count, flags, offset, stride)
 end
 
-function ImPlot_PlotBars_S32PtrS32Ptr(label_id, xs, ys, count, width, offset, stride)
-    ccall((:ImPlot_PlotBars_S32PtrS32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, width, offset, stride)
+function ImPlot_PlotShaded_doublePtrdoublePtrdoublePtr(label_id, xs, ys1, ys2, count, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_doublePtrdoublePtrdoublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, ImPlotShadedFlags, Cint, Cint), label_id, xs, ys1, ys2, count, flags, offset, stride)
 end
 
-function ImPlot_PlotBars_U32PtrU32Ptr(label_id, xs, ys, count, width, offset, stride)
-    ccall((:ImPlot_PlotBars_U32PtrU32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, width, offset, stride)
+function ImPlot_PlotShaded_S8PtrS8PtrS8Ptr(label_id, xs, ys1, ys2, count, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_S8PtrS8PtrS8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Ptr{ImS8}, Cint, ImPlotShadedFlags, Cint, Cint), label_id, xs, ys1, ys2, count, flags, offset, stride)
 end
 
-function ImPlot_PlotBars_S64PtrS64Ptr(label_id, xs, ys, count, width, offset, stride)
-    ccall((:ImPlot_PlotBars_S64PtrS64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, width, offset, stride)
+function ImPlot_PlotShaded_U8PtrU8PtrU8Ptr(label_id, xs, ys1, ys2, count, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_U8PtrU8PtrU8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Ptr{ImU8}, Cint, ImPlotShadedFlags, Cint, Cint), label_id, xs, ys1, ys2, count, flags, offset, stride)
 end
 
-function ImPlot_PlotBars_U64PtrU64Ptr(label_id, xs, ys, count, width, offset, stride)
-    ccall((:ImPlot_PlotBars_U64PtrU64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, width, offset, stride)
+function ImPlot_PlotShaded_S16PtrS16PtrS16Ptr(label_id, xs, ys1, ys2, count, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_S16PtrS16PtrS16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Ptr{ImS16}, Cint, ImPlotShadedFlags, Cint, Cint), label_id, xs, ys1, ys2, count, flags, offset, stride)
 end
 
-function ImPlot_PlotBarsH_FloatPtrInt(label_id, values, count, height, shift, offset, stride)
-    ccall((:ImPlot_PlotBarsH_FloatPtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, height, shift, offset, stride)
+function ImPlot_PlotShaded_U16PtrU16PtrU16Ptr(label_id, xs, ys1, ys2, count, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_U16PtrU16PtrU16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Ptr{ImU16}, Cint, ImPlotShadedFlags, Cint, Cint), label_id, xs, ys1, ys2, count, flags, offset, stride)
 end
 
-function ImPlot_PlotBarsH_doublePtrInt(label_id, values, count, height, shift, offset, stride)
-    ccall((:ImPlot_PlotBarsH_doublePtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, height, shift, offset, stride)
+function ImPlot_PlotShaded_S32PtrS32PtrS32Ptr(label_id, xs, ys1, ys2, count, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_S32PtrS32PtrS32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Ptr{ImS32}, Cint, ImPlotShadedFlags, Cint, Cint), label_id, xs, ys1, ys2, count, flags, offset, stride)
 end
 
-function ImPlot_PlotBarsH_S8PtrInt(label_id, values, count, height, shift, offset, stride)
-    ccall((:ImPlot_PlotBarsH_S8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, height, shift, offset, stride)
+function ImPlot_PlotShaded_U32PtrU32PtrU32Ptr(label_id, xs, ys1, ys2, count, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_U32PtrU32PtrU32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Ptr{ImU32}, Cint, ImPlotShadedFlags, Cint, Cint), label_id, xs, ys1, ys2, count, flags, offset, stride)
 end
 
-function ImPlot_PlotBarsH_U8PtrInt(label_id, values, count, height, shift, offset, stride)
-    ccall((:ImPlot_PlotBarsH_U8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, height, shift, offset, stride)
+function ImPlot_PlotShaded_S64PtrS64PtrS64Ptr(label_id, xs, ys1, ys2, count, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_S64PtrS64PtrS64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Ptr{ImS64}, Cint, ImPlotShadedFlags, Cint, Cint), label_id, xs, ys1, ys2, count, flags, offset, stride)
 end
 
-function ImPlot_PlotBarsH_S16PtrInt(label_id, values, count, height, shift, offset, stride)
-    ccall((:ImPlot_PlotBarsH_S16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, height, shift, offset, stride)
+function ImPlot_PlotShaded_U64PtrU64PtrU64Ptr(label_id, xs, ys1, ys2, count, flags, offset, stride)
+    ccall((:ImPlot_PlotShaded_U64PtrU64PtrU64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Ptr{ImU64}, Cint, ImPlotShadedFlags, Cint, Cint), label_id, xs, ys1, ys2, count, flags, offset, stride)
 end
 
-function ImPlot_PlotBarsH_U16PtrInt(label_id, values, count, height, shift, offset, stride)
-    ccall((:ImPlot_PlotBarsH_U16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, height, shift, offset, stride)
+function ImPlot_PlotShadedG(label_id, getter1, data1, getter2, data2, count, flags)
+    ccall((:ImPlot_PlotShadedG, libcimgui), Cvoid, (Ptr{Cchar}, ImPlotPoint_getter, Ptr{Cvoid}, ImPlotPoint_getter, Ptr{Cvoid}, Cint, ImPlotShadedFlags), label_id, getter1, data1, getter2, data2, count, flags)
 end
 
-function ImPlot_PlotBarsH_S32PtrInt(label_id, values, count, height, shift, offset, stride)
-    ccall((:ImPlot_PlotBarsH_S32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, height, shift, offset, stride)
+function ImPlot_PlotBars_FloatPtrInt(label_id, values, count, bar_size, shift, flags, offset, stride)
+    ccall((:ImPlot_PlotBars_FloatPtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cdouble, Cdouble, ImPlotBarsFlags, Cint, Cint), label_id, values, count, bar_size, shift, flags, offset, stride)
 end
 
-function ImPlot_PlotBarsH_U32PtrInt(label_id, values, count, height, shift, offset, stride)
-    ccall((:ImPlot_PlotBarsH_U32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, height, shift, offset, stride)
+function ImPlot_PlotBars_doublePtrInt(label_id, values, count, bar_size, shift, flags, offset, stride)
+    ccall((:ImPlot_PlotBars_doublePtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Cint, Cdouble, Cdouble, ImPlotBarsFlags, Cint, Cint), label_id, values, count, bar_size, shift, flags, offset, stride)
 end
 
-function ImPlot_PlotBarsH_S64PtrInt(label_id, values, count, height, shift, offset, stride)
-    ccall((:ImPlot_PlotBarsH_S64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, height, shift, offset, stride)
+function ImPlot_PlotBars_S8PtrInt(label_id, values, count, bar_size, shift, flags, offset, stride)
+    ccall((:ImPlot_PlotBars_S8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Cint, Cdouble, Cdouble, ImPlotBarsFlags, Cint, Cint), label_id, values, count, bar_size, shift, flags, offset, stride)
 end
 
-function ImPlot_PlotBarsH_U64PtrInt(label_id, values, count, height, shift, offset, stride)
-    ccall((:ImPlot_PlotBarsH_U64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Cint, Cdouble, Cdouble, Cint, Cint), label_id, values, count, height, shift, offset, stride)
+function ImPlot_PlotBars_U8PtrInt(label_id, values, count, bar_size, shift, flags, offset, stride)
+    ccall((:ImPlot_PlotBars_U8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Cint, Cdouble, Cdouble, ImPlotBarsFlags, Cint, Cint), label_id, values, count, bar_size, shift, flags, offset, stride)
 end
 
-function ImPlot_PlotBarsH_FloatPtrFloatPtr(label_id, xs, ys, count, height, offset, stride)
-    ccall((:ImPlot_PlotBarsH_FloatPtrFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, height, offset, stride)
+function ImPlot_PlotBars_S16PtrInt(label_id, values, count, bar_size, shift, flags, offset, stride)
+    ccall((:ImPlot_PlotBars_S16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Cint, Cdouble, Cdouble, ImPlotBarsFlags, Cint, Cint), label_id, values, count, bar_size, shift, flags, offset, stride)
 end
 
-function ImPlot_PlotBarsH_doublePtrdoublePtr(label_id, xs, ys, count, height, offset, stride)
-    ccall((:ImPlot_PlotBarsH_doublePtrdoublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, height, offset, stride)
+function ImPlot_PlotBars_U16PtrInt(label_id, values, count, bar_size, shift, flags, offset, stride)
+    ccall((:ImPlot_PlotBars_U16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Cint, Cdouble, Cdouble, ImPlotBarsFlags, Cint, Cint), label_id, values, count, bar_size, shift, flags, offset, stride)
 end
 
-function ImPlot_PlotBarsH_S8PtrS8Ptr(label_id, xs, ys, count, height, offset, stride)
-    ccall((:ImPlot_PlotBarsH_S8PtrS8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, height, offset, stride)
+function ImPlot_PlotBars_S32PtrInt(label_id, values, count, bar_size, shift, flags, offset, stride)
+    ccall((:ImPlot_PlotBars_S32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Cint, Cdouble, Cdouble, ImPlotBarsFlags, Cint, Cint), label_id, values, count, bar_size, shift, flags, offset, stride)
 end
 
-function ImPlot_PlotBarsH_U8PtrU8Ptr(label_id, xs, ys, count, height, offset, stride)
-    ccall((:ImPlot_PlotBarsH_U8PtrU8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, height, offset, stride)
+function ImPlot_PlotBars_U32PtrInt(label_id, values, count, bar_size, shift, flags, offset, stride)
+    ccall((:ImPlot_PlotBars_U32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Cint, Cdouble, Cdouble, ImPlotBarsFlags, Cint, Cint), label_id, values, count, bar_size, shift, flags, offset, stride)
 end
 
-function ImPlot_PlotBarsH_S16PtrS16Ptr(label_id, xs, ys, count, height, offset, stride)
-    ccall((:ImPlot_PlotBarsH_S16PtrS16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, height, offset, stride)
+function ImPlot_PlotBars_S64PtrInt(label_id, values, count, bar_size, shift, flags, offset, stride)
+    ccall((:ImPlot_PlotBars_S64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Cint, Cdouble, Cdouble, ImPlotBarsFlags, Cint, Cint), label_id, values, count, bar_size, shift, flags, offset, stride)
 end
 
-function ImPlot_PlotBarsH_U16PtrU16Ptr(label_id, xs, ys, count, height, offset, stride)
-    ccall((:ImPlot_PlotBarsH_U16PtrU16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, height, offset, stride)
+function ImPlot_PlotBars_U64PtrInt(label_id, values, count, bar_size, shift, flags, offset, stride)
+    ccall((:ImPlot_PlotBars_U64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Cint, Cdouble, Cdouble, ImPlotBarsFlags, Cint, Cint), label_id, values, count, bar_size, shift, flags, offset, stride)
 end
 
-function ImPlot_PlotBarsH_S32PtrS32Ptr(label_id, xs, ys, count, height, offset, stride)
-    ccall((:ImPlot_PlotBarsH_S32PtrS32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, height, offset, stride)
+function ImPlot_PlotBars_FloatPtrFloatPtr(label_id, xs, ys, count, bar_size, flags, offset, stride)
+    ccall((:ImPlot_PlotBars_FloatPtrFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, Cdouble, ImPlotBarsFlags, Cint, Cint), label_id, xs, ys, count, bar_size, flags, offset, stride)
 end
 
-function ImPlot_PlotBarsH_U32PtrU32Ptr(label_id, xs, ys, count, height, offset, stride)
-    ccall((:ImPlot_PlotBarsH_U32PtrU32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, height, offset, stride)
+function ImPlot_PlotBars_doublePtrdoublePtr(label_id, xs, ys, count, bar_size, flags, offset, stride)
+    ccall((:ImPlot_PlotBars_doublePtrdoublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, Cdouble, ImPlotBarsFlags, Cint, Cint), label_id, xs, ys, count, bar_size, flags, offset, stride)
 end
 
-function ImPlot_PlotBarsH_S64PtrS64Ptr(label_id, xs, ys, count, height, offset, stride)
-    ccall((:ImPlot_PlotBarsH_S64PtrS64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, height, offset, stride)
+function ImPlot_PlotBars_S8PtrS8Ptr(label_id, xs, ys, count, bar_size, flags, offset, stride)
+    ccall((:ImPlot_PlotBars_S8PtrS8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Cint, Cdouble, ImPlotBarsFlags, Cint, Cint), label_id, xs, ys, count, bar_size, flags, offset, stride)
 end
 
-function ImPlot_PlotBarsH_U64PtrU64Ptr(label_id, xs, ys, count, height, offset, stride)
-    ccall((:ImPlot_PlotBarsH_U64PtrU64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, height, offset, stride)
+function ImPlot_PlotBars_U8PtrU8Ptr(label_id, xs, ys, count, bar_size, flags, offset, stride)
+    ccall((:ImPlot_PlotBars_U8PtrU8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Cint, Cdouble, ImPlotBarsFlags, Cint, Cint), label_id, xs, ys, count, bar_size, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBars_FloatPtrFloatPtrFloatPtrInt(label_id, xs, ys, err, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBars_FloatPtrFloatPtrFloatPtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, Cint, Cint), label_id, xs, ys, err, count, offset, stride)
+function ImPlot_PlotBars_S16PtrS16Ptr(label_id, xs, ys, count, bar_size, flags, offset, stride)
+    ccall((:ImPlot_PlotBars_S16PtrS16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Cint, Cdouble, ImPlotBarsFlags, Cint, Cint), label_id, xs, ys, count, bar_size, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBars_doublePtrdoublePtrdoublePtrInt(label_id, xs, ys, err, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBars_doublePtrdoublePtrdoublePtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, Cint, Cint), label_id, xs, ys, err, count, offset, stride)
+function ImPlot_PlotBars_U16PtrU16Ptr(label_id, xs, ys, count, bar_size, flags, offset, stride)
+    ccall((:ImPlot_PlotBars_U16PtrU16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Cint, Cdouble, ImPlotBarsFlags, Cint, Cint), label_id, xs, ys, count, bar_size, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBars_S8PtrS8PtrS8PtrInt(label_id, xs, ys, err, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBars_S8PtrS8PtrS8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Ptr{ImS8}, Cint, Cint, Cint), label_id, xs, ys, err, count, offset, stride)
+function ImPlot_PlotBars_S32PtrS32Ptr(label_id, xs, ys, count, bar_size, flags, offset, stride)
+    ccall((:ImPlot_PlotBars_S32PtrS32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Cint, Cdouble, ImPlotBarsFlags, Cint, Cint), label_id, xs, ys, count, bar_size, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBars_U8PtrU8PtrU8PtrInt(label_id, xs, ys, err, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBars_U8PtrU8PtrU8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Ptr{ImU8}, Cint, Cint, Cint), label_id, xs, ys, err, count, offset, stride)
+function ImPlot_PlotBars_U32PtrU32Ptr(label_id, xs, ys, count, bar_size, flags, offset, stride)
+    ccall((:ImPlot_PlotBars_U32PtrU32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Cint, Cdouble, ImPlotBarsFlags, Cint, Cint), label_id, xs, ys, count, bar_size, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBars_S16PtrS16PtrS16PtrInt(label_id, xs, ys, err, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBars_S16PtrS16PtrS16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Ptr{ImS16}, Cint, Cint, Cint), label_id, xs, ys, err, count, offset, stride)
+function ImPlot_PlotBars_S64PtrS64Ptr(label_id, xs, ys, count, bar_size, flags, offset, stride)
+    ccall((:ImPlot_PlotBars_S64PtrS64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Cint, Cdouble, ImPlotBarsFlags, Cint, Cint), label_id, xs, ys, count, bar_size, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBars_U16PtrU16PtrU16PtrInt(label_id, xs, ys, err, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBars_U16PtrU16PtrU16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Ptr{ImU16}, Cint, Cint, Cint), label_id, xs, ys, err, count, offset, stride)
+function ImPlot_PlotBars_U64PtrU64Ptr(label_id, xs, ys, count, bar_size, flags, offset, stride)
+    ccall((:ImPlot_PlotBars_U64PtrU64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Cint, Cdouble, ImPlotBarsFlags, Cint, Cint), label_id, xs, ys, count, bar_size, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBars_S32PtrS32PtrS32PtrInt(label_id, xs, ys, err, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBars_S32PtrS32PtrS32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Ptr{ImS32}, Cint, Cint, Cint), label_id, xs, ys, err, count, offset, stride)
+function ImPlot_PlotBarsG(label_id, getter, data, count, bar_size, flags)
+    ccall((:ImPlot_PlotBarsG, libcimgui), Cvoid, (Ptr{Cchar}, ImPlotPoint_getter, Ptr{Cvoid}, Cint, Cdouble, ImPlotBarsFlags), label_id, getter, data, count, bar_size, flags)
 end
 
-function ImPlot_PlotErrorBars_U32PtrU32PtrU32PtrInt(label_id, xs, ys, err, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBars_U32PtrU32PtrU32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Ptr{ImU32}, Cint, Cint, Cint), label_id, xs, ys, err, count, offset, stride)
+function ImPlot_PlotBarGroups_FloatPtr(label_ids, values, item_count, group_count, group_size, shift, flags)
+    ccall((:ImPlot_PlotBarGroups_FloatPtr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{Cfloat}, Cint, Cint, Cdouble, Cdouble, ImPlotBarGroupsFlags), label_ids, values, item_count, group_count, group_size, shift, flags)
 end
 
-function ImPlot_PlotErrorBars_S64PtrS64PtrS64PtrInt(label_id, xs, ys, err, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBars_S64PtrS64PtrS64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Ptr{ImS64}, Cint, Cint, Cint), label_id, xs, ys, err, count, offset, stride)
+function ImPlot_PlotBarGroups_doublePtr(label_ids, values, item_count, group_count, group_size, shift, flags)
+    ccall((:ImPlot_PlotBarGroups_doublePtr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{Cdouble}, Cint, Cint, Cdouble, Cdouble, ImPlotBarGroupsFlags), label_ids, values, item_count, group_count, group_size, shift, flags)
 end
 
-function ImPlot_PlotErrorBars_U64PtrU64PtrU64PtrInt(label_id, xs, ys, err, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBars_U64PtrU64PtrU64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Ptr{ImU64}, Cint, Cint, Cint), label_id, xs, ys, err, count, offset, stride)
+function ImPlot_PlotBarGroups_S8Ptr(label_ids, values, item_count, group_count, group_size, shift, flags)
+    ccall((:ImPlot_PlotBarGroups_S8Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImS8}, Cint, Cint, Cdouble, Cdouble, ImPlotBarGroupsFlags), label_ids, values, item_count, group_count, group_size, shift, flags)
 end
 
-function ImPlot_PlotErrorBars_FloatPtrFloatPtrFloatPtrFloatPtr(label_id, xs, ys, neg, pos, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBars_FloatPtrFloatPtrFloatPtrFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, Cint, Cint), label_id, xs, ys, neg, pos, count, offset, stride)
+function ImPlot_PlotBarGroups_U8Ptr(label_ids, values, item_count, group_count, group_size, shift, flags)
+    ccall((:ImPlot_PlotBarGroups_U8Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImU8}, Cint, Cint, Cdouble, Cdouble, ImPlotBarGroupsFlags), label_ids, values, item_count, group_count, group_size, shift, flags)
 end
 
-function ImPlot_PlotErrorBars_doublePtrdoublePtrdoublePtrdoublePtr(label_id, xs, ys, neg, pos, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBars_doublePtrdoublePtrdoublePtrdoublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, Cint, Cint), label_id, xs, ys, neg, pos, count, offset, stride)
+function ImPlot_PlotBarGroups_S16Ptr(label_ids, values, item_count, group_count, group_size, shift, flags)
+    ccall((:ImPlot_PlotBarGroups_S16Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImS16}, Cint, Cint, Cdouble, Cdouble, ImPlotBarGroupsFlags), label_ids, values, item_count, group_count, group_size, shift, flags)
 end
 
-function ImPlot_PlotErrorBars_S8PtrS8PtrS8PtrS8Ptr(label_id, xs, ys, neg, pos, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBars_S8PtrS8PtrS8PtrS8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Ptr{ImS8}, Ptr{ImS8}, Cint, Cint, Cint), label_id, xs, ys, neg, pos, count, offset, stride)
+function ImPlot_PlotBarGroups_U16Ptr(label_ids, values, item_count, group_count, group_size, shift, flags)
+    ccall((:ImPlot_PlotBarGroups_U16Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImU16}, Cint, Cint, Cdouble, Cdouble, ImPlotBarGroupsFlags), label_ids, values, item_count, group_count, group_size, shift, flags)
 end
 
-function ImPlot_PlotErrorBars_U8PtrU8PtrU8PtrU8Ptr(label_id, xs, ys, neg, pos, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBars_U8PtrU8PtrU8PtrU8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Ptr{ImU8}, Ptr{ImU8}, Cint, Cint, Cint), label_id, xs, ys, neg, pos, count, offset, stride)
+function ImPlot_PlotBarGroups_S32Ptr(label_ids, values, item_count, group_count, group_size, shift, flags)
+    ccall((:ImPlot_PlotBarGroups_S32Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImS32}, Cint, Cint, Cdouble, Cdouble, ImPlotBarGroupsFlags), label_ids, values, item_count, group_count, group_size, shift, flags)
 end
 
-function ImPlot_PlotErrorBars_S16PtrS16PtrS16PtrS16Ptr(label_id, xs, ys, neg, pos, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBars_S16PtrS16PtrS16PtrS16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Ptr{ImS16}, Ptr{ImS16}, Cint, Cint, Cint), label_id, xs, ys, neg, pos, count, offset, stride)
+function ImPlot_PlotBarGroups_U32Ptr(label_ids, values, item_count, group_count, group_size, shift, flags)
+    ccall((:ImPlot_PlotBarGroups_U32Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImU32}, Cint, Cint, Cdouble, Cdouble, ImPlotBarGroupsFlags), label_ids, values, item_count, group_count, group_size, shift, flags)
 end
 
-function ImPlot_PlotErrorBars_U16PtrU16PtrU16PtrU16Ptr(label_id, xs, ys, neg, pos, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBars_U16PtrU16PtrU16PtrU16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Ptr{ImU16}, Ptr{ImU16}, Cint, Cint, Cint), label_id, xs, ys, neg, pos, count, offset, stride)
+function ImPlot_PlotBarGroups_S64Ptr(label_ids, values, item_count, group_count, group_size, shift, flags)
+    ccall((:ImPlot_PlotBarGroups_S64Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImS64}, Cint, Cint, Cdouble, Cdouble, ImPlotBarGroupsFlags), label_ids, values, item_count, group_count, group_size, shift, flags)
 end
 
-function ImPlot_PlotErrorBars_S32PtrS32PtrS32PtrS32Ptr(label_id, xs, ys, neg, pos, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBars_S32PtrS32PtrS32PtrS32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Ptr{ImS32}, Ptr{ImS32}, Cint, Cint, Cint), label_id, xs, ys, neg, pos, count, offset, stride)
+function ImPlot_PlotBarGroups_U64Ptr(label_ids, values, item_count, group_count, group_size, shift, flags)
+    ccall((:ImPlot_PlotBarGroups_U64Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImU64}, Cint, Cint, Cdouble, Cdouble, ImPlotBarGroupsFlags), label_ids, values, item_count, group_count, group_size, shift, flags)
 end
 
-function ImPlot_PlotErrorBars_U32PtrU32PtrU32PtrU32Ptr(label_id, xs, ys, neg, pos, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBars_U32PtrU32PtrU32PtrU32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Ptr{ImU32}, Ptr{ImU32}, Cint, Cint, Cint), label_id, xs, ys, neg, pos, count, offset, stride)
+function ImPlot_PlotErrorBars_FloatPtrFloatPtrFloatPtrInt(label_id, xs, ys, err, count, flags, offset, stride)
+    ccall((:ImPlot_PlotErrorBars_FloatPtrFloatPtrFloatPtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, ImPlotErrorBarsFlags, Cint, Cint), label_id, xs, ys, err, count, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBars_S64PtrS64PtrS64PtrS64Ptr(label_id, xs, ys, neg, pos, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBars_S64PtrS64PtrS64PtrS64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Ptr{ImS64}, Ptr{ImS64}, Cint, Cint, Cint), label_id, xs, ys, neg, pos, count, offset, stride)
+function ImPlot_PlotErrorBars_doublePtrdoublePtrdoublePtrInt(label_id, xs, ys, err, count, flags, offset, stride)
+    ccall((:ImPlot_PlotErrorBars_doublePtrdoublePtrdoublePtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, ImPlotErrorBarsFlags, Cint, Cint), label_id, xs, ys, err, count, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBars_U64PtrU64PtrU64PtrU64Ptr(label_id, xs, ys, neg, pos, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBars_U64PtrU64PtrU64PtrU64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Ptr{ImU64}, Ptr{ImU64}, Cint, Cint, Cint), label_id, xs, ys, neg, pos, count, offset, stride)
+function ImPlot_PlotErrorBars_S8PtrS8PtrS8PtrInt(label_id, xs, ys, err, count, flags, offset, stride)
+    ccall((:ImPlot_PlotErrorBars_S8PtrS8PtrS8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Ptr{ImS8}, Cint, ImPlotErrorBarsFlags, Cint, Cint), label_id, xs, ys, err, count, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBarsH_FloatPtrFloatPtrFloatPtrInt(label_id, xs, ys, err, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBarsH_FloatPtrFloatPtrFloatPtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, Cint, Cint), label_id, xs, ys, err, count, offset, stride)
+function ImPlot_PlotErrorBars_U8PtrU8PtrU8PtrInt(label_id, xs, ys, err, count, flags, offset, stride)
+    ccall((:ImPlot_PlotErrorBars_U8PtrU8PtrU8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Ptr{ImU8}, Cint, ImPlotErrorBarsFlags, Cint, Cint), label_id, xs, ys, err, count, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBarsH_doublePtrdoublePtrdoublePtrInt(label_id, xs, ys, err, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBarsH_doublePtrdoublePtrdoublePtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, Cint, Cint), label_id, xs, ys, err, count, offset, stride)
+function ImPlot_PlotErrorBars_S16PtrS16PtrS16PtrInt(label_id, xs, ys, err, count, flags, offset, stride)
+    ccall((:ImPlot_PlotErrorBars_S16PtrS16PtrS16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Ptr{ImS16}, Cint, ImPlotErrorBarsFlags, Cint, Cint), label_id, xs, ys, err, count, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBarsH_S8PtrS8PtrS8PtrInt(label_id, xs, ys, err, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBarsH_S8PtrS8PtrS8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Ptr{ImS8}, Cint, Cint, Cint), label_id, xs, ys, err, count, offset, stride)
+function ImPlot_PlotErrorBars_U16PtrU16PtrU16PtrInt(label_id, xs, ys, err, count, flags, offset, stride)
+    ccall((:ImPlot_PlotErrorBars_U16PtrU16PtrU16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Ptr{ImU16}, Cint, ImPlotErrorBarsFlags, Cint, Cint), label_id, xs, ys, err, count, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBarsH_U8PtrU8PtrU8PtrInt(label_id, xs, ys, err, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBarsH_U8PtrU8PtrU8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Ptr{ImU8}, Cint, Cint, Cint), label_id, xs, ys, err, count, offset, stride)
+function ImPlot_PlotErrorBars_S32PtrS32PtrS32PtrInt(label_id, xs, ys, err, count, flags, offset, stride)
+    ccall((:ImPlot_PlotErrorBars_S32PtrS32PtrS32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Ptr{ImS32}, Cint, ImPlotErrorBarsFlags, Cint, Cint), label_id, xs, ys, err, count, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBarsH_S16PtrS16PtrS16PtrInt(label_id, xs, ys, err, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBarsH_S16PtrS16PtrS16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Ptr{ImS16}, Cint, Cint, Cint), label_id, xs, ys, err, count, offset, stride)
+function ImPlot_PlotErrorBars_U32PtrU32PtrU32PtrInt(label_id, xs, ys, err, count, flags, offset, stride)
+    ccall((:ImPlot_PlotErrorBars_U32PtrU32PtrU32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Ptr{ImU32}, Cint, ImPlotErrorBarsFlags, Cint, Cint), label_id, xs, ys, err, count, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBarsH_U16PtrU16PtrU16PtrInt(label_id, xs, ys, err, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBarsH_U16PtrU16PtrU16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Ptr{ImU16}, Cint, Cint, Cint), label_id, xs, ys, err, count, offset, stride)
+function ImPlot_PlotErrorBars_S64PtrS64PtrS64PtrInt(label_id, xs, ys, err, count, flags, offset, stride)
+    ccall((:ImPlot_PlotErrorBars_S64PtrS64PtrS64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Ptr{ImS64}, Cint, ImPlotErrorBarsFlags, Cint, Cint), label_id, xs, ys, err, count, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBarsH_S32PtrS32PtrS32PtrInt(label_id, xs, ys, err, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBarsH_S32PtrS32PtrS32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Ptr{ImS32}, Cint, Cint, Cint), label_id, xs, ys, err, count, offset, stride)
+function ImPlot_PlotErrorBars_U64PtrU64PtrU64PtrInt(label_id, xs, ys, err, count, flags, offset, stride)
+    ccall((:ImPlot_PlotErrorBars_U64PtrU64PtrU64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Ptr{ImU64}, Cint, ImPlotErrorBarsFlags, Cint, Cint), label_id, xs, ys, err, count, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBarsH_U32PtrU32PtrU32PtrInt(label_id, xs, ys, err, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBarsH_U32PtrU32PtrU32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Ptr{ImU32}, Cint, Cint, Cint), label_id, xs, ys, err, count, offset, stride)
+function ImPlot_PlotErrorBars_FloatPtrFloatPtrFloatPtrFloatPtr(label_id, xs, ys, neg, pos, count, flags, offset, stride)
+    ccall((:ImPlot_PlotErrorBars_FloatPtrFloatPtrFloatPtrFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, ImPlotErrorBarsFlags, Cint, Cint), label_id, xs, ys, neg, pos, count, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBarsH_S64PtrS64PtrS64PtrInt(label_id, xs, ys, err, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBarsH_S64PtrS64PtrS64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Ptr{ImS64}, Cint, Cint, Cint), label_id, xs, ys, err, count, offset, stride)
+function ImPlot_PlotErrorBars_doublePtrdoublePtrdoublePtrdoublePtr(label_id, xs, ys, neg, pos, count, flags, offset, stride)
+    ccall((:ImPlot_PlotErrorBars_doublePtrdoublePtrdoublePtrdoublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, ImPlotErrorBarsFlags, Cint, Cint), label_id, xs, ys, neg, pos, count, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBarsH_U64PtrU64PtrU64PtrInt(label_id, xs, ys, err, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBarsH_U64PtrU64PtrU64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Ptr{ImU64}, Cint, Cint, Cint), label_id, xs, ys, err, count, offset, stride)
+function ImPlot_PlotErrorBars_S8PtrS8PtrS8PtrS8Ptr(label_id, xs, ys, neg, pos, count, flags, offset, stride)
+    ccall((:ImPlot_PlotErrorBars_S8PtrS8PtrS8PtrS8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Ptr{ImS8}, Ptr{ImS8}, Cint, ImPlotErrorBarsFlags, Cint, Cint), label_id, xs, ys, neg, pos, count, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBarsH_FloatPtrFloatPtrFloatPtrFloatPtr(label_id, xs, ys, neg, pos, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBarsH_FloatPtrFloatPtrFloatPtrFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, Cint, Cint), label_id, xs, ys, neg, pos, count, offset, stride)
+function ImPlot_PlotErrorBars_U8PtrU8PtrU8PtrU8Ptr(label_id, xs, ys, neg, pos, count, flags, offset, stride)
+    ccall((:ImPlot_PlotErrorBars_U8PtrU8PtrU8PtrU8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Ptr{ImU8}, Ptr{ImU8}, Cint, ImPlotErrorBarsFlags, Cint, Cint), label_id, xs, ys, neg, pos, count, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBarsH_doublePtrdoublePtrdoublePtrdoublePtr(label_id, xs, ys, neg, pos, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBarsH_doublePtrdoublePtrdoublePtrdoublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, Cint, Cint), label_id, xs, ys, neg, pos, count, offset, stride)
+function ImPlot_PlotErrorBars_S16PtrS16PtrS16PtrS16Ptr(label_id, xs, ys, neg, pos, count, flags, offset, stride)
+    ccall((:ImPlot_PlotErrorBars_S16PtrS16PtrS16PtrS16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Ptr{ImS16}, Ptr{ImS16}, Cint, ImPlotErrorBarsFlags, Cint, Cint), label_id, xs, ys, neg, pos, count, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBarsH_S8PtrS8PtrS8PtrS8Ptr(label_id, xs, ys, neg, pos, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBarsH_S8PtrS8PtrS8PtrS8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Ptr{ImS8}, Ptr{ImS8}, Cint, Cint, Cint), label_id, xs, ys, neg, pos, count, offset, stride)
+function ImPlot_PlotErrorBars_U16PtrU16PtrU16PtrU16Ptr(label_id, xs, ys, neg, pos, count, flags, offset, stride)
+    ccall((:ImPlot_PlotErrorBars_U16PtrU16PtrU16PtrU16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Ptr{ImU16}, Ptr{ImU16}, Cint, ImPlotErrorBarsFlags, Cint, Cint), label_id, xs, ys, neg, pos, count, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBarsH_U8PtrU8PtrU8PtrU8Ptr(label_id, xs, ys, neg, pos, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBarsH_U8PtrU8PtrU8PtrU8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Ptr{ImU8}, Ptr{ImU8}, Cint, Cint, Cint), label_id, xs, ys, neg, pos, count, offset, stride)
+function ImPlot_PlotErrorBars_S32PtrS32PtrS32PtrS32Ptr(label_id, xs, ys, neg, pos, count, flags, offset, stride)
+    ccall((:ImPlot_PlotErrorBars_S32PtrS32PtrS32PtrS32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Ptr{ImS32}, Ptr{ImS32}, Cint, ImPlotErrorBarsFlags, Cint, Cint), label_id, xs, ys, neg, pos, count, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBarsH_S16PtrS16PtrS16PtrS16Ptr(label_id, xs, ys, neg, pos, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBarsH_S16PtrS16PtrS16PtrS16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Ptr{ImS16}, Ptr{ImS16}, Cint, Cint, Cint), label_id, xs, ys, neg, pos, count, offset, stride)
+function ImPlot_PlotErrorBars_U32PtrU32PtrU32PtrU32Ptr(label_id, xs, ys, neg, pos, count, flags, offset, stride)
+    ccall((:ImPlot_PlotErrorBars_U32PtrU32PtrU32PtrU32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Ptr{ImU32}, Ptr{ImU32}, Cint, ImPlotErrorBarsFlags, Cint, Cint), label_id, xs, ys, neg, pos, count, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBarsH_U16PtrU16PtrU16PtrU16Ptr(label_id, xs, ys, neg, pos, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBarsH_U16PtrU16PtrU16PtrU16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Ptr{ImU16}, Ptr{ImU16}, Cint, Cint, Cint), label_id, xs, ys, neg, pos, count, offset, stride)
+function ImPlot_PlotErrorBars_S64PtrS64PtrS64PtrS64Ptr(label_id, xs, ys, neg, pos, count, flags, offset, stride)
+    ccall((:ImPlot_PlotErrorBars_S64PtrS64PtrS64PtrS64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Ptr{ImS64}, Ptr{ImS64}, Cint, ImPlotErrorBarsFlags, Cint, Cint), label_id, xs, ys, neg, pos, count, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBarsH_S32PtrS32PtrS32PtrS32Ptr(label_id, xs, ys, neg, pos, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBarsH_S32PtrS32PtrS32PtrS32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Ptr{ImS32}, Ptr{ImS32}, Cint, Cint, Cint), label_id, xs, ys, neg, pos, count, offset, stride)
+function ImPlot_PlotErrorBars_U64PtrU64PtrU64PtrU64Ptr(label_id, xs, ys, neg, pos, count, flags, offset, stride)
+    ccall((:ImPlot_PlotErrorBars_U64PtrU64PtrU64PtrU64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Ptr{ImU64}, Ptr{ImU64}, Cint, ImPlotErrorBarsFlags, Cint, Cint), label_id, xs, ys, neg, pos, count, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBarsH_U32PtrU32PtrU32PtrU32Ptr(label_id, xs, ys, neg, pos, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBarsH_U32PtrU32PtrU32PtrU32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Ptr{ImU32}, Ptr{ImU32}, Cint, Cint, Cint), label_id, xs, ys, neg, pos, count, offset, stride)
+function ImPlot_PlotStems_FloatPtrInt(label_id, values, count, ref, scale, start, flags, offset, stride)
+    ccall((:ImPlot_PlotStems_FloatPtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cdouble, Cdouble, Cdouble, ImPlotStemsFlags, Cint, Cint), label_id, values, count, ref, scale, start, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBarsH_S64PtrS64PtrS64PtrS64Ptr(label_id, xs, ys, neg, pos, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBarsH_S64PtrS64PtrS64PtrS64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Ptr{ImS64}, Ptr{ImS64}, Cint, Cint, Cint), label_id, xs, ys, neg, pos, count, offset, stride)
+function ImPlot_PlotStems_doublePtrInt(label_id, values, count, ref, scale, start, flags, offset, stride)
+    ccall((:ImPlot_PlotStems_doublePtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Cint, Cdouble, Cdouble, Cdouble, ImPlotStemsFlags, Cint, Cint), label_id, values, count, ref, scale, start, flags, offset, stride)
 end
 
-function ImPlot_PlotErrorBarsH_U64PtrU64PtrU64PtrU64Ptr(label_id, xs, ys, neg, pos, count, offset, stride)
-    ccall((:ImPlot_PlotErrorBarsH_U64PtrU64PtrU64PtrU64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Ptr{ImU64}, Ptr{ImU64}, Cint, Cint, Cint), label_id, xs, ys, neg, pos, count, offset, stride)
+function ImPlot_PlotStems_S8PtrInt(label_id, values, count, ref, scale, start, flags, offset, stride)
+    ccall((:ImPlot_PlotStems_S8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Cint, Cdouble, Cdouble, Cdouble, ImPlotStemsFlags, Cint, Cint), label_id, values, count, ref, scale, start, flags, offset, stride)
 end
 
-function ImPlot_PlotStems_FloatPtrInt(label_id, values, count, y_ref, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotStems_FloatPtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cdouble, Cdouble, Cdouble, Cint, Cint), label_id, values, count, y_ref, xscale, x0, offset, stride)
+function ImPlot_PlotStems_U8PtrInt(label_id, values, count, ref, scale, start, flags, offset, stride)
+    ccall((:ImPlot_PlotStems_U8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Cint, Cdouble, Cdouble, Cdouble, ImPlotStemsFlags, Cint, Cint), label_id, values, count, ref, scale, start, flags, offset, stride)
 end
 
-function ImPlot_PlotStems_doublePtrInt(label_id, values, count, y_ref, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotStems_doublePtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Cint, Cdouble, Cdouble, Cdouble, Cint, Cint), label_id, values, count, y_ref, xscale, x0, offset, stride)
+function ImPlot_PlotStems_S16PtrInt(label_id, values, count, ref, scale, start, flags, offset, stride)
+    ccall((:ImPlot_PlotStems_S16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Cint, Cdouble, Cdouble, Cdouble, ImPlotStemsFlags, Cint, Cint), label_id, values, count, ref, scale, start, flags, offset, stride)
 end
 
-function ImPlot_PlotStems_S8PtrInt(label_id, values, count, y_ref, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotStems_S8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Cint, Cdouble, Cdouble, Cdouble, Cint, Cint), label_id, values, count, y_ref, xscale, x0, offset, stride)
+function ImPlot_PlotStems_U16PtrInt(label_id, values, count, ref, scale, start, flags, offset, stride)
+    ccall((:ImPlot_PlotStems_U16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Cint, Cdouble, Cdouble, Cdouble, ImPlotStemsFlags, Cint, Cint), label_id, values, count, ref, scale, start, flags, offset, stride)
 end
 
-function ImPlot_PlotStems_U8PtrInt(label_id, values, count, y_ref, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotStems_U8PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Cint, Cdouble, Cdouble, Cdouble, Cint, Cint), label_id, values, count, y_ref, xscale, x0, offset, stride)
+function ImPlot_PlotStems_S32PtrInt(label_id, values, count, ref, scale, start, flags, offset, stride)
+    ccall((:ImPlot_PlotStems_S32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Cint, Cdouble, Cdouble, Cdouble, ImPlotStemsFlags, Cint, Cint), label_id, values, count, ref, scale, start, flags, offset, stride)
 end
 
-function ImPlot_PlotStems_S16PtrInt(label_id, values, count, y_ref, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotStems_S16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Cint, Cdouble, Cdouble, Cdouble, Cint, Cint), label_id, values, count, y_ref, xscale, x0, offset, stride)
+function ImPlot_PlotStems_U32PtrInt(label_id, values, count, ref, scale, start, flags, offset, stride)
+    ccall((:ImPlot_PlotStems_U32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Cint, Cdouble, Cdouble, Cdouble, ImPlotStemsFlags, Cint, Cint), label_id, values, count, ref, scale, start, flags, offset, stride)
 end
 
-function ImPlot_PlotStems_U16PtrInt(label_id, values, count, y_ref, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotStems_U16PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Cint, Cdouble, Cdouble, Cdouble, Cint, Cint), label_id, values, count, y_ref, xscale, x0, offset, stride)
+function ImPlot_PlotStems_S64PtrInt(label_id, values, count, ref, scale, start, flags, offset, stride)
+    ccall((:ImPlot_PlotStems_S64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Cint, Cdouble, Cdouble, Cdouble, ImPlotStemsFlags, Cint, Cint), label_id, values, count, ref, scale, start, flags, offset, stride)
 end
 
-function ImPlot_PlotStems_S32PtrInt(label_id, values, count, y_ref, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotStems_S32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Cint, Cdouble, Cdouble, Cdouble, Cint, Cint), label_id, values, count, y_ref, xscale, x0, offset, stride)
+function ImPlot_PlotStems_U64PtrInt(label_id, values, count, ref, scale, start, flags, offset, stride)
+    ccall((:ImPlot_PlotStems_U64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Cint, Cdouble, Cdouble, Cdouble, ImPlotStemsFlags, Cint, Cint), label_id, values, count, ref, scale, start, flags, offset, stride)
 end
 
-function ImPlot_PlotStems_U32PtrInt(label_id, values, count, y_ref, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotStems_U32PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Cint, Cdouble, Cdouble, Cdouble, Cint, Cint), label_id, values, count, y_ref, xscale, x0, offset, stride)
+function ImPlot_PlotStems_FloatPtrFloatPtr(label_id, xs, ys, count, ref, flags, offset, stride)
+    ccall((:ImPlot_PlotStems_FloatPtrFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, Cdouble, ImPlotStemsFlags, Cint, Cint), label_id, xs, ys, count, ref, flags, offset, stride)
 end
 
-function ImPlot_PlotStems_S64PtrInt(label_id, values, count, y_ref, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotStems_S64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Cint, Cdouble, Cdouble, Cdouble, Cint, Cint), label_id, values, count, y_ref, xscale, x0, offset, stride)
+function ImPlot_PlotStems_doublePtrdoublePtr(label_id, xs, ys, count, ref, flags, offset, stride)
+    ccall((:ImPlot_PlotStems_doublePtrdoublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, Cdouble, ImPlotStemsFlags, Cint, Cint), label_id, xs, ys, count, ref, flags, offset, stride)
 end
 
-function ImPlot_PlotStems_U64PtrInt(label_id, values, count, y_ref, xscale, x0, offset, stride)
-    ccall((:ImPlot_PlotStems_U64PtrInt, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Cint, Cdouble, Cdouble, Cdouble, Cint, Cint), label_id, values, count, y_ref, xscale, x0, offset, stride)
+function ImPlot_PlotStems_S8PtrS8Ptr(label_id, xs, ys, count, ref, flags, offset, stride)
+    ccall((:ImPlot_PlotStems_S8PtrS8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Cint, Cdouble, ImPlotStemsFlags, Cint, Cint), label_id, xs, ys, count, ref, flags, offset, stride)
 end
 
-function ImPlot_PlotStems_FloatPtrFloatPtr(label_id, xs, ys, count, y_ref, offset, stride)
-    ccall((:ImPlot_PlotStems_FloatPtrFloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, y_ref, offset, stride)
+function ImPlot_PlotStems_U8PtrU8Ptr(label_id, xs, ys, count, ref, flags, offset, stride)
+    ccall((:ImPlot_PlotStems_U8PtrU8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Cint, Cdouble, ImPlotStemsFlags, Cint, Cint), label_id, xs, ys, count, ref, flags, offset, stride)
 end
 
-function ImPlot_PlotStems_doublePtrdoublePtr(label_id, xs, ys, count, y_ref, offset, stride)
-    ccall((:ImPlot_PlotStems_doublePtrdoublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, y_ref, offset, stride)
+function ImPlot_PlotStems_S16PtrS16Ptr(label_id, xs, ys, count, ref, flags, offset, stride)
+    ccall((:ImPlot_PlotStems_S16PtrS16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Cint, Cdouble, ImPlotStemsFlags, Cint, Cint), label_id, xs, ys, count, ref, flags, offset, stride)
 end
 
-function ImPlot_PlotStems_S8PtrS8Ptr(label_id, xs, ys, count, y_ref, offset, stride)
-    ccall((:ImPlot_PlotStems_S8PtrS8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, y_ref, offset, stride)
+function ImPlot_PlotStems_U16PtrU16Ptr(label_id, xs, ys, count, ref, flags, offset, stride)
+    ccall((:ImPlot_PlotStems_U16PtrU16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Cint, Cdouble, ImPlotStemsFlags, Cint, Cint), label_id, xs, ys, count, ref, flags, offset, stride)
 end
 
-function ImPlot_PlotStems_U8PtrU8Ptr(label_id, xs, ys, count, y_ref, offset, stride)
-    ccall((:ImPlot_PlotStems_U8PtrU8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, y_ref, offset, stride)
+function ImPlot_PlotStems_S32PtrS32Ptr(label_id, xs, ys, count, ref, flags, offset, stride)
+    ccall((:ImPlot_PlotStems_S32PtrS32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Cint, Cdouble, ImPlotStemsFlags, Cint, Cint), label_id, xs, ys, count, ref, flags, offset, stride)
 end
 
-function ImPlot_PlotStems_S16PtrS16Ptr(label_id, xs, ys, count, y_ref, offset, stride)
-    ccall((:ImPlot_PlotStems_S16PtrS16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, y_ref, offset, stride)
+function ImPlot_PlotStems_U32PtrU32Ptr(label_id, xs, ys, count, ref, flags, offset, stride)
+    ccall((:ImPlot_PlotStems_U32PtrU32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Cint, Cdouble, ImPlotStemsFlags, Cint, Cint), label_id, xs, ys, count, ref, flags, offset, stride)
 end
 
-function ImPlot_PlotStems_U16PtrU16Ptr(label_id, xs, ys, count, y_ref, offset, stride)
-    ccall((:ImPlot_PlotStems_U16PtrU16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, y_ref, offset, stride)
+function ImPlot_PlotStems_S64PtrS64Ptr(label_id, xs, ys, count, ref, flags, offset, stride)
+    ccall((:ImPlot_PlotStems_S64PtrS64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Cint, Cdouble, ImPlotStemsFlags, Cint, Cint), label_id, xs, ys, count, ref, flags, offset, stride)
 end
 
-function ImPlot_PlotStems_S32PtrS32Ptr(label_id, xs, ys, count, y_ref, offset, stride)
-    ccall((:ImPlot_PlotStems_S32PtrS32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, y_ref, offset, stride)
+function ImPlot_PlotStems_U64PtrU64Ptr(label_id, xs, ys, count, ref, flags, offset, stride)
+    ccall((:ImPlot_PlotStems_U64PtrU64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Cint, Cdouble, ImPlotStemsFlags, Cint, Cint), label_id, xs, ys, count, ref, flags, offset, stride)
 end
 
-function ImPlot_PlotStems_U32PtrU32Ptr(label_id, xs, ys, count, y_ref, offset, stride)
-    ccall((:ImPlot_PlotStems_U32PtrU32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, y_ref, offset, stride)
+function ImPlot_PlotInfLines_FloatPtr(label_id, values, count, flags, offset, stride)
+    ccall((:ImPlot_PlotInfLines_FloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, ImPlotInfLinesFlags, Cint, Cint), label_id, values, count, flags, offset, stride)
 end
 
-function ImPlot_PlotStems_S64PtrS64Ptr(label_id, xs, ys, count, y_ref, offset, stride)
-    ccall((:ImPlot_PlotStems_S64PtrS64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, y_ref, offset, stride)
+function ImPlot_PlotInfLines_doublePtr(label_id, values, count, flags, offset, stride)
+    ccall((:ImPlot_PlotInfLines_doublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Cint, ImPlotInfLinesFlags, Cint, Cint), label_id, values, count, flags, offset, stride)
 end
 
-function ImPlot_PlotStems_U64PtrU64Ptr(label_id, xs, ys, count, y_ref, offset, stride)
-    ccall((:ImPlot_PlotStems_U64PtrU64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Cint, Cdouble, Cint, Cint), label_id, xs, ys, count, y_ref, offset, stride)
+function ImPlot_PlotInfLines_S8Ptr(label_id, values, count, flags, offset, stride)
+    ccall((:ImPlot_PlotInfLines_S8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Cint, ImPlotInfLinesFlags, Cint, Cint), label_id, values, count, flags, offset, stride)
 end
 
-function ImPlot_PlotVLines_FloatPtr(label_id, xs, count, offset, stride)
-    ccall((:ImPlot_PlotVLines_FloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cint, Cint), label_id, xs, count, offset, stride)
+function ImPlot_PlotInfLines_U8Ptr(label_id, values, count, flags, offset, stride)
+    ccall((:ImPlot_PlotInfLines_U8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Cint, ImPlotInfLinesFlags, Cint, Cint), label_id, values, count, flags, offset, stride)
 end
 
-function ImPlot_PlotVLines_doublePtr(label_id, xs, count, offset, stride)
-    ccall((:ImPlot_PlotVLines_doublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Cint, Cint, Cint), label_id, xs, count, offset, stride)
+function ImPlot_PlotInfLines_S16Ptr(label_id, values, count, flags, offset, stride)
+    ccall((:ImPlot_PlotInfLines_S16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Cint, ImPlotInfLinesFlags, Cint, Cint), label_id, values, count, flags, offset, stride)
 end
 
-function ImPlot_PlotVLines_S8Ptr(label_id, xs, count, offset, stride)
-    ccall((:ImPlot_PlotVLines_S8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Cint, Cint, Cint), label_id, xs, count, offset, stride)
+function ImPlot_PlotInfLines_U16Ptr(label_id, values, count, flags, offset, stride)
+    ccall((:ImPlot_PlotInfLines_U16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Cint, ImPlotInfLinesFlags, Cint, Cint), label_id, values, count, flags, offset, stride)
 end
 
-function ImPlot_PlotVLines_U8Ptr(label_id, xs, count, offset, stride)
-    ccall((:ImPlot_PlotVLines_U8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Cint, Cint, Cint), label_id, xs, count, offset, stride)
+function ImPlot_PlotInfLines_S32Ptr(label_id, values, count, flags, offset, stride)
+    ccall((:ImPlot_PlotInfLines_S32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Cint, ImPlotInfLinesFlags, Cint, Cint), label_id, values, count, flags, offset, stride)
 end
 
-function ImPlot_PlotVLines_S16Ptr(label_id, xs, count, offset, stride)
-    ccall((:ImPlot_PlotVLines_S16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Cint, Cint, Cint), label_id, xs, count, offset, stride)
+function ImPlot_PlotInfLines_U32Ptr(label_id, values, count, flags, offset, stride)
+    ccall((:ImPlot_PlotInfLines_U32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Cint, ImPlotInfLinesFlags, Cint, Cint), label_id, values, count, flags, offset, stride)
 end
 
-function ImPlot_PlotVLines_U16Ptr(label_id, xs, count, offset, stride)
-    ccall((:ImPlot_PlotVLines_U16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Cint, Cint, Cint), label_id, xs, count, offset, stride)
+function ImPlot_PlotInfLines_S64Ptr(label_id, values, count, flags, offset, stride)
+    ccall((:ImPlot_PlotInfLines_S64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Cint, ImPlotInfLinesFlags, Cint, Cint), label_id, values, count, flags, offset, stride)
 end
 
-function ImPlot_PlotVLines_S32Ptr(label_id, xs, count, offset, stride)
-    ccall((:ImPlot_PlotVLines_S32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Cint, Cint, Cint), label_id, xs, count, offset, stride)
+function ImPlot_PlotInfLines_U64Ptr(label_id, values, count, flags, offset, stride)
+    ccall((:ImPlot_PlotInfLines_U64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Cint, ImPlotInfLinesFlags, Cint, Cint), label_id, values, count, flags, offset, stride)
 end
 
-function ImPlot_PlotVLines_U32Ptr(label_id, xs, count, offset, stride)
-    ccall((:ImPlot_PlotVLines_U32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Cint, Cint, Cint), label_id, xs, count, offset, stride)
+function ImPlot_PlotPieChart_FloatPtr(label_ids, values, count, x, y, radius, label_fmt, angle0, flags)
+    ccall((:ImPlot_PlotPieChart_FloatPtr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{Cfloat}, Cint, Cdouble, Cdouble, Cdouble, Ptr{Cchar}, Cdouble, ImPlotPieChartFlags), label_ids, values, count, x, y, radius, label_fmt, angle0, flags)
 end
 
-function ImPlot_PlotVLines_S64Ptr(label_id, xs, count, offset, stride)
-    ccall((:ImPlot_PlotVLines_S64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Cint, Cint, Cint), label_id, xs, count, offset, stride)
+function ImPlot_PlotPieChart_doublePtr(label_ids, values, count, x, y, radius, label_fmt, angle0, flags)
+    ccall((:ImPlot_PlotPieChart_doublePtr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{Cdouble}, Cint, Cdouble, Cdouble, Cdouble, Ptr{Cchar}, Cdouble, ImPlotPieChartFlags), label_ids, values, count, x, y, radius, label_fmt, angle0, flags)
 end
 
-function ImPlot_PlotVLines_U64Ptr(label_id, xs, count, offset, stride)
-    ccall((:ImPlot_PlotVLines_U64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Cint, Cint, Cint), label_id, xs, count, offset, stride)
+function ImPlot_PlotPieChart_S8Ptr(label_ids, values, count, x, y, radius, label_fmt, angle0, flags)
+    ccall((:ImPlot_PlotPieChart_S8Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImS8}, Cint, Cdouble, Cdouble, Cdouble, Ptr{Cchar}, Cdouble, ImPlotPieChartFlags), label_ids, values, count, x, y, radius, label_fmt, angle0, flags)
 end
 
-function ImPlot_PlotHLines_FloatPtr(label_id, ys, count, offset, stride)
-    ccall((:ImPlot_PlotHLines_FloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cint, Cint), label_id, ys, count, offset, stride)
+function ImPlot_PlotPieChart_U8Ptr(label_ids, values, count, x, y, radius, label_fmt, angle0, flags)
+    ccall((:ImPlot_PlotPieChart_U8Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImU8}, Cint, Cdouble, Cdouble, Cdouble, Ptr{Cchar}, Cdouble, ImPlotPieChartFlags), label_ids, values, count, x, y, radius, label_fmt, angle0, flags)
 end
 
-function ImPlot_PlotHLines_doublePtr(label_id, ys, count, offset, stride)
-    ccall((:ImPlot_PlotHLines_doublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Cint, Cint, Cint), label_id, ys, count, offset, stride)
+function ImPlot_PlotPieChart_S16Ptr(label_ids, values, count, x, y, radius, label_fmt, angle0, flags)
+    ccall((:ImPlot_PlotPieChart_S16Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImS16}, Cint, Cdouble, Cdouble, Cdouble, Ptr{Cchar}, Cdouble, ImPlotPieChartFlags), label_ids, values, count, x, y, radius, label_fmt, angle0, flags)
 end
 
-function ImPlot_PlotHLines_S8Ptr(label_id, ys, count, offset, stride)
-    ccall((:ImPlot_PlotHLines_S8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Cint, Cint, Cint), label_id, ys, count, offset, stride)
+function ImPlot_PlotPieChart_U16Ptr(label_ids, values, count, x, y, radius, label_fmt, angle0, flags)
+    ccall((:ImPlot_PlotPieChart_U16Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImU16}, Cint, Cdouble, Cdouble, Cdouble, Ptr{Cchar}, Cdouble, ImPlotPieChartFlags), label_ids, values, count, x, y, radius, label_fmt, angle0, flags)
 end
 
-function ImPlot_PlotHLines_U8Ptr(label_id, ys, count, offset, stride)
-    ccall((:ImPlot_PlotHLines_U8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Cint, Cint, Cint), label_id, ys, count, offset, stride)
+function ImPlot_PlotPieChart_S32Ptr(label_ids, values, count, x, y, radius, label_fmt, angle0, flags)
+    ccall((:ImPlot_PlotPieChart_S32Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImS32}, Cint, Cdouble, Cdouble, Cdouble, Ptr{Cchar}, Cdouble, ImPlotPieChartFlags), label_ids, values, count, x, y, radius, label_fmt, angle0, flags)
 end
 
-function ImPlot_PlotHLines_S16Ptr(label_id, ys, count, offset, stride)
-    ccall((:ImPlot_PlotHLines_S16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Cint, Cint, Cint), label_id, ys, count, offset, stride)
+function ImPlot_PlotPieChart_U32Ptr(label_ids, values, count, x, y, radius, label_fmt, angle0, flags)
+    ccall((:ImPlot_PlotPieChart_U32Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImU32}, Cint, Cdouble, Cdouble, Cdouble, Ptr{Cchar}, Cdouble, ImPlotPieChartFlags), label_ids, values, count, x, y, radius, label_fmt, angle0, flags)
 end
 
-function ImPlot_PlotHLines_U16Ptr(label_id, ys, count, offset, stride)
-    ccall((:ImPlot_PlotHLines_U16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Cint, Cint, Cint), label_id, ys, count, offset, stride)
+function ImPlot_PlotPieChart_S64Ptr(label_ids, values, count, x, y, radius, label_fmt, angle0, flags)
+    ccall((:ImPlot_PlotPieChart_S64Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImS64}, Cint, Cdouble, Cdouble, Cdouble, Ptr{Cchar}, Cdouble, ImPlotPieChartFlags), label_ids, values, count, x, y, radius, label_fmt, angle0, flags)
 end
 
-function ImPlot_PlotHLines_S32Ptr(label_id, ys, count, offset, stride)
-    ccall((:ImPlot_PlotHLines_S32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Cint, Cint, Cint), label_id, ys, count, offset, stride)
+function ImPlot_PlotPieChart_U64Ptr(label_ids, values, count, x, y, radius, label_fmt, angle0, flags)
+    ccall((:ImPlot_PlotPieChart_U64Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImU64}, Cint, Cdouble, Cdouble, Cdouble, Ptr{Cchar}, Cdouble, ImPlotPieChartFlags), label_ids, values, count, x, y, radius, label_fmt, angle0, flags)
 end
 
-function ImPlot_PlotHLines_U32Ptr(label_id, ys, count, offset, stride)
-    ccall((:ImPlot_PlotHLines_U32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Cint, Cint, Cint), label_id, ys, count, offset, stride)
+function ImPlot_PlotHeatmap_FloatPtr(label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max, flags)
+    ccall((:ImPlot_PlotHeatmap_FloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cint, Cdouble, Cdouble, Ptr{Cchar}, ImPlotPoint, ImPlotPoint, ImPlotHeatmapFlags), label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max, flags)
 end
 
-function ImPlot_PlotHLines_S64Ptr(label_id, ys, count, offset, stride)
-    ccall((:ImPlot_PlotHLines_S64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Cint, Cint, Cint), label_id, ys, count, offset, stride)
+function ImPlot_PlotHeatmap_doublePtr(label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max, flags)
+    ccall((:ImPlot_PlotHeatmap_doublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Cint, Cint, Cdouble, Cdouble, Ptr{Cchar}, ImPlotPoint, ImPlotPoint, ImPlotHeatmapFlags), label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max, flags)
 end
 
-function ImPlot_PlotHLines_U64Ptr(label_id, ys, count, offset, stride)
-    ccall((:ImPlot_PlotHLines_U64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Cint, Cint, Cint), label_id, ys, count, offset, stride)
+function ImPlot_PlotHeatmap_S8Ptr(label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max, flags)
+    ccall((:ImPlot_PlotHeatmap_S8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Cint, Cint, Cdouble, Cdouble, Ptr{Cchar}, ImPlotPoint, ImPlotPoint, ImPlotHeatmapFlags), label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max, flags)
 end
 
-function ImPlot_PlotPieChart_FloatPtr(label_ids, values, count, x, y, radius, normalize, label_fmt, angle0)
-    ccall((:ImPlot_PlotPieChart_FloatPtr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{Cfloat}, Cint, Cdouble, Cdouble, Cdouble, Bool, Ptr{Cchar}, Cdouble), label_ids, values, count, x, y, radius, normalize, label_fmt, angle0)
+function ImPlot_PlotHeatmap_U8Ptr(label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max, flags)
+    ccall((:ImPlot_PlotHeatmap_U8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Cint, Cint, Cdouble, Cdouble, Ptr{Cchar}, ImPlotPoint, ImPlotPoint, ImPlotHeatmapFlags), label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max, flags)
 end
 
-function ImPlot_PlotPieChart_doublePtr(label_ids, values, count, x, y, radius, normalize, label_fmt, angle0)
-    ccall((:ImPlot_PlotPieChart_doublePtr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{Cdouble}, Cint, Cdouble, Cdouble, Cdouble, Bool, Ptr{Cchar}, Cdouble), label_ids, values, count, x, y, radius, normalize, label_fmt, angle0)
+function ImPlot_PlotHeatmap_S16Ptr(label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max, flags)
+    ccall((:ImPlot_PlotHeatmap_S16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Cint, Cint, Cdouble, Cdouble, Ptr{Cchar}, ImPlotPoint, ImPlotPoint, ImPlotHeatmapFlags), label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max, flags)
 end
 
-function ImPlot_PlotPieChart_S8Ptr(label_ids, values, count, x, y, radius, normalize, label_fmt, angle0)
-    ccall((:ImPlot_PlotPieChart_S8Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImS8}, Cint, Cdouble, Cdouble, Cdouble, Bool, Ptr{Cchar}, Cdouble), label_ids, values, count, x, y, radius, normalize, label_fmt, angle0)
+function ImPlot_PlotHeatmap_U16Ptr(label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max, flags)
+    ccall((:ImPlot_PlotHeatmap_U16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Cint, Cint, Cdouble, Cdouble, Ptr{Cchar}, ImPlotPoint, ImPlotPoint, ImPlotHeatmapFlags), label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max, flags)
 end
 
-function ImPlot_PlotPieChart_U8Ptr(label_ids, values, count, x, y, radius, normalize, label_fmt, angle0)
-    ccall((:ImPlot_PlotPieChart_U8Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImU8}, Cint, Cdouble, Cdouble, Cdouble, Bool, Ptr{Cchar}, Cdouble), label_ids, values, count, x, y, radius, normalize, label_fmt, angle0)
+function ImPlot_PlotHeatmap_S32Ptr(label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max, flags)
+    ccall((:ImPlot_PlotHeatmap_S32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Cint, Cint, Cdouble, Cdouble, Ptr{Cchar}, ImPlotPoint, ImPlotPoint, ImPlotHeatmapFlags), label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max, flags)
 end
 
-function ImPlot_PlotPieChart_S16Ptr(label_ids, values, count, x, y, radius, normalize, label_fmt, angle0)
-    ccall((:ImPlot_PlotPieChart_S16Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImS16}, Cint, Cdouble, Cdouble, Cdouble, Bool, Ptr{Cchar}, Cdouble), label_ids, values, count, x, y, radius, normalize, label_fmt, angle0)
+function ImPlot_PlotHeatmap_U32Ptr(label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max, flags)
+    ccall((:ImPlot_PlotHeatmap_U32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Cint, Cint, Cdouble, Cdouble, Ptr{Cchar}, ImPlotPoint, ImPlotPoint, ImPlotHeatmapFlags), label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max, flags)
 end
 
-function ImPlot_PlotPieChart_U16Ptr(label_ids, values, count, x, y, radius, normalize, label_fmt, angle0)
-    ccall((:ImPlot_PlotPieChart_U16Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImU16}, Cint, Cdouble, Cdouble, Cdouble, Bool, Ptr{Cchar}, Cdouble), label_ids, values, count, x, y, radius, normalize, label_fmt, angle0)
+function ImPlot_PlotHeatmap_S64Ptr(label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max, flags)
+    ccall((:ImPlot_PlotHeatmap_S64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Cint, Cint, Cdouble, Cdouble, Ptr{Cchar}, ImPlotPoint, ImPlotPoint, ImPlotHeatmapFlags), label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max, flags)
 end
 
-function ImPlot_PlotPieChart_S32Ptr(label_ids, values, count, x, y, radius, normalize, label_fmt, angle0)
-    ccall((:ImPlot_PlotPieChart_S32Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImS32}, Cint, Cdouble, Cdouble, Cdouble, Bool, Ptr{Cchar}, Cdouble), label_ids, values, count, x, y, radius, normalize, label_fmt, angle0)
+function ImPlot_PlotHeatmap_U64Ptr(label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max, flags)
+    ccall((:ImPlot_PlotHeatmap_U64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Cint, Cint, Cdouble, Cdouble, Ptr{Cchar}, ImPlotPoint, ImPlotPoint, ImPlotHeatmapFlags), label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max, flags)
 end
 
-function ImPlot_PlotPieChart_U32Ptr(label_ids, values, count, x, y, radius, normalize, label_fmt, angle0)
-    ccall((:ImPlot_PlotPieChart_U32Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImU32}, Cint, Cdouble, Cdouble, Cdouble, Bool, Ptr{Cchar}, Cdouble), label_ids, values, count, x, y, radius, normalize, label_fmt, angle0)
+function ImPlot_PlotHistogram_FloatPtr(label_id, values, count, bins, bar_scale, range, flags)
+    ccall((:ImPlot_PlotHistogram_FloatPtr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cint, Cdouble, ImPlotRange, ImPlotHistogramFlags), label_id, values, count, bins, bar_scale, range, flags)
 end
 
-function ImPlot_PlotPieChart_S64Ptr(label_ids, values, count, x, y, radius, normalize, label_fmt, angle0)
-    ccall((:ImPlot_PlotPieChart_S64Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImS64}, Cint, Cdouble, Cdouble, Cdouble, Bool, Ptr{Cchar}, Cdouble), label_ids, values, count, x, y, radius, normalize, label_fmt, angle0)
+function ImPlot_PlotHistogram_doublePtr(label_id, values, count, bins, bar_scale, range, flags)
+    ccall((:ImPlot_PlotHistogram_doublePtr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{Cdouble}, Cint, Cint, Cdouble, ImPlotRange, ImPlotHistogramFlags), label_id, values, count, bins, bar_scale, range, flags)
 end
 
-function ImPlot_PlotPieChart_U64Ptr(label_ids, values, count, x, y, radius, normalize, label_fmt, angle0)
-    ccall((:ImPlot_PlotPieChart_U64Ptr, libcimgui), Cvoid, (Ptr{Ptr{Cchar}}, Ptr{ImU64}, Cint, Cdouble, Cdouble, Cdouble, Bool, Ptr{Cchar}, Cdouble), label_ids, values, count, x, y, radius, normalize, label_fmt, angle0)
+function ImPlot_PlotHistogram_S8Ptr(label_id, values, count, bins, bar_scale, range, flags)
+    ccall((:ImPlot_PlotHistogram_S8Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImS8}, Cint, Cint, Cdouble, ImPlotRange, ImPlotHistogramFlags), label_id, values, count, bins, bar_scale, range, flags)
 end
 
-function ImPlot_PlotHeatmap_FloatPtr(label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max)
-    ccall((:ImPlot_PlotHeatmap_FloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cint, Cdouble, Cdouble, Ptr{Cchar}, ImPlotPoint, ImPlotPoint), label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max)
+function ImPlot_PlotHistogram_U8Ptr(label_id, values, count, bins, bar_scale, range, flags)
+    ccall((:ImPlot_PlotHistogram_U8Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImU8}, Cint, Cint, Cdouble, ImPlotRange, ImPlotHistogramFlags), label_id, values, count, bins, bar_scale, range, flags)
 end
 
-function ImPlot_PlotHeatmap_doublePtr(label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max)
-    ccall((:ImPlot_PlotHeatmap_doublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Cint, Cint, Cdouble, Cdouble, Ptr{Cchar}, ImPlotPoint, ImPlotPoint), label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max)
+function ImPlot_PlotHistogram_S16Ptr(label_id, values, count, bins, bar_scale, range, flags)
+    ccall((:ImPlot_PlotHistogram_S16Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImS16}, Cint, Cint, Cdouble, ImPlotRange, ImPlotHistogramFlags), label_id, values, count, bins, bar_scale, range, flags)
 end
 
-function ImPlot_PlotHeatmap_S8Ptr(label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max)
-    ccall((:ImPlot_PlotHeatmap_S8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Cint, Cint, Cdouble, Cdouble, Ptr{Cchar}, ImPlotPoint, ImPlotPoint), label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max)
+function ImPlot_PlotHistogram_U16Ptr(label_id, values, count, bins, bar_scale, range, flags)
+    ccall((:ImPlot_PlotHistogram_U16Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImU16}, Cint, Cint, Cdouble, ImPlotRange, ImPlotHistogramFlags), label_id, values, count, bins, bar_scale, range, flags)
 end
 
-function ImPlot_PlotHeatmap_U8Ptr(label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max)
-    ccall((:ImPlot_PlotHeatmap_U8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Cint, Cint, Cdouble, Cdouble, Ptr{Cchar}, ImPlotPoint, ImPlotPoint), label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max)
+function ImPlot_PlotHistogram_S32Ptr(label_id, values, count, bins, bar_scale, range, flags)
+    ccall((:ImPlot_PlotHistogram_S32Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImS32}, Cint, Cint, Cdouble, ImPlotRange, ImPlotHistogramFlags), label_id, values, count, bins, bar_scale, range, flags)
 end
 
-function ImPlot_PlotHeatmap_S16Ptr(label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max)
-    ccall((:ImPlot_PlotHeatmap_S16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Cint, Cint, Cdouble, Cdouble, Ptr{Cchar}, ImPlotPoint, ImPlotPoint), label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max)
+function ImPlot_PlotHistogram_U32Ptr(label_id, values, count, bins, bar_scale, range, flags)
+    ccall((:ImPlot_PlotHistogram_U32Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImU32}, Cint, Cint, Cdouble, ImPlotRange, ImPlotHistogramFlags), label_id, values, count, bins, bar_scale, range, flags)
 end
 
-function ImPlot_PlotHeatmap_U16Ptr(label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max)
-    ccall((:ImPlot_PlotHeatmap_U16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Cint, Cint, Cdouble, Cdouble, Ptr{Cchar}, ImPlotPoint, ImPlotPoint), label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max)
+function ImPlot_PlotHistogram_S64Ptr(label_id, values, count, bins, bar_scale, range, flags)
+    ccall((:ImPlot_PlotHistogram_S64Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImS64}, Cint, Cint, Cdouble, ImPlotRange, ImPlotHistogramFlags), label_id, values, count, bins, bar_scale, range, flags)
 end
 
-function ImPlot_PlotHeatmap_S32Ptr(label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max)
-    ccall((:ImPlot_PlotHeatmap_S32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Cint, Cint, Cdouble, Cdouble, Ptr{Cchar}, ImPlotPoint, ImPlotPoint), label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max)
+function ImPlot_PlotHistogram_U64Ptr(label_id, values, count, bins, bar_scale, range, flags)
+    ccall((:ImPlot_PlotHistogram_U64Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImU64}, Cint, Cint, Cdouble, ImPlotRange, ImPlotHistogramFlags), label_id, values, count, bins, bar_scale, range, flags)
 end
 
-function ImPlot_PlotHeatmap_U32Ptr(label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max)
-    ccall((:ImPlot_PlotHeatmap_U32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Cint, Cint, Cdouble, Cdouble, Ptr{Cchar}, ImPlotPoint, ImPlotPoint), label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max)
+function ImPlot_PlotHistogram2D_FloatPtr(label_id, xs, ys, count, x_bins, y_bins, range, flags)
+    ccall((:ImPlot_PlotHistogram2D_FloatPtr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, Cint, Cint, ImPlotRect, ImPlotHistogramFlags), label_id, xs, ys, count, x_bins, y_bins, range, flags)
 end
 
-function ImPlot_PlotHeatmap_S64Ptr(label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max)
-    ccall((:ImPlot_PlotHeatmap_S64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Cint, Cint, Cdouble, Cdouble, Ptr{Cchar}, ImPlotPoint, ImPlotPoint), label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max)
+function ImPlot_PlotHistogram2D_doublePtr(label_id, xs, ys, count, x_bins, y_bins, range, flags)
+    ccall((:ImPlot_PlotHistogram2D_doublePtr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, Cint, Cint, ImPlotRect, ImPlotHistogramFlags), label_id, xs, ys, count, x_bins, y_bins, range, flags)
 end
 
-function ImPlot_PlotHeatmap_U64Ptr(label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max)
-    ccall((:ImPlot_PlotHeatmap_U64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Cint, Cint, Cdouble, Cdouble, Ptr{Cchar}, ImPlotPoint, ImPlotPoint), label_id, values, rows, cols, scale_min, scale_max, label_fmt, bounds_min, bounds_max)
+function ImPlot_PlotHistogram2D_S8Ptr(label_id, xs, ys, count, x_bins, y_bins, range, flags)
+    ccall((:ImPlot_PlotHistogram2D_S8Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Cint, Cint, Cint, ImPlotRect, ImPlotHistogramFlags), label_id, xs, ys, count, x_bins, y_bins, range, flags)
 end
 
-function ImPlot_PlotHistogram_FloatPtr(label_id, values, count, bins, cumulative, density, range, outliers, bar_scale)
-    ccall((:ImPlot_PlotHistogram_FloatPtr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{Cfloat}, Cint, Cint, Bool, Bool, ImPlotRange, Bool, Cdouble), label_id, values, count, bins, cumulative, density, range, outliers, bar_scale)
+function ImPlot_PlotHistogram2D_U8Ptr(label_id, xs, ys, count, x_bins, y_bins, range, flags)
+    ccall((:ImPlot_PlotHistogram2D_U8Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Cint, Cint, Cint, ImPlotRect, ImPlotHistogramFlags), label_id, xs, ys, count, x_bins, y_bins, range, flags)
 end
 
-function ImPlot_PlotHistogram_doublePtr(label_id, values, count, bins, cumulative, density, range, outliers, bar_scale)
-    ccall((:ImPlot_PlotHistogram_doublePtr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{Cdouble}, Cint, Cint, Bool, Bool, ImPlotRange, Bool, Cdouble), label_id, values, count, bins, cumulative, density, range, outliers, bar_scale)
+function ImPlot_PlotHistogram2D_S16Ptr(label_id, xs, ys, count, x_bins, y_bins, range, flags)
+    ccall((:ImPlot_PlotHistogram2D_S16Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Cint, Cint, Cint, ImPlotRect, ImPlotHistogramFlags), label_id, xs, ys, count, x_bins, y_bins, range, flags)
 end
 
-function ImPlot_PlotHistogram_S8Ptr(label_id, values, count, bins, cumulative, density, range, outliers, bar_scale)
-    ccall((:ImPlot_PlotHistogram_S8Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImS8}, Cint, Cint, Bool, Bool, ImPlotRange, Bool, Cdouble), label_id, values, count, bins, cumulative, density, range, outliers, bar_scale)
+function ImPlot_PlotHistogram2D_U16Ptr(label_id, xs, ys, count, x_bins, y_bins, range, flags)
+    ccall((:ImPlot_PlotHistogram2D_U16Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Cint, Cint, Cint, ImPlotRect, ImPlotHistogramFlags), label_id, xs, ys, count, x_bins, y_bins, range, flags)
 end
 
-function ImPlot_PlotHistogram_U8Ptr(label_id, values, count, bins, cumulative, density, range, outliers, bar_scale)
-    ccall((:ImPlot_PlotHistogram_U8Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImU8}, Cint, Cint, Bool, Bool, ImPlotRange, Bool, Cdouble), label_id, values, count, bins, cumulative, density, range, outliers, bar_scale)
+function ImPlot_PlotHistogram2D_S32Ptr(label_id, xs, ys, count, x_bins, y_bins, range, flags)
+    ccall((:ImPlot_PlotHistogram2D_S32Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Cint, Cint, Cint, ImPlotRect, ImPlotHistogramFlags), label_id, xs, ys, count, x_bins, y_bins, range, flags)
 end
 
-function ImPlot_PlotHistogram_S16Ptr(label_id, values, count, bins, cumulative, density, range, outliers, bar_scale)
-    ccall((:ImPlot_PlotHistogram_S16Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImS16}, Cint, Cint, Bool, Bool, ImPlotRange, Bool, Cdouble), label_id, values, count, bins, cumulative, density, range, outliers, bar_scale)
+function ImPlot_PlotHistogram2D_U32Ptr(label_id, xs, ys, count, x_bins, y_bins, range, flags)
+    ccall((:ImPlot_PlotHistogram2D_U32Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Cint, Cint, Cint, ImPlotRect, ImPlotHistogramFlags), label_id, xs, ys, count, x_bins, y_bins, range, flags)
 end
 
-function ImPlot_PlotHistogram_U16Ptr(label_id, values, count, bins, cumulative, density, range, outliers, bar_scale)
-    ccall((:ImPlot_PlotHistogram_U16Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImU16}, Cint, Cint, Bool, Bool, ImPlotRange, Bool, Cdouble), label_id, values, count, bins, cumulative, density, range, outliers, bar_scale)
+function ImPlot_PlotHistogram2D_S64Ptr(label_id, xs, ys, count, x_bins, y_bins, range, flags)
+    ccall((:ImPlot_PlotHistogram2D_S64Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Cint, Cint, Cint, ImPlotRect, ImPlotHistogramFlags), label_id, xs, ys, count, x_bins, y_bins, range, flags)
 end
 
-function ImPlot_PlotHistogram_S32Ptr(label_id, values, count, bins, cumulative, density, range, outliers, bar_scale)
-    ccall((:ImPlot_PlotHistogram_S32Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImS32}, Cint, Cint, Bool, Bool, ImPlotRange, Bool, Cdouble), label_id, values, count, bins, cumulative, density, range, outliers, bar_scale)
+function ImPlot_PlotHistogram2D_U64Ptr(label_id, xs, ys, count, x_bins, y_bins, range, flags)
+    ccall((:ImPlot_PlotHistogram2D_U64Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Cint, Cint, Cint, ImPlotRect, ImPlotHistogramFlags), label_id, xs, ys, count, x_bins, y_bins, range, flags)
 end
 
-function ImPlot_PlotHistogram_U32Ptr(label_id, values, count, bins, cumulative, density, range, outliers, bar_scale)
-    ccall((:ImPlot_PlotHistogram_U32Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImU32}, Cint, Cint, Bool, Bool, ImPlotRange, Bool, Cdouble), label_id, values, count, bins, cumulative, density, range, outliers, bar_scale)
+function ImPlot_PlotDigital_FloatPtr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotDigital_FloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, ImPlotDigitalFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotHistogram_S64Ptr(label_id, values, count, bins, cumulative, density, range, outliers, bar_scale)
-    ccall((:ImPlot_PlotHistogram_S64Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImS64}, Cint, Cint, Bool, Bool, ImPlotRange, Bool, Cdouble), label_id, values, count, bins, cumulative, density, range, outliers, bar_scale)
+function ImPlot_PlotDigital_doublePtr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotDigital_doublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, ImPlotDigitalFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotHistogram_U64Ptr(label_id, values, count, bins, cumulative, density, range, outliers, bar_scale)
-    ccall((:ImPlot_PlotHistogram_U64Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImU64}, Cint, Cint, Bool, Bool, ImPlotRange, Bool, Cdouble), label_id, values, count, bins, cumulative, density, range, outliers, bar_scale)
+function ImPlot_PlotDigital_S8Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotDigital_S8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Cint, ImPlotDigitalFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotHistogram2D_FloatPtr(label_id, xs, ys, count, x_bins, y_bins, density, range, outliers)
-    ccall((:ImPlot_PlotHistogram2D_FloatPtr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, Cint, Cint, Bool, ImPlotLimits, Bool), label_id, xs, ys, count, x_bins, y_bins, density, range, outliers)
+function ImPlot_PlotDigital_U8Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotDigital_U8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Cint, ImPlotDigitalFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotHistogram2D_doublePtr(label_id, xs, ys, count, x_bins, y_bins, density, range, outliers)
-    ccall((:ImPlot_PlotHistogram2D_doublePtr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, Cint, Cint, Bool, ImPlotLimits, Bool), label_id, xs, ys, count, x_bins, y_bins, density, range, outliers)
+function ImPlot_PlotDigital_S16Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotDigital_S16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Cint, ImPlotDigitalFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotHistogram2D_S8Ptr(label_id, xs, ys, count, x_bins, y_bins, density, range, outliers)
-    ccall((:ImPlot_PlotHistogram2D_S8Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Cint, Cint, Cint, Bool, ImPlotLimits, Bool), label_id, xs, ys, count, x_bins, y_bins, density, range, outliers)
+function ImPlot_PlotDigital_U16Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotDigital_U16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Cint, ImPlotDigitalFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotHistogram2D_U8Ptr(label_id, xs, ys, count, x_bins, y_bins, density, range, outliers)
-    ccall((:ImPlot_PlotHistogram2D_U8Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Cint, Cint, Cint, Bool, ImPlotLimits, Bool), label_id, xs, ys, count, x_bins, y_bins, density, range, outliers)
+function ImPlot_PlotDigital_S32Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotDigital_S32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Cint, ImPlotDigitalFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotHistogram2D_S16Ptr(label_id, xs, ys, count, x_bins, y_bins, density, range, outliers)
-    ccall((:ImPlot_PlotHistogram2D_S16Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Cint, Cint, Cint, Bool, ImPlotLimits, Bool), label_id, xs, ys, count, x_bins, y_bins, density, range, outliers)
+function ImPlot_PlotDigital_U32Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotDigital_U32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Cint, ImPlotDigitalFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotHistogram2D_U16Ptr(label_id, xs, ys, count, x_bins, y_bins, density, range, outliers)
-    ccall((:ImPlot_PlotHistogram2D_U16Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Cint, Cint, Cint, Bool, ImPlotLimits, Bool), label_id, xs, ys, count, x_bins, y_bins, density, range, outliers)
+function ImPlot_PlotDigital_S64Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotDigital_S64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Cint, ImPlotDigitalFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotHistogram2D_S32Ptr(label_id, xs, ys, count, x_bins, y_bins, density, range, outliers)
-    ccall((:ImPlot_PlotHistogram2D_S32Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Cint, Cint, Cint, Bool, ImPlotLimits, Bool), label_id, xs, ys, count, x_bins, y_bins, density, range, outliers)
+function ImPlot_PlotDigital_U64Ptr(label_id, xs, ys, count, flags, offset, stride)
+    ccall((:ImPlot_PlotDigital_U64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Cint, ImPlotDigitalFlags, Cint, Cint), label_id, xs, ys, count, flags, offset, stride)
 end
 
-function ImPlot_PlotHistogram2D_U32Ptr(label_id, xs, ys, count, x_bins, y_bins, density, range, outliers)
-    ccall((:ImPlot_PlotHistogram2D_U32Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Cint, Cint, Cint, Bool, ImPlotLimits, Bool), label_id, xs, ys, count, x_bins, y_bins, density, range, outliers)
+function ImPlot_PlotDigitalG(label_id, getter, data, count, flags)
+    ccall((:ImPlot_PlotDigitalG, libcimgui), Cvoid, (Ptr{Cchar}, ImPlotPoint_getter, Ptr{Cvoid}, Cint, ImPlotDigitalFlags), label_id, getter, data, count, flags)
 end
 
-function ImPlot_PlotHistogram2D_S64Ptr(label_id, xs, ys, count, x_bins, y_bins, density, range, outliers)
-    ccall((:ImPlot_PlotHistogram2D_S64Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Cint, Cint, Cint, Bool, ImPlotLimits, Bool), label_id, xs, ys, count, x_bins, y_bins, density, range, outliers)
+function ImPlot_PlotImage(label_id, user_texture_id, bounds_min, bounds_max, uv0, uv1, tint_col, flags)
+    ccall((:ImPlot_PlotImage, libcimgui), Cvoid, (Ptr{Cchar}, ImTextureID, ImPlotPoint, ImPlotPoint, ImVec2, ImVec2, ImVec4, ImPlotImageFlags), label_id, user_texture_id, bounds_min, bounds_max, uv0, uv1, tint_col, flags)
 end
 
-function ImPlot_PlotHistogram2D_U64Ptr(label_id, xs, ys, count, x_bins, y_bins, density, range, outliers)
-    ccall((:ImPlot_PlotHistogram2D_U64Ptr, libcimgui), Cdouble, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Cint, Cint, Cint, Bool, ImPlotLimits, Bool), label_id, xs, ys, count, x_bins, y_bins, density, range, outliers)
+function ImPlot_PlotText(text, x, y, pix_offset, flags)
+    ccall((:ImPlot_PlotText, libcimgui), Cvoid, (Ptr{Cchar}, Cdouble, Cdouble, ImVec2, ImPlotTextFlags), text, x, y, pix_offset, flags)
 end
 
-function ImPlot_PlotDigital_FloatPtr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotDigital_FloatPtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cfloat}, Ptr{Cfloat}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_PlotDummy(label_id, flags)
+    ccall((:ImPlot_PlotDummy, libcimgui), Cvoid, (Ptr{Cchar}, ImPlotDummyFlags), label_id, flags)
 end
 
-function ImPlot_PlotDigital_doublePtr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotDigital_doublePtr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_DragPoint(id, x, y, col, size, flags)
+    ccall((:ImPlot_DragPoint, libcimgui), Bool, (Cint, Ptr{Cdouble}, Ptr{Cdouble}, ImVec4, Cfloat, ImPlotDragToolFlags), id, x, y, col, size, flags)
 end
 
-function ImPlot_PlotDigital_S8Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotDigital_S8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS8}, Ptr{ImS8}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_DragLineX(id, x, col, thickness, flags)
+    ccall((:ImPlot_DragLineX, libcimgui), Bool, (Cint, Ptr{Cdouble}, ImVec4, Cfloat, ImPlotDragToolFlags), id, x, col, thickness, flags)
 end
 
-function ImPlot_PlotDigital_U8Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotDigital_U8Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU8}, Ptr{ImU8}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_DragLineY(id, y, col, thickness, flags)
+    ccall((:ImPlot_DragLineY, libcimgui), Bool, (Cint, Ptr{Cdouble}, ImVec4, Cfloat, ImPlotDragToolFlags), id, y, col, thickness, flags)
 end
 
-function ImPlot_PlotDigital_S16Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotDigital_S16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS16}, Ptr{ImS16}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_DragRect(id, x1, y1, x2, y2, col, flags)
+    ccall((:ImPlot_DragRect, libcimgui), Bool, (Cint, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, ImVec4, ImPlotDragToolFlags), id, x1, y1, x2, y2, col, flags)
 end
 
-function ImPlot_PlotDigital_U16Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotDigital_U16Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU16}, Ptr{ImU16}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
+function ImPlot_Annotation_Bool(x, y, col, pix_offset, clamp, round)
+    ccall((:ImPlot_Annotation_Bool, libcimgui), Cvoid, (Cdouble, Cdouble, ImVec4, ImVec2, Bool, Bool), x, y, col, pix_offset, clamp, round)
 end
 
-function ImPlot_PlotDigital_S32Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotDigital_S32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS32}, Ptr{ImS32}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
-end
-
-function ImPlot_PlotDigital_U32Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotDigital_U32Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU32}, Ptr{ImU32}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
-end
-
-function ImPlot_PlotDigital_S64Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotDigital_S64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImS64}, Ptr{ImS64}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
-end
-
-function ImPlot_PlotDigital_U64Ptr(label_id, xs, ys, count, offset, stride)
-    ccall((:ImPlot_PlotDigital_U64Ptr, libcimgui), Cvoid, (Ptr{Cchar}, Ptr{ImU64}, Ptr{ImU64}, Cint, Cint, Cint), label_id, xs, ys, count, offset, stride)
-end
-
-function ImPlot_PlotImage(label_id, user_texture_id, bounds_min, bounds_max, uv0, uv1, tint_col)
-    ccall((:ImPlot_PlotImage, libcimgui), Cvoid, (Ptr{Cchar}, ImTextureID, ImPlotPoint, ImPlotPoint, ImVec2, ImVec2, ImVec4), label_id, user_texture_id, bounds_min, bounds_max, uv0, uv1, tint_col)
-end
-
-function ImPlot_PlotText(text, x, y, vertical, pix_offset)
-    ccall((:ImPlot_PlotText, libcimgui), Cvoid, (Ptr{Cchar}, Cdouble, Cdouble, Bool, ImVec2), text, x, y, vertical, pix_offset)
-end
-
-function ImPlot_PlotDummy(label_id)
-    ccall((:ImPlot_PlotDummy, libcimgui), Cvoid, (Ptr{Cchar},), label_id)
-end
-
-function ImPlot_SetNextPlotLimits(xmin, xmax, ymin, ymax, cond)
-    ccall((:ImPlot_SetNextPlotLimits, libcimgui), Cvoid, (Cdouble, Cdouble, Cdouble, Cdouble, ImGuiCond), xmin, xmax, ymin, ymax, cond)
-end
-
-function ImPlot_SetNextPlotLimitsX(xmin, xmax, cond)
-    ccall((:ImPlot_SetNextPlotLimitsX, libcimgui), Cvoid, (Cdouble, Cdouble, ImGuiCond), xmin, xmax, cond)
-end
-
-function ImPlot_SetNextPlotLimitsY(ymin, ymax, cond, y_axis)
-    ccall((:ImPlot_SetNextPlotLimitsY, libcimgui), Cvoid, (Cdouble, Cdouble, ImGuiCond, ImPlotYAxis), ymin, ymax, cond, y_axis)
-end
-
-function ImPlot_LinkNextPlotLimits(xmin, xmax, ymin, ymax, ymin2, ymax2, ymin3, ymax3)
-    ccall((:ImPlot_LinkNextPlotLimits, libcimgui), Cvoid, (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}), xmin, xmax, ymin, ymax, ymin2, ymax2, ymin3, ymax3)
-end
+# automatic type deduction for variadic arguments may not be what you want, please use with caution
+@generated function ImPlot_Annotation_Str(x, y, col, pix_offset, clamp, fmt, va_list...)
+        :(@ccall(libcimgui.ImPlot_Annotation_Str(x::Cdouble, y::Cdouble, col::ImVec4, pix_offset::ImVec2, clamp::Bool, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
+    end
 
-function ImPlot_FitNextPlotAxes(x, y, y2, y3)
-    ccall((:ImPlot_FitNextPlotAxes, libcimgui), Cvoid, (Bool, Bool, Bool, Bool), x, y, y2, y3)
+function ImPlot_TagX_Bool(x, col, round)
+    ccall((:ImPlot_TagX_Bool, libcimgui), Cvoid, (Cdouble, ImVec4, Bool), x, col, round)
 end
 
-function ImPlot_SetNextPlotTicksX_doublePtr(values, n_ticks, labels, show_default)
-    ccall((:ImPlot_SetNextPlotTicksX_doublePtr, libcimgui), Cvoid, (Ptr{Cdouble}, Cint, Ptr{Ptr{Cchar}}, Bool), values, n_ticks, labels, show_default)
-end
-
-function ImPlot_SetNextPlotTicksX_double(x_min, x_max, n_ticks, labels, show_default)
-    ccall((:ImPlot_SetNextPlotTicksX_double, libcimgui), Cvoid, (Cdouble, Cdouble, Cint, Ptr{Ptr{Cchar}}, Bool), x_min, x_max, n_ticks, labels, show_default)
-end
+# automatic type deduction for variadic arguments may not be what you want, please use with caution
+@generated function ImPlot_TagX_Str(x, col, fmt, va_list...)
+        :(@ccall(libcimgui.ImPlot_TagX_Str(x::Cdouble, col::ImVec4, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
+    end
 
-function ImPlot_SetNextPlotTicksY_doublePtr(values, n_ticks, labels, show_default, y_axis)
-    ccall((:ImPlot_SetNextPlotTicksY_doublePtr, libcimgui), Cvoid, (Ptr{Cdouble}, Cint, Ptr{Ptr{Cchar}}, Bool, ImPlotYAxis), values, n_ticks, labels, show_default, y_axis)
+function ImPlot_TagY_Bool(y, col, round)
+    ccall((:ImPlot_TagY_Bool, libcimgui), Cvoid, (Cdouble, ImVec4, Bool), y, col, round)
 end
 
-function ImPlot_SetNextPlotTicksY_double(y_min, y_max, n_ticks, labels, show_default, y_axis)
-    ccall((:ImPlot_SetNextPlotTicksY_double, libcimgui), Cvoid, (Cdouble, Cdouble, Cint, Ptr{Ptr{Cchar}}, Bool, ImPlotYAxis), y_min, y_max, n_ticks, labels, show_default, y_axis)
-end
+# automatic type deduction for variadic arguments may not be what you want, please use with caution
+@generated function ImPlot_TagY_Str(y, col, fmt, va_list...)
+        :(@ccall(libcimgui.ImPlot_TagY_Str(y::Cdouble, col::ImVec4, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
+    end
 
-function ImPlot_SetPlotYAxis(y_axis)
-    ccall((:ImPlot_SetPlotYAxis, libcimgui), Cvoid, (ImPlotYAxis,), y_axis)
+function ImPlot_SetAxis(axis)
+    ccall((:ImPlot_SetAxis, libcimgui), Cvoid, (ImAxis,), axis)
 end
 
-function ImPlot_HideNextItem(hidden, cond)
-    ccall((:ImPlot_HideNextItem, libcimgui), Cvoid, (Bool, ImGuiCond), hidden, cond)
+function ImPlot_SetAxes(x_axis, y_axis)
+    ccall((:ImPlot_SetAxes, libcimgui), Cvoid, (ImAxis, ImAxis), x_axis, y_axis)
 end
 
-function ImPlot_PixelsToPlot_Vec2(pOut, pix, y_axis)
-    ccall((:ImPlot_PixelsToPlot_Vec2, libcimgui), Cvoid, (Ptr{ImPlotPoint}, ImVec2, ImPlotYAxis), pOut, pix, y_axis)
+function ImPlot_PixelsToPlot_Vec2(pOut, pix, x_axis, y_axis)
+    ccall((:ImPlot_PixelsToPlot_Vec2, libcimgui), Cvoid, (Ptr{ImPlotPoint}, ImVec2, ImAxis, ImAxis), pOut, pix, x_axis, y_axis)
 end
 
-function ImPlot_PixelsToPlot_Float(pOut, x, y, y_axis)
-    ccall((:ImPlot_PixelsToPlot_Float, libcimgui), Cvoid, (Ptr{ImPlotPoint}, Cfloat, Cfloat, ImPlotYAxis), pOut, x, y, y_axis)
+function ImPlot_PixelsToPlot_Float(pOut, x, y, x_axis, y_axis)
+    ccall((:ImPlot_PixelsToPlot_Float, libcimgui), Cvoid, (Ptr{ImPlotPoint}, Cfloat, Cfloat, ImAxis, ImAxis), pOut, x, y, x_axis, y_axis)
 end
 
-function ImPlot_PlotToPixels_PlotPoInt(pOut, plt, y_axis)
-    ccall((:ImPlot_PlotToPixels_PlotPoInt, libcimgui), Cvoid, (Ptr{ImVec2}, ImPlotPoint, ImPlotYAxis), pOut, plt, y_axis)
+function ImPlot_PlotToPixels_PlotPoInt(pOut, plt, x_axis, y_axis)
+    ccall((:ImPlot_PlotToPixels_PlotPoInt, libcimgui), Cvoid, (Ptr{ImVec2}, ImPlotPoint, ImAxis, ImAxis), pOut, plt, x_axis, y_axis)
 end
 
-function ImPlot_PlotToPixels_double(pOut, x, y, y_axis)
-    ccall((:ImPlot_PlotToPixels_double, libcimgui), Cvoid, (Ptr{ImVec2}, Cdouble, Cdouble, ImPlotYAxis), pOut, x, y, y_axis)
+function ImPlot_PlotToPixels_double(pOut, x, y, x_axis, y_axis)
+    ccall((:ImPlot_PlotToPixels_double, libcimgui), Cvoid, (Ptr{ImVec2}, Cdouble, Cdouble, ImAxis, ImAxis), pOut, x, y, x_axis, y_axis)
 end
 
 function ImPlot_GetPlotPos(pOut)
@@ -9823,56 +11558,48 @@ function ImPlot_GetPlotSize(pOut)
     ccall((:ImPlot_GetPlotSize, libcimgui), Cvoid, (Ptr{ImVec2},), pOut)
 end
 
+function ImPlot_GetPlotMousePos(pOut, x_axis, y_axis)
+    ccall((:ImPlot_GetPlotMousePos, libcimgui), Cvoid, (Ptr{ImPlotPoint}, ImAxis, ImAxis), pOut, x_axis, y_axis)
+end
+
+function ImPlot_GetPlotLimits(pOut, x_axis, y_axis)
+    ccall((:ImPlot_GetPlotLimits, libcimgui), Cvoid, (Ptr{ImPlotRect}, ImAxis, ImAxis), pOut, x_axis, y_axis)
+end
+
 function ImPlot_IsPlotHovered()
     ccall((:ImPlot_IsPlotHovered, libcimgui), Bool, ())
 end
 
-function ImPlot_IsPlotXAxisHovered()
-    ccall((:ImPlot_IsPlotXAxisHovered, libcimgui), Bool, ())
+function ImPlot_IsAxisHovered(axis)
+    ccall((:ImPlot_IsAxisHovered, libcimgui), Bool, (ImAxis,), axis)
 end
 
-function ImPlot_IsPlotYAxisHovered(y_axis)
-    ccall((:ImPlot_IsPlotYAxisHovered, libcimgui), Bool, (ImPlotYAxis,), y_axis)
+function ImPlot_IsSubplotsHovered()
+    ccall((:ImPlot_IsSubplotsHovered, libcimgui), Bool, ())
 end
 
-function ImPlot_GetPlotMousePos(pOut, y_axis)
-    ccall((:ImPlot_GetPlotMousePos, libcimgui), Cvoid, (Ptr{ImPlotPoint}, ImPlotYAxis), pOut, y_axis)
+function ImPlot_IsPlotSelected()
+    ccall((:ImPlot_IsPlotSelected, libcimgui), Bool, ())
 end
 
-function ImPlot_GetPlotLimits(pOut, y_axis)
-    ccall((:ImPlot_GetPlotLimits, libcimgui), Cvoid, (Ptr{ImPlotLimits}, ImPlotYAxis), pOut, y_axis)
+function ImPlot_GetPlotSelection(pOut, x_axis, y_axis)
+    ccall((:ImPlot_GetPlotSelection, libcimgui), Cvoid, (Ptr{ImPlotRect}, ImAxis, ImAxis), pOut, x_axis, y_axis)
 end
 
-function ImPlot_IsPlotQueried()
-    ccall((:ImPlot_IsPlotQueried, libcimgui), Bool, ())
+function ImPlot_CancelPlotSelection()
+    ccall((:ImPlot_CancelPlotSelection, libcimgui), Cvoid, ())
 end
 
-function ImPlot_GetPlotQuery(pOut, y_axis)
-    ccall((:ImPlot_GetPlotQuery, libcimgui), Cvoid, (Ptr{ImPlotLimits}, ImPlotYAxis), pOut, y_axis)
+function ImPlot_HideNextItem(hidden, cond)
+    ccall((:ImPlot_HideNextItem, libcimgui), Cvoid, (Bool, ImPlotCond), hidden, cond)
 end
 
-function ImPlot_DragLineX(id, x_value, show_label, col, thickness)
-    ccall((:ImPlot_DragLineX, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cdouble}, Bool, ImVec4, Cfloat), id, x_value, show_label, col, thickness)
+function ImPlot_BeginAlignedPlots(group_id, vertical)
+    ccall((:ImPlot_BeginAlignedPlots, libcimgui), Bool, (Ptr{Cchar}, Bool), group_id, vertical)
 end
 
-function ImPlot_DragLineY(id, y_value, show_label, col, thickness)
-    ccall((:ImPlot_DragLineY, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cdouble}, Bool, ImVec4, Cfloat), id, y_value, show_label, col, thickness)
-end
-
-function ImPlot_DragPoint(id, x, y, show_label, col, radius)
-    ccall((:ImPlot_DragPoint, libcimgui), Bool, (Ptr{Cchar}, Ptr{Cdouble}, Ptr{Cdouble}, Bool, ImVec4, Cfloat), id, x, y, show_label, col, radius)
-end
-
-function ImPlot_SetLegendLocation(location, orientation, outside)
-    ccall((:ImPlot_SetLegendLocation, libcimgui), Cvoid, (ImPlotLocation, ImPlotOrientation, Bool), location, orientation, outside)
-end
-
-function ImPlot_SetMousePosLocation(location)
-    ccall((:ImPlot_SetMousePosLocation, libcimgui), Cvoid, (ImPlotLocation,), location)
-end
-
-function ImPlot_IsLegendEntryHovered(label_id)
-    ccall((:ImPlot_IsLegendEntryHovered, libcimgui), Bool, (Ptr{Cchar},), label_id)
+function ImPlot_EndAlignedPlots()
+    ccall((:ImPlot_EndAlignedPlots, libcimgui), Cvoid, ())
 end
 
 function ImPlot_BeginLegendPopup(label_id, mouse_button)
@@ -9883,16 +11610,16 @@ function ImPlot_EndLegendPopup()
     ccall((:ImPlot_EndLegendPopup, libcimgui), Cvoid, ())
 end
 
-function ImPlot_BeginDragDropTarget()
-    ccall((:ImPlot_BeginDragDropTarget, libcimgui), Bool, ())
+function ImPlot_IsLegendEntryHovered(label_id)
+    ccall((:ImPlot_IsLegendEntryHovered, libcimgui), Bool, (Ptr{Cchar},), label_id)
 end
 
-function ImPlot_BeginDragDropTargetX()
-    ccall((:ImPlot_BeginDragDropTargetX, libcimgui), Bool, ())
+function ImPlot_BeginDragDropTargetPlot()
+    ccall((:ImPlot_BeginDragDropTargetPlot, libcimgui), Bool, ())
 end
 
-function ImPlot_BeginDragDropTargetY(axis)
-    ccall((:ImPlot_BeginDragDropTargetY, libcimgui), Bool, (ImPlotYAxis,), axis)
+function ImPlot_BeginDragDropTargetAxis(axis)
+    ccall((:ImPlot_BeginDragDropTargetAxis, libcimgui), Bool, (ImAxis,), axis)
 end
 
 function ImPlot_BeginDragDropTargetLegend()
@@ -9903,16 +11630,12 @@ function ImPlot_EndDragDropTarget()
     ccall((:ImPlot_EndDragDropTarget, libcimgui), Cvoid, ())
 end
 
-function ImPlot_BeginDragDropSource(key_mods, flags)
-    ccall((:ImPlot_BeginDragDropSource, libcimgui), Bool, (ImGuiKeyModFlags, ImGuiDragDropFlags), key_mods, flags)
+function ImPlot_BeginDragDropSourcePlot(flags)
+    ccall((:ImPlot_BeginDragDropSourcePlot, libcimgui), Bool, (ImGuiDragDropFlags,), flags)
 end
 
-function ImPlot_BeginDragDropSourceX(key_mods, flags)
-    ccall((:ImPlot_BeginDragDropSourceX, libcimgui), Bool, (ImGuiKeyModFlags, ImGuiDragDropFlags), key_mods, flags)
-end
-
-function ImPlot_BeginDragDropSourceY(axis, key_mods, flags)
-    ccall((:ImPlot_BeginDragDropSourceY, libcimgui), Bool, (ImPlotYAxis, ImGuiKeyModFlags, ImGuiDragDropFlags), axis, key_mods, flags)
+function ImPlot_BeginDragDropSourceAxis(axis, flags)
+    ccall((:ImPlot_BeginDragDropSourceAxis, libcimgui), Bool, (ImAxis, ImGuiDragDropFlags), axis, flags)
 end
 
 function ImPlot_BeginDragDropSourceItem(label_id, flags)
@@ -10047,8 +11770,8 @@ function ImPlot_SampleColormap(pOut, t, cmap)
     ccall((:ImPlot_SampleColormap, libcimgui), Cvoid, (Ptr{ImVec4}, Cfloat, ImPlotColormap), pOut, t, cmap)
 end
 
-function ImPlot_ColormapScale(label, scale_min, scale_max, size, cmap)
-    ccall((:ImPlot_ColormapScale, libcimgui), Cvoid, (Ptr{Cchar}, Cdouble, Cdouble, ImVec2, ImPlotColormap), label, scale_min, scale_max, size, cmap)
+function ImPlot_ColormapScale(label, scale_min, scale_max, size, format, flags, cmap)
+    ccall((:ImPlot_ColormapScale, libcimgui), Cvoid, (Ptr{Cchar}, Cdouble, Cdouble, ImVec2, Ptr{Cchar}, ImPlotColormapScaleFlags, ImPlotColormap), label, scale_min, scale_max, size, format, flags, cmap)
 end
 
 function ImPlot_ColormapSlider(label, t, out, format, cmap)
@@ -10061,6 +11784,18 @@ end
 
 function ImPlot_BustColorCache(plot_title_id)
     ccall((:ImPlot_BustColorCache, libcimgui), Cvoid, (Ptr{Cchar},), plot_title_id)
+end
+
+function ImPlot_GetInputMap()
+    ccall((:ImPlot_GetInputMap, libcimgui), Ptr{ImPlotInputMap}, ())
+end
+
+function ImPlot_MapInputDefault(dst)
+    ccall((:ImPlot_MapInputDefault, libcimgui), Cvoid, (Ptr{ImPlotInputMap},), dst)
+end
+
+function ImPlot_MapInputReverse(dst)
+    ccall((:ImPlot_MapInputReverse, libcimgui), Cvoid, (Ptr{ImPlotInputMap},), dst)
 end
 
 function ImPlot_ItemIcon_Vec4(col)
@@ -10079,8 +11814,8 @@ function ImPlot_GetPlotDrawList()
     ccall((:ImPlot_GetPlotDrawList, libcimgui), Ptr{ImDrawList}, ())
 end
 
-function ImPlot_PushPlotClipRect()
-    ccall((:ImPlot_PushPlotClipRect, libcimgui), Cvoid, ())
+function ImPlot_PushPlotClipRect(expand)
+    ccall((:ImPlot_PushPlotClipRect, libcimgui), Cvoid, (Cfloat,), expand)
 end
 
 function ImPlot_PopPlotClipRect()
@@ -10093,6 +11828,10 @@ end
 
 function ImPlot_ShowColormapSelector(label)
     ccall((:ImPlot_ShowColormapSelector, libcimgui), Bool, (Ptr{Cchar},), label)
+end
+
+function ImPlot_ShowInputMapSelector(label)
+    ccall((:ImPlot_ShowInputMapSelector, libcimgui), Bool, (Ptr{Cchar},), label)
 end
 
 function ImPlot_ShowStyleEditor(ref)
@@ -10117,6 +11856,22 @@ end
 
 function ImPlot_ImLog10_double(x)
     ccall((:ImPlot_ImLog10_double, libcimgui), Cdouble, (Cdouble,), x)
+end
+
+function ImPlot_ImSinh_Float(x)
+    ccall((:ImPlot_ImSinh_Float, libcimgui), Cfloat, (Cfloat,), x)
+end
+
+function ImPlot_ImSinh_double(x)
+    ccall((:ImPlot_ImSinh_double, libcimgui), Cdouble, (Cdouble,), x)
+end
+
+function ImPlot_ImAsinh_Float(x)
+    ccall((:ImPlot_ImAsinh_Float, libcimgui), Cfloat, (Cfloat,), x)
+end
+
+function ImPlot_ImAsinh_double(x)
+    ccall((:ImPlot_ImAsinh_double, libcimgui), Cdouble, (Cdouble,), x)
 end
 
 function ImPlot_ImRemap_Float(x, x0, x1, y0, y1)
@@ -10201,6 +11956,10 @@ end
 
 function ImPlot_ImPosMod(l, r)
     ccall((:ImPlot_ImPosMod, libcimgui), Cint, (Cint, Cint), l, r)
+end
+
+function ImPlot_ImNan(val)
+    ccall((:ImPlot_ImNan, libcimgui), Bool, (Cdouble,), val)
 end
 
 function ImPlot_ImNanOrInf(val)
@@ -10347,6 +12106,46 @@ function ImPlot_ImMinMaxArray_U64Ptr(values, count, min_out, max_out)
     ccall((:ImPlot_ImMinMaxArray_U64Ptr, libcimgui), Cvoid, (Ptr{ImU64}, Cint, Ptr{ImU64}, Ptr{ImU64}), values, count, min_out, max_out)
 end
 
+function ImPlot_ImSum_FloatPtr(values, count)
+    ccall((:ImPlot_ImSum_FloatPtr, libcimgui), Cfloat, (Ptr{Cfloat}, Cint), values, count)
+end
+
+function ImPlot_ImSum_doublePtr(values, count)
+    ccall((:ImPlot_ImSum_doublePtr, libcimgui), Cdouble, (Ptr{Cdouble}, Cint), values, count)
+end
+
+function ImPlot_ImSum_S8Ptr(values, count)
+    ccall((:ImPlot_ImSum_S8Ptr, libcimgui), ImS8, (Ptr{ImS8}, Cint), values, count)
+end
+
+function ImPlot_ImSum_U8Ptr(values, count)
+    ccall((:ImPlot_ImSum_U8Ptr, libcimgui), ImU8, (Ptr{ImU8}, Cint), values, count)
+end
+
+function ImPlot_ImSum_S16Ptr(values, count)
+    ccall((:ImPlot_ImSum_S16Ptr, libcimgui), ImS16, (Ptr{ImS16}, Cint), values, count)
+end
+
+function ImPlot_ImSum_U16Ptr(values, count)
+    ccall((:ImPlot_ImSum_U16Ptr, libcimgui), ImU16, (Ptr{ImU16}, Cint), values, count)
+end
+
+function ImPlot_ImSum_S32Ptr(values, count)
+    ccall((:ImPlot_ImSum_S32Ptr, libcimgui), ImS32, (Ptr{ImS32}, Cint), values, count)
+end
+
+function ImPlot_ImSum_U32Ptr(values, count)
+    ccall((:ImPlot_ImSum_U32Ptr, libcimgui), ImU32, (Ptr{ImU32}, Cint), values, count)
+end
+
+function ImPlot_ImSum_S64Ptr(values, count)
+    ccall((:ImPlot_ImSum_S64Ptr, libcimgui), ImS64, (Ptr{ImS64}, Cint), values, count)
+end
+
+function ImPlot_ImSum_U64Ptr(values, count)
+    ccall((:ImPlot_ImSum_U64Ptr, libcimgui), ImU64, (Ptr{ImU64}, Cint), values, count)
+end
+
 function ImPlot_ImMean_FloatPtr(values, count)
     ccall((:ImPlot_ImMean_FloatPtr, libcimgui), Cdouble, (Ptr{Cfloat}, Cint), values, count)
 end
@@ -10439,28 +12238,56 @@ function ImPlot_ImAlphaU32(col, alpha)
     ccall((:ImPlot_ImAlphaU32, libcimgui), ImU32, (ImU32, Cfloat), col, alpha)
 end
 
-function ImBufferWriter_ImBufferWriter(buffer, size)
-    ccall((:ImBufferWriter_ImBufferWriter, libcimgui), Ptr{ImBufferWriter}, (Ptr{Cchar}, Cint), buffer, size)
+function ImPlot_ImOverlaps_Float(min_a, max_a, min_b, max_b)
+    ccall((:ImPlot_ImOverlaps_Float, libcimgui), Bool, (Cfloat, Cfloat, Cfloat, Cfloat), min_a, max_a, min_b, max_b)
 end
 
-function ImBufferWriter_destroy(self)
-    ccall((:ImBufferWriter_destroy, libcimgui), Cvoid, (Ptr{ImBufferWriter},), self)
+function ImPlot_ImOverlaps_double(min_a, max_a, min_b, max_b)
+    ccall((:ImPlot_ImOverlaps_double, libcimgui), Bool, (Cdouble, Cdouble, Cdouble, Cdouble), min_a, max_a, min_b, max_b)
 end
 
-function ImPlotInputMap_ImPlotInputMap()
-    ccall((:ImPlotInputMap_ImPlotInputMap, libcimgui), Ptr{ImPlotInputMap}, ())
+function ImPlot_ImOverlaps_S8(min_a, max_a, min_b, max_b)
+    ccall((:ImPlot_ImOverlaps_S8, libcimgui), Bool, (ImS8, ImS8, ImS8, ImS8), min_a, max_a, min_b, max_b)
 end
 
-function ImPlotInputMap_destroy(self)
-    ccall((:ImPlotInputMap_destroy, libcimgui), Cvoid, (Ptr{ImPlotInputMap},), self)
+function ImPlot_ImOverlaps_U8(min_a, max_a, min_b, max_b)
+    ccall((:ImPlot_ImOverlaps_U8, libcimgui), Bool, (ImU8, ImU8, ImU8, ImU8), min_a, max_a, min_b, max_b)
 end
 
-function ImPlotDateTimeFmt_ImPlotDateTimeFmt(date_fmt, time_fmt, use_24_hr_clk, use_iso_8601)
-    ccall((:ImPlotDateTimeFmt_ImPlotDateTimeFmt, libcimgui), Ptr{ImPlotDateTimeFmt}, (ImPlotDateFmt, ImPlotTimeFmt, Bool, Bool), date_fmt, time_fmt, use_24_hr_clk, use_iso_8601)
+function ImPlot_ImOverlaps_S16(min_a, max_a, min_b, max_b)
+    ccall((:ImPlot_ImOverlaps_S16, libcimgui), Bool, (ImS16, ImS16, ImS16, ImS16), min_a, max_a, min_b, max_b)
 end
 
-function ImPlotDateTimeFmt_destroy(self)
-    ccall((:ImPlotDateTimeFmt_destroy, libcimgui), Cvoid, (Ptr{ImPlotDateTimeFmt},), self)
+function ImPlot_ImOverlaps_U16(min_a, max_a, min_b, max_b)
+    ccall((:ImPlot_ImOverlaps_U16, libcimgui), Bool, (ImU16, ImU16, ImU16, ImU16), min_a, max_a, min_b, max_b)
+end
+
+function ImPlot_ImOverlaps_S32(min_a, max_a, min_b, max_b)
+    ccall((:ImPlot_ImOverlaps_S32, libcimgui), Bool, (ImS32, ImS32, ImS32, ImS32), min_a, max_a, min_b, max_b)
+end
+
+function ImPlot_ImOverlaps_U32(min_a, max_a, min_b, max_b)
+    ccall((:ImPlot_ImOverlaps_U32, libcimgui), Bool, (ImU32, ImU32, ImU32, ImU32), min_a, max_a, min_b, max_b)
+end
+
+function ImPlot_ImOverlaps_S64(min_a, max_a, min_b, max_b)
+    ccall((:ImPlot_ImOverlaps_S64, libcimgui), Bool, (ImS64, ImS64, ImS64, ImS64), min_a, max_a, min_b, max_b)
+end
+
+function ImPlot_ImOverlaps_U64(min_a, max_a, min_b, max_b)
+    ccall((:ImPlot_ImOverlaps_U64, libcimgui), Bool, (ImU64, ImU64, ImU64, ImU64), min_a, max_a, min_b, max_b)
+end
+
+function ImPlotDateTimeSpec_ImPlotDateTimeSpec_Nil()
+    ccall((:ImPlotDateTimeSpec_ImPlotDateTimeSpec_Nil, libcimgui), Ptr{ImPlotDateTimeSpec}, ())
+end
+
+function ImPlotDateTimeSpec_destroy(self)
+    ccall((:ImPlotDateTimeSpec_destroy, libcimgui), Cvoid, (Ptr{ImPlotDateTimeSpec},), self)
+end
+
+function ImPlotDateTimeSpec_ImPlotDateTimeSpec_PlotDateFmt(date_fmt, time_fmt, use_24_hr_clk, use_iso_8601)
+    ccall((:ImPlotDateTimeSpec_ImPlotDateTimeSpec_PlotDateFmt, libcimgui), Ptr{ImPlotDateTimeSpec}, (ImPlotDateFmt, ImPlotTimeFmt, Bool, Bool), date_fmt, time_fmt, use_24_hr_clk, use_iso_8601)
 end
 
 function ImPlotTime_ImPlotTime_Nil()
@@ -10559,6 +12386,14 @@ function ImPlotPointError_destroy(self)
     ccall((:ImPlotPointError_destroy, libcimgui), Cvoid, (Ptr{ImPlotPointError},), self)
 end
 
+function ImPlotAnnotation_ImPlotAnnotation()
+    ccall((:ImPlotAnnotation_ImPlotAnnotation, libcimgui), Ptr{ImPlotAnnotation}, ())
+end
+
+function ImPlotAnnotation_destroy(self)
+    ccall((:ImPlotAnnotation_destroy, libcimgui), Cvoid, (Ptr{ImPlotAnnotation},), self)
+end
+
 function ImPlotAnnotationCollection_ImPlotAnnotationCollection()
     ccall((:ImPlotAnnotationCollection_ImPlotAnnotationCollection, libcimgui), Ptr{ImPlotAnnotationCollection}, ())
 end
@@ -10566,6 +12401,11 @@ end
 function ImPlotAnnotationCollection_destroy(self)
     ccall((:ImPlotAnnotationCollection_destroy, libcimgui), Cvoid, (Ptr{ImPlotAnnotationCollection},), self)
 end
+
+# automatic type deduction for variadic arguments may not be what you want, please use with caution
+@generated function ImPlotAnnotationCollection_Append(self, pos, off, bg, fg, clamp, fmt, va_list...)
+        :(@ccall(libcimgui.ImPlotAnnotationCollection_Append(self::Ptr{ImPlotAnnotationCollection}, pos::ImVec2, off::ImVec2, bg::ImU32, fg::ImU32, clamp::Bool, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
+    end
 
 function ImPlotAnnotationCollection_GetText(self, idx)
     ccall((:ImPlotAnnotationCollection_GetText, libcimgui), Ptr{Cchar}, (Ptr{ImPlotAnnotationCollection}, Cint), self, idx)
@@ -10575,36 +12415,73 @@ function ImPlotAnnotationCollection_Reset(self)
     ccall((:ImPlotAnnotationCollection_Reset, libcimgui), Cvoid, (Ptr{ImPlotAnnotationCollection},), self)
 end
 
-function ImPlotTick_ImPlotTick(value, major, show_label)
-    ccall((:ImPlotTick_ImPlotTick, libcimgui), Ptr{ImPlotTick}, (Cdouble, Bool, Bool), value, major, show_label)
+function ImPlotTagCollection_ImPlotTagCollection()
+    ccall((:ImPlotTagCollection_ImPlotTagCollection, libcimgui), Ptr{ImPlotTagCollection}, ())
+end
+
+function ImPlotTagCollection_destroy(self)
+    ccall((:ImPlotTagCollection_destroy, libcimgui), Cvoid, (Ptr{ImPlotTagCollection},), self)
+end
+
+# automatic type deduction for variadic arguments may not be what you want, please use with caution
+@generated function ImPlotTagCollection_Append(self, axis, value, bg, fg, fmt, va_list...)
+        :(@ccall(libcimgui.ImPlotTagCollection_Append(self::Ptr{ImPlotTagCollection}, axis::ImAxis, value::Cdouble, bg::ImU32, fg::ImU32, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
+    end
+
+function ImPlotTagCollection_GetText(self, idx)
+    ccall((:ImPlotTagCollection_GetText, libcimgui), Ptr{Cchar}, (Ptr{ImPlotTagCollection}, Cint), self, idx)
+end
+
+function ImPlotTagCollection_Reset(self)
+    ccall((:ImPlotTagCollection_Reset, libcimgui), Cvoid, (Ptr{ImPlotTagCollection},), self)
+end
+
+function ImPlotTick_ImPlotTick(value, major, level, show_label)
+    ccall((:ImPlotTick_ImPlotTick, libcimgui), Ptr{ImPlotTick}, (Cdouble, Bool, Cint, Bool), value, major, level, show_label)
 end
 
 function ImPlotTick_destroy(self)
     ccall((:ImPlotTick_destroy, libcimgui), Cvoid, (Ptr{ImPlotTick},), self)
 end
 
-function ImPlotTickCollection_ImPlotTickCollection()
-    ccall((:ImPlotTickCollection_ImPlotTickCollection, libcimgui), Ptr{ImPlotTickCollection}, ())
+function ImPlotTicker_ImPlotTicker()
+    ccall((:ImPlotTicker_ImPlotTicker, libcimgui), Ptr{ImPlotTicker}, ())
 end
 
-function ImPlotTickCollection_destroy(self)
-    ccall((:ImPlotTickCollection_destroy, libcimgui), Cvoid, (Ptr{ImPlotTickCollection},), self)
+function ImPlotTicker_destroy(self)
+    ccall((:ImPlotTicker_destroy, libcimgui), Cvoid, (Ptr{ImPlotTicker},), self)
 end
 
-function ImPlotTickCollection_Append_PlotTick(self, tick)
-    ccall((:ImPlotTickCollection_Append_PlotTick, libcimgui), Cvoid, (Ptr{ImPlotTickCollection}, ImPlotTick), self, tick)
+function ImPlotTicker_AddTick_doubleStr(self, value, major, level, show_label, label)
+    ccall((:ImPlotTicker_AddTick_doubleStr, libcimgui), Ptr{ImPlotTick}, (Ptr{ImPlotTicker}, Cdouble, Bool, Cint, Bool, Ptr{Cchar}), self, value, major, level, show_label, label)
 end
 
-function ImPlotTickCollection_Append_double(self, value, major, show_label, labeler)
-    ccall((:ImPlotTickCollection_Append_double, libcimgui), Cvoid, (Ptr{ImPlotTickCollection}, Cdouble, Bool, Bool, Ptr{Cvoid}), self, value, major, show_label, labeler)
+function ImPlotTicker_AddTick_doublePlotFormatter(self, value, major, level, show_label, formatter, data)
+    ccall((:ImPlotTicker_AddTick_doublePlotFormatter, libcimgui), Ptr{ImPlotTick}, (Ptr{ImPlotTicker}, Cdouble, Bool, Cint, Bool, ImPlotFormatter, Ptr{Cvoid}), self, value, major, level, show_label, formatter, data)
 end
 
-function ImPlotTickCollection_GetText(self, idx)
-    ccall((:ImPlotTickCollection_GetText, libcimgui), Ptr{Cchar}, (Ptr{ImPlotTickCollection}, Cint), self, idx)
+function ImPlotTicker_AddTick_PlotTick(self, tick)
+    ccall((:ImPlotTicker_AddTick_PlotTick, libcimgui), Ptr{ImPlotTick}, (Ptr{ImPlotTicker}, ImPlotTick), self, tick)
 end
 
-function ImPlotTickCollection_Reset(self)
-    ccall((:ImPlotTickCollection_Reset, libcimgui), Cvoid, (Ptr{ImPlotTickCollection},), self)
+function ImPlotTicker_GetText_Int(self, idx)
+    ccall((:ImPlotTicker_GetText_Int, libcimgui), Ptr{Cchar}, (Ptr{ImPlotTicker}, Cint), self, idx)
+end
+
+function ImPlotTicker_GetText_PlotTick(self, tick)
+    ccall((:ImPlotTicker_GetText_PlotTick, libcimgui), Ptr{Cchar}, (Ptr{ImPlotTicker}, ImPlotTick), self, tick)
+end
+
+function ImPlotTicker_OverrideSizeLate(self, size)
+    ccall((:ImPlotTicker_OverrideSizeLate, libcimgui), Cvoid, (Ptr{ImPlotTicker}, ImVec2), self, size)
+end
+
+function ImPlotTicker_Reset(self)
+    ccall((:ImPlotTicker_Reset, libcimgui), Cvoid, (Ptr{ImPlotTicker},), self)
+end
+
+function ImPlotTicker_TickCount(self)
+    ccall((:ImPlotTicker_TickCount, libcimgui), Cint, (Ptr{ImPlotTicker},), self)
 end
 
 function ImPlotAxis_ImPlotAxis()
@@ -10615,16 +12492,20 @@ function ImPlotAxis_destroy(self)
     ccall((:ImPlotAxis_destroy, libcimgui), Cvoid, (Ptr{ImPlotAxis},), self)
 end
 
-function ImPlotAxis_SetMin(self, _min)
-    ccall((:ImPlotAxis_SetMin, libcimgui), Bool, (Ptr{ImPlotAxis}, Cdouble), self, _min)
+function ImPlotAxis_Reset(self)
+    ccall((:ImPlotAxis_Reset, libcimgui), Cvoid, (Ptr{ImPlotAxis},), self)
 end
 
-function ImPlotAxis_SetMax(self, _max)
-    ccall((:ImPlotAxis_SetMax, libcimgui), Bool, (Ptr{ImPlotAxis}, Cdouble), self, _max)
+function ImPlotAxis_SetMin(self, _min, force)
+    ccall((:ImPlotAxis_SetMin, libcimgui), Bool, (Ptr{ImPlotAxis}, Cdouble, Bool), self, _min, force)
 end
 
-function ImPlotAxis_SetRange_double(self, _min, _max)
-    ccall((:ImPlotAxis_SetRange_double, libcimgui), Cvoid, (Ptr{ImPlotAxis}, Cdouble, Cdouble), self, _min, _max)
+function ImPlotAxis_SetMax(self, _max, force)
+    ccall((:ImPlotAxis_SetMax, libcimgui), Bool, (Ptr{ImPlotAxis}, Cdouble, Bool), self, _max, force)
+end
+
+function ImPlotAxis_SetRange_double(self, v1, v2)
+    ccall((:ImPlotAxis_SetRange_double, libcimgui), Cvoid, (Ptr{ImPlotAxis}, Cdouble, Cdouble), self, v1, v2)
 end
 
 function ImPlotAxis_SetRange_PlotRange(self, range)
@@ -10635,6 +12516,10 @@ function ImPlotAxis_SetAspect(self, unit_per_pix)
     ccall((:ImPlotAxis_SetAspect, libcimgui), Cvoid, (Ptr{ImPlotAxis}, Cdouble), self, unit_per_pix)
 end
 
+function ImPlotAxis_PixelSize(self)
+    ccall((:ImPlotAxis_PixelSize, libcimgui), Cfloat, (Ptr{ImPlotAxis},), self)
+end
+
 function ImPlotAxis_GetAspect(self)
     ccall((:ImPlotAxis_GetAspect, libcimgui), Cdouble, (Ptr{ImPlotAxis},), self)
 end
@@ -10643,16 +12528,68 @@ function ImPlotAxis_Constrain(self)
     ccall((:ImPlotAxis_Constrain, libcimgui), Cvoid, (Ptr{ImPlotAxis},), self)
 end
 
-function ImPlotAxis_IsLabeled(self)
-    ccall((:ImPlotAxis_IsLabeled, libcimgui), Bool, (Ptr{ImPlotAxis},), self)
+function ImPlotAxis_UpdateTransformCache(self)
+    ccall((:ImPlotAxis_UpdateTransformCache, libcimgui), Cvoid, (Ptr{ImPlotAxis},), self)
+end
+
+function ImPlotAxis_PlotToPixels(self, plt)
+    ccall((:ImPlotAxis_PlotToPixels, libcimgui), Cfloat, (Ptr{ImPlotAxis}, Cdouble), self, plt)
+end
+
+function ImPlotAxis_PixelsToPlot(self, pix)
+    ccall((:ImPlotAxis_PixelsToPlot, libcimgui), Cdouble, (Ptr{ImPlotAxis}, Cfloat), self, pix)
+end
+
+function ImPlotAxis_ExtendFit(self, v)
+    ccall((:ImPlotAxis_ExtendFit, libcimgui), Cvoid, (Ptr{ImPlotAxis}, Cdouble), self, v)
+end
+
+function ImPlotAxis_ExtendFitWith(self, alt, v, v_alt)
+    ccall((:ImPlotAxis_ExtendFitWith, libcimgui), Cvoid, (Ptr{ImPlotAxis}, Ptr{ImPlotAxis}, Cdouble, Cdouble), self, alt, v, v_alt)
+end
+
+function ImPlotAxis_ApplyFit(self, padding)
+    ccall((:ImPlotAxis_ApplyFit, libcimgui), Cvoid, (Ptr{ImPlotAxis}, Cfloat), self, padding)
+end
+
+function ImPlotAxis_HasLabel(self)
+    ccall((:ImPlotAxis_HasLabel, libcimgui), Bool, (Ptr{ImPlotAxis},), self)
+end
+
+function ImPlotAxis_HasGridLines(self)
+    ccall((:ImPlotAxis_HasGridLines, libcimgui), Bool, (Ptr{ImPlotAxis},), self)
+end
+
+function ImPlotAxis_HasTickLabels(self)
+    ccall((:ImPlotAxis_HasTickLabels, libcimgui), Bool, (Ptr{ImPlotAxis},), self)
+end
+
+function ImPlotAxis_HasTickMarks(self)
+    ccall((:ImPlotAxis_HasTickMarks, libcimgui), Bool, (Ptr{ImPlotAxis},), self)
+end
+
+function ImPlotAxis_WillRender(self)
+    ccall((:ImPlotAxis_WillRender, libcimgui), Bool, (Ptr{ImPlotAxis},), self)
+end
+
+function ImPlotAxis_IsOpposite(self)
+    ccall((:ImPlotAxis_IsOpposite, libcimgui), Bool, (Ptr{ImPlotAxis},), self)
 end
 
 function ImPlotAxis_IsInverted(self)
     ccall((:ImPlotAxis_IsInverted, libcimgui), Bool, (Ptr{ImPlotAxis},), self)
 end
 
+function ImPlotAxis_IsForeground(self)
+    ccall((:ImPlotAxis_IsForeground, libcimgui), Bool, (Ptr{ImPlotAxis},), self)
+end
+
 function ImPlotAxis_IsAutoFitting(self)
     ccall((:ImPlotAxis_IsAutoFitting, libcimgui), Bool, (Ptr{ImPlotAxis},), self)
+end
+
+function ImPlotAxis_CanInitFit(self)
+    ccall((:ImPlotAxis_CanInitFit, libcimgui), Bool, (Ptr{ImPlotAxis},), self)
 end
 
 function ImPlotAxis_IsRangeLocked(self)
@@ -10671,16 +12608,56 @@ function ImPlotAxis_IsLocked(self)
     ccall((:ImPlotAxis_IsLocked, libcimgui), Bool, (Ptr{ImPlotAxis},), self)
 end
 
+function ImPlotAxis_IsInputLockedMin(self)
+    ccall((:ImPlotAxis_IsInputLockedMin, libcimgui), Bool, (Ptr{ImPlotAxis},), self)
+end
+
+function ImPlotAxis_IsInputLockedMax(self)
+    ccall((:ImPlotAxis_IsInputLockedMax, libcimgui), Bool, (Ptr{ImPlotAxis},), self)
+end
+
 function ImPlotAxis_IsInputLocked(self)
     ccall((:ImPlotAxis_IsInputLocked, libcimgui), Bool, (Ptr{ImPlotAxis},), self)
 end
 
-function ImPlotAxis_IsTime(self)
-    ccall((:ImPlotAxis_IsTime, libcimgui), Bool, (Ptr{ImPlotAxis},), self)
+function ImPlotAxis_HasMenus(self)
+    ccall((:ImPlotAxis_HasMenus, libcimgui), Bool, (Ptr{ImPlotAxis},), self)
 end
 
-function ImPlotAxis_IsLog(self)
-    ccall((:ImPlotAxis_IsLog, libcimgui), Bool, (Ptr{ImPlotAxis},), self)
+function ImPlotAxis_IsPanLocked(self, increasing)
+    ccall((:ImPlotAxis_IsPanLocked, libcimgui), Bool, (Ptr{ImPlotAxis}, Bool), self, increasing)
+end
+
+function ImPlotAxis_PushLinks(self)
+    ccall((:ImPlotAxis_PushLinks, libcimgui), Cvoid, (Ptr{ImPlotAxis},), self)
+end
+
+function ImPlotAxis_PullLinks(self)
+    ccall((:ImPlotAxis_PullLinks, libcimgui), Cvoid, (Ptr{ImPlotAxis},), self)
+end
+
+function ImPlotAlignmentData_ImPlotAlignmentData()
+    ccall((:ImPlotAlignmentData_ImPlotAlignmentData, libcimgui), Ptr{ImPlotAlignmentData}, ())
+end
+
+function ImPlotAlignmentData_destroy(self)
+    ccall((:ImPlotAlignmentData_destroy, libcimgui), Cvoid, (Ptr{ImPlotAlignmentData},), self)
+end
+
+function ImPlotAlignmentData_Begin(self)
+    ccall((:ImPlotAlignmentData_Begin, libcimgui), Cvoid, (Ptr{ImPlotAlignmentData},), self)
+end
+
+function ImPlotAlignmentData_Update(self, pad_a, pad_b, delta_a, delta_b)
+    ccall((:ImPlotAlignmentData_Update, libcimgui), Cvoid, (Ptr{ImPlotAlignmentData}, Ptr{Cfloat}, Ptr{Cfloat}, Ptr{Cfloat}, Ptr{Cfloat}), self, pad_a, pad_b, delta_a, delta_b)
+end
+
+function ImPlotAlignmentData_End(self)
+    ccall((:ImPlotAlignmentData_End, libcimgui), Cvoid, (Ptr{ImPlotAlignmentData},), self)
+end
+
+function ImPlotAlignmentData_Reset(self)
+    ccall((:ImPlotAlignmentData_Reset, libcimgui), Cvoid, (Ptr{ImPlotAlignmentData},), self)
 end
 
 function ImPlotItem_ImPlotItem()
@@ -10691,8 +12668,68 @@ function ImPlotItem_destroy(self)
     ccall((:ImPlotItem_destroy, libcimgui), Cvoid, (Ptr{ImPlotItem},), self)
 end
 
-function ImPlotLegendData_Reset(self)
-    ccall((:ImPlotLegendData_Reset, libcimgui), Cvoid, (Ptr{ImPlotLegendData},), self)
+function ImPlotLegend_ImPlotLegend()
+    ccall((:ImPlotLegend_ImPlotLegend, libcimgui), Ptr{ImPlotLegend}, ())
+end
+
+function ImPlotLegend_destroy(self)
+    ccall((:ImPlotLegend_destroy, libcimgui), Cvoid, (Ptr{ImPlotLegend},), self)
+end
+
+function ImPlotLegend_Reset(self)
+    ccall((:ImPlotLegend_Reset, libcimgui), Cvoid, (Ptr{ImPlotLegend},), self)
+end
+
+function ImPlotItemGroup_ImPlotItemGroup()
+    ccall((:ImPlotItemGroup_ImPlotItemGroup, libcimgui), Ptr{ImPlotItemGroup}, ())
+end
+
+function ImPlotItemGroup_destroy(self)
+    ccall((:ImPlotItemGroup_destroy, libcimgui), Cvoid, (Ptr{ImPlotItemGroup},), self)
+end
+
+function ImPlotItemGroup_GetItemCount(self)
+    ccall((:ImPlotItemGroup_GetItemCount, libcimgui), Cint, (Ptr{ImPlotItemGroup},), self)
+end
+
+function ImPlotItemGroup_GetItemID(self, label_id)
+    ccall((:ImPlotItemGroup_GetItemID, libcimgui), ImGuiID, (Ptr{ImPlotItemGroup}, Ptr{Cchar}), self, label_id)
+end
+
+function ImPlotItemGroup_GetItem_ID(self, id)
+    ccall((:ImPlotItemGroup_GetItem_ID, libcimgui), Ptr{ImPlotItem}, (Ptr{ImPlotItemGroup}, ImGuiID), self, id)
+end
+
+function ImPlotItemGroup_GetItem_Str(self, label_id)
+    ccall((:ImPlotItemGroup_GetItem_Str, libcimgui), Ptr{ImPlotItem}, (Ptr{ImPlotItemGroup}, Ptr{Cchar}), self, label_id)
+end
+
+function ImPlotItemGroup_GetOrAddItem(self, id)
+    ccall((:ImPlotItemGroup_GetOrAddItem, libcimgui), Ptr{ImPlotItem}, (Ptr{ImPlotItemGroup}, ImGuiID), self, id)
+end
+
+function ImPlotItemGroup_GetItemByIndex(self, i)
+    ccall((:ImPlotItemGroup_GetItemByIndex, libcimgui), Ptr{ImPlotItem}, (Ptr{ImPlotItemGroup}, Cint), self, i)
+end
+
+function ImPlotItemGroup_GetItemIndex(self, item)
+    ccall((:ImPlotItemGroup_GetItemIndex, libcimgui), Cint, (Ptr{ImPlotItemGroup}, Ptr{ImPlotItem}), self, item)
+end
+
+function ImPlotItemGroup_GetLegendCount(self)
+    ccall((:ImPlotItemGroup_GetLegendCount, libcimgui), Cint, (Ptr{ImPlotItemGroup},), self)
+end
+
+function ImPlotItemGroup_GetLegendItem(self, i)
+    ccall((:ImPlotItemGroup_GetLegendItem, libcimgui), Ptr{ImPlotItem}, (Ptr{ImPlotItemGroup}, Cint), self, i)
+end
+
+function ImPlotItemGroup_GetLegendLabel(self, i)
+    ccall((:ImPlotItemGroup_GetLegendLabel, libcimgui), Ptr{Cchar}, (Ptr{ImPlotItemGroup}, Cint), self, i)
+end
+
+function ImPlotItemGroup_Reset(self)
+    ccall((:ImPlotItemGroup_Reset, libcimgui), Cvoid, (Ptr{ImPlotItemGroup},), self)
 end
 
 function ImPlotPlot_ImPlotPlot()
@@ -10703,20 +12740,64 @@ function ImPlotPlot_destroy(self)
     ccall((:ImPlotPlot_destroy, libcimgui), Cvoid, (Ptr{ImPlotPlot},), self)
 end
 
-function ImPlotPlot_GetLegendCount(self)
-    ccall((:ImPlotPlot_GetLegendCount, libcimgui), Cint, (Ptr{ImPlotPlot},), self)
-end
-
-function ImPlotPlot_GetLegendItem(self, i)
-    ccall((:ImPlotPlot_GetLegendItem, libcimgui), Ptr{ImPlotItem}, (Ptr{ImPlotPlot}, Cint), self, i)
-end
-
-function ImPlotPlot_GetLegendLabel(self, i)
-    ccall((:ImPlotPlot_GetLegendLabel, libcimgui), Ptr{Cchar}, (Ptr{ImPlotPlot}, Cint), self, i)
-end
-
 function ImPlotPlot_IsInputLocked(self)
     ccall((:ImPlotPlot_IsInputLocked, libcimgui), Bool, (Ptr{ImPlotPlot},), self)
+end
+
+function ImPlotPlot_ClearTextBuffer(self)
+    ccall((:ImPlotPlot_ClearTextBuffer, libcimgui), Cvoid, (Ptr{ImPlotPlot},), self)
+end
+
+function ImPlotPlot_SetTitle(self, title)
+    ccall((:ImPlotPlot_SetTitle, libcimgui), Cvoid, (Ptr{ImPlotPlot}, Ptr{Cchar}), self, title)
+end
+
+function ImPlotPlot_HasTitle(self)
+    ccall((:ImPlotPlot_HasTitle, libcimgui), Bool, (Ptr{ImPlotPlot},), self)
+end
+
+function ImPlotPlot_GetTitle(self)
+    ccall((:ImPlotPlot_GetTitle, libcimgui), Ptr{Cchar}, (Ptr{ImPlotPlot},), self)
+end
+
+function ImPlotPlot_XAxis_Nil(self, i)
+    ccall((:ImPlotPlot_XAxis_Nil, libcimgui), Ptr{ImPlotAxis}, (Ptr{ImPlotPlot}, Cint), self, i)
+end
+
+function ImPlotPlot_XAxis__const(self, i)
+    ccall((:ImPlotPlot_XAxis__const, libcimgui), Ptr{ImPlotAxis}, (Ptr{ImPlotPlot}, Cint), self, i)
+end
+
+function ImPlotPlot_YAxis_Nil(self, i)
+    ccall((:ImPlotPlot_YAxis_Nil, libcimgui), Ptr{ImPlotAxis}, (Ptr{ImPlotPlot}, Cint), self, i)
+end
+
+function ImPlotPlot_YAxis__const(self, i)
+    ccall((:ImPlotPlot_YAxis__const, libcimgui), Ptr{ImPlotAxis}, (Ptr{ImPlotPlot}, Cint), self, i)
+end
+
+function ImPlotPlot_EnabledAxesX(self)
+    ccall((:ImPlotPlot_EnabledAxesX, libcimgui), Cint, (Ptr{ImPlotPlot},), self)
+end
+
+function ImPlotPlot_EnabledAxesY(self)
+    ccall((:ImPlotPlot_EnabledAxesY, libcimgui), Cint, (Ptr{ImPlotPlot},), self)
+end
+
+function ImPlotPlot_SetAxisLabel(self, axis, label)
+    ccall((:ImPlotPlot_SetAxisLabel, libcimgui), Cvoid, (Ptr{ImPlotPlot}, Ptr{ImPlotAxis}, Ptr{Cchar}), self, axis, label)
+end
+
+function ImPlotPlot_GetAxisLabel(self, axis)
+    ccall((:ImPlotPlot_GetAxisLabel, libcimgui), Ptr{Cchar}, (Ptr{ImPlotPlot}, ImPlotAxis), self, axis)
+end
+
+function ImPlotSubplot_ImPlotSubplot()
+    ccall((:ImPlotSubplot_ImPlotSubplot, libcimgui), Ptr{ImPlotSubplot}, ())
+end
+
+function ImPlotSubplot_destroy(self)
+    ccall((:ImPlotSubplot_destroy, libcimgui), Cvoid, (Ptr{ImPlotSubplot},), self)
 end
 
 function ImPlotNextPlotData_ImPlotNextPlotData()
@@ -10747,12 +12828,16 @@ function ImPlot_Initialize(ctx)
     ccall((:ImPlot_Initialize, libcimgui), Cvoid, (Ptr{ImPlotContext},), ctx)
 end
 
-function ImPlot_Reset(ctx)
-    ccall((:ImPlot_Reset, libcimgui), Cvoid, (Ptr{ImPlotContext},), ctx)
+function ImPlot_ResetCtxForNextPlot(ctx)
+    ccall((:ImPlot_ResetCtxForNextPlot, libcimgui), Cvoid, (Ptr{ImPlotContext},), ctx)
 end
 
-function ImPlot_GetInputMap()
-    ccall((:ImPlot_GetInputMap, libcimgui), Ptr{ImPlotInputMap}, ())
+function ImPlot_ResetCtxForNextAlignedPlots(ctx)
+    ccall((:ImPlot_ResetCtxForNextAlignedPlots, libcimgui), Cvoid, (Ptr{ImPlotContext},), ctx)
+end
+
+function ImPlot_ResetCtxForNextSubplot(ctx)
+    ccall((:ImPlot_ResetCtxForNextSubplot, libcimgui), Cvoid, (Ptr{ImPlotContext},), ctx)
 end
 
 function ImPlot_GetPlot(title)
@@ -10771,16 +12856,28 @@ function ImPlot_ShowPlotContextMenu(plot)
     ccall((:ImPlot_ShowPlotContextMenu, libcimgui), Cvoid, (Ptr{ImPlotPlot},), plot)
 end
 
-function ImPlot_BeginItem(label_id, recolor_from)
-    ccall((:ImPlot_BeginItem, libcimgui), Bool, (Ptr{Cchar}, ImPlotCol), label_id, recolor_from)
+function ImPlot_SetupLock()
+    ccall((:ImPlot_SetupLock, libcimgui), Cvoid, ())
+end
+
+function ImPlot_SubplotNextCell()
+    ccall((:ImPlot_SubplotNextCell, libcimgui), Cvoid, ())
+end
+
+function ImPlot_ShowSubplotsContextMenu(subplot)
+    ccall((:ImPlot_ShowSubplotsContextMenu, libcimgui), Cvoid, (Ptr{ImPlotSubplot},), subplot)
+end
+
+function ImPlot_BeginItem(label_id, flags, recolor_from)
+    ccall((:ImPlot_BeginItem, libcimgui), Bool, (Ptr{Cchar}, ImPlotItemFlags, ImPlotCol), label_id, flags, recolor_from)
 end
 
 function ImPlot_EndItem()
     ccall((:ImPlot_EndItem, libcimgui), Cvoid, ())
 end
 
-function ImPlot_RegisterOrGetItem(label_id, just_created)
-    ccall((:ImPlot_RegisterOrGetItem, libcimgui), Ptr{ImPlotItem}, (Ptr{Cchar}, Ptr{Bool}), label_id, just_created)
+function ImPlot_RegisterOrGetItem(label_id, flags, just_created)
+    ccall((:ImPlot_RegisterOrGetItem, libcimgui), Ptr{ImPlotItem}, (Ptr{Cchar}, ImPlotItemFlags, Ptr{Bool}), label_id, flags, just_created)
 end
 
 function ImPlot_GetItem(label_id)
@@ -10795,28 +12892,24 @@ function ImPlot_BustItemCache()
     ccall((:ImPlot_BustItemCache, libcimgui), Cvoid, ())
 end
 
-function ImPlot_GetCurrentYAxis()
-    ccall((:ImPlot_GetCurrentYAxis, libcimgui), Cint, ())
+function ImPlot_AnyAxesInputLocked(axes, count)
+    ccall((:ImPlot_AnyAxesInputLocked, libcimgui), Bool, (Ptr{ImPlotAxis}, Cint), axes, count)
 end
 
-function ImPlot_UpdateAxisColors(axis_flag, axis)
-    ccall((:ImPlot_UpdateAxisColors, libcimgui), Cvoid, (Cint, Ptr{ImPlotAxis}), axis_flag, axis)
+function ImPlot_AllAxesInputLocked(axes, count)
+    ccall((:ImPlot_AllAxesInputLocked, libcimgui), Bool, (Ptr{ImPlotAxis}, Cint), axes, count)
 end
 
-function ImPlot_UpdateTransformCache()
-    ccall((:ImPlot_UpdateTransformCache, libcimgui), Cvoid, ())
+function ImPlot_AnyAxesHeld(axes, count)
+    ccall((:ImPlot_AnyAxesHeld, libcimgui), Bool, (Ptr{ImPlotAxis}, Cint), axes, count)
 end
 
-function ImPlot_GetCurrentScale()
-    ccall((:ImPlot_GetCurrentScale, libcimgui), ImPlotScale, ())
+function ImPlot_AnyAxesHovered(axes, count)
+    ccall((:ImPlot_AnyAxesHovered, libcimgui), Bool, (Ptr{ImPlotAxis}, Cint), axes, count)
 end
 
 function ImPlot_FitThisFrame()
     ccall((:ImPlot_FitThisFrame, libcimgui), Bool, ())
-end
-
-function ImPlot_FitPoint(p)
-    ccall((:ImPlot_FitPoint, libcimgui), Cvoid, (ImPlotPoint,), p)
 end
 
 function ImPlot_FitPointX(x)
@@ -10827,16 +12920,12 @@ function ImPlot_FitPointY(y)
     ccall((:ImPlot_FitPointY, libcimgui), Cvoid, (Cdouble,), y)
 end
 
+function ImPlot_FitPoint(p)
+    ccall((:ImPlot_FitPoint, libcimgui), Cvoid, (ImPlotPoint,), p)
+end
+
 function ImPlot_RangesOverlap(r1, r2)
     ccall((:ImPlot_RangesOverlap, libcimgui), Bool, (ImPlotRange, ImPlotRange), r1, r2)
-end
-
-function ImPlot_PushLinkedAxis(axis)
-    ccall((:ImPlot_PushLinkedAxis, libcimgui), Cvoid, (Ptr{ImPlotAxis},), axis)
-end
-
-function ImPlot_PullLinkedAxis(axis)
-    ccall((:ImPlot_PullLinkedAxis, libcimgui), Cvoid, (Ptr{ImPlotAxis},), axis)
 end
 
 function ImPlot_ShowAxisContextMenu(axis, equal_axis, time_allowed)
@@ -10847,48 +12936,24 @@ function ImPlot_GetLocationPos(pOut, outer_rect, inner_size, location, pad)
     ccall((:ImPlot_GetLocationPos, libcimgui), Cvoid, (Ptr{ImVec2}, ImRect, ImVec2, ImPlotLocation, ImVec2), pOut, outer_rect, inner_size, location, pad)
 end
 
-function ImPlot_CalcLegendSize(pOut, plot, pad, spacing, orientation)
-    ccall((:ImPlot_CalcLegendSize, libcimgui), Cvoid, (Ptr{ImVec2}, Ptr{ImPlotPlot}, ImVec2, ImVec2, ImPlotOrientation), pOut, plot, pad, spacing, orientation)
+function ImPlot_CalcLegendSize(pOut, items, pad, spacing, vertical)
+    ccall((:ImPlot_CalcLegendSize, libcimgui), Cvoid, (Ptr{ImVec2}, Ptr{ImPlotItemGroup}, ImVec2, ImVec2, Bool), pOut, items, pad, spacing, vertical)
 end
 
-function ImPlot_ShowLegendEntries(plot, legend_bb, interactable, pad, spacing, orientation, DrawList)
-    ccall((:ImPlot_ShowLegendEntries, libcimgui), Cvoid, (Ptr{ImPlotPlot}, ImRect, Bool, ImVec2, ImVec2, ImPlotOrientation, Ptr{ImDrawList}), plot, legend_bb, interactable, pad, spacing, orientation, DrawList)
+function ImPlot_ShowLegendEntries(items, legend_bb, interactable, pad, spacing, vertical, DrawList)
+    ccall((:ImPlot_ShowLegendEntries, libcimgui), Bool, (Ptr{ImPlotItemGroup}, ImRect, Bool, ImVec2, ImVec2, Bool, Ptr{ImDrawList}), items, legend_bb, interactable, pad, spacing, vertical, DrawList)
 end
 
-function ImPlot_ShowAltLegend(title_id, orientation, size, interactable)
-    ccall((:ImPlot_ShowAltLegend, libcimgui), Cvoid, (Ptr{Cchar}, ImPlotOrientation, ImVec2, Bool), title_id, orientation, size, interactable)
+function ImPlot_ShowAltLegend(title_id, vertical, size, interactable)
+    ccall((:ImPlot_ShowAltLegend, libcimgui), Cvoid, (Ptr{Cchar}, Bool, ImVec2, Bool), title_id, vertical, size, interactable)
 end
 
-function ImPlot_LabelTickDefault(tick, buffer)
-    ccall((:ImPlot_LabelTickDefault, libcimgui), Cvoid, (Ptr{ImPlotTick}, Ptr{ImGuiTextBuffer}), tick, buffer)
+function ImPlot_ShowLegendContextMenu(legend, visible)
+    ccall((:ImPlot_ShowLegendContextMenu, libcimgui), Bool, (Ptr{ImPlotLegend}, Bool), legend, visible)
 end
 
-function ImPlot_LabelTickScientific(tick, buffer)
-    ccall((:ImPlot_LabelTickScientific, libcimgui), Cvoid, (Ptr{ImPlotTick}, Ptr{ImGuiTextBuffer}), tick, buffer)
-end
-
-function ImPlot_LabelTickTime(tick, buffer, t, fmt)
-    ccall((:ImPlot_LabelTickTime, libcimgui), Cvoid, (Ptr{ImPlotTick}, Ptr{ImGuiTextBuffer}, ImPlotTime, ImPlotDateTimeFmt), tick, buffer, t, fmt)
-end
-
-function ImPlot_AddTicksDefault(range, nMajor, nMinor, ticks)
-    ccall((:ImPlot_AddTicksDefault, libcimgui), Cvoid, (ImPlotRange, Cint, Cint, Ptr{ImPlotTickCollection}), range, nMajor, nMinor, ticks)
-end
-
-function ImPlot_AddTicksLogarithmic(range, nMajor, ticks)
-    ccall((:ImPlot_AddTicksLogarithmic, libcimgui), Cvoid, (ImPlotRange, Cint, Ptr{ImPlotTickCollection}), range, nMajor, ticks)
-end
-
-function ImPlot_AddTicksTime(range, plot_width, ticks)
-    ccall((:ImPlot_AddTicksTime, libcimgui), Cvoid, (ImPlotRange, Cfloat, Ptr{ImPlotTickCollection}), range, plot_width, ticks)
-end
-
-function ImPlot_AddTicksCustom(values, labels, n, ticks)
-    ccall((:ImPlot_AddTicksCustom, libcimgui), Cvoid, (Ptr{Cdouble}, Ptr{Ptr{Cchar}}, Cint, Ptr{ImPlotTickCollection}), values, labels, n, ticks)
-end
-
-function ImPlot_LabelAxisValue(axis, ticks, value, buff, size)
-    ccall((:ImPlot_LabelAxisValue, libcimgui), Cint, (ImPlotAxis, ImPlotTickCollection, Cdouble, Ptr{Cchar}, Cint), axis, ticks, value, buff, size)
+function ImPlot_LabelAxisValue(axis, value, buff, size, round)
+    ccall((:ImPlot_LabelAxisValue, libcimgui), Cvoid, (ImPlotAxis, Cdouble, Ptr{Cchar}, Cint, Bool), axis, value, buff, size, round)
 end
 
 function ImPlot_GetItemData()
@@ -10919,6 +12984,10 @@ function ImPlot_AddTextVertical(DrawList, pos, col, text_begin, text_end)
     ccall((:ImPlot_AddTextVertical, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImU32, Ptr{Cchar}, Ptr{Cchar}), DrawList, pos, col, text_begin, text_end)
 end
 
+function ImPlot_AddTextCentered(DrawList, top_center, col, text_begin, text_end)
+    ccall((:ImPlot_AddTextCentered, libcimgui), Cvoid, (Ptr{ImDrawList}, ImVec2, ImU32, Ptr{Cchar}, Ptr{Cchar}), DrawList, top_center, col, text_begin, text_end)
+end
+
 function ImPlot_CalcTextSizeVertical(pOut, text)
     ccall((:ImPlot_CalcTextSizeVertical, libcimgui), Cvoid, (Ptr{ImVec2}, Ptr{Cchar}), pOut, text)
 end
@@ -10929,6 +12998,10 @@ end
 
 function ImPlot_CalcTextColor_U32(bg)
     ccall((:ImPlot_CalcTextColor_U32, libcimgui), ImU32, (ImU32,), bg)
+end
+
+function ImPlot_CalcHoverColor(col)
+    ccall((:ImPlot_CalcHoverColor, libcimgui), ImU32, (ImU32,), col)
 end
 
 function ImPlot_ClampLabelPos(pOut, pos, size, Min, Max)
@@ -10967,88 +13040,52 @@ function ImPlot_Precision(val)
     ccall((:ImPlot_Precision, libcimgui), Cint, (Cdouble,), val)
 end
 
+function ImPlot_RoundTo(val, prec)
+    ccall((:ImPlot_RoundTo, libcimgui), Cdouble, (Cdouble, Cint), val, prec)
+end
+
 function ImPlot_Intersection(pOut, a1, a2, b1, b2)
     ccall((:ImPlot_Intersection, libcimgui), Cvoid, (Ptr{ImVec2}, ImVec2, ImVec2, ImVec2, ImVec2), pOut, a1, a2, b1, b2)
 end
 
-function ImPlot_FillRange_Vector_FloatPtr(buffer, n, vmin, vmax)
-    ccall((:ImPlot_FillRange_Vector_FloatPtr, libcimgui), Cvoid, (Ptr{ImVector_float}, Cint, Cfloat, Cfloat), buffer, n, vmin, vmax)
+function ImPlot_FillRange_Vector_Float_Ptr(buffer, n, vmin, vmax)
+    ccall((:ImPlot_FillRange_Vector_Float_Ptr, libcimgui), Cvoid, (Ptr{ImVector_float}, Cint, Cfloat, Cfloat), buffer, n, vmin, vmax)
 end
 
-function ImPlot_FillRange_Vector_doublePtr(buffer, n, vmin, vmax)
-    ccall((:ImPlot_FillRange_Vector_doublePtr, libcimgui), Cvoid, (Ptr{ImVector_double}, Cint, Cdouble, Cdouble), buffer, n, vmin, vmax)
+function ImPlot_FillRange_Vector_double_Ptr(buffer, n, vmin, vmax)
+    ccall((:ImPlot_FillRange_Vector_double_Ptr, libcimgui), Cvoid, (Ptr{ImVector_double}, Cint, Cdouble, Cdouble), buffer, n, vmin, vmax)
 end
 
-function ImPlot_FillRange_Vector_S8Ptr(buffer, n, vmin, vmax)
-    ccall((:ImPlot_FillRange_Vector_S8Ptr, libcimgui), Cvoid, (Ptr{ImVector_ImS8}, Cint, ImS8, ImS8), buffer, n, vmin, vmax)
+function ImPlot_FillRange_Vector_S8_Ptr(buffer, n, vmin, vmax)
+    ccall((:ImPlot_FillRange_Vector_S8_Ptr, libcimgui), Cvoid, (Ptr{ImVector_ImS8}, Cint, ImS8, ImS8), buffer, n, vmin, vmax)
 end
 
-function ImPlot_FillRange_Vector_U8Ptr(buffer, n, vmin, vmax)
-    ccall((:ImPlot_FillRange_Vector_U8Ptr, libcimgui), Cvoid, (Ptr{ImVector_ImU8}, Cint, ImU8, ImU8), buffer, n, vmin, vmax)
+function ImPlot_FillRange_Vector_U8_Ptr(buffer, n, vmin, vmax)
+    ccall((:ImPlot_FillRange_Vector_U8_Ptr, libcimgui), Cvoid, (Ptr{ImVector_ImU8}, Cint, ImU8, ImU8), buffer, n, vmin, vmax)
 end
 
-function ImPlot_FillRange_Vector_S16Ptr(buffer, n, vmin, vmax)
-    ccall((:ImPlot_FillRange_Vector_S16Ptr, libcimgui), Cvoid, (Ptr{ImVector_ImS16}, Cint, ImS16, ImS16), buffer, n, vmin, vmax)
+function ImPlot_FillRange_Vector_S16_Ptr(buffer, n, vmin, vmax)
+    ccall((:ImPlot_FillRange_Vector_S16_Ptr, libcimgui), Cvoid, (Ptr{ImVector_ImS16}, Cint, ImS16, ImS16), buffer, n, vmin, vmax)
 end
 
-function ImPlot_FillRange_Vector_U16Ptr(buffer, n, vmin, vmax)
-    ccall((:ImPlot_FillRange_Vector_U16Ptr, libcimgui), Cvoid, (Ptr{ImVector_ImU16}, Cint, ImU16, ImU16), buffer, n, vmin, vmax)
+function ImPlot_FillRange_Vector_U16_Ptr(buffer, n, vmin, vmax)
+    ccall((:ImPlot_FillRange_Vector_U16_Ptr, libcimgui), Cvoid, (Ptr{ImVector_ImU16}, Cint, ImU16, ImU16), buffer, n, vmin, vmax)
 end
 
-function ImPlot_FillRange_Vector_S32Ptr(buffer, n, vmin, vmax)
-    ccall((:ImPlot_FillRange_Vector_S32Ptr, libcimgui), Cvoid, (Ptr{ImVector_ImS32}, Cint, ImS32, ImS32), buffer, n, vmin, vmax)
+function ImPlot_FillRange_Vector_S32_Ptr(buffer, n, vmin, vmax)
+    ccall((:ImPlot_FillRange_Vector_S32_Ptr, libcimgui), Cvoid, (Ptr{ImVector_ImS32}, Cint, ImS32, ImS32), buffer, n, vmin, vmax)
 end
 
-function ImPlot_FillRange_Vector_U32Ptr(buffer, n, vmin, vmax)
-    ccall((:ImPlot_FillRange_Vector_U32Ptr, libcimgui), Cvoid, (Ptr{ImVector_ImU32}, Cint, ImU32, ImU32), buffer, n, vmin, vmax)
+function ImPlot_FillRange_Vector_U32_Ptr(buffer, n, vmin, vmax)
+    ccall((:ImPlot_FillRange_Vector_U32_Ptr, libcimgui), Cvoid, (Ptr{ImVector_ImU32}, Cint, ImU32, ImU32), buffer, n, vmin, vmax)
 end
 
-function ImPlot_FillRange_Vector_S64Ptr(buffer, n, vmin, vmax)
-    ccall((:ImPlot_FillRange_Vector_S64Ptr, libcimgui), Cvoid, (Ptr{ImVector_ImS64}, Cint, ImS64, ImS64), buffer, n, vmin, vmax)
+function ImPlot_FillRange_Vector_S64_Ptr(buffer, n, vmin, vmax)
+    ccall((:ImPlot_FillRange_Vector_S64_Ptr, libcimgui), Cvoid, (Ptr{ImVector_ImS64}, Cint, ImS64, ImS64), buffer, n, vmin, vmax)
 end
 
-function ImPlot_FillRange_Vector_U64Ptr(buffer, n, vmin, vmax)
-    ccall((:ImPlot_FillRange_Vector_U64Ptr, libcimgui), Cvoid, (Ptr{ImVector_ImU64}, Cint, ImU64, ImU64), buffer, n, vmin, vmax)
-end
-
-function ImPlot_OffsetAndStride_FloatPtr(data, idx, count, offset, stride)
-    ccall((:ImPlot_OffsetAndStride_FloatPtr, libcimgui), Cfloat, (Ptr{Cfloat}, Cint, Cint, Cint, Cint), data, idx, count, offset, stride)
-end
-
-function ImPlot_OffsetAndStride_doublePtr(data, idx, count, offset, stride)
-    ccall((:ImPlot_OffsetAndStride_doublePtr, libcimgui), Cdouble, (Ptr{Cdouble}, Cint, Cint, Cint, Cint), data, idx, count, offset, stride)
-end
-
-function ImPlot_OffsetAndStride_S8Ptr(data, idx, count, offset, stride)
-    ccall((:ImPlot_OffsetAndStride_S8Ptr, libcimgui), ImS8, (Ptr{ImS8}, Cint, Cint, Cint, Cint), data, idx, count, offset, stride)
-end
-
-function ImPlot_OffsetAndStride_U8Ptr(data, idx, count, offset, stride)
-    ccall((:ImPlot_OffsetAndStride_U8Ptr, libcimgui), ImU8, (Ptr{ImU8}, Cint, Cint, Cint, Cint), data, idx, count, offset, stride)
-end
-
-function ImPlot_OffsetAndStride_S16Ptr(data, idx, count, offset, stride)
-    ccall((:ImPlot_OffsetAndStride_S16Ptr, libcimgui), ImS16, (Ptr{ImS16}, Cint, Cint, Cint, Cint), data, idx, count, offset, stride)
-end
-
-function ImPlot_OffsetAndStride_U16Ptr(data, idx, count, offset, stride)
-    ccall((:ImPlot_OffsetAndStride_U16Ptr, libcimgui), ImU16, (Ptr{ImU16}, Cint, Cint, Cint, Cint), data, idx, count, offset, stride)
-end
-
-function ImPlot_OffsetAndStride_S32Ptr(data, idx, count, offset, stride)
-    ccall((:ImPlot_OffsetAndStride_S32Ptr, libcimgui), ImS32, (Ptr{ImS32}, Cint, Cint, Cint, Cint), data, idx, count, offset, stride)
-end
-
-function ImPlot_OffsetAndStride_U32Ptr(data, idx, count, offset, stride)
-    ccall((:ImPlot_OffsetAndStride_U32Ptr, libcimgui), ImU32, (Ptr{ImU32}, Cint, Cint, Cint, Cint), data, idx, count, offset, stride)
-end
-
-function ImPlot_OffsetAndStride_S64Ptr(data, idx, count, offset, stride)
-    ccall((:ImPlot_OffsetAndStride_S64Ptr, libcimgui), ImS64, (Ptr{ImS64}, Cint, Cint, Cint, Cint), data, idx, count, offset, stride)
-end
-
-function ImPlot_OffsetAndStride_U64Ptr(data, idx, count, offset, stride)
-    ccall((:ImPlot_OffsetAndStride_U64Ptr, libcimgui), ImU64, (Ptr{ImU64}, Cint, Cint, Cint, Cint), data, idx, count, offset, stride)
+function ImPlot_FillRange_Vector_U64_Ptr(buffer, n, vmin, vmax)
+    ccall((:ImPlot_FillRange_Vector_U64_Ptr, libcimgui), Cvoid, (Ptr{ImVector_ImU64}, Cint, ImU64, ImU64), buffer, n, vmin, vmax)
 end
 
 function ImPlot_CalculateBins_FloatPtr(values, count, meth, range, bins_out, width_out)
@@ -11152,7 +13189,7 @@ function ImPlot_FormatDate(t, buffer, size, fmt, use_iso_8601)
 end
 
 function ImPlot_FormatDateTime(t, buffer, size, fmt)
-    ccall((:ImPlot_FormatDateTime, libcimgui), Cint, (ImPlotTime, Ptr{Cchar}, Cint, ImPlotDateTimeFmt), t, buffer, size, fmt)
+    ccall((:ImPlot_FormatDateTime, libcimgui), Cint, (ImPlotTime, Ptr{Cchar}, Cint, ImPlotDateTimeSpec), t, buffer, size, fmt)
 end
 
 function ImPlot_ShowDatePicker(id, level, t, t1, t2)
@@ -11163,127 +13200,200 @@ function ImPlot_ShowTimePicker(id, t)
     ccall((:ImPlot_ShowTimePicker, libcimgui), Bool, (Ptr{Cchar}, Ptr{ImPlotTime}), id, t)
 end
 
-# typedef void * ( * ImPlotPoint_getter ) ( void * data , int idx , ImPlotPoint * point )
-const ImPlotPoint_getter = Ptr{Cvoid}
-
-function ImPlot_PlotLineG(label_id, getter, data, count, offset)
-    ccall((:ImPlot_PlotLineG, libcimgui), Cvoid, (Ptr{Cchar}, ImPlotPoint_getter, Ptr{Cvoid}, Cint, Cint), label_id, getter, data, count, offset)
+function ImPlot_TransformForward_Log10(v, noname1)
+    ccall((:ImPlot_TransformForward_Log10, libcimgui), Cdouble, (Cdouble, Ptr{Cvoid}), v, noname1)
 end
 
-function ImPlot_PlotScatterG(label_id, getter, data, count, offset)
-    ccall((:ImPlot_PlotScatterG, libcimgui), Cvoid, (Ptr{Cchar}, ImPlotPoint_getter, Ptr{Cvoid}, Cint, Cint), label_id, getter, data, count, offset)
+function ImPlot_TransformInverse_Log10(v, noname1)
+    ccall((:ImPlot_TransformInverse_Log10, libcimgui), Cdouble, (Cdouble, Ptr{Cvoid}), v, noname1)
 end
 
-function ImPlot_PlotShadedG(label_id, getter1, data1, getter2, data2, count, offset)
-    ccall((:ImPlot_PlotShadedG, libcimgui), Cvoid, (Ptr{Cchar}, ImPlotPoint_getter, Ptr{Cvoid}, ImPlotPoint_getter, Ptr{Cvoid}, Cint, Cint), label_id, getter1, data1, getter2, data2, count, offset)
+function ImPlot_TransformForward_SymLog(v, noname1)
+    ccall((:ImPlot_TransformForward_SymLog, libcimgui), Cdouble, (Cdouble, Ptr{Cvoid}), v, noname1)
 end
 
-function ImPlot_PlotBarsG(label_id, getter, data, count, width, offset)
-    ccall((:ImPlot_PlotBarsG, libcimgui), Cvoid, (Ptr{Cchar}, ImPlotPoint_getter, Ptr{Cvoid}, Cint, Cdouble, Cint), label_id, getter, data, count, width, offset)
+function ImPlot_TransformInverse_SymLog(v, noname1)
+    ccall((:ImPlot_TransformInverse_SymLog, libcimgui), Cdouble, (Cdouble, Ptr{Cvoid}), v, noname1)
 end
 
-function ImPlot_PlotBarsHG(label_id, getter, data, count, height, offset)
-    ccall((:ImPlot_PlotBarsHG, libcimgui), Cvoid, (Ptr{Cchar}, ImPlotPoint_getter, Ptr{Cvoid}, Cint, Cdouble, Cint), label_id, getter, data, count, height, offset)
+function ImPlot_TransformForward_Logit(v, noname1)
+    ccall((:ImPlot_TransformForward_Logit, libcimgui), Cdouble, (Cdouble, Ptr{Cvoid}), v, noname1)
 end
 
-function ImPlot_PlotDigitalG(label_id, getter, data, count, offset)
-    ccall((:ImPlot_PlotDigitalG, libcimgui), Cvoid, (Ptr{Cchar}, ImPlotPoint_getter, Ptr{Cvoid}, Cint, Cint), label_id, getter, data, count, offset)
+function ImPlot_TransformInverse_Logit(v, noname1)
+    ccall((:ImPlot_TransformInverse_Logit, libcimgui), Cdouble, (Cdouble, Ptr{Cvoid}), v, noname1)
 end
 
-mutable struct EditorContext end
-
-mutable struct Context end
-
-@cenum StyleFlags::UInt32 begin
-    StyleFlags_None = 0
-    StyleFlags_NodeOutline = 1
-    StyleFlags_GridLines = 4
+function ImPlot_Formatter_Default(value, buff, size, data)
+    ccall((:ImPlot_Formatter_Default, libcimgui), Cint, (Cdouble, Ptr{Cchar}, Cint, Ptr{Cvoid}), value, buff, size, data)
 end
 
-struct Style
-    grid_spacing::Cfloat
-    node_corner_rounding::Cfloat
-    node_padding_horizontal::Cfloat
-    node_padding_vertical::Cfloat
-    node_border_thickness::Cfloat
-    link_thickness::Cfloat
-    link_line_segments_per_length::Cfloat
-    link_hover_distance::Cfloat
-    pin_circle_radius::Cfloat
-    pin_quad_side_length::Cfloat
-    pin_triangle_side_length::Cfloat
-    pin_line_thickness::Cfloat
-    pin_hover_radius::Cfloat
-    pin_offset::Cfloat
-    flags::StyleFlags
-    colors::NTuple{16, Cuint}
+function ImPlot_Formatter_Logit(value, buff, size, noname1)
+    ccall((:ImPlot_Formatter_Logit, libcimgui), Cint, (Cdouble, Ptr{Cchar}, Cint, Ptr{Cvoid}), value, buff, size, noname1)
 end
 
-struct LinkDetachWithModifierClick
-    modifier::Ptr{Bool}
+function ImPlot_Formatter_Time(noname1, buff, size, data)
+    ccall((:ImPlot_Formatter_Time, libcimgui), Cint, (Cdouble, Ptr{Cchar}, Cint, Ptr{Cvoid}), noname1, buff, size, data)
+end
+
+function ImPlot_Locator_Default(ticker, range, pixels, vertical, formatter, formatter_data)
+    ccall((:ImPlot_Locator_Default, libcimgui), Cvoid, (Ptr{ImPlotTicker}, ImPlotRange, Cfloat, Bool, ImPlotFormatter, Ptr{Cvoid}), ticker, range, pixels, vertical, formatter, formatter_data)
+end
+
+function ImPlot_Locator_Time(ticker, range, pixels, vertical, formatter, formatter_data)
+    ccall((:ImPlot_Locator_Time, libcimgui), Cvoid, (Ptr{ImPlotTicker}, ImPlotRange, Cfloat, Bool, ImPlotFormatter, Ptr{Cvoid}), ticker, range, pixels, vertical, formatter, formatter_data)
+end
+
+function ImPlot_Locator_Log10(ticker, range, pixels, vertical, formatter, formatter_data)
+    ccall((:ImPlot_Locator_Log10, libcimgui), Cvoid, (Ptr{ImPlotTicker}, ImPlotRange, Cfloat, Bool, ImPlotFormatter, Ptr{Cvoid}), ticker, range, pixels, vertical, formatter, formatter_data)
+end
+
+function ImPlot_Locator_SymLog(ticker, range, pixels, vertical, formatter, formatter_data)
+    ccall((:ImPlot_Locator_SymLog, libcimgui), Cvoid, (Ptr{ImPlotTicker}, ImPlotRange, Cfloat, Bool, ImPlotFormatter, Ptr{Cvoid}), ticker, range, pixels, vertical, formatter, formatter_data)
+end
+
+mutable struct ImNodesContext end
+
+mutable struct ImNodesEditorContext end
+
+const ImNodesCol = Cint
+
+const ImNodesStyleVar = Cint
+
+const ImNodesStyleFlags = Cint
+
+const ImNodesPinShape = Cint
+
+const ImNodesAttributeFlags = Cint
+
+const ImNodesMiniMapLocation = Cint
+
+@cenum ImNodesCol_::UInt32 begin
+    ImNodesCol_NodeBackground = 0
+    ImNodesCol_NodeBackgroundHovered = 1
+    ImNodesCol_NodeBackgroundSelected = 2
+    ImNodesCol_NodeOutline = 3
+    ImNodesCol_TitleBar = 4
+    ImNodesCol_TitleBarHovered = 5
+    ImNodesCol_TitleBarSelected = 6
+    ImNodesCol_Link = 7
+    ImNodesCol_LinkHovered = 8
+    ImNodesCol_LinkSelected = 9
+    ImNodesCol_Pin = 10
+    ImNodesCol_PinHovered = 11
+    ImNodesCol_BoxSelector = 12
+    ImNodesCol_BoxSelectorOutline = 13
+    ImNodesCol_GridBackground = 14
+    ImNodesCol_GridLine = 15
+    ImNodesCol_GridLinePrimary = 16
+    ImNodesCol_MiniMapBackground = 17
+    ImNodesCol_MiniMapBackgroundHovered = 18
+    ImNodesCol_MiniMapOutline = 19
+    ImNodesCol_MiniMapOutlineHovered = 20
+    ImNodesCol_MiniMapNodeBackground = 21
+    ImNodesCol_MiniMapNodeBackgroundHovered = 22
+    ImNodesCol_MiniMapNodeBackgroundSelected = 23
+    ImNodesCol_MiniMapNodeOutline = 24
+    ImNodesCol_MiniMapLink = 25
+    ImNodesCol_MiniMapLinkSelected = 26
+    ImNodesCol_MiniMapCanvas = 27
+    ImNodesCol_MiniMapCanvasOutline = 28
+    ImNodesCol_COUNT = 29
+end
+
+@cenum ImNodesStyleVar_::UInt32 begin
+    ImNodesStyleVar_GridSpacing = 0
+    ImNodesStyleVar_NodeCornerRounding = 1
+    ImNodesStyleVar_NodePadding = 2
+    ImNodesStyleVar_NodeBorderThickness = 3
+    ImNodesStyleVar_LinkThickness = 4
+    ImNodesStyleVar_LinkLineSegmentsPerLength = 5
+    ImNodesStyleVar_LinkHoverDistance = 6
+    ImNodesStyleVar_PinCircleRadius = 7
+    ImNodesStyleVar_PinQuadSideLength = 8
+    ImNodesStyleVar_PinTriangleSideLength = 9
+    ImNodesStyleVar_PinLineThickness = 10
+    ImNodesStyleVar_PinHoverRadius = 11
+    ImNodesStyleVar_PinOffset = 12
+    ImNodesStyleVar_MiniMapPadding = 13
+    ImNodesStyleVar_MiniMapOffset = 14
+    ImNodesStyleVar_COUNT = 15
+end
+
+@cenum ImNodesStyleFlags_::UInt32 begin
+    ImNodesStyleFlags_None = 0
+    ImNodesStyleFlags_NodeOutline = 1
+    ImNodesStyleFlags_GridLines = 4
+    ImNodesStyleFlags_GridLinesPrimary = 8
+    ImNodesStyleFlags_GridSnapping = 16
+end
+
+@cenum ImNodesPinShape_::UInt32 begin
+    ImNodesPinShape_Circle = 0
+    ImNodesPinShape_CircleFilled = 1
+    ImNodesPinShape_Triangle = 2
+    ImNodesPinShape_TriangleFilled = 3
+    ImNodesPinShape_Quad = 4
+    ImNodesPinShape_QuadFilled = 5
+end
+
+@cenum ImNodesAttributeFlags_::UInt32 begin
+    ImNodesAttributeFlags_None = 0
+    ImNodesAttributeFlags_EnableLinkDetachWithDragClick = 1
+    ImNodesAttributeFlags_EnableLinkCreationOnSnap = 2
 end
 
 struct EmulateThreeButtonMouse
-    modifier::Ptr{Bool}
+    Modifier::Ptr{Bool}
 end
 
-struct IO
-    emulate_three_button_mouse::EmulateThreeButtonMouse
-    link_detach_with_modifier_click::LinkDetachWithModifierClick
-    alt_mouse_button::Cint
+struct LinkDetachWithModifierClick
+    Modifier::Ptr{Bool}
 end
 
-@cenum ColorStyle::UInt32 begin
-    ColorStyle_NodeBackground = 0
-    ColorStyle_NodeBackgroundHovered = 1
-    ColorStyle_NodeBackgroundSelected = 2
-    ColorStyle_NodeOutline = 3
-    ColorStyle_TitleBar = 4
-    ColorStyle_TitleBarHovered = 5
-    ColorStyle_TitleBarSelected = 6
-    ColorStyle_Link = 7
-    ColorStyle_LinkHovered = 8
-    ColorStyle_LinkSelected = 9
-    ColorStyle_Pin = 10
-    ColorStyle_PinHovered = 11
-    ColorStyle_BoxSelector = 12
-    ColorStyle_BoxSelectorOutline = 13
-    ColorStyle_GridBackground = 14
-    ColorStyle_GridLine = 15
-    ColorStyle_Count = 16
+struct MultipleSelectModifier
+    Modifier::Ptr{Bool}
 end
 
-@cenum StyleVar::UInt32 begin
-    StyleVar_GridSpacing = 0
-    StyleVar_NodeCornerRounding = 1
-    StyleVar_NodePaddingHorizontal = 2
-    StyleVar_NodePaddingVertical = 3
-    StyleVar_NodeBorderThickness = 4
-    StyleVar_LinkThickness = 5
-    StyleVar_LinkLineSegmentsPerLength = 6
-    StyleVar_LinkHoverDistance = 7
-    StyleVar_PinCircleRadius = 8
-    StyleVar_PinQuadSideLength = 9
-    StyleVar_PinTriangleSideLength = 10
-    StyleVar_PinLineThickness = 11
-    StyleVar_PinHoverRadius = 12
-    StyleVar_PinOffset = 13
+struct ImNodesIO
+    EmulateThreeButtonMouse::EmulateThreeButtonMouse
+    LinkDetachWithModifierClick::LinkDetachWithModifierClick
+    MultipleSelectModifier::MultipleSelectModifier
+    AltMouseButton::Cint
+    AutoPanningSpeed::Cfloat
 end
 
-@cenum PinShape::UInt32 begin
-    PinShape_Circle = 0
-    PinShape_CircleFilled = 1
-    PinShape_Triangle = 2
-    PinShape_TriangleFilled = 3
-    PinShape_Quad = 4
-    PinShape_QuadFilled = 5
+struct ImNodesStyle
+    GridSpacing::Cfloat
+    NodeCornerRounding::Cfloat
+    NodePadding::ImVec2
+    NodeBorderThickness::Cfloat
+    LinkThickness::Cfloat
+    LinkLineSegmentsPerLength::Cfloat
+    LinkHoverDistance::Cfloat
+    PinCircleRadius::Cfloat
+    PinQuadSideLength::Cfloat
+    PinTriangleSideLength::Cfloat
+    PinLineThickness::Cfloat
+    PinHoverRadius::Cfloat
+    PinOffset::Cfloat
+    MiniMapPadding::ImVec2
+    MiniMapOffset::ImVec2
+    Flags::ImNodesStyleFlags
+    Colors::NTuple{29, Cuint}
 end
 
-@cenum AttributeFlags::UInt32 begin
-    AttributeFlags_None = 0
-    AttributeFlags_EnableLinkDetachWithDragClick = 1
-    AttributeFlags_EnableLinkCreationOnSnap = 2
+@cenum ImNodesMiniMapLocation_::UInt32 begin
+    ImNodesMiniMapLocation_BottomLeft = 0
+    ImNodesMiniMapLocation_BottomRight = 1
+    ImNodesMiniMapLocation_TopLeft = 2
+    ImNodesMiniMapLocation_TopRight = 3
 end
+
+# typedef void ( * ImNodesMiniMapNodeHoveringCallback ) ( int , void * )
+const ImNodesMiniMapNodeHoveringCallback = Ptr{Cvoid}
+
+const ImNodesMiniMapNodeHoveringCallbackUserData = Ptr{Cvoid}
 
 function EmulateThreeButtonMouse_EmulateThreeButtonMouse()
     ccall((:EmulateThreeButtonMouse_EmulateThreeButtonMouse, libcimgui), Ptr{EmulateThreeButtonMouse}, ())
@@ -11301,20 +13411,28 @@ function LinkDetachWithModifierClick_destroy(self)
     ccall((:LinkDetachWithModifierClick_destroy, libcimgui), Cvoid, (Ptr{LinkDetachWithModifierClick},), self)
 end
 
-function IO_IO()
-    ccall((:IO_IO, libcimgui), Ptr{IO}, ())
+function MultipleSelectModifier_MultipleSelectModifier()
+    ccall((:MultipleSelectModifier_MultipleSelectModifier, libcimgui), Ptr{MultipleSelectModifier}, ())
 end
 
-function IO_destroy(self)
-    ccall((:IO_destroy, libcimgui), Cvoid, (Ptr{IO},), self)
+function MultipleSelectModifier_destroy(self)
+    ccall((:MultipleSelectModifier_destroy, libcimgui), Cvoid, (Ptr{MultipleSelectModifier},), self)
 end
 
-function Style_Style()
-    ccall((:Style_Style, libcimgui), Ptr{Style}, ())
+function ImNodesIO_ImNodesIO()
+    ccall((:ImNodesIO_ImNodesIO, libcimgui), Ptr{ImNodesIO}, ())
 end
 
-function Style_destroy(self)
-    ccall((:Style_destroy, libcimgui), Cvoid, (Ptr{Style},), self)
+function ImNodesIO_destroy(self)
+    ccall((:ImNodesIO_destroy, libcimgui), Cvoid, (Ptr{ImNodesIO},), self)
+end
+
+function ImNodesStyle_ImNodesStyle()
+    ccall((:ImNodesStyle_ImNodesStyle, libcimgui), Ptr{ImNodesStyle}, ())
+end
+
+function ImNodesStyle_destroy(self)
+    ccall((:ImNodesStyle_destroy, libcimgui), Cvoid, (Ptr{ImNodesStyle},), self)
 end
 
 function imnodes_SetImGuiContext(ctx)
@@ -11322,31 +13440,31 @@ function imnodes_SetImGuiContext(ctx)
 end
 
 function imnodes_CreateContext()
-    ccall((:imnodes_CreateContext, libcimgui), Ptr{Context}, ())
+    ccall((:imnodes_CreateContext, libcimgui), Ptr{ImNodesContext}, ())
 end
 
 function imnodes_DestroyContext(ctx)
-    ccall((:imnodes_DestroyContext, libcimgui), Cvoid, (Ptr{Context},), ctx)
+    ccall((:imnodes_DestroyContext, libcimgui), Cvoid, (Ptr{ImNodesContext},), ctx)
 end
 
 function imnodes_GetCurrentContext()
-    ccall((:imnodes_GetCurrentContext, libcimgui), Ptr{Context}, ())
+    ccall((:imnodes_GetCurrentContext, libcimgui), Ptr{ImNodesContext}, ())
 end
 
 function imnodes_SetCurrentContext(ctx)
-    ccall((:imnodes_SetCurrentContext, libcimgui), Cvoid, (Ptr{Context},), ctx)
+    ccall((:imnodes_SetCurrentContext, libcimgui), Cvoid, (Ptr{ImNodesContext},), ctx)
 end
 
 function imnodes_EditorContextCreate()
-    ccall((:imnodes_EditorContextCreate, libcimgui), Ptr{EditorContext}, ())
+    ccall((:imnodes_EditorContextCreate, libcimgui), Ptr{ImNodesEditorContext}, ())
 end
 
 function imnodes_EditorContextFree(noname1)
-    ccall((:imnodes_EditorContextFree, libcimgui), Cvoid, (Ptr{EditorContext},), noname1)
+    ccall((:imnodes_EditorContextFree, libcimgui), Cvoid, (Ptr{ImNodesEditorContext},), noname1)
 end
 
 function imnodes_EditorContextSet(noname1)
-    ccall((:imnodes_EditorContextSet, libcimgui), Cvoid, (Ptr{EditorContext},), noname1)
+    ccall((:imnodes_EditorContextSet, libcimgui), Cvoid, (Ptr{ImNodesEditorContext},), noname1)
 end
 
 function imnodes_EditorContextGetPanning(pOut)
@@ -11362,23 +13480,23 @@ function imnodes_EditorContextMoveToNode(node_id)
 end
 
 function imnodes_GetIO()
-    ccall((:imnodes_GetIO, libcimgui), Ptr{IO}, ())
+    ccall((:imnodes_GetIO, libcimgui), Ptr{ImNodesIO}, ())
 end
 
 function imnodes_GetStyle()
-    ccall((:imnodes_GetStyle, libcimgui), Ptr{Style}, ())
+    ccall((:imnodes_GetStyle, libcimgui), Ptr{ImNodesStyle}, ())
 end
 
-function imnodes_StyleColorsDark()
-    ccall((:imnodes_StyleColorsDark, libcimgui), Cvoid, ())
+function imnodes_StyleColorsDark(dest)
+    ccall((:imnodes_StyleColorsDark, libcimgui), Cvoid, (Ptr{ImNodesStyle},), dest)
 end
 
-function imnodes_StyleColorsClassic()
-    ccall((:imnodes_StyleColorsClassic, libcimgui), Cvoid, ())
+function imnodes_StyleColorsClassic(dest)
+    ccall((:imnodes_StyleColorsClassic, libcimgui), Cvoid, (Ptr{ImNodesStyle},), dest)
 end
 
-function imnodes_StyleColorsLight()
-    ccall((:imnodes_StyleColorsLight, libcimgui), Cvoid, ())
+function imnodes_StyleColorsLight(dest)
+    ccall((:imnodes_StyleColorsLight, libcimgui), Cvoid, (Ptr{ImNodesStyle},), dest)
 end
 
 function imnodes_BeginNodeEditor()
@@ -11389,20 +13507,28 @@ function imnodes_EndNodeEditor()
     ccall((:imnodes_EndNodeEditor, libcimgui), Cvoid, ())
 end
 
+function imnodes_MiniMap(minimap_size_fraction, location, node_hovering_callback, node_hovering_callback_data)
+    ccall((:imnodes_MiniMap, libcimgui), Cvoid, (Cfloat, ImNodesMiniMapLocation, ImNodesMiniMapNodeHoveringCallback, ImNodesMiniMapNodeHoveringCallbackUserData), minimap_size_fraction, location, node_hovering_callback, node_hovering_callback_data)
+end
+
 function imnodes_PushColorStyle(item, color)
-    ccall((:imnodes_PushColorStyle, libcimgui), Cvoid, (ColorStyle, Cuint), item, color)
+    ccall((:imnodes_PushColorStyle, libcimgui), Cvoid, (ImNodesCol, Cuint), item, color)
 end
 
 function imnodes_PopColorStyle()
     ccall((:imnodes_PopColorStyle, libcimgui), Cvoid, ())
 end
 
-function imnodes_PushStyleVar(style_item, value)
-    ccall((:imnodes_PushStyleVar, libcimgui), Cvoid, (StyleVar, Cfloat), style_item, value)
+function imnodes_PushStyleVar_Float(style_item, value)
+    ccall((:imnodes_PushStyleVar_Float, libcimgui), Cvoid, (ImNodesStyleVar, Cfloat), style_item, value)
 end
 
-function imnodes_PopStyleVar()
-    ccall((:imnodes_PopStyleVar, libcimgui), Cvoid, ())
+function imnodes_PushStyleVar_Vec2(style_item, value)
+    ccall((:imnodes_PushStyleVar_Vec2, libcimgui), Cvoid, (ImNodesStyleVar, ImVec2), style_item, value)
+end
+
+function imnodes_PopStyleVar(count)
+    ccall((:imnodes_PopStyleVar, libcimgui), Cvoid, (Cint,), count)
 end
 
 function imnodes_BeginNode(id)
@@ -11426,7 +13552,7 @@ function imnodes_EndNodeTitleBar()
 end
 
 function imnodes_BeginInputAttribute(id, shape)
-    ccall((:imnodes_BeginInputAttribute, libcimgui), Cvoid, (Cint, PinShape), id, shape)
+    ccall((:imnodes_BeginInputAttribute, libcimgui), Cvoid, (Cint, ImNodesPinShape), id, shape)
 end
 
 function imnodes_EndInputAttribute()
@@ -11434,7 +13560,7 @@ function imnodes_EndInputAttribute()
 end
 
 function imnodes_BeginOutputAttribute(id, shape)
-    ccall((:imnodes_BeginOutputAttribute, libcimgui), Cvoid, (Cint, PinShape), id, shape)
+    ccall((:imnodes_BeginOutputAttribute, libcimgui), Cvoid, (Cint, ImNodesPinShape), id, shape)
 end
 
 function imnodes_EndOutputAttribute()
@@ -11450,7 +13576,7 @@ function imnodes_EndStaticAttribute()
 end
 
 function imnodes_PushAttributeFlag(flag)
-    ccall((:imnodes_PushAttributeFlag, libcimgui), Cvoid, (AttributeFlags,), flag)
+    ccall((:imnodes_PushAttributeFlag, libcimgui), Cvoid, (ImNodesAttributeFlags,), flag)
 end
 
 function imnodes_PopAttributeFlag()
@@ -11489,6 +13615,10 @@ function imnodes_GetNodeGridSpacePos(pOut, node_id)
     ccall((:imnodes_GetNodeGridSpacePos, libcimgui), Cvoid, (Ptr{ImVec2}, Cint), pOut, node_id)
 end
 
+function imnodes_SnapNodeToGrid(node_id)
+    ccall((:imnodes_SnapNodeToGrid, libcimgui), Cvoid, (Cint,), node_id)
+end
+
 function imnodes_IsEditorHovered()
     ccall((:imnodes_IsEditorHovered, libcimgui), Bool, ())
 end
@@ -11521,12 +13651,36 @@ function imnodes_GetSelectedLinks(link_ids)
     ccall((:imnodes_GetSelectedLinks, libcimgui), Cvoid, (Ptr{Cint},), link_ids)
 end
 
-function imnodes_ClearNodeSelection()
-    ccall((:imnodes_ClearNodeSelection, libcimgui), Cvoid, ())
+function imnodes_ClearNodeSelection_Nil()
+    ccall((:imnodes_ClearNodeSelection_Nil, libcimgui), Cvoid, ())
 end
 
-function imnodes_ClearLinkSelection()
-    ccall((:imnodes_ClearLinkSelection, libcimgui), Cvoid, ())
+function imnodes_ClearLinkSelection_Nil()
+    ccall((:imnodes_ClearLinkSelection_Nil, libcimgui), Cvoid, ())
+end
+
+function imnodes_SelectNode(node_id)
+    ccall((:imnodes_SelectNode, libcimgui), Cvoid, (Cint,), node_id)
+end
+
+function imnodes_ClearNodeSelection_Int(node_id)
+    ccall((:imnodes_ClearNodeSelection_Int, libcimgui), Cvoid, (Cint,), node_id)
+end
+
+function imnodes_IsNodeSelected(node_id)
+    ccall((:imnodes_IsNodeSelected, libcimgui), Bool, (Cint,), node_id)
+end
+
+function imnodes_SelectLink(link_id)
+    ccall((:imnodes_SelectLink, libcimgui), Cvoid, (Cint,), link_id)
+end
+
+function imnodes_ClearLinkSelection_Int(link_id)
+    ccall((:imnodes_ClearLinkSelection_Int, libcimgui), Cvoid, (Cint,), link_id)
+end
+
+function imnodes_IsLinkSelected(link_id)
+    ccall((:imnodes_IsLinkSelected, libcimgui), Bool, (Cint,), link_id)
 end
 
 function imnodes_IsAttributeActive()
@@ -11562,7 +13716,7 @@ function imnodes_SaveCurrentEditorStateToIniString(data_size)
 end
 
 function imnodes_SaveEditorStateToIniString(editor, data_size)
-    ccall((:imnodes_SaveEditorStateToIniString, libcimgui), Ptr{Cchar}, (Ptr{EditorContext}, Ptr{Csize_t}), editor, data_size)
+    ccall((:imnodes_SaveEditorStateToIniString, libcimgui), Ptr{Cchar}, (Ptr{ImNodesEditorContext}, Ptr{Csize_t}), editor, data_size)
 end
 
 function imnodes_LoadCurrentEditorStateFromIniString(data, data_size)
@@ -11570,7 +13724,7 @@ function imnodes_LoadCurrentEditorStateFromIniString(data, data_size)
 end
 
 function imnodes_LoadEditorStateFromIniString(editor, data, data_size)
-    ccall((:imnodes_LoadEditorStateFromIniString, libcimgui), Cvoid, (Ptr{EditorContext}, Ptr{Cchar}, Csize_t), editor, data, data_size)
+    ccall((:imnodes_LoadEditorStateFromIniString, libcimgui), Cvoid, (Ptr{ImNodesEditorContext}, Ptr{Cchar}, Csize_t), editor, data, data_size)
 end
 
 function imnodes_SaveCurrentEditorStateToIniFile(file_name)
@@ -11578,7 +13732,7 @@ function imnodes_SaveCurrentEditorStateToIniFile(file_name)
 end
 
 function imnodes_SaveEditorStateToIniFile(editor, file_name)
-    ccall((:imnodes_SaveEditorStateToIniFile, libcimgui), Cvoid, (Ptr{EditorContext}, Ptr{Cchar}), editor, file_name)
+    ccall((:imnodes_SaveEditorStateToIniFile, libcimgui), Cvoid, (Ptr{ImNodesEditorContext}, Ptr{Cchar}), editor, file_name)
 end
 
 function imnodes_LoadCurrentEditorStateFromIniFile(file_name)
@@ -11586,10 +13740,10 @@ function imnodes_LoadCurrentEditorStateFromIniFile(file_name)
 end
 
 function imnodes_LoadEditorStateFromIniFile(editor, file_name)
-    ccall((:imnodes_LoadEditorStateFromIniFile, libcimgui), Cvoid, (Ptr{EditorContext}, Ptr{Cchar}), editor, file_name)
+    ccall((:imnodes_LoadEditorStateFromIniFile, libcimgui), Cvoid, (Ptr{ImNodesEditorContext}, Ptr{Cchar}), editor, file_name)
 end
 
-# no prototype is found for this function at cimnodes.h:203:18, please use with caution
+# no prototype is found for this function at cimnodes.h:251:18, please use with caution
 function getIOKeyCtrlPtr()
     ccall((:getIOKeyCtrlPtr, libcimgui), Ptr{Bool}, ())
 end

@@ -68,9 +68,9 @@ CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Recursive Sans Casual-Regu
 CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Recursive Sans Linear-Regular.ttf"), 16)
 # @assert default_font != C_NULL
 
-# creat texture for image drawing
-# img_width, img_height = 256, 256
-# image_id = ImGui_ImplOpenGL3_CreateImageTexture(img_width, img_height)
+# create texture for image drawing
+img_width, img_height = 256, 256
+image_id = ImGuiOpenGLBackend.ImGui_ImplOpenGL3_CreateImageTexture(img_width, img_height)
 
 # setup Platform/Renderer bindings
 ImGuiGLFWBackend.init(window_ctx)
@@ -88,12 +88,13 @@ try
 
         demo_open && @c CImGui.ShowDemoWindow(&demo_open)
 
-        # # show image example
-        # CImGui.Begin("Image Demo")
-        # image = rand(GLubyte, 4, img_width, img_height)
-        # ImGui_ImplOpenGL3_UpdateImageTexture(image_id, image, img_width, img_height)
-        # CImGui.Image(Ptr{Cvoid}(image_id), (img_width, img_height))
-        # CImGui.End()
+        # show image example
+        if CImGui.Begin("Image Demo")
+            image = rand(GLubyte, 4, img_width, img_height)
+            ImGuiOpenGLBackend.ImGui_ImplOpenGL3_UpdateImageTexture(image_id, image, img_width, img_height)
+            CImGui.Image(Ptr{Cvoid}(image_id), CImGui.ImVec2(img_width, img_height))
+            CImGui.End()
+        end
 
         # rendering
         CImGui.Render()

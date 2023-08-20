@@ -1,7 +1,7 @@
 name = "LibCImGui"
 uuid = "9be01004-c4f5-478b-abeb-cb32b114cf5e"
 authors = ["Yupei Qi <qiyupei@gmail.com>"]
-version = "1.82.2"
+version = "1.89.4"
 
 [deps]
 CEnum = "fa961155-64e5-5f13-b03f-caf6b980ea82"

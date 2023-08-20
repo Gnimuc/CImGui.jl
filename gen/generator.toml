@@ -1,7 +1,7 @@
 [general]
 library_name = "libcimgui"
 
-printer_blacklist = [
+output_ignorelist = [
     "API",
     "EXTERN",
     "CIMGUI_API",
@@ -25,3 +25,4 @@ field_access_method_list = [
     "ImGuiPlatformMonitor",
     "ImGuiStyle",
 ]
+wrap_variadic_function = true

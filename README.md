@@ -4,7 +4,18 @@
 [![TagBot](https://github.com/JuliaImGui/LibCImGui.jl/actions/workflows/TagBot.yml/badge.svg)](https://github.com/JuliaImGui/LibCImGui.jl/actions/workflows/TagBot.yml)
 [![Coverage](https://codecov.io/gh/JuliaImGui/LibCImGui.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaImGui/LibCImGui.jl)
 
-Julia language binding for [cimgui](https://github.com/cimgui/cimgui)(docking branch), [cimplot](https://github.com/cimgui/cimplot), and [cimnodes](https://github.com/cimgui/cimnodes).
+Julia language binding for [cimgui](https://github.com/cimgui/cimgui)(docking
+branch), [cimplot](https://github.com/cimgui/cimplot), and
+[cimnodes](https://github.com/cimgui/cimnodes).
+
+The code the bindings are generated from come from the
+[CImGuiPack](https://github.com/JuliaPackaging/Yggdrasil/tree/master/C/CImGuiPack)
+JLL, which is built from the
+[cimgui-pack](https://github.com/JuliaImGui/cimgui-pack) repo. Note that the
+versioning of this repo *does not* exactly match upstream Dear ImGui, we only
+match the major and minor version. The patch version is specific to
+LibCImGui.jl. See the release notes for the exact Dear ImGui version used for
+each LibCImGui.jl release.
 
 ## Installation
 ```

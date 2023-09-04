@@ -18,7 +18,7 @@ CSyntax = "0.4"
 ImGuiGLFWBackend = "0.1"
 ImGuiOpenGL2Backend = "0.1"
 ImGuiOpenGLBackend = "0.1"
-LibCImGui = "~1.82"
+LibCImGui = "~1.82, 1"
 Preferences = "1"
 julia = "1.6"
 

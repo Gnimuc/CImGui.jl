@@ -15,7 +15,7 @@ Preferences = "21216c6a-2e73-6563-6e65-726566657250"
 [compat]
 CEnum = "0.4"
 CSyntax = "0.4"
-ImGuiGLFWBackend = "0.1"
+ImGuiGLFWBackend = "0.1, 0.2"
 ImGuiOpenGL2Backend = "0.1"
 ImGuiOpenGLBackend = "0.1"
 LibCImGui = "~1.82, 1"

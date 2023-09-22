@@ -206,8 +206,8 @@ Each axis can use a different mode, e.g. `ImVec2(0,400)`.
     functions (such as [`BeginMenu`](@ref)/[`EndMenu`](@ref), [`BeginPopup`](@ref)/[`EndPopup`](@ref), etc.)
     where the `EndXXX` call should only be called if the corresponding `BeginXXX` function returned true.
 """
-BeginChild(str_id, size=(0,0), border=false, flags=0) = igBeginChildStr(str_id, size, border, flags)
-BeginChild(id::Integer, size=(0,0), border=false, flags=0) = igBeginChildID(id, size, border, flags)
+BeginChild(str_id, size=(0,0), border=false, flags=0) = igBeginChild_Str(str_id, size, border, flags)
+BeginChild(id::Integer, size=(0,0), border=false, flags=0) = igBeginChild_ID(id, size, border, flags)
 
 """
     EndChild()
@@ -379,7 +379,7 @@ end
 """
     GetWindowContentRegionWidth() -> ImVec2
 """
-GetWindowContentRegionWidth() = igGetWindowContentRegionWidth()
+GetWindowContentRegionWidth() = GetWindowContentRegionMax().x - GetWindowContentRegionMin().x
 
 """
     SetNextWindowPos(pos, cond=0, pivot=(0,0))
@@ -436,7 +436,7 @@ Set current window position - call within [`Begin`](@ref)/[`End`](@ref).
     This function is not recommended! Prefer using [`SetNextWindowPos`](@ref), as this may
     incur tearing and side-effects.
 """
-SetWindowPos(pos, cond=0) = igSetWindowPosVec2(pos, cond)
+SetWindowPos(pos, cond=0) = igSetWindowPos_Vec2(pos, cond)
 
 """
     SetWindowSize(size, cond=0)
@@ -447,7 +447,7 @@ an auto-fit.
     This function is not recommended! Prefer using [`SetNextWindowSize`](@ref), as this may
     incur tearing and minor side-effects.
 """
-SetWindowSize(size, cond=0) = igSetWindowSizeVec2(size, cond)
+SetWindowSize(size, cond=0) = igSetWindowSize_Vec2(size, cond)
 
 """
     SetWindowCollapsedBool(collapsed, cond=0)
@@ -456,7 +456,7 @@ Set current window collapsed state.
 !!! warning "Not recommended!"
     This function is not recommended! Prefer using [`SetNextWindowCollapsed`](@ref).
 """
-SetWindowCollapsed(collapsed, cond=0) = igSetWindowCollapsedBool(collapsed, cond)
+SetWindowCollapsed(collapsed, cond=0) = igSetWindowCollapsed_Bool(collapsed, cond)
 
 """
     SetWindowFocus()
@@ -465,7 +465,7 @@ Set current window to be focused / top-most.
 !!! warning "Not recommended!"
     This function is not recommended! Prefer using [`SetNextWindowFocus`](@ref).
 """
-SetWindowFocus() = igSetWindowFocusNil()
+SetWindowFocus() = igSetWindowFocus_Nil()
 
 """
     SetWindowFontScale(scale)
@@ -477,27 +477,27 @@ SetWindowFontScale(scale) = igSetWindowFontScale(scale)
     SetWindowPosStr(name::AbstractString, pos, cond=0)
 Set named window position.
 """
-SetWindowPos(name::AbstractString, pos, cond=0) = igSetWindowPosStr(name, pos, cond)
+SetWindowPos(name::AbstractString, pos, cond=0) = igSetWindowPos_Str(name, pos, cond)
 
 """
     SetWindowSizeStr(name::AbstractString, size, cond=0)
 Set named window size. Set axis to `0.0` to force an auto-fit on this axis.
 """
-SetWindowSize(name::AbstractString, size, cond=0) = igSetWindowSizeStr(name, size, cond)
+SetWindowSize(name::AbstractString, size, cond=0) = igSetWindowSize_Str(name, size, cond)
 
 """
     SetWindowCollapsed(name::AbstractString, collapsed, cond=0)
 Set named window collapsed state.
 """
-SetWindowCollapsed(name::AbstractString, collapsed, cond=0) = igSetWindowCollapsedStr(name, collapsed, cond)
+SetWindowCollapsed(name::AbstractString, collapsed, cond=0) = igSetWindowCollapsed_Str(name, collapsed, cond)
 
 """
     SetWindowFocus(name::Ptr{Cvoid})
     SetWindowFocus(name::AbstractString)
 Set named window to be focused / front-most. Use `C_NULL` to remove focus.
 """
-SetWindowFocus(name::Ptr{Cvoid}) = igSetWindowFocusStr(name)
-SetWindowFocus(name::AbstractString) = igSetWindowFocusStr(name)
+SetWindowFocus(name::Ptr{Cvoid}) = igSetWindowFocus_Str(name)
+SetWindowFocus(name::AbstractString) = igSetWindowFocus_Str(name)
 
 
 ##################################### Windows Scrolling ####################################
@@ -555,14 +555,14 @@ SetScrollHereY(center_y_ratio=0.5) = igSetScrollHereY(center_y_ratio)
 Adjust scrolling amount to make given position visible.
 Generally [`GetCursorStartPos`](@ref) + offset to compute a valid position.
 """
-SetScrollFromPosX(local_y, center_y_ratio=0.5) = igSetScrollFromPosXFloat(local_y, center_y_ratio)
+SetScrollFromPosX(local_y, center_y_ratio=0.5) = igSetScrollFromPosX_Float(local_y, center_y_ratio)
 
 """
     SetScrollFromPosY(local_y, center_y_ratio=0.5)
 Adjust scrolling amount to make given position visible.
 Generally [`GetCursorStartPos`](@ref) + offset to compute a valid position.
 """
-SetScrollFromPosY(local_y, center_y_ratio=0.5) = igSetScrollFromPosYFloat(local_y, center_y_ratio)
+SetScrollFromPosY(local_y, center_y_ratio=0.5) = igSetScrollFromPosY_Float(local_y, center_y_ratio)
 
 ################################ Parameters stacks (shared) ################################
 """
@@ -582,8 +582,8 @@ PopFont() = igPopFont()
     PushStyleColor(idx, col::Integer)
 See also [`GetStyleColorVec4`](@ref), [`TextColored`](@ref), [`TextDisabled`](@ref).
 """
-PushStyleColor(idx, col) = igPushStyleColorVec4(idx, col)
-PushStyleColor(idx, col::Integer) = igPushStyleColorU32(idx, col)
+PushStyleColor(idx, col) = igPushStyleColor_Vec4(idx, col)
+PushStyleColor(idx, col::Integer) = igPushStyleColor_U32(idx, col)
 
 """
     PopStyleColor(count=1)
@@ -596,8 +596,8 @@ PopStyleColor(count=1) = igPopStyleColor(count)
     PushStyleVar(idx, val::Real)
 See also [`GetStyle`](@ref).
 """
-PushStyleVar(idx, val) = igPushStyleVarVec2(idx, val)
-PushStyleVar(idx, val::Real) = igPushStyleVarFloat(idx, val)
+PushStyleVar(idx, val) = igPushStyleVar_Vec2(idx, val)
+PushStyleVar(idx, val::Real) = igPushStyleVar_Float(idx, val)
 
 """
     PopStyleVar(count=1)
@@ -641,10 +641,10 @@ end
     GetColorU32(idx::Integer, alpha_mul=1.0) -> ImU32
 Retrieve given style color with style alpha applied and optional extra alpha multiplier.
 """
-GetColorU32(idx::Integer, alpha_mul=1.0) = igGetColorU32Col(idx, alpha_mul)
-GetColorU32(col::ImVec4) = igGetColorU32Vec4(col)
+GetColorU32(idx::Integer, alpha_mul=1.0) = igGetColorU32_Col(idx, alpha_mul)
+GetColorU32(col::ImVec4) = igGetColorU32_Vec4(col)
 GetColorU32(r, g, b, a) = GetColorU32(ImVec4(r,g,b,a))
-GetColorU32(col::ImU32) = igGetColorU32U32(col)
+GetColorU32(col::ImU32) = igGetColorU32_U32(col)
 GetColorU32(col::Cenum) = GetColorU32(Int(col))
 
 ############################ Parameters stacks (current window) ############################
@@ -693,15 +693,17 @@ See [`PushTextWrapPos`](@ref).
 PopTextWrapPos() = igPopTextWrapPos()
 
 """
-    PushAllowKeyboardFocus(allow_keyboard_focus)
+    PushTabStop(allow_keyboard_focus)
 Allow focusing using `TAB`/`Shift-TAB`, enabled by default but you can disable it for certain widgets.
 """
-PushAllowKeyboardFocus(allow_keyboard_focus) = igPushAllowKeyboardFocus(allow_keyboard_focus)
+PushTabStop(allow_keyboard_focus) = igPushTabStop(allow_keyboard_focus)
+@deprecate PushAllowKeyboardFocus(focus) PushTabStop(focus)
 
 """
-    PopAllowKeyboardFocus()
+    PopTabStop()
 """
-PopAllowKeyboardFocus() = igPopAllowKeyboardFocus()
+PopTabStop() = igPopTabStop()
+@deprecate PopAllowKeyboardFocus() PopTabStop()
 
 """
     PushButtonRepeat(repeat)
@@ -988,10 +990,10 @@ Push identifier into the ID stack. IDs are hash of the entire stack!
         * e.g. when displaying a list of objects, using indices or pointers as ID will preserve the
             node open/closed state differently. See what makes more sense in your situation!
 """
-PushID(str_id::AbstractString) = igPushIDStr(str_id)
-PushID(str_id_begin::AbstractString, str_id_end::AbstractString) = igPushIDStrStr(str_id_begin, str_id_end)
-PushID(ptr_id::Ptr) = igPushIDPtr(ptr_id)
-PushID(int_id::Integer) = igPushIDInt(int_id)
+PushID(str_id::AbstractString) = igPushID_Str(str_id)
+PushID(str_id_begin::AbstractString, str_id_end::AbstractString) = igPushID_StrStr(str_id_begin, str_id_end)
+PushID(ptr_id::Ptr) = igPushID_Ptr(ptr_id)
+PushID(int_id::Integer) = igPushID_Int(int_id)
 
 """
     PopID()
@@ -1006,9 +1008,9 @@ PopID() = igPopID()
 Calculate unique ID (hash of whole ID stack + given parameter). e.g. if you want to query
 into `ImGuiStorage` yourself.
 """
-GetID(str_id::AbstractString) = igGetIDStr(str_id)
-GetID(str_id_begin::AbstractString, str_id_end::AbstractString) = igGetIDStrStr(str_id_begin, str_id_end)
-GetID(ptr_id::Ptr) = igGetIDPtr(ptr_id)
+GetID(str_id::AbstractString) = igGetID_Str(str_id)
+GetID(str_id_begin::AbstractString, str_id_end::AbstractString) = igGetID_StrStr(str_id_begin, str_id_end)
+GetID(ptr_id::Ptr) = igGetID_Ptr(ptr_id)
 
 ####################################### Widgets: Text ######################################
 """
@@ -1116,9 +1118,9 @@ ArrowButton(str_id, dir) = igArrowButton(str_id, dir)
 Image(user_texture_id, size, uv0=ImVec2(0,0), uv1=ImVec2(1,1), tint_col=ImVec4(1,1,1,1), border_col=ImVec4(0,0,0,0)) = igImage(user_texture_id, size, uv0, uv1, tint_col, border_col)
 
 """
-    ImageButton(user_texture_id, size, uv0=(0,0), uv1=(1,1), frame_padding=-1, bg_col=(0,0,0,0), tint_col=(1,1,1,1)) -> Bool
+    ImageButton(str_id, user_texture_id, size, uv0=(0,0), uv1=(1,1), bg_col=(0,0,0,0), tint_col=(1,1,1,1)) -> Bool
 """
-ImageButton(user_texture_id, size, uv0=ImVec2(0,0), uv1=ImVec2(1,1), frame_padding=-1, bg_col=ImVec4(0,0,0,0), tint_col=ImVec4(1,1,1,1)) = igImageButton(user_texture_id, size, uv0, uv1, frame_padding, bg_col, tint_col)
+ImageButton(str_id, user_texture_id, size, uv0=ImVec2(0,0), uv1=ImVec2(1,1), bg_col=ImVec4(0,0,0,0), tint_col=ImVec4(1,1,1,1)) = igImageButton(str_id, user_texture_id, size, uv0, uv1, bg_col, tint_col)
 
 """
     Checkbox(label, v) -> Bool
@@ -1130,8 +1132,8 @@ Checkbox(label, v) = igCheckbox(label, v)
     CheckboxFlags(label, flags, flags_value) -> Bool
 Return true when the value has been changed or when pressed/selected.
 """
-CheckboxFlags(label, flags::Ref{Cint}, flags_value) = igCheckboxFlagsIntPtr(label, flags, flags_value)
-CheckboxFlags(label, flags::Ref{Cuint}, flags_value) = igCheckboxFlagsUintPtr(label, flags, flags_value)
+CheckboxFlags(label, flags::Ref{Cint}, flags_value) = igCheckboxFlags_IntPtr(label, flags, flags_value)
+CheckboxFlags(label, flags::Ref{Cuint}, flags_value) = igCheckboxFlags_UintPtr(label, flags, flags_value)
 
 """
     RadioButton(label, active::Bool) -> Bool
@@ -1145,8 +1147,8 @@ if RadioButton("one", my_value==1)
 end
 ```
 """
-RadioButton(label, active::Bool) = igRadioButtonBool(label, active)
-RadioButton(label, v::Ref, v_button::Integer) = igRadioButtonIntPtr(label, v, v_button)
+RadioButton(label, active::Bool) = igRadioButton_Bool(label, active)
+RadioButton(label, v::Ref, v_button::Integer) = igRadioButton_IntPtr(label, v, v_button)
 
 """
     ProgressBar(fraction, size_arg=(-1,0), overlay=C_NULL)
@@ -1182,18 +1184,18 @@ EndCombo() = igEndCombo()
 The old [`Combo`](@ref) api are helpers over [`BeginCombo`](@ref)/[`EndCombo`](@ref) which
 are kept available for convenience purpose.
 """
-Combo(label, current_item, items::Vector, items_count, popup_max_height_in_items=-1) = igComboStr_arr(label, current_item, items, items_count, popup_max_height_in_items)
+Combo(label, current_item, items::Vector, items_count, popup_max_height_in_items=-1) = igCombo_Str_arr(label, current_item, items, items_count, popup_max_height_in_items)
 
 """
     Combo(label, current_item, items_separated_by_zeros, popup_max_height_in_items=-1) -> Bool
 Separate items with `\0` within a string, end item-list with `\0\0`. e.g. `One\0Two\0Three\0`
 """
-Combo(label, current_item, items_separated_by_zeros, popup_max_height_in_items=-1) = igComboStr(label, current_item, items_separated_by_zeros, popup_max_height_in_items)
+Combo(label, current_item, items_separated_by_zeros, popup_max_height_in_items=-1) = igCombo_Str(label, current_item, items_separated_by_zeros, popup_max_height_in_items)
 
 """
     Combo(label, current_item, items_getter::Union{Ptr,Base.CFunction}, data, items_count, popup_max_height_in_items=-1) -> Bool
 """
-Combo(label, current_item, items_getter::Union{Ptr,Base.CFunction}, data, items_count, popup_max_height_in_items=-1) = igComboFnBoolPtr(label, current_item, items_getter, data, items_count, popup_max_height_in_items)
+Combo(label, current_item, items_getter::Union{Ptr,Base.CFunction}, data, items_count, popup_max_height_in_items=-1) = igCombo_FnBoolPtr(label, current_item, items_getter, data, items_count, popup_max_height_in_items)
 
 ###################################### Widgets: Drags ######################################
 """
@@ -1489,7 +1491,7 @@ SetColorEditOptions(flags) = igSetColorEditOptions(flags)
 TreeNode functions return true when the node is open, in which case you need to also call
 [`TreePop`](@ref) when you are finished displaying the tree node contents.
 """
-TreeNode(label::AbstractString) = igTreeNodeStr(label)
+TreeNode(label::AbstractString) = igTreeNode_Str(label)
 
 """
     TreeNode(str_id, formatted_text) -> Bool
@@ -1501,7 +1503,7 @@ To align arbitrary text at the same level as a [`TreeNode`](@ref) you can use [`
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
-TreeNode(str_id, formatted_text) = igTreeNodeStrStr(str_id, formatted_text)
+TreeNode(str_id, formatted_text) = igTreeNode_StrStr(str_id, formatted_text)
 
 """
     TreeNodePtr(ptr_id::Ptr, formatted_text) -> Bool
@@ -1513,12 +1515,12 @@ To align arbitrary text at the same level as a [`TreeNode`](@ref) you can use [`
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
-TreeNode(ptr_id::Ptr, formatted_text) = igTreeNodePtr(ptr_id, formatted_text)
+TreeNode(ptr_id::Ptr, formatted_text) = igTreeNode_Ptr(ptr_id, formatted_text)
 
 """
     TreeNodeEx(label, flags=0) -> Bool
 """
-TreeNodeEx(label, flags=0) = igTreeNodeExStr(label, flags)
+TreeNodeEx(label, flags=0) = igTreeNodeEx_Str(label, flags)
 
 """
     TreeNodeEx(str_id, flags, formatted_text) -> Bool
@@ -1526,7 +1528,7 @@ TreeNodeEx(label, flags=0) = igTreeNodeExStr(label, flags)
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
-TreeNodeEx(str_id, flags, formatted_text) = igTreeNodeExStrStr(str_id, flags, formatted_text)
+TreeNodeEx(str_id, flags, formatted_text) = igTreeNodeEx_StrStr(str_id, flags, formatted_text)
 
 """
     TreeNodeEx(ptr_id::Ptr, flags, formatted_text) -> Bool
@@ -1534,21 +1536,21 @@ TreeNodeEx(str_id, flags, formatted_text) = igTreeNodeExStrStr(str_id, flags, fo
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
-TreeNodeEx(ptr_id::Ptr, flags, formatted_text) = igTreeNodeExPtr(ptr_id, flags, formatted_text)
+TreeNodeEx(ptr_id::Ptr, flags, formatted_text) = igTreeNodeEx_Ptr(ptr_id, flags, formatted_text)
 
 """
     TreePush(str_id)
 [`Indent`](@ref) + [`PushID`](@ref). Already called by [`TreeNode`](@ref) when returning true,
 but you can call [`TreePush`](@ref)/[`TreePop`](@ref) yourself if desired.
 """
-TreePush(str_id) = igTreePushStr(str_id)
+TreePush(str_id) = igTreePush_Str(str_id)
 
 """
     TreePush(ptr_id::Ptr=C_NULL)
 [`Indent`](@ref) + [`PushID`](@ref). Already called by [`TreeNode`](@ref) when returning true,
 but you can call [`TreePush`](@ref)/[`TreePop`](@ref) yourself if desired.
 """
-TreePush(ptr_id::Ptr=C_NULL) = igTreePushPtr(ptr_id)
+TreePush(ptr_id::Ptr=C_NULL) = igTreePush_Ptr(ptr_id)
 
 """
     TreePop()
@@ -1569,13 +1571,13 @@ GetTreeNodeToLabelSpacing() = igGetTreeNodeToLabelSpacing()
 If returning `true` the header is open. Doesn't indent nor push on ID stack.
 User doesn't have to call [`TreePop`](@ref).
 """
-CollapsingHeader(label, flags=ImGuiTreeNodeFlags_(0)) = igCollapsingHeaderTreeNodeFlags(label, flags)
+CollapsingHeader(label, flags=ImGuiTreeNodeFlags_(0)) = igCollapsingHeader_TreeNodeFlags(label, flags)
 
 """
     CollapsingHeader(label, p_open::Ref, flags=ImGuiTreeNodeFlags_(0)) -> Bool
 When `p_open` isn't `C_NULL`, display an additional small close button on upper right of the header.
 """
-CollapsingHeader(label, p_open::Ref, flags=ImGuiTreeNodeFlags_(0)) = igCollapsingHeaderBoolPtr(label, p_open, flags)
+CollapsingHeader(label, p_open::Ref, flags=ImGuiTreeNodeFlags_(0)) = igCollapsingHeader_BoolPtr(label, p_open, flags)
 
 """
     SetNextItemOpen(is_open, cond=0)
@@ -1595,16 +1597,16 @@ Return true if is clicked, so you can modify your selection state:
 - `size.y == 0.0`: use label height
 - `size.y > 0.0`: specify height
 """
-Selectable(label, selected::Bool=false, flags=0, size=ImVec2(0,0)) = igSelectableBool(label, selected, flags, size)
-Selectable(label, p_selected::Ref, flags=0, size=ImVec2(0,0)) = igSelectableBoolPtr(label, p_selected, flags, size)
+Selectable(label, selected::Bool=false, flags=0, size=ImVec2(0,0)) = igSelectable_Bool(label, selected, flags, size)
+Selectable(label, p_selected::Ref, flags=0, size=ImVec2(0,0)) = igSelectable_BoolPtr(label, p_selected, flags, size)
 
 #################################### Widgets: List Boxes ###################################
 """
     ListBox(label, current_item, items, items_count, height_in_items=-1)
     ListBox(label, current_item, items_getter::Ptr{Cvoid}, data::Ptr{Cvoid}, items_count, height_in_items=-1)
 """
-ListBox(label, current_item, items, items_count, height_in_items=-1) = igListBoxStr_arr(label, current_item, items, items_count, height_in_items)
-ListBox(label, current_item, items_getter::Ptr{Cvoid}, data::Ptr{Cvoid}, items_count, height_in_items=-1) = igListBoxFnBoolPtr(label, current_item, items_getter, data, items_count, height_in_items)
+ListBox(label, current_item, items, items_count, height_in_items=-1) = igListBox_Str_arr(label, current_item, items, items_count, height_in_items)
+ListBox(label, current_item, items_getter::Ptr{Cvoid}, data::Ptr{Cvoid}, items_count, height_in_items=-1) = igListBox_FnBoolPtr(label, current_item, items_getter, data, items_count, height_in_items)
 
 """
     BeginListBox(label, size=(0,0))
@@ -1628,40 +1630,40 @@ EndListBox() = igEndListBox()
     PlotLines(label, values, values_count::Integer, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=(0,0), stride=sizeof(Cfloat))
     PlotLines(label, values_getter::Ptr, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=(0,0))
 """
-PlotLines(label, values, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0), stride=sizeof(Cfloat)) = igPlotLinesFloatPtr(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
-PlotLines(label, values_getter, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0)) = igPlotLinesFnFloatPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
+PlotLines(label, values, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0), stride=sizeof(Cfloat)) = igPlotLines_FloatPtr(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
+PlotLines(label, values_getter, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0)) = igPlotLines_FnFloatPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
 
 """
     PlotHistogram(label, values, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=(0,0), stride=sizeof(Cfloat))
     PlotHistogram(label, values_getter::Ptr, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0))
 """
-PlotHistogram(label, values, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0), stride=sizeof(Cfloat)) = igPlotHistogramFloatPtr(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
-PlotHistogram(label, values_getter, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0)) = igPlotHistogramFnFloatPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
+PlotHistogram(label, values, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0), stride=sizeof(Cfloat)) = igPlotHistogram_FloatPtr(label, values, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, stride)
+PlotHistogram(label, values_getter, data::Ptr, values_count, values_offset=0, overlay_text=C_NULL, scale_min=FLT_MAX, scale_max=FLT_MAX, graph_size=ImVec2(0,0)) = igPlotHistogram_FnFloatPtr(label, values_getter, data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size)
 
 ################################# Widgets: Value() Helpers #################################
 """
     ValueBool(prefix, b)
 Output single value in "name: value" format.
 """
-ValueBool(prefix, b) = igValueBool(prefix, b)
+ValueBool(prefix, b) = igValue_Bool(prefix, b)
 
 """
     ValueInt(prefix, v)
 Output single value in "name: value" format.
 """
-ValueInt(prefix, v) = igValueInt(prefix, v)
+ValueInt(prefix, v) = igValue_Int(prefix, v)
 
 """
     ValueUint(prefix, v)
 Output single value in "name: value" format.
 """
-ValueUint(prefix, v) = igValueUint(prefix, v)
+ValueUint(prefix, v) = igValue_Uint(prefix, v)
 
 """
     ValueFloat(prefix, v, float_format=C_NULL)
 Output single value in "name: value" format.
 """
-ValueFloat(prefix, v, float_format=C_NULL) = igValueFloat(prefix, v, float_format)
+ValueFloat(prefix, v, float_format=C_NULL) = igValue_Float(prefix, v, float_format)
 
 ###################################### Widgets: Menus ######################################
 """
@@ -1709,8 +1711,8 @@ EndMenu() = igEndMenu()
     MenuItem(label, shortcut, selected::Ref, enabled::Bool=true) -> Bool
 Return true when activated. Shortcuts are displayed for convenience but not processed by ImGui at the moment.
 """
-MenuItem(label, shortcut=C_NULL, selected::Bool=false, enabled::Bool=true) = igMenuItemBool(label, shortcut, selected, enabled)
-MenuItem(label, shortcut, selected::Ref, enabled::Bool=true) = igMenuItemBoolPtr(label, shortcut, selected, enabled)
+MenuItem(label, shortcut=C_NULL, selected::Bool=false, enabled::Bool=true) = igMenuItem_Bool(label, shortcut, selected, enabled)
+MenuItem(label, shortcut, selected::Ref, enabled::Bool=true) = igMenuItem_BoolPtr(label, shortcut, selected, enabled)
 
 
 ######################################### Tooltips #########################################
@@ -1746,7 +1748,7 @@ a [`BeginPopup`](@ref)/[`EndPopup`](@ref) block. By default, [`Selectable`](@ref
 are calling [`CloseCurrentPopup`](@ref). Popup identifiers are relative to the current ID-stack
 (so OpenPopup and BeginPopup needs to be at the same level).
 """
-OpenPopup(str_id) =  igOpenPopup(str_id)
+OpenPopup(str_id, popup_flags=0) =  igOpenPopup_Str(str_id, popup_flags)
 
 """
     BeginPopup(str_id, flags=0) -> Bool
@@ -1755,15 +1757,15 @@ Return true if the popup is open, and you can start outputting to it.
 !!! note
     Only call [`EndPopup`](@ref) if [`BeginPopup`](@ref) returns true!
 """
-BeginPopup(str_id, flags=0) = igBeginPopup(str_id, flags)
+BeginPopup(str_id, window_flags=0) = igBeginPopup(str_id, window_flags)
 
 """
-    BeginPopupContextItem(str_id=C_NULL, mouse_button=1) -> Bool
+    BeginPopupContextItem(str_id=C_NULL, flags=1) -> Bool
 Helper to open and begin popup when clicked on last item. if you can pass a C_NULL str_id
 only if the previous item had an id. If you want to use that on a non-interactive item such
 as [`Text`](@ref) you need to pass in an explicit ID here.
 """
-BeginPopupContextItem(str_id=C_NULL, mouse_button=1) = igBeginPopupContextItem(str_id, mouse_button)
+BeginPopupContextItem(str_id=C_NULL, popup_flags=1) = igBeginPopupContextItem(str_id, popup_flags)
 
 """
     BeginPopupContextWindow(str_id=C_NULL, popup_flags=1) -> Bool
@@ -1781,7 +1783,7 @@ BeginPopupContextVoid(str_id=C_NULL, popup_flags=1) = igBeginPopupContextVoid(st
     BeginPopupModal(name, p_open=C_NULL, flags=0) -> Bool
 Modal dialog (regular window with title bar, block interactions behind the modal window, can't close the modal window by clicking outside).
 """
-BeginPopupModal(name, p_open=C_NULL, flags=0) = igBeginPopupModal(name, p_open, flags)
+BeginPopupModal(name, p_open=C_NULL, window_flags=0) = igBeginPopupModal(name, p_open, window_flags)
 
 """
     EndPopup()
@@ -1797,7 +1799,7 @@ EndPopup() = igEndPopup()
 Helper to open popup when clicked on last item (note: actually triggers on the mouse
 _released_ event to be consistent with popup behaviors).
 """
-OpenPopupOnItemClick(str_id=C_NULL, mouse_button=1) = igOpenPopupOnItemClick(str_id, mouse_button)
+OpenPopupOnItemClick(str_id=C_NULL, popup_flags=1) = igOpenPopupOnItemClick(str_id, popup_flags)
 
 @deprecate OpenPopupContextItem(str_id=C_NULL, mouse_button=1) OpenPopupOnItemClick(str_id=C_NULL, mouse_button=1)
 
@@ -1805,7 +1807,7 @@ OpenPopupOnItemClick(str_id=C_NULL, mouse_button=1) = igOpenPopupOnItemClick(str
     IsPopupOpen(str_id) -> Bool
 Return true if the popup is open.
 """
-IsPopupOpen(str_id) = igIsPopupOpenStr(str_id)
+IsPopupOpen(str_id) = igIsPopupOpen_Str(str_id)
 
 """
     CloseCurrentPopup()
@@ -1978,7 +1980,7 @@ TableGetColumnCount() = igTableGetColumnCount()
     TableGetColumnName(column_n = -1) -> String
 return "" if column didn't have a name declared by TableSetupColumn(). Pass -1 to use current column.
 """
-TableGetColumnName(column_n = -1) = unsafe_string(igTableGetColumnNameInt(column_n))
+TableGetColumnName(column_n = -1) = unsafe_string(igTableGetColumnName_Int(column_n))
 
 """
     TableGetColumnFlags(column_n = -1) -> ImGuiTableColumnFlags
@@ -2342,7 +2344,7 @@ SetItemAllowOverlap() = igSetItemAllowOverlap()
     IsRectVisible(x, y) -> Bool
 Test if rectangle (of given size, starting from cursor position) is visible / not clipped.
 """
-IsRectVisible(size) = igIsRectVisibleNil(size)
+IsRectVisible(size) = igIsRectVisible_Nil(size)
 IsRectVisible(x, y) = IsRectVisible(ImVec2(x,y))
 
 """
@@ -2350,7 +2352,7 @@ IsRectVisible(x, y) = IsRectVisible(ImVec2(x,y))
     IsRectVisibleVec2(rect_min::NTuple{2}, rect_max::NTuple{2}) -> Bool
 Test if rectangle (in screen space) is visible / not clipped. to perform coarse clipping on user's side.
 """
-IsRectVisibleVec2(rect_min, rect_max) = igIsRectVisibleVec2(rect_min, rect_max)
+IsRectVisibleVec2(rect_min, rect_max) = igIsRectVisible_Vec2(rect_min, rect_max)
 
 """
     GetTime() -> Cdouble
@@ -2366,13 +2368,13 @@ GetFrameCount() = igGetFrameCount()
     GetBackgroundDrawList() -> Ptr{ImDrawList}
 This draw list will be the first rendering one. Useful to quickly draw shapes/text behind dear imgui contents.
 """
-GetBackgroundDrawList() = igGetBackgroundDrawList()
+GetBackgroundDrawList() = igGetBackgroundDrawList_Nil()
 
 """
     GetForegroundDrawList() -> Ptr{ImDrawList}
 this draw list will be the last rendered one. Useful to quickly draw shapes/text over dear imgui contents.
 """
-GetForegroundDrawList() = igGetForegroundDrawListNil()
+GetForegroundDrawList() = igGetForegroundDrawList_Nil()
 
 @deprecate GetOverlayDrawList() GetForegroundDrawList()
 
@@ -2407,12 +2409,6 @@ function CalcTextSize(text, text_end=C_NULL, hide_text_after_double_hash=false, 
     igCalcTextSize(x, text, text_end, hide_text_after_double_hash, wrap_width)
     return x[]
 end
-
-"""
-    CalcListClipping(items_count, items_height, out_items_display_start, out_items_display_end)
-Calculate coarse clipping for large list of evenly sized items. Prefer using the ImGuiListClipper higher-level helper if you can.
-"""
-CalcListClipping(items_count, items_height, out_items_display_start, out_items_display_end) = igCalcListClipping(items_count, items_height, out_items_display_start, out_items_display_end)
 
 """
     BeginChildFrame(id, size, flags=0) -> Bool
@@ -2461,19 +2457,19 @@ Is key being held. == io.KeysDown[user_key_index]. note that imgui doesn't know 
 of each entry of io.KeysDown[]. Use your own indices/enums according to how your backend/engine
 stored them into io.KeysDown[]!
 """
-IsKeyDown(user_key_index) = igIsKeyDown(user_key_index)
+IsKeyDown(user_key_index) = igIsKeyDown_Nil(user_key_index)
 
 """
     IsKeyPressed(user_key_index, repeat=true) -> Bool
 Was key pressed (went from !Down to Down). If repeat=true, uses io.KeyRepeatDelay / KeyRepeatRate.
 """
-IsKeyPressed(user_key_index, repeat=true) = igIsKeyPressed(user_key_index, repeat)
+IsKeyPressed(user_key_index, repeat=true) = igIsKeyPressed_Bool(user_key_index, repeat)
 
 """
     IsKeyReleased(user_key_index) -> Bool
 Was key released (went from Down to !Down).
 """
-IsKeyReleased(user_key_index) = igIsKeyReleased(user_key_index)
+IsKeyReleased(user_key_index) = igIsKeyReleased_Nil(user_key_index)
 
 """
     GetKeyPressedAmount(key_index, repeat_delay, rate) -> Cint
@@ -2483,17 +2479,18 @@ is small enough that DeltaTime > RepeatRate
 GetKeyPressedAmount(key_index, repeat_delay, rate) = igGetKeyPressedAmount(key_index, repeat_delay, rate)
 
 """
-    CaptureKeyboardFromApp(capture=true)
+    SetNextFrameWantCaptureKeyboard(capture=true)
 Manually override io.WantCaptureKeyboard flag next frame (said flag is entirely left for
 your application to handle). e.g. force capture keyboard when your widget is being hovered.
 """
-CaptureKeyboardFromApp(capture=true) = igCaptureKeyboardFromApp(capture)
+SetNextFrameWantCaptureKeyboard(capture=true) = igSetNextFrameWantCaptureKeyboard(capture)
+@deprecate CaptureKeyboardFromApp(capture) SetNextFrameWantCaptureKeyboard(capture)
 
 """
     IsMouseDown(button) -> Bool
 Is mouse button held (0=left, 1=right, 2=middle).
 """
-IsMouseDown(button) = igIsMouseDown(button)
+IsMouseDown(button) = igIsMouseDown_Nil(button)
 
 """
     IsAnyMouseDown() -> Bool
@@ -2505,7 +2502,7 @@ IsAnyMouseDown() = igIsAnyMouseDown()
     IsMouseClicked(button, repeat=false) -> Bool
 Did mouse button clicked (went from !Down to Down) (0=left, 1=right, 2=middle)
 """
-IsMouseClicked(button, repeat=false) = igIsMouseClicked(button, repeat)
+IsMouseClicked(button, repeat=false) = igIsMouseClicked_Bool(button, repeat)
 
 """
     IsMouseDoubleClicked(button) -> Bool
@@ -2518,7 +2515,7 @@ IsMouseDoubleClicked(button) = igIsMouseDoubleClicked(button)
     IsMouseReleased(button) -> Bool
 Did mouse button released (went from Down to !Down).
 """
-IsMouseReleased(button) = igIsMouseReleased(button)
+IsMouseReleased(button) = igIsMouseReleased_Nil(button)
 
 """
     IsMouseDragging(button=0, lock_threshold=-1.0) -> Bool
@@ -2591,7 +2588,8 @@ SetMouseCursor(type) = igSetMouseCursor(type)
 Manually override io.WantCaptureMouse flag next frame (said flag is entirely left for your
 application to handle).
 """
-CaptureMouseFromApp(capture=true) = igCaptureMouseFromApp(capture)
+SetNextFrameWantCaptureMouse(capture=true) = igSetNextFrameWantCaptureMouse(capture)
+@deprecate CaptureMouseFromApp(capture) SetNextFrameWantCaptureMouse(capture)
 
 #################################### Clipboard Utilities ###################################
 """
@@ -2701,21 +2699,21 @@ end
 AddLine(handle::Ptr{ImDrawList}, a, b, col, thickness=1.0) = ImDrawList_AddLine(handle, a, b, col, thickness)
 
 """
-    AddRect(handle::Ptr{ImDrawList}, a, b, col, rounding=0.0, rounding_corners_flags=ImDrawCornerFlags_All, thickness=1.0)
+    AddRect(handle::Ptr{ImDrawList}, a, b, col, rounding=0.0, rounding_corners_flags=ImDrawFlags_RoundCornersAll, thickness=1.0)
 ### Arguments
 - `a`: upper-left
 - `b`: lower-right
 - `rounding_corners_flags`: 4-bits corresponding to which corner to round
 """
-AddRect(handle::Ptr{ImDrawList}, a, b, col, rounding=0.0, rounding_corners_flags=ImDrawCornerFlags_All, thickness=1.0) = ImDrawList_AddRect(handle, a, b, col, rounding, rounding_corners_flags, thickness)
+AddRect(handle::Ptr{ImDrawList}, a, b, col, rounding=0.0, rounding_corners_flags=ImDrawFlags_RoundCornersAll, thickness=1.0) = ImDrawList_AddRect(handle, a, b, col, rounding, rounding_corners_flags, thickness)
 
 """
-    AddRectFilled(handle::Ptr{ImDrawList}, a, b, col, rounding=0.0, rounding_corners_flags=ImDrawCornerFlags_All)
+    AddRectFilled(handle::Ptr{ImDrawList}, a, b, col, rounding=0.0, rounding_corners_flags=ImDrawFlags_RoundCornersAll)
 ### Arguments
 - `a`: upper-left
 - `b`: lower-right
 """
-AddRectFilled(handle::Ptr{ImDrawList}, a, b, col, rounding=0.0, rounding_corners_flags=ImDrawCornerFlags_All) = ImDrawList_AddRectFilled(handle, a, b, col, rounding, rounding_corners_flags)
+AddRectFilled(handle::Ptr{ImDrawList}, a, b, col, rounding=0.0, rounding_corners_flags=ImDrawFlags_RoundCornersAll) = ImDrawList_AddRectFilled(handle, a, b, col, rounding, rounding_corners_flags)
 
 """
     AddRectFilledMultiColor(handle::Ptr{ImDrawList}, a, b, col_upr_left, col_upr_right, col_bot_right, col_bot_left)
@@ -2755,12 +2753,12 @@ AddCircleFilled(handle::Ptr{ImDrawList}, centre, radius, col, num_segments=12) =
 """
     AddText(handle::Ptr{ImDrawList}, pos, col, text_begin, text_end=C_NULL)
 """
-AddText(handle::Ptr{ImDrawList}, pos, col, text_begin, text_end=C_NULL) = ImDrawList_AddTextVec2(handle, pos, col, text_begin, text_end)
+AddText(handle::Ptr{ImDrawList}, pos, col, text_begin, text_end=C_NULL) = ImDrawList_AddText_Vec2(handle, pos, col, text_begin, text_end)
 
 """
     AddText(handle::Ptr{ImDrawList}, font::Ptr{ImFont}, font_size, pos, col, text_begin, text_end=C_NULL, wrap_width=0.0, cpu_fine_clip_rect=C_NULL)
 """
-AddText(handle::Ptr{ImDrawList}, font::Ptr{ImFont}, font_size, pos, col, text_begin, text_end=C_NULL, wrap_width=0.0, cpu_fine_clip_rect=C_NULL) = ImDrawList_AddTextFontPtr(handle, font, font_size, pos, col, text_begin, text_end, wrap_width, cpu_fine_clip_rect)
+AddText(handle::Ptr{ImDrawList}, font::Ptr{ImFont}, font_size, pos, col, text_begin, text_end=C_NULL, wrap_width=0.0, cpu_fine_clip_rect=C_NULL) = ImDrawList_AddText_FontPtr(handle, font, font_size, pos, col, text_begin, text_end, wrap_width, cpu_fine_clip_rect)
 
 """
     AddImage(handle::Ptr{ImDrawList}, user_texture_id, a, b, uv_a=(0,0), uv_b=(1,1), col=0xffffffff)
@@ -2773,9 +2771,9 @@ AddImage(handle::Ptr{ImDrawList}, user_texture_id, a, b, uv_a=ImVec2(0,0), uv_b=
 AddImageQuad(handle::Ptr{ImDrawList}, user_texture_id, a, b, c, d, uv_a=ImVec2(0,0), uv_b=ImVec2(1,0), uv_c=ImVec2(1,1), uv_d=ImVec2(0,1), col=0xffffffff) = ImDrawList_AddImageQuad(handle, user_texture_id, a, b, c, d, uv_a, uv_b, uv_c, uv_d, col)
 
 """
-    AddImageRounded(handle::Ptr{ImDrawList}, user_texture_id, a, b, uv_a, uv_b, col, rounding, rounding_corners=ImDrawCornerFlags_All)
+    AddImageRounded(handle::Ptr{ImDrawList}, user_texture_id, a, b, uv_a, uv_b, col, rounding, rounding_corners=ImDrawFlags_All)
 """
-AddImageRounded(handle::Ptr{ImDrawList}, user_texture_id, a, b, uv_a, uv_b, col, rounding, rounding_corners=ImDrawCornerFlags_All) = ImDrawList_AddImageRounded(handle, user_texture_id, a, b, uv_a, uv_b, col, rounding, rounding_corners)
+AddImageRounded(handle::Ptr{ImDrawList}, user_texture_id, a, b, uv_a, uv_b, col, rounding, rounding_corners=ImDrawFlags_RoundCornersAll) = ImDrawList_AddImageRounded(handle, user_texture_id, a, b, uv_a, uv_b, col, rounding, rounding_corners)
 
 """
     AddPolyline(handle::Ptr{ImDrawList}, points, num_points, col, closed, thickness)
@@ -2790,9 +2788,10 @@ AddPolyline(handle::Ptr{ImDrawList}, points, num_points, col, closed, thickness)
 AddConvexPolyFilled(handle::Ptr{ImDrawList}, points, num_points, col) = ImDrawList_AddConvexPolyFilled(handle, points, num_points, col)
 
 """
-    AddBezierCurve(handle::Ptr{ImDrawList}, pos0, cp0, cp1, pos1, col, thickness, num_segments=0)
+    AddBezierCubic(handle::Ptr{ImDrawList}, pos0, cp0, cp1, pos1, col, thickness, num_segments=0)
 """
-AddBezierCurve(handle::Ptr{ImDrawList}, pos0, cp0, cp1, pos1, col, thickness, num_segments=0) = ImDrawList_AddBezierCurve(handle, pos0, cp0, cp1, pos1, col, thickness, num_segments)
+AddBezierCubic(handle::Ptr{ImDrawList}, pos0, cp0, cp1, pos1, col, thickness, num_segments=0) = ImDrawList_AddBezierCubic(handle, pos0, cp0, cp1, pos1, col, thickness, num_segments)
+@deprecate AddBezierCurve(handle, pos0, cp0, cp1, pos1, col, thickness, num_segments) AddBezierCubic(handle, pos0, cp0, cp1, pos1, col, thickness, num_segments)
 
 """
     PathClear(handle::Ptr{ImDrawList})
@@ -2840,13 +2839,14 @@ PathArcToFast(handle::Ptr{ImDrawList}, centre, radius, a_min_of_12, a_max_of_12)
     PathBezierCurveTo(handle::Ptr{ImDrawList}, p1, p2, p3, num_segments=0)
 Stateful path API, add points then finish with [`PathFillConvex`](@ref) or [`PathStroke`](@ref).
 """
-PathBezierCurveTo(handle::Ptr{ImDrawList}, p1, p2, p3, num_segments=0) = ImDrawList_PathBezierCurveTo(handle, p1, p2, p3, num_segments)
+PathBezierCubicTo(handle::Ptr{ImDrawList}, p1, p2, p3, num_segments=0) = ImDrawList_PathBezierCubicCurveTo(handle, p1, p2, p3, num_segments)
+@deprecate PathBezierCurveTo(handle, p1, p2, p3, num_segments=0) PathBezierCubicTo(handle, p1, p2, p3, num_segments)
 
 """
-    PathRect(handle::Ptr{ImDrawList}, rect_min, rect_max, rounding=0.0, rounding_corners_flags=ImDrawCornerFlags_All)
+    PathRect(handle::Ptr{ImDrawList}, rect_min, rect_max, rounding=0.0, rounding_corners_flags=ImDrawFlags_RoundCornersAll)
 Stateful path API, add points then finish with [`PathFillConvex`](@ref) or [`PathStroke`](@ref).
 """
-PathRect(handle::Ptr{ImDrawList}, rect_min, rect_max, rounding=0.0, rounding_corners_flags=ImDrawCornerFlags_All) = ImDrawList_PathRect(handle, rect_min, rect_max, rounding, rounding_corners_flags)
+PathRect(handle::Ptr{ImDrawList}, rect_min, rect_max, rounding=0.0, rounding_corners_flags=ImDrawFlags_RoundCornersAll) = ImDrawList_PathRect(handle, rect_min, rect_max, rounding, rounding_corners_flags)
 
 """
     ChannelsSplit(handle::Ptr{ImDrawList}, channels_count)
@@ -2899,20 +2899,6 @@ Create a clone of the CmdBuffer/IdxBuffer/VtxBuffer.
 CloneOutput(handle::Ptr{ImDrawList}) = ImDrawList_CloneOutput(handle)
 
 """
-    Clear(handle::Ptr{ImDrawList})
-!!! note
-    All primitives needs to be reserved via [`PrimReserve`](@ref) beforehand!
-"""
-Clear(handle::Ptr{ImDrawList}) = ImDrawList_Clear(handle)
-
-"""
-    ClearFreeMemory(handle::Ptr{ImDrawList})
-!!! note
-    All primitives needs to be reserved via [`PrimReserve`](@ref) beforehand!
-"""
-ClearFreeMemory(handle::Ptr{ImDrawList}) = ImDrawList_ClearFreeMemory(handle)
-
-"""
     PrimReserve(handle::Ptr{ImDrawList}, idx_count, vtx_count)
 !!! note
     All primitives needs to be reserved via [`PrimReserve`](@ref) beforehand!
@@ -2962,20 +2948,6 @@ PrimWriteIdx(handle::Ptr{ImDrawList}, idx) = ImDrawList_PrimWriteIdx(handle, idx
     All primitives needs to be reserved via [`PrimReserve`](@ref) beforehand!
 """
 PrimVtx(handle::Ptr{ImDrawList}, pos, uv, col) = ImDrawList_PrimVtx(handle, pos, uv, col)
-
-"""
-    UpdateClipRect(handle::Ptr{ImDrawList})
-!!! note
-    All primitives needs to be reserved via [`PrimReserve`](@ref) beforehand!
-"""
-UpdateClipRect(handle::Ptr{ImDrawList}) = ImDrawList_UpdateClipRect(handle)
-
-"""
-    UpdateTextureID(handle::Ptr{ImDrawList})
-!!! note
-    All primitives needs to be reserved via [`PrimReserve`](@ref) beforehand!
-"""
-UpdateTextureID(handle::Ptr{ImDrawList}) = ImDrawList_UpdateTextureID(handle)
 
 
 ###################################### ImGuiTextBuffer #####################################

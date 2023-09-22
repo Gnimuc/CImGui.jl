@@ -35,7 +35,12 @@ julia> include(joinpath(pathof(CImGui), "..", "..", "demo", "demo.jl"))
 julia> using CImGui
 julia> include(joinpath(pathof(CImGui), "..", "..", "examples", "demo.jl"))
 ```
-[All of these examples](https://github.com/Gnimuc/CImGui.jl/tree/master/examples) are one-to-one ported from [Dear ImGui's C++ examples](https://github.com/ocornut/imgui/blob/master/imgui_demo.cpp) and there is an [interactive manual](https://pthom.github.io/imgui_manual_online/manual/imgui_manual.html) for quickly locating the code. You could also run `? CImGui.xxx` to retrieve docs:
+[All of these examples](examples/) (except for
+[large_meshes.jl](examples/large_meshes.jl), which is a port of a
+[stress-test][stress-test-comment]) are one-to-one ported from [Dear ImGui's C++
+examples][upstream-examples] and there is an [interactive
+manual][interactive-manual] for quickly locating the code. You could also run `?
+CImGui.xxx` to retrieve docs:
 ```
 help?> CImGui.Button
   Button(label) -> Bool
@@ -83,3 +88,8 @@ The default backend is based on [ModernGL](https://github.com/JuliaGL/ModernGL.j
 
 ## License
 Only the Julia code in this repo is released under MIT license. Other assets such as those fonts in the `fonts` folder are released under their own license.
+
+
+[stress-test-comment]: https://github.com/ocornut/imgui/issues/2591#issuecomment-496954460
+[upstream-examples]: https://github.com/ocornut/imgui/blob/master/imgui_demo.cpp
+[interactive-manual]: https://pthom.github.io/imgui_manual_online/manual/imgui_manual.html

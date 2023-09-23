@@ -63,6 +63,14 @@ ImGuiGLFWBackend.init(glfw_ctx)
 opengl_ctx = ImGuiOpenGLBackend.create_context(glsl_version)
 ImGuiOpenGLBackend.init(opengl_ctx)
 
+# for tests
+if haskey(ENV, "AUTO_CLOSE_DEMO")
+    tsecs = parse(Int, ENV["AUTO_CLOSE_DEMO"])
+    Timer(tsecs) do t
+        glfwSetWindowShouldClose(window, true)
+    end
+end
+
 try
     show_demo_window = true
     show_another_window = false
@@ -112,7 +120,7 @@ try
         glfwGetFramebufferSize(window, width, height)
         display_w = width[]
         display_h = height[]
-        
+
         glViewport(0, 0, display_w, display_h)
         glClearColor(clear_color...)
         glClear(GL_COLOR_BUFFER_BIT)
@@ -120,6 +128,8 @@ try
 
         glfwMakeContextCurrent(window)
         glfwSwapBuffers(window)
+
+        yield() # to allow shutdown timer to run
     end
 catch e
     @error "Error in renderloop!" exception=e

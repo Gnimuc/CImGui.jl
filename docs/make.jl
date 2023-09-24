@@ -4,7 +4,6 @@ using Documenter
 makedocs(;
     modules=[CImGui],
     authors="Yupei Qi <qiyupei@gmail.com>",
-    repo="https://github.com/Gnimuc/CImGui.jl/blob/{commit}{path}#L{line}",
     sitename="CImGui.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",

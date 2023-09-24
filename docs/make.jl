@@ -9,11 +9,12 @@ makedocs(;
         prettyurls=get(ENV, "CI", "false") == "true",
         canonical="https://Gnimuc.github.io/CImGui.jl",
         assets=String[],
+        size_threshold=400000
     ),
     pages=[
        "Introduction" => "index.md",
        "API Reference" => "api.md",
-    ],
+    ]
 )
 
 deploydocs(;

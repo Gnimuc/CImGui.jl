@@ -1624,11 +1624,11 @@ If the function return true, you can output elements then call [`EndListBox`](@r
 BeginListBox(label,size=ImVec2(0,0)) = igBeginListBox(label,size)
 
 """
-    ListBoxFooter()
+    EndListBox()
 Terminate the scrolling region.
 
 !!! note
-    Only call `ListBoxFooter()` if [`ListBoxHeader`](@ref) returned true!
+    Only call `EndListBox()` if [`BeginListBox`](@ref) returned true!
 """
 EndListBox() = igEndListBox()
 
@@ -1904,9 +1904,8 @@ GetColumnsCount() = igGetColumnsCount()
 # - 5. Call EndTable()
 """
     BeginTable(str_id, columns_count, flags = ImGuiTableFlags_(0), outer_size = ImVec2(0,0), inner_width = 0.0) -> Bool
-Begin a table entry. 
+Begin a table entry.
 """
-
 BeginTable(str_id, columns_count, flags = ImGuiTableFlags_(0), outer_size = ImVec2(0,0), inner_width = 0.0) = igBeginTable(str_id, columns_count, flags, outer_size, inner_width)
 
 """
@@ -1924,7 +1923,7 @@ TableNextRow(row_flags = ImGuiTableRowFlags_(0), min_row_height = 0.0) = igTable
 """
     TableNextColumn() -> Bool
 Append into the next column (or first column of next row if currently in last column). Return true when column is visible.
-"""                                                                                                                                    
+"""
 TableNextColumn() = igTableNextColumn()
 
 """

@@ -2150,7 +2150,6 @@ EndDragDropTarget() = igEndDragDropTarget()
 """
     GetDragDropPayload() -> Ptr{ImGuiPayload}
 Peek directly into the current payload from anywhere. May return C_NULL.
-Use [`IsDataType`](@ref) to test for the payload type.
 
 !!! note "BETA API"
     Missing Demo code. API may evolve.

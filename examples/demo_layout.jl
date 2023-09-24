@@ -316,7 +316,7 @@ function ShowDemoWindowLayout()
         if CImGui.ListBoxHeader("List", size)
             CImGui.Selectable("Selected", true)
             CImGui.Selectable("Not Selected", false)
-            CImGui.ListBoxFooter()
+            CImGui.EndListBox()
         end
 
         CImGui.TreePop()

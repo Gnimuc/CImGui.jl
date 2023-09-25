@@ -1027,7 +1027,15 @@ Create a text widget.
     Formatting is not supported which means you need to pass a formatted string to this function.
     It's recommended to use Julia stdlib `Printf`'s `@sprintf` as a workaround when translating C/C++ code to Julia.
 """
-Text(formatted_text) = igText(formatted_text)
+function Text(formatted_text)
+    @static if Sys.isapple()
+        # Workaround for segfault on MacOS
+        # TODO: Fix https://github.com/Gnimuc/CImGui.jl/issues/74
+        TextUnformatted(formatted_text)
+    else
+        igText(formatted_text)
+    end
+end
 
 """
     TextColored(col, formatted_text)

@@ -3,13 +3,15 @@ on:
   - push
   - pull_request
 jobs:
-  test:
-    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
+  loading:
+    name: Loading only - Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         version:
           - '1.6'
+          - '1'
+          - 'nightly'
         os:
           - ubuntu-latest
           - macOS-latest
@@ -20,19 +22,45 @@ jobs:
         exclude:
           - os: macOS-latest
             arch: x86
+          - os: ubuntu-latest # covered in "tests" job
+            arch: x64
     steps:
       - uses: actions/checkout@v2
-      - run: sudo apt-get install xvfb && Xvfb :99 &
-        if: matrix.os == 'ubuntu-latest'
       - uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
-      - uses: julia-actions/julia-buildpkg@latest
-      - uses: julia-actions/julia-runtest@latest
+      - uses: julia-actions/julia-buildpkg@v1
+      - uses: julia-actions/julia-runtest@v1
+      - uses: julia-actions/julia-uploadcodecov@v0.1
         env:
-          DISPLAY: :99
-      - uses: julia-actions/julia-uploadcodecov@latest
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  tests:
+    name: Tests - Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        version:
+          - '1.6'
+          - '1'
+          - 'nightly'
+        os:
+          - ubuntu-latest
+        arch:
+          - x64
+    steps:
+      - uses: actions/checkout@v2
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{ matrix.version }}
+          arch: ${{ matrix.arch }}
+      - uses: julia-actions/julia-buildpkg@v1
+      - uses: julia-actions/julia-runtest@v1
+        with:
+          prefix: xvfb-run -a -s '-screen 0 1024x768x24'
+        env:
+          LD_PRELOAD: /usr/lib/x86_64-linux-gnu/libstdc++.so.6
+      - uses: julia-actions/julia-uploadcodecov@v0.1
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   docs:
@@ -43,7 +71,7 @@ jobs:
       - run: sudo apt-get install xvfb && Xvfb :99 &
       - uses: julia-actions/setup-julia@v1
         with:
-          version: '1.6'
+          version: '1'
       - run: |
           julia --project=docs -e '
             using Pkg

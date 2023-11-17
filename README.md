@@ -22,6 +22,9 @@ to get an idea of its use cases.
 pkg> add CImGui
 ```
 
+*Warning*: this package does not follow semantic versioning! See the docs for
+information on safely setting compat bounds.
+
 ## How to start
 
 ### 1. Run `demo/demo.jl` to test whether the default backend works on your machine

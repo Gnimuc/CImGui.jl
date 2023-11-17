@@ -46,6 +46,19 @@ julia> Renderer.render(width = 360, height = 480, title = "IMGUI Window") do
 Task (runnable) @0x00000001136bead0
 ```
 
+Note that neither ImGui nor OpenGL are thread-safe, be aware of this if you
+start Julia with multiple threads using `--threads`. If you need to use multiple
+threads in an application, one option is to use the
+[threadpools](https://docs.julialang.org/en/v1/manual/multi-threading/#man-threadpools)
+introduced in Julia 1.9:
+```bash
+# Have an arbitrary number in the default pool, and 1 thread in the :interactive pool
+$ julia --threads=auto,1
+```
+
+Then start the render loop on the `:interactive` thread and ensure that none of
+the other threads call GUI functions.
+
 ## Usage
 The API provided in this package is as close as possible to the original C++ API. When translating C++ code to Julia, please follow the tips below:
 - Replace `ImGui::` to `CImGui.`;

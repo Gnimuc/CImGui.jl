@@ -7,6 +7,18 @@ to get an idea of its use cases.
 pkg> add CImGui
 ```
 
+Note that CImGui *does not follow semantic versioning* for the sake of matching
+upstream ImGui. Instead, we match the major and minor version and reserve the
+patch versions for ourselves. Typically ImGui doesn't make breaking changes
+within minor versions, so this means that your compat bounds for CImGui should
+only allow upgrading on patch versions with `~major.minor`. For example:
+```toml
+[compat]
+CImGui = "~1.89"
+```
+
+This will allow versions in the range `[1.89.0 - 1.90)`, which should be safe.
+
 ## How to start
 #### 1. Run `demo/demo.jl` to test whether the default backend works on your machine
 ```julia-repl

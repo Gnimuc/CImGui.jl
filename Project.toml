@@ -8,7 +8,7 @@ CEnum = "fa961155-64e5-5f13-b03f-caf6b980ea82"
 CImGuiPack_jll = "333409e9-af72-5310-9767-d6ad21a76a05"
 
 [compat]
-CEnum = "0.4"
+CEnum = "0.4,0.5"
 CImGuiPack_jll = "~0.2"
 julia = "1.6"
 

@@ -48,12 +48,12 @@ no_nav = false
 no_background = false
 no_bring_to_front = false
 """
-    ShowDemoWindow(p_open::Ref{Bool})
-Demonstrate most Dear ImGui features.
+    ShowJuliaDemoWindow(p_open::Ref{Bool})
+Demonstrate most Dear ImGui features implemented using the Julia bindings.
 You may execute this function to experiment with the UI and understand what it does.
 You may then search for keywords in the code when you are interested by a specific feature.
 """
-global function ShowDemoWindow(p_open::Ref{Bool})
+global function ShowJuliaDemoWindow(p_open::Ref{Bool})
     # examples Apps (accessible from the "Examples" menu)
     # show_app_documents           && @c ShowExampleAppDocuments(&show_app_documents) # process the Document app next, as it may also use a DockSpace()
     show_app_main_menu_bar       && @c ShowExampleAppMainMenuBar(&show_app_main_menu_bar)

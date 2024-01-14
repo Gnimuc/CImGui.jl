@@ -64,45 +64,51 @@ function ShowDemoWindowMisc()
             end
             CImGui.Text(@sprintf("Mouse wheel: %.1f", unsafe_load(io.MouseWheel)))
 
+            key_range = CImGui.ImGuiKey_NamedKey_BEGIN:CImGui.ImGuiKey_NamedKey_END - 1
+
             CImGui.Text("Keys down:")
-            for i = 0:511
-                dur = CImGui.c_get(io.KeysDownDuration, i)
+            for i = key_range
+                key_data = unsafe_load(CImGui.GetKeyData(CImGui.ImGuiKey(i)))
+                dur = key_data.DownDuration
                 dur ≥ 0 || continue
                 CImGui.SameLine()
                 txt = @sprintf "%d (%.02f secs)" i dur
                 CImGui.Text(txt)
             end
             CImGui.Text("Keys pressed:")
-            for i = 0:511
-                CImGui.IsKeyPressed(i) || continue
+            for i = key_range
+                CImGui.IsKeyPressed(CImGui.ImGuiKey(i)) || continue
                 CImGui.SameLine()
                 CImGui.Text("$i")
             end
             CImGui.Text("Keys release:")
-            for i = 0:511
-                CImGui.IsKeyReleased(i) || continue
+            for i = key_range
+                CImGui.IsKeyReleased(CImGui.ImGuiKey(i)) || continue
                 CImGui.SameLine()
                 CImGui.Text("$i")
             end
             CImGui.Text(@sprintf("Keys mods: %s%s%s%s", unsafe_load(io.KeyCtrl) ? "CTRL " : "", unsafe_load(io.KeyShift) ? "SHIFT " : "", unsafe_load(io.KeyAlt) ? "ALT " : "", unsafe_load(io.KeySuper) ? "SUPER " : ""))
 
+            navinput_range = CImGui.ImGuiKey_GamepadStart:CImGui.ImGuiKey_GamepadRStickDown
+
             CImGui.Text("NavInputs down:")
-            for i = 0:20
-                nav = CImGui.c_get(io.NavInputs, i)
-                nav > 0 || continue
+            for i = navinput_range
+                CImGui.IsKeyDown(CImGui.ImGuiKey(i)) || continue
                 CImGui.SameLine()
                 CImGui.Text(@sprintf("[%d] %.2f", i, nav))
             end
             CImGui.Text("NavInputs pressed:")
-            for i = 0:20
-                dur = CImGui.c_get(io.NavInputsDownDuration, i)
+            for i = navinput_range
+                key_data = unsafe_load(CImGui.GetKeyData(CImGui.ImGuiKey(i)))
+                dur = key_data.DownDuration
                 dur == 0.0 || continue
                 CImGui.SameLine()
                 CImGui.Text("[$i]")
             end
             CImGui.Text("NavInputs duration:")
-            for i = 0:20
-                dur = CImGui.c_get(io.NavInputsDownDuration, i)
+            for i = navinput_range
+                key_data = unsafe_load(CImGui.GetKeyData(CImGui.ImGuiKey(i)))
+                dur = key_data.DownDuration
                 dur ≥ 0.0 || continue
                 CImGui.SameLine()
                 CImGui.Text(@sprintf("[%d] %.2f", i, dur))

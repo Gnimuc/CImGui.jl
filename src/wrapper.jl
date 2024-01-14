@@ -2337,12 +2337,14 @@ function GetItemRectSize()
 end
 
 """
-    SetItemAllowOverlap()
+    SetNextItemAllowOverlap()
 Allow last item to be overlapped by a subsequent item. Sometimes useful with invisible buttons,
 selectables, etc. to catch unused area.
 See Demo Window under "Widgets->Querying Status" for an interactive visualization of many of those functions.
 """
-SetItemAllowOverlap() = igSetItemAllowOverlap()
+SetNextItemAllowOverlap() = igSetNextItemAllowOverlap()
+
+@deprecate SetItemAllowOverlap() SetNextItemAllowOverlap()
 
 ################################## Miscellaneous Utilities #################################
 """

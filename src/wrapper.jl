@@ -2458,6 +2458,12 @@ Map ImGuiKey_* values into user's key index. == io.KeyMap[key]
 GetKeyIndex(imgui_key) = igGetKeyIndex(imgui_key)
 
 """
+    GetKeyData(imgui_key) -> Ptr{ImGuiKeyData}
+Get the key data for a specific key.
+"""
+GetKeyData(imgui_key) = igGetKeyData(imgui_key)
+
+"""
     IsKeyDown(user_key_index) -> Bool
 Is key being held. == io.KeysDown[user_key_index]. note that imgui doesn't know the semantic
 of each entry of io.KeysDown[]. Use your own indices/enums according to how your backend/engine

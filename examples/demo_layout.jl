@@ -313,7 +313,7 @@ function ShowDemoWindowLayout()
         CImGui.Button("LEVERAGE\nBUZZWORD", size)
         CImGui.SameLine()
 
-        if CImGui.ListBoxHeader("List", size)
+        if CImGui.BeginListBox("List", size)
             CImGui.Selectable("Selected", true)
             CImGui.Selectable("Not Selected", false)
             CImGui.EndListBox()

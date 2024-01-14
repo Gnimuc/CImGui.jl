@@ -91,8 +91,11 @@ function ShowDemoWindowPopups()
         @cstatic value = Cfloat(0.5) begin
             CImGui.Text(@sprintf("Value = %.3f (<-- right-click here)", value))
             if CImGui.BeginPopupContextItem("item context menu")
-                CImGui.Selectable("Set to zero") && (value = 0.0;)
-                CImGui.Selectable("Set to PI") && (value = 3.1415;)
+                # Note that we explicitly use Float32 literals, otherwise
+                # `value` would change type to Float64, which would cause an
+                # error when calling DragFloat(), which expects a Float32.
+                CImGui.Selectable("Set to zero") && (value = 0f0;)
+                CImGui.Selectable("Set to PI") && (value = 3.1415f0;)
                 CImGui.PushItemWidth(-1)
                 @c CImGui.DragFloat("##Value", &value, 0.1, 0.0, 0.0)
                 CImGui.PopItemWidth()

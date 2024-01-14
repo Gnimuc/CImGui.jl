@@ -7,7 +7,7 @@ using CImGui.ImGuiOpenGLBackend.ModernGL
 # using CImGui.ImGuiGLFWBackend.GLFW
 using CImGui.CSyntax
 
-# include(joinpath(@__DIR__, "demo_window.jl"))
+include(joinpath(@__DIR__, "demo_window.jl"))
 
 glfwDefaultWindowHints()
 glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
@@ -86,7 +86,7 @@ try
         ImGuiGLFWBackend.new_frame(window_ctx)
         CImGui.NewFrame()
 
-        demo_open && @c CImGui.ShowDemoWindow(&demo_open)
+        demo_open && @c ShowJuliaDemoWindow(&demo_open)
 
         # show image example
         if CImGui.Begin("Image Demo")

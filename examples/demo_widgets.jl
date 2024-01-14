@@ -45,7 +45,7 @@ function ShowDemoWindowWidgets()
 
         # arrow buttons with Repeater
         @cstatic counter=Cint(0) begin
-            spacing = CImGui.GetStyle().ItemInnerSpacing.x
+            spacing = unsafe_load(CImGui.GetStyle().ItemInnerSpacing.x)
             CImGui.PushButtonRepeat(true)
             CImGui.ArrowButton("##left", CImGui.ImGuiDir_Left) && (counter-=1;)
             CImGui.SameLine(0.0, spacing)
@@ -182,7 +182,7 @@ function ShowDemoWindowWidgets()
                 end
                 if node_clicked != -1
                     # update selection state. Process outside of tree loop to avoid visual inconsistencies during the clicking-frame.
-                    if CImGui.GetIO().KeyCtrl
+                    if unsafe_load(CImGui.GetIO().KeyCtrl)
                         selection_mask ⊻= 1 << node_clicked           # CTRL+click to toggle
                     else #if (!(selection_mask & (1 << node_clicked))) # Depending on selection behavior you want, this commented bit preserve selection when clicking on item that is part of the selection
                         selection_mask = 1 << node_clicked            # Click to single-select
@@ -290,9 +290,10 @@ function ShowDemoWindowWidgets()
         # If you decided that ImTextureID = MyEngineTexture*, then you can pass your MyEngineTexture* pointers to CImGui.Image(), and gather width/height through your own functions, etc.
         # Using ShowMetricsWindow() as a "debugger" to inspect the draw data that are being passed to your render will help you debug issues if you are confused about this.
         # Consider using the lower-level ImDrawList::AddImage() API, via CImGui.GetWindowDrawList()->AddImage().
-        my_tex_id = unsafe_load(io.Fonts.TexID)
-        my_tex_w = unsafe_load(io.Fonts.TexWidth)
-        my_tex_h = unsafe_load(io.Fonts.TexHeight)
+        font_atlas = unsafe_load(io.Fonts)
+        my_tex_id = unsafe_load(font_atlas.TexID)
+        my_tex_w = unsafe_load(font_atlas.TexWidth)
+        my_tex_h = unsafe_load(font_atlas.TexHeight)
 
         CImGui.Text(@sprintf("%.0fx%.0f", my_tex_w, my_tex_h))
         pos = CImGui.GetCursorScreenPos()
@@ -325,9 +326,18 @@ function ShowDemoWindowWidgets()
             for i = 0:8-1
                 CImGui.PushID(i)
                 frame_padding = -1 + i     # -1 = uses default padding
-                if CImGui.ImageButton(my_tex_id, (32,32), (0,0), ImVec2(32.0/my_tex_w,32/my_tex_h), frame_padding, (0,0,0,255))
+                if frame_padding > 0
+                    CImGui.PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(i, i))
+                end
+
+                if CImGui.ImageButton("", my_tex_id, (32,32), (0,0), ImVec2(32.0/my_tex_w,32/my_tex_h), ImVec4(0,0,0,255))
                     pressed_count += 1
                 end
+
+                if frame_padding > 0
+                    CImGui.PopStyleVar()
+                end
+
                 CImGui.PopID()
                 CImGui.SameLine()
             end
@@ -421,7 +431,7 @@ function ShowDemoWindowWidgets()
                     buf = @sprintf "Object %d" n
                     if CImGui.Selectable(buf, selection[n+1])
                         # clear selection when CTRL is not held
-                        !CImGui.GetIO().KeyCtrl && fill!(selection, false)
+                        !unsafe_load(CImGui.GetIO().KeyCtrl) && fill!(selection, false)
                         selection[n+1] ⊻= 1
                     end
                 end
@@ -979,8 +989,10 @@ function ShowDemoWindowWidgets()
                 if CImGui.BeginDragDropTarget()
                     payload = CImGui.AcceptDragDropPayload("DND_DEMO_CELL")
                     if payload != C_NULL
-                        @assert CImGui.Get(payload, :DataSize) == sizeof(Cint)
-                        payload_n = unsafe_load(Ptr{Cint}(CImGui.Get(payload, :Data)))
+                        payload = unsafe_load(payload)
+
+                        @assert payload.DataSize == sizeof(Cint)
+                        payload_n = unsafe_load(Ptr{Cint}(payload.Data))
                         if mode == Mode_Copy
                             names[n+1] = names[payload_n+1]
                         end

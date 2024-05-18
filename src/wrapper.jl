@@ -529,13 +529,13 @@ GetScrollMaxY() = igGetScrollMaxY()
     SetScrollX(scroll_x)
 Set scrolling amount [0..GetScrollMaxX()].
 """
-SetScrollX(scroll_x) = igSetScrollXFloat(scroll_x)
+SetScrollX(scroll_x) = igSetScrollX_Float(scroll_x)
 
 """
     SetScrollY(scroll_y)
 Set scrolling amount [0..GetScrollMaxY()].
 """
-SetScrollY(scroll_y) = igSetScrollYFloat(scroll_y)
+SetScrollY(scroll_y) = igSetScrollY_Float(scroll_y)
 
 """
     SetScrollHereY(center_y_ratio=0.5)

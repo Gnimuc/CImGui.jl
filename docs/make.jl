@@ -1,5 +1,15 @@
 using CImGui
 using Documenter
+import Changelog
+
+# Note that the changelog file is named `_changelog.md` so we can use
+# `changelog.md` as the generated name, which makes for a prettier URL.
+Changelog.generate(
+    Changelog.Documenter(),
+    joinpath(@__DIR__, "src/_changelog.md"),
+    joinpath(@__DIR__, "src/changelog.md"),
+    repo="Gnimuc/CImGui.jl"
+)
 
 makedocs(;
     modules=[CImGui],
@@ -12,8 +22,9 @@ makedocs(;
         size_threshold=400000
     ),
     pages=[
-       "Introduction" => "index.md",
-       "API Reference" => "api.md",
+        "Introduction" => "index.md",
+        "API Reference" => "api.md",
+        "Changelog" => "changelog.md"
     ]
 )
 

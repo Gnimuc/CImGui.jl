@@ -1,5 +1,6 @@
 [deps]
 CImGui = "5d785b6c-b76f-510e-a07c-3070796c7e87"
+Changelog = "5217a498-cd5d-4ec6-b8c2-9b85a09b6e3e"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 
 [compat]

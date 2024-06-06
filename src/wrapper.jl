@@ -2699,21 +2699,21 @@ end
 AddLine(handle::Ptr{ImDrawList}, a, b, col, thickness=1.0) = ImDrawList_AddLine(handle, a, b, col, thickness)
 
 """
-    AddRect(handle::Ptr{ImDrawList}, a, b, col, rounding=0.0, rounding_corners_flags=ImDrawCornerFlags_All, thickness=1.0)
+    AddRect(handle::Ptr{ImDrawList}, a, b, col, rounding=0.0, rounding_corners_flags=ImDrawFlags_RoundCornersAll, thickness=1.0)
 ### Arguments
 - `a`: upper-left
 - `b`: lower-right
 - `rounding_corners_flags`: 4-bits corresponding to which corner to round
 """
-AddRect(handle::Ptr{ImDrawList}, a, b, col, rounding=0.0, rounding_corners_flags=ImDrawCornerFlags_All, thickness=1.0) = ImDrawList_AddRect(handle, a, b, col, rounding, rounding_corners_flags, thickness)
+AddRect(handle::Ptr{ImDrawList}, a, b, col, rounding=0.0, rounding_corners_flags=ImDrawFlags_RoundCornersAll, thickness=1.0) = ImDrawList_AddRect(handle, a, b, col, rounding, rounding_corners_flags, thickness)
 
 """
-    AddRectFilled(handle::Ptr{ImDrawList}, a, b, col, rounding=0.0, rounding_corners_flags=ImDrawCornerFlags_All)
+    AddRectFilled(handle::Ptr{ImDrawList}, a, b, col, rounding=0.0, rounding_corners_flags=ImDrawFlags_RoundCornersAll)
 ### Arguments
 - `a`: upper-left
 - `b`: lower-right
 """
-AddRectFilled(handle::Ptr{ImDrawList}, a, b, col, rounding=0.0, rounding_corners_flags=ImDrawCornerFlags_All) = ImDrawList_AddRectFilled(handle, a, b, col, rounding, rounding_corners_flags)
+AddRectFilled(handle::Ptr{ImDrawList}, a, b, col, rounding=0.0, rounding_corners_flags=ImDrawFlags_RoundCornersAll) = ImDrawList_AddRectFilled(handle, a, b, col, rounding, rounding_corners_flags)
 
 """
     AddRectFilledMultiColor(handle::Ptr{ImDrawList}, a, b, col_upr_left, col_upr_right, col_bot_right, col_bot_left)
@@ -2771,9 +2771,9 @@ AddImage(handle::Ptr{ImDrawList}, user_texture_id, a, b, uv_a=ImVec2(0,0), uv_b=
 AddImageQuad(handle::Ptr{ImDrawList}, user_texture_id, a, b, c, d, uv_a=ImVec2(0,0), uv_b=ImVec2(1,0), uv_c=ImVec2(1,1), uv_d=ImVec2(0,1), col=0xffffffff) = ImDrawList_AddImageQuad(handle, user_texture_id, a, b, c, d, uv_a, uv_b, uv_c, uv_d, col)
 
 """
-    AddImageRounded(handle::Ptr{ImDrawList}, user_texture_id, a, b, uv_a, uv_b, col, rounding, rounding_corners=ImDrawCornerFlags_All)
+    AddImageRounded(handle::Ptr{ImDrawList}, user_texture_id, a, b, uv_a, uv_b, col, rounding, rounding_corners=ImDrawFlags_RoundCornersAll)
 """
-AddImageRounded(handle::Ptr{ImDrawList}, user_texture_id, a, b, uv_a, uv_b, col, rounding, rounding_corners=ImDrawCornerFlags_All) = ImDrawList_AddImageRounded(handle, user_texture_id, a, b, uv_a, uv_b, col, rounding, rounding_corners)
+AddImageRounded(handle::Ptr{ImDrawList}, user_texture_id, a, b, uv_a, uv_b, col, rounding, rounding_corners=ImDrawFlags_RoundCornersAll) = ImDrawList_AddImageRounded(handle, user_texture_id, a, b, uv_a, uv_b, col, rounding, rounding_corners)
 
 """
     AddPolyline(handle::Ptr{ImDrawList}, points, num_points, col, closed, thickness)
@@ -2841,10 +2841,10 @@ Stateful path API, add points then finish with [`PathFillConvex`](@ref) or [`Pat
 PathBezierCurveTo(handle::Ptr{ImDrawList}, p1, p2, p3, num_segments=0) = ImDrawList_PathBezierCurveTo(handle, p1, p2, p3, num_segments)
 
 """
-    PathRect(handle::Ptr{ImDrawList}, rect_min, rect_max, rounding=0.0, rounding_corners_flags=ImDrawCornerFlags_All)
+    PathRect(handle::Ptr{ImDrawList}, rect_min, rect_max, rounding=0.0, rounding_corners_flags=ImDrawFlags_RoundCornersAll)
 Stateful path API, add points then finish with [`PathFillConvex`](@ref) or [`PathStroke`](@ref).
 """
-PathRect(handle::Ptr{ImDrawList}, rect_min, rect_max, rounding=0.0, rounding_corners_flags=ImDrawCornerFlags_All) = ImDrawList_PathRect(handle, rect_min, rect_max, rounding, rounding_corners_flags)
+PathRect(handle::Ptr{ImDrawList}, rect_min, rect_max, rounding=0.0, rounding_corners_flags=ImDrawFlags_RoundCornersAll) = ImDrawList_PathRect(handle, rect_min, rect_max, rounding, rounding_corners_flags)
 
 """
     ChannelsSplit(handle::Ptr{ImDrawList}, channels_count)

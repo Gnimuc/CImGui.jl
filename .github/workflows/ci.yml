@@ -4,6 +4,10 @@ on:
   - push
   - pull_request
 
+permissions:
+  actions: write
+  contents: read
+
 jobs:
   loading:
     name: Loading only - Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
@@ -27,11 +31,12 @@ jobs:
           - os: ubuntu-latest # covered in "tests" job
             arch: x64
     steps:
-      - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@v1
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
+      - uses: julia-actions/cache@v2
       - run: |
           julia --project=. -e 'using Pkg; Pkg.develop(PackageSpec(path="LibCImGui.jl"))'
       - uses: julia-actions/julia-buildpkg@v1
@@ -54,11 +59,12 @@ jobs:
         arch:
           - x64
     steps:
-      - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@v1
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
+      - uses: julia-actions/cache@v2
       - run: |
           julia --project=. -e 'using Pkg; Pkg.develop(PackageSpec(path="LibCImGui.jl"))'
       - uses: julia-actions/julia-buildpkg@v1
@@ -75,9 +81,10 @@ jobs:
     name: Documentation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run: sudo apt-get install xvfb && Xvfb :99 &
-      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/setup-julia@v2
+      - uses: julia-actions/cache@v2
         with:
           version: '1'
       - run: |

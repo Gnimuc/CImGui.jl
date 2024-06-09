@@ -32,6 +32,8 @@ jobs:
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
+      - run: |
+          julia --project=. -e 'using Pkg; Pkg.develop(PackageSpec(path="LibCImGui.jl"))'
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-uploadcodecov@v0.1
@@ -57,6 +59,8 @@ jobs:
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
+      - run: |
+          julia --project=. -e 'using Pkg; Pkg.develop(PackageSpec(path="LibCImGui.jl"))'
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
         with:

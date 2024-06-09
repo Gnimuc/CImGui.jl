@@ -6,3 +6,4 @@
 *.ini
 imgui_log.txt
 .vscode
+/Manifest.toml

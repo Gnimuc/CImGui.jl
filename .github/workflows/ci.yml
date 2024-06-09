@@ -1,7 +1,9 @@
 name: CI
+
 on:
   - push
   - pull_request
+
 jobs:
   loading:
     name: Loading only - Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
@@ -35,6 +37,7 @@ jobs:
       - uses: julia-actions/julia-uploadcodecov@v0.1
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
   tests:
     name: Tests - Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
@@ -63,6 +66,7 @@ jobs:
       - uses: julia-actions/julia-uploadcodecov@v0.1
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
   docs:
     name: Documentation
     runs-on: ubuntu-latest

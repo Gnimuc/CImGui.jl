@@ -1,0 +1,28 @@
+[general]
+library_name = "libcimgui"
+
+output_ignorelist = [
+    "API",
+    "EXTERN",
+    "CIMGUI_API",
+    "CONST",
+    "CIMGUI_INCLUDED",
+]
+
+[codegen]
+field_access_method_list = [
+    "ImGuiIO",
+    "ImDrawList",
+    "ImDrawData",
+    "ImDrawCmd",
+    "ImFontAtlas",
+    "ImGuiSizeCallbackData",
+    "ImFontConfig",
+    "ImGuiPlatformIO",
+    "ImGuiViewport",
+    "ImVec2",
+    "ImVec4",
+    "ImGuiPlatformMonitor",
+    "ImGuiStyle",
+]
+wrap_variadic_function = true

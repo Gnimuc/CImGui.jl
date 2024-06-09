@@ -1,0 +1,9 @@
+[submodule "cimgui"]
+	path = cimgui-pack/cimgui
+	url = https://github.com/cimgui/cimgui.git
+[submodule "cimplot"]
+	path = cimgui-pack/cimplot
+	url = https://github.com/cimgui/cimplot.git
+[submodule "cimnodes"]
+	path = cimgui-pack/cimnodes
+	url = https://github.com/cimgui/cimnodes.git

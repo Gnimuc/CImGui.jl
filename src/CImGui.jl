@@ -1,14 +1,6 @@
 module CImGui
 
 using LibCImGui
-using ImGuiGLFWBackend
-using Preferences
-const opengl_major_version = parse(Int, @load_preference("opengl_major_version", "3"))
-if opengl_major_version == 2
-using ImGuiOpenGL2Backend
-elseif opengl_major_version >= 3
-using ImGuiOpenGLBackend
-end
 
 using CSyntax
 using CEnum
@@ -61,5 +53,58 @@ end
 include("wrapper.jl")
 
 const IMGUI_VERSION = unsafe_string(GetVersion())
+
+## Backends
+
+# These are backend functions that must be implemented by a package extension
+# for a backend.
+function _render end
+function _create_image_texture end
+function _update_image_texture end
+function _destroy_image_texture end
+
+"""
+    backend::Symbol
+
+Specifies the backend to use. Currently supported backends are:
+- `:GlfwOpenGL` (GLFW/OpenGL3)
+"""
+backend = nothing
+
+function _check_backend()
+    if isnothing(backend)
+        error("You must set `CImGui.backend` to the backend you want before calling this function, e.g. `CImGui.backend = :GlfwOpenGL` for the GLFW/OpenGL3 backend.")
+    end
+end
+
+function render(args...; kwargs...)
+    _check_backend()
+    _render(args..., Val(backend); kwargs...)
+end
+
+function create_image_texture(args...; kwargs...)
+    _check_backend()
+    _create_image_texture(Val(backend), args...; kwargs...)
+end
+
+function update_image_texture(args...; kwargs...)
+    _check_backend()
+    _update_image_texture(Val(backend), args...; kwargs...)
+end
+
+function destroy_image_texture(args...; kwargs...)
+    _check_backend()
+    _destroy_image_texture(Val(backend), args...; kwargs...)
+end
+
+function __init__()
+    Base.Experimental.register_error_hint(MethodError) do io, exc, argtypes, kwargs
+        if exc.f === render
+            if isempty(methods(exc.f))
+                print(io, "\nrender()has no methods yet. You must load the packages for supported backends, e.g. `import ModernGL, GLFW` for the GLFW/OpenGL3 backend.")
+            end
+        end
+    end
+end
 
 end # module

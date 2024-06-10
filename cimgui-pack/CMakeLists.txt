@@ -13,6 +13,8 @@ target_sources(${target} PRIVATE ./cimgui/imgui/imgui_demo.cpp)
 target_sources(${target} PRIVATE ./cimgui/imgui/imgui_draw.cpp)
 target_sources(${target} PRIVATE ./cimgui/imgui/imgui_tables.cpp)
 target_sources(${target} PRIVATE ./cimgui/imgui/imgui_widgets.cpp)
+target_sources(${target} PRIVATE ./cimgui/imgui/backends/imgui_impl_glfw.cpp)
+target_sources(${target} PRIVATE ./cimgui/imgui/backends/imgui_impl_opengl3.cpp)
 target_sources(${target} PRIVATE ./cimgui/cimgui.cpp)
 
 target_sources(${target} PRIVATE ./cimplot/implot/implot.cpp)
@@ -25,12 +27,23 @@ target_sources(${target} PRIVATE ./cimnodes/cimnodes.cpp)
 
 add_definitions(-DIMGUI_DISABLE_OBSOLETE_FUNCTIONS=1 -DIMNODES_NAMESPACE=imnodes -DIMGUI_ENABLE_TEST_ENGINE)
 
+# Find GLFW
+if (NOT DEFINED GLFW_LIBRARY)
+  find_package(glfw3 3.1 REQUIRED)
+  set(GLFW_LIBRARY "glfw")
+endif()
+target_link_libraries(${target} "${GLFW_LIBRARY}")
+
 if (WIN32)
-    add_definitions("-DIMGUI_IMPL_API=extern \"C\" __declspec\(dllexport\)")
-    target_link_libraries(${target} imm32)
+  add_definitions("-DIMGUI_IMPL_API=extern \"C\" __declspec\(dllexport\)")
+  target_link_libraries(${target} imm32 opengl32)
+elseif(APPLE)
+  add_definitions("-DIMGUI_IMPL_API=extern \"C\" ")
+  target_link_libraries(${target} "-framework OpenGL")
 else()
-    add_definitions("-DIMGUI_IMPL_API=extern \"C\" ")
-endif(WIN32)
+  add_definitions("-DIMGUI_IMPL_API=extern \"C\" ")
+  target_link_libraries(${target} GL)
+endif()
 
 target_include_directories(${target} PUBLIC
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/cimgui>
@@ -49,6 +62,7 @@ set(hdrs ${CMAKE_CURRENT_SOURCE_DIR}/cimgui/imgui/imgui.h
          ${CMAKE_CURRENT_SOURCE_DIR}/cimgui/imgui/imstb_rectpack.h
          ${CMAKE_CURRENT_SOURCE_DIR}/cimgui/imgui/imstb_textedit.h
          ${CMAKE_CURRENT_SOURCE_DIR}/cimgui/imgui/imstb_truetype.h
+         ${CMAKE_CURRENT_SOURCE_DIR}/cimgui/generator/output/cimgui_impl.h
          ${CMAKE_CURRENT_SOURCE_DIR}/cimgui/cimgui.h
          ${CMAKE_CURRENT_SOURCE_DIR}/cimplot/implot/implot.h
          ${CMAKE_CURRENT_SOURCE_DIR}/cimplot/implot/implot_internal.h

@@ -10,6 +10,12 @@ The versions have been picked so that they're all compatible with each other,
 i.e. matching the latest ImGui version. The currently supported ImGui version
 is: [*v1.90.8*](https://github.com/ocornut/imgui/releases/tag/v1.90.8).
 
+You can build the resulting shared library locally with:
+```julia-repl
+# $ julia --project=.
+julia> include("cimgui-pack/build.jl")
+```
+
 This repo is used directly by:
 - [CImGuiPack](https://github.com/JuliaPackaging/Yggdrasil/tree/master/C/CImGuiPack)
   to create a JLL.

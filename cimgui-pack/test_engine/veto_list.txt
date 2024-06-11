@@ -1,0 +1,72 @@
+# We have our own definitions for these
+ImGuiTest::GuiFunc
+ImGuiTest::TestFunc
+ImGuiTestEngine::TestsAll
+
+# Generating bindings to these symbols fails
+ImGuiTest::VarsPostConstructor
+ImGuiTest::VarsConstructor
+ImGuiTest::VarsDestructor
+ImGuiTestEngineIO::SrcFileOpenFunc
+ImGuiTestEngineIO::ScreenCaptureFunc
+
+# This method isn't implmented
+bool ImGuiTestContext::ItemOpenFullPath(ImGuiTestRef)
+
+# These are symbols from outside imgui_test_engine that we don't want to wrap
+ImFont
+ImDrawData
+ImGuiDockNode
+ImGuiLastItemData
+# ImGuiInputSource
+ImGuiAxis
+ImGuiStorage
+ImGuiTabBar
+ImGuiTable
+ImGuiTableSortSpecs
+ImGuiTextBuffer
+ImGuiViewport
+ImGuiWindow
+ImPool
+ImRect
+# ImVec2
+# ImVec4
+ImVector
+# Str
+_IO_FILE
+std::function
+
+# Internal symbols that we don't want to wrap
+ImGuiTestEngine::UiContextTarget
+ImGuiTestEngine::UiContextActive
+ImGuiTestEngine::TestsQueue
+ImGuiTestEngine::InfoTasks
+
+# Public symbols that we don't know how to properly wrap
+ImGuiTestItemInfo::Window
+ImGuiTestContext::ForeignWindowsToHide
+ImGuiTestGenericVars::WindowFlags
+ImGuiTestItemInfo::RectFull
+ImGuiTestItemInfo::RectClipped
+ImGuiTestItemList::Pool
+ImGuiTestLog::Buffer
+ImGuiTestLog::LineInfo
+ImGuiCsvParser::_Index
+ImGuiTestInputs::Queue
+ImGuiPerfTool::_SrcData
+ImGuiPerfTool::_Labels
+ImGuiPerfTool::_LabelsVisible
+ImGuiPerfTool::_Batches
+ImGuiPerfTool::_InfoTableSort
+ImGuiTestContext::Clipboard
+ImGuiPerfToolBatch::Entries
+ImGuiSortDirection ImGuiTestContext::TableClickHeader(ImGuiTestRef, const char *, ImGuiKeyChord)
+void ImGuiTestContext::DockInto(ImGuiTestRef, ImGuiTestRef, ImGuiDir, bool, ImGuiTestOpFlags)
+ImGuiTestContext::UiContext
+ImGuiPerfTool::_LabelBarCounts
+ImGuiPerfTool::_TempSet
+ImGuiPerfTool::_Visibility
+ImGuiPerfTool::_InfoTableSortSpecs
+bool ImGui::InputText(const char *, Str *, ImGuiInputTextFlags, ImGuiInputTextCallback, void *)
+bool ImGui::InputTextWithHint(const char *, const char *, Str *, ImGuiInputTextFlags, ImGuiInputTextCallback, void *)
+bool ImGui::InputTextMultiline(const char *, Str *, const ImVec2 &, ImGuiInputTextFlags, ImGuiInputTextCallback, void *)

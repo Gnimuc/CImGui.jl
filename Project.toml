@@ -1,13 +1,12 @@
 name = "CImGui"
 uuid = "5d785b6c-b76f-510e-a07c-3070796c7e87"
 authors = ["Yupei Qi <qiyupei@gmail.com>"]
-version = "2"
+version = "2.0.0"
 
 [deps]
 CEnum = "fa961155-64e5-5f13-b03f-caf6b980ea82"
 CSyntax = "ea656a56-6ca6-5dda-bba5-7b6963a5f74c"
 LibCImGui = "9be01004-c4f5-478b-abeb-cb32b114cf5e"
-Preferences = "21216c6a-2e73-6563-6e65-726566657250"
 
 [weakdeps]
 GLFW = "f7f18e0c-5ee9-5ccd-a5bf-e8befd85ed98"
@@ -20,7 +19,6 @@ GlfwOpenGLBackend = ["GLFW", "ModernGL"]
 CEnum = "0.4, 0.5"
 CSyntax = "0.4"
 LibCImGui = "~1.90"
-Preferences = "1"
 julia = "1.6"
 
 [extras]

@@ -8,3 +8,7 @@ imgui_log.txt
 .vscode
 *Manifest.toml
 build
+cimgui-pack/test_engine/ImGuiTestEngine
+cimgui-pack/test_engine/*-report.txt
+cimgui-pack/test_engine/config.toml
+cimgui-pack/test_engine/src/overrides.h

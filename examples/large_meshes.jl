@@ -9,7 +9,7 @@ import GLFW
 import ModernGL
 
 # create contexts
-CImGui.backend = :GlfwOpenGL
+CImGui.set_backend(:GlfwOpenGL3)
 imgui_ctx = CImGui.CreateContext()
 
 # enable docking and multi-viewport

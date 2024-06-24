@@ -66,14 +66,14 @@ function _destroy_image_texture end
 """
     backend::Symbol
 
-Specifies the backend to use. Currently supported backends are:
-- `:GlfwOpenGL` (GLFW/OpenGL3)
+Set the backend to use. Currently supported backends are:
+- `:GlfwOpenGL3` (GLFW/OpenGL3, requires ModernGL.jl and GLFW.jl)
 """
 backend = nothing
 
 function _check_backend()
-    if isnothing(backend)
-        error("You must set `CImGui.backend` to the backend you want before calling this function, e.g. `CImGui.backend = :GlfwOpenGL` for the GLFW/OpenGL3 backend.")
+    if isnothing(_backend)
+        error("You must call `CImGui.set_backend()` to the backend you want before calling this function, e.g. `CImGui.set_backend(:GlfwOpenGL3)` for the GLFW/OpenGL3 backend.")
     end
 end
 

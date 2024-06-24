@@ -25,7 +25,7 @@ else
 end
 
 
-function CImGui._create_image_texture(::Val{:GlfwOpenGL}, image_width, image_height; format=GL.GL_RGBA, type=GL.GL_UNSIGNED_BYTE)
+function CImGui._create_image_texture(::Val{:GlfwOpenGL3}, image_width, image_height; format=GL.GL_RGBA, type=GL.GL_UNSIGNED_BYTE)
     id = GL.GLuint(0)
     @c GL.glGenTextures(1, &id)
     GL.glBindTexture(GL.GL_TEXTURE_2D, id)
@@ -37,19 +37,19 @@ function CImGui._create_image_texture(::Val{:GlfwOpenGL}, image_width, image_hei
     return Int(id)
 end
 
-function CImGui._update_image_texture(::Val{:GlfwOpenGL}, id, image_data, image_width, image_height; format=GL.GL_RGBA, type=GL.GL_UNSIGNED_BYTE)
+function CImGui._update_image_texture(::Val{:GlfwOpenGL3}, id, image_data, image_width, image_height; format=GL.GL_RGBA, type=GL.GL_UNSIGNED_BYTE)
     GL.glBindTexture(GL.GL_TEXTURE_2D, g_ImageTexture[id])
     GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0, GL.GLsizei(image_width), GL.GLsizei(image_height), format, type, image_data)
 end
 
-function CImGui._destroy_image_texture(::Val{:GlfwOpenGL}, id)
+function CImGui._destroy_image_texture(::Val{:GlfwOpenGL3}, id)
     id = g_ImageTexture[id]
     @c GL.glDeleteTextures(1, &id)
     delete!(g_ImageTexture, id)
     return true
 end
 
-function CImGui._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL};
+function CImGui._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
                         hotloading=true,
                         on_exit=nothing,
                         clear_color=Cfloat[0.45, 0.55, 0.60, 1.00],

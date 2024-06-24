@@ -56,8 +56,7 @@ const IMGUI_VERSION = unsafe_string(GetVersion())
 
 ## Backends
 
-# These are backend functions that must be implemented by a package extension
-# for a backend.
+# These are backend functions that must be implemented by package extensions
 function _render end
 function _create_image_texture end
 function _update_image_texture end
@@ -97,11 +96,19 @@ function destroy_image_texture(args...; kwargs...)
     _destroy_image_texture(Val(backend), args...; kwargs...)
 end
 
+## Test engine
+
+# These are implemented by ImGuiTestEngine.jl
+function _test_engine_is_running end
+function _start_test_engine end
+function _show_test_window end
+
+
 function __init__()
     Base.Experimental.register_error_hint(MethodError) do io, exc, argtypes, kwargs
-        if exc.f === render
+        if exc.f === _render
             if isempty(methods(exc.f))
-                print(io, "\nrender()has no methods yet. You must load the packages for supported backends, e.g. `import ModernGL, GLFW` for the GLFW/OpenGL3 backend.")
+                print(io, "\nrender() cannot be called yet. You must load the packages for supported backends, e.g. `import ModernGL, GLFW` for the GLFW/OpenGL3 backend.")
             end
         end
     end

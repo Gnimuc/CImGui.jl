@@ -54,9 +54,14 @@ function CImGui._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
                         on_exit=nothing,
                         clear_color=Cfloat[0.45, 0.55, 0.60, 1.00],
                         window_size=(1280, 720),
-                        window_title="CImGui")
+                        window_title="CImGui",
+                        engine=nothing)
     if clear_color isa Ref && !isassigned(clear_color)
         throw(ArgumentError("'clear_color' is a unassigned reference, it must be initialized properly."))
+    end
+
+    if !isnothing(engine)
+        CImGui._start_test_engine(engine, ctx)
     end
 
     GLFW.Init()
@@ -86,7 +91,14 @@ function CImGui._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
                 ui()
             end
 
-            if result === :imgui_exit_loop
+            if !isnothing(engine) && engine.show_test_window
+                CImGui._show_test_window(engine)
+            end
+
+            tests_completed = (!isnothing(engine)
+                               && engine.exit_on_completion
+                               && !CImGui._test_engine_is_running(engine))
+            if result === :imgui_exit_loop || tests_completed
                 GLFW.SetWindowShouldClose(window, true)
             end
 
@@ -110,12 +122,9 @@ function CImGui._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
                 lib.igRenderPlatformWindowsDefault(C_NULL, C_NULL)
                 GLFW.MakeContextCurrent(backup_current_context)
             end
-
-            yield() # To allow shutdown timer to run
         end
     catch e
-        @error "Error in renderloop!" exception=e
-        Base.show_backtrace(stderr, catch_backtrace())
+        @error "Error in CImGui $(CImGui.backend) renderloop!" exception=(e, catch_backtrace())
     finally
         if !isnothing(on_exit)
             try

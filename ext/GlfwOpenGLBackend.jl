@@ -124,7 +124,7 @@ function CImGui._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
             end
         end
     catch e
-        @error "Error in CImGui $(CImGui.backend) renderloop!" exception=(e, catch_backtrace())
+        @error "Error in CImGui $(CImGui._backend[]) renderloop!" exception=(e, catch_backtrace())
     finally
         if !isnothing(on_exit)
             try

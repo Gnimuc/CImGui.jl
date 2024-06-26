@@ -43,6 +43,10 @@ function official_demo(; engine=nothing)
     show_another_window = false
     clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
 
+    # for tests
+    timeout = parse(Int, get(ENV, "AUTO_CLOSE_DEMO", "0"))
+    timer = Timer(timeout)
+
     CImGui.render(ctx; window_title="Demo", clear_color=Ref(clear_color), engine) do
         # show the big demo window
         show_demo_window && @c CImGui.ShowDemoWindow(&show_demo_window)
@@ -73,6 +77,13 @@ function official_demo(; engine=nothing)
             CImGui.Button("Close Me") && (show_another_window = false;)
             CImGui.End()
         end
+
+        if haskey(ENV, "AUTO_CLOSE_DEMO") && !isopen(timer)
+            return :imgui_exit_loop
+        end
+
+        # Yield for the timer
+        yield()
     end
 end
 

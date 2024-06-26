@@ -73,38 +73,78 @@ function _create_image_texture end
 function _update_image_texture end
 function _destroy_image_texture end
 
+const _backend = Ref{Symbol}()
+
 """
-    backend::Symbol
+    set_backend(backend::Symbol)
 
 Set the backend to use. Currently supported backends are:
 - `:GlfwOpenGL3` (GLFW/OpenGL3, requires ModernGL.jl and GLFW.jl)
 """
-backend = nothing
+function set_backend(backend::Symbol)
+    if backend ∉ (:GlfwOpenGL3,)
+        throw(ArgumentError("Unrecognized backend: $(backend)"))
+    end
+
+    global _backend[] = backend
+end
 
 function _check_backend()
-    if isnothing(_backend)
+    if !isassigned(_backend)
         error("You must call `CImGui.set_backend()` to the backend you want before calling this function, e.g. `CImGui.set_backend(:GlfwOpenGL3)` for the GLFW/OpenGL3 backend.")
     end
 end
 
+"""
+    render(ui::Function, ctx::Ptr{lib.ImGuiContext}; kwargs...)
+
+Top-level function to call a renderloop implemented by the backend selected by
+[`set_backend()`](@ref). This function will not return until the program exits,
+either by the user closing the window or `ui()` returning `:imgui_exit_loop`. It
+will also not yield the loop, though you may explicitly call `yield()` in
+`ui()`.
+
+# Arguments
+Positional arguments:
+- `ui`: The function to execute in the renderloop. This where all the GUI code
+  with calls to CImGui should go.
+- `ctx`: The ImGui context to use. Note that [`DestroyContext()`](@ref) will
+  automatically be called on it at the end of the renderloop, so it will be
+  unusable afterwards.
+
+Keyword arguments:
+- `hotloading=true`: Enable calling the latest version of `ui()` using
+  `@invokelatest`. This is handy when using Revise.jl.
+- `on_exit::Union{Function, Nothing}=nothing`: A destructor/finalizer function
+  that will be called before destroying `ctx`. This might be useful if you're
+  using some external library that needs to be cleaned up in a certain order.
+- `clear_color=Cfloat[0.45, 0.55, 0.60, 1.00]`: The color of the window
+  background. This can also be a `Ref{Vector{Cfloat}}` if you want to control
+  the color dynamically (see the official demo for an example).
+- `window_size=(1280, 720)`: The initial size of the window.
+- `window_title="CImGui"`: The window title.
+- `engine=nothing`: An optional `ImGuiTestEngine.Engine` instance. If there are
+  any tests registered with the test engine they will be queued and run
+  automatically.
+"""
 function render(args...; kwargs...)
     _check_backend()
-    _render(args..., Val(backend); kwargs...)
+    _render(args..., Val(_backend[]); kwargs...)
 end
 
 function create_image_texture(args...; kwargs...)
     _check_backend()
-    _create_image_texture(Val(backend), args...; kwargs...)
+    _create_image_texture(Val(_backend[]), args...; kwargs...)
 end
 
 function update_image_texture(args...; kwargs...)
     _check_backend()
-    _update_image_texture(Val(backend), args...; kwargs...)
+    _update_image_texture(Val(_backend[]), args...; kwargs...)
 end
 
 function destroy_image_texture(args...; kwargs...)
     _check_backend()
-    _destroy_image_texture(Val(backend), args...; kwargs...)
+    _destroy_image_texture(Val(_backend[]), args...; kwargs...)
 end
 
 ## Test engine

@@ -6,6 +6,7 @@ using Test
     if !haskey(ENV, "CI") || Sys.islinux() && Sys.WORD_SIZE == 64
         withenv("AUTO_CLOSE_DEMO" => "5") do
             include(joinpath("..", "demo", "demo.jl"))
+            Base.invokelatest(official_demo)
         end
     else
         @warn "Tests not run" haskey(ENV, "CI") Sys.islinux() Sys.WORD_SIZE

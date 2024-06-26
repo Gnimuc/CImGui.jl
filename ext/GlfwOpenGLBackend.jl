@@ -2,7 +2,7 @@ module GlfwOpenGLBackend
 
 import CSyntax: @c
 import CImGui
-import LibCImGui as lib
+import CImGui.lib as lib
 import GLFW
 import ModernGL as GL
 

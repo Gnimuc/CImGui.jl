@@ -1,10 +1,12 @@
 module CImGui
 
-using LibCImGui
-
 using CSyntax
 using CEnum
 using CEnum: Cenum, name_value_pairs
+
+
+include("lib.jl")
+using .lib
 
 const IM_COL32_R_SHIFT = 0
 const IM_COL32_G_SHIFT = 8

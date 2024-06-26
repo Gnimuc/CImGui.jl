@@ -1,7 +1,6 @@
-module LibCImGui
+module lib
 
 using CImGuiPack_jll
-export CImGuiPack_jll
 
 const IS_LIBC_MUSL = occursin("musl", Base.BUILD_TRIPLET)
 if Sys.isapple() && Sys.ARCH === :aarch64

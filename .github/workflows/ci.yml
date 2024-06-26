@@ -37,8 +37,6 @@ jobs:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
       - uses: julia-actions/cache@v2
-      - run: |
-          julia --project=. -e 'using Pkg; Pkg.develop(PackageSpec(path="LibCImGui.jl"))'
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-uploadcodecov@v0.1
@@ -65,8 +63,6 @@ jobs:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
       - uses: julia-actions/cache@v2
-      - run: |
-          julia --project=. -e 'using Pkg; Pkg.develop(PackageSpec(path="LibCImGui.jl"))'
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
         with:
@@ -82,7 +78,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get install xvfb && Xvfb :99 &
       - uses: julia-actions/setup-julia@v2
       - uses: julia-actions/cache@v2
         with:

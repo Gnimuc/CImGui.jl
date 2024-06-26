@@ -2,7 +2,6 @@ using Printf
 
 using CImGui
 import CImGui.CSyntax: @c, @cstatic
-import CImGui.LibCImGui as lib
 
 # Load deps for the GLFW/OpenGL backend
 import GLFW

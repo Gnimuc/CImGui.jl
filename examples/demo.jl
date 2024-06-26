@@ -1,5 +1,5 @@
 using CImGui
-using CImGui.LibCImGui
+using CImGui.lib
 using CImGui.CSyntax
 
 import GLFW

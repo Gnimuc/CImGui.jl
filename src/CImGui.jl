@@ -34,6 +34,15 @@ Base.:~(x::Cenum{UInt32}) = ~UInt32(x)
 Base.:(:)(a::T, b::Cenum) where {T<:Integer} = a:T(b)
 Base.:(:)(a::Cenum, b::T) where {T<:Integer} = T(a):b
 
+"""
+    imgui_version()::VersionNumber
+
+Return the upstream ImGui version.
+"""
+function imgui_version()
+    VersionNumber(unsafe_string(igGetVersion()))
+end
+
 function ShowFlags(::Type{T}) where {T<:Cenum}
     io = IOBuffer()
     s = "```\n"

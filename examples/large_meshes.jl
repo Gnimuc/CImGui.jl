@@ -5,19 +5,12 @@
 # enabled (or ImGui was built with 32-bit indices).
 
 using CImGui
-using CImGui.ImGuiGLFWBackend
-using CImGui.ImGuiGLFWBackend.LibCImGui
-using CImGui.ImGuiGLFWBackend.LibGLFW
-using CImGui.ImGuiOpenGLBackend
-using CImGui.ImGuiOpenGLBackend.ModernGL
+import GLFW
+import ModernGL
 
 # create contexts
+CImGui.set_backend(:GlfwOpenGL3)
 imgui_ctx = CImGui.CreateContext()
-
-window_ctx = ImGuiGLFWBackend.create_context()
-window = ImGuiGLFWBackend.get_window(window_ctx)
-
-gl_ctx = ImGuiOpenGLBackend.create_context()
 
 # enable docking and multi-viewport
 io = CImGui.GetIO()
@@ -26,10 +19,6 @@ io.ConfigFlags = unsafe_load(io.ConfigFlags) | ImGuiConfigFlags_ViewportsEnable
 
 # set style
 CImGui.StyleColorsDark()
-
-# init
-ImGuiGLFWBackend.init(window_ctx)
-ImGuiOpenGLBackend.init(gl_ctx)
 
 mutable struct GuiState
     vtx_count::Cint
@@ -108,45 +97,6 @@ function gui(state)
     end
 end
 
-try
-    state = GuiState(60_000, 60_000)
+state = GuiState(60_000, 60_000)
 
-    while glfwWindowShouldClose(window) == GLFW_FALSE
-        glfwPollEvents()
-        # new frame
-        ImGuiOpenGLBackend.new_frame(gl_ctx)
-        ImGuiGLFWBackend.new_frame(window_ctx)
-        CImGui.NewFrame()
-
-        # UIs
-        gui(state)
-
-        # rendering
-        CImGui.Render()
-        glfwMakeContextCurrent(window)
-        w_ref, h_ref = Ref{Cint}(0), Ref{Cint}(0)
-        glfwGetFramebufferSize(window, w_ref, h_ref)
-        display_w, display_h = w_ref[], h_ref[]
-        glViewport(0, 0, display_w, display_h)
-        glClearColor(0.45, 0.55, 0.60, 1.00)
-        glClear(GL_COLOR_BUFFER_BIT)
-        ImGuiOpenGLBackend.render(gl_ctx)
-
-        if unsafe_load(CImGui.GetIO().ConfigFlags) & ImGuiConfigFlags_ViewportsEnable == ImGuiConfigFlags_ViewportsEnable
-            backup_current_context = glfwGetCurrentContext()
-            LibCImGui.igUpdatePlatformWindows()
-            GC.@preserve gl_ctx LibCImGui.igRenderPlatformWindowsDefault(C_NULL, pointer_from_objref(gl_ctx))
-            glfwMakeContextCurrent(backup_current_context)
-        end
-
-        glfwSwapBuffers(window)
-    end
-catch e
-    @error "Error in renderloop!" exception=e
-    Base.show_backtrace(stderr, catch_backtrace())
-finally
-    ImGuiOpenGLBackend.shutdown(gl_ctx)
-    ImGuiGLFWBackend.shutdown(window_ctx)
-    CImGui.DestroyContext(imgui_ctx)
-    glfwDestroyWindow(window)
-end
+CImGui.render(() -> gui(state), imgui_ctx)

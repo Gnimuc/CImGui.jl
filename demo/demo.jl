@@ -1,87 +1,53 @@
-using CImGui
-using CImGui.CSyntax
-using CImGui.CSyntax.CStatic
-using ImGuiGLFWBackend #CImGui.GLFWBackend
-using ImGuiOpenGLBackend #CImGui.OpenGLBackend
-using ImGuiGLFWBackend.LibGLFW # #CImGui.OpenGLBackend.GLFW
-using ImGuiOpenGLBackend.ModernGL
 using Printf
 
-@static if Sys.isapple()
-    # OpenGL 3.2 + GLSL 150
-    const glsl_version = 150
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2)
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE) # 3.2+ only
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE) # required on Mac
-else
-    # OpenGL 3.0 + GLSL 130
-    const glsl_version = 130
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0)
-    # glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE) # 3.2+ only
-    # glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE) # 3.0+ only
-end
+using CImGui
+import CImGui.CSyntax: @c, @cstatic
 
-# setup GLFW error callback
-#? error_callback(err::GLFW.GLFWError) = @error "GLFW ERROR: code $(err.code) msg: $(err.description)"
-#? GLFW.SetErrorCallback(error_callback)
+# Load deps for the GLFW/OpenGL backend
+import GLFW
+import ModernGL
 
-# create window
-window = glfwCreateWindow(1280, 720, "Demo", C_NULL, C_NULL)
-@assert window != C_NULL
-glfwMakeContextCurrent(window)
-glfwSwapInterval(1)  # enable vsync
+# Setup Dear ImGui context
+CImGui.set_backend(:GlfwOpenGL3)
 
-# setup Dear ImGui context
-ctx = CImGui.CreateContext()
+function official_demo(; engine=nothing)
+    ctx = CImGui.CreateContext()
 
-# setup Dear ImGui style
-CImGui.StyleColorsDark()
-# CImGui.StyleColorsClassic()
-# CImGui.StyleColorsLight()
+    # Enable docking and multi-viewport
+    io = CImGui.GetIO()
+    io.ConfigFlags = unsafe_load(io.ConfigFlags) | CImGui.ImGuiConfigFlags_DockingEnable
+    io.ConfigFlags = unsafe_load(io.ConfigFlags) | CImGui.ImGuiConfigFlags_ViewportsEnable
 
-# load Fonts
-# - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use `CImGui.PushFont/PopFont` to select them.
-# - `CImGui.AddFontFromFileTTF` will return the `Ptr{ImFont}` so you can store it if you need to select the font among multiple.
-# - If the file cannot be loaded, the function will return C_NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
-# - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling `CImGui.Build()`/`GetTexDataAsXXXX()``, which `ImGui_ImplXXXX_NewFrame` below will call.
-# - Read 'fonts/README.txt' for more instructions and details.
-fonts_dir = joinpath(@__DIR__, "..", "fonts")
-fonts = unsafe_load(CImGui.GetIO().Fonts)
-# default_font = CImGui.AddFontDefault(fonts)
-# CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Cousine-Regular.ttf"), 15)
-# CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "DroidSans.ttf"), 16)
-# CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Karla-Regular.ttf"), 10)
-# CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "ProggyTiny.ttf"), 10)
-CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Roboto-Medium.ttf"), 16)
-# @assert default_font != C_NULL
+    # Setup Dear ImGui style
+    CImGui.StyleColorsDark()
+    # CImGui.StyleColorsClassic()
+    # CImGui.StyleColorsLight()
 
-# setup Platform/Renderer bindings
-glfw_ctx = ImGuiGLFWBackend.create_context(window, install_callbacks = true)
-ImGuiGLFWBackend.init(glfw_ctx)
-opengl_ctx = ImGuiOpenGLBackend.create_context(glsl_version)
-ImGuiOpenGLBackend.init(opengl_ctx)
+    # Load fonts
+    # - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use `CImGui.PushFont/PopFont` to select them.
+    # - `CImGui.AddFontFromFileTTF` will return the `Ptr{ImFont}` so you can store it if you need to select the font among multiple.
+    # - If the file cannot be loaded, the function will return C_NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
+    # - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling `CImGui.Build()`/`GetTexDataAsXXXX()``, which `ImGui_ImplXXXX_NewFrame` below will call.
+    # - Read 'fonts/README.txt' for more instructions and details.
+    fonts_dir = joinpath(@__DIR__, "..", "fonts")
+    fonts = unsafe_load(CImGui.GetIO().Fonts)
+    # default_font = CImGui.AddFontDefault(fonts)
+    # CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Cousine-Regular.ttf"), 15)
+    # CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "DroidSans.ttf"), 16)
+    # CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Karla-Regular.ttf"), 10)
+    # CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "ProggyTiny.ttf"), 10)
+    CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Roboto-Medium.ttf"), 16)
+    # @assert default_font != C_NULL
 
-# for tests
-if haskey(ENV, "AUTO_CLOSE_DEMO")
-    tsecs = parse(Int, ENV["AUTO_CLOSE_DEMO"])
-    Timer(tsecs) do t
-        glfwSetWindowShouldClose(window, true)
-    end
-end
-
-try
     show_demo_window = true
     show_another_window = false
     clear_color = Cfloat[0.45, 0.55, 0.60, 1.00]
-    while glfwWindowShouldClose(window) == 0
-        glfwPollEvents()
-        # start the Dear ImGui frame
-        ImGuiOpenGLBackend.new_frame(opengl_ctx) #ImGui_ImplOpenGL3_NewFrame()
-        ImGuiGLFWBackend.new_frame(glfw_ctx) #ImGui_ImplGlfw_NewFrame()
-        CImGui.NewFrame()
 
+    # for tests
+    timeout = parse(Int, get(ENV, "AUTO_CLOSE_DEMO", "0"))
+    timer = Timer(timeout)
+
+    CImGui.render(ctx; window_title="Demo", clear_color=Ref(clear_color), engine) do
         # show the big demo window
         show_demo_window && @c CImGui.ShowDemoWindow(&show_demo_window)
 
@@ -112,31 +78,16 @@ try
             CImGui.End()
         end
 
-        # rendering
-        CImGui.Render()
-        glfwMakeContextCurrent(window)
+        if haskey(ENV, "AUTO_CLOSE_DEMO") && !isopen(timer)
+            return :imgui_exit_loop
+        end
 
-        width, height = Ref{Cint}(), Ref{Cint}() #! need helper fcn
-        glfwGetFramebufferSize(window, width, height)
-        display_w = width[]
-        display_h = height[]
-
-        glViewport(0, 0, display_w, display_h)
-        glClearColor(clear_color...)
-        glClear(GL_COLOR_BUFFER_BIT)
-        ImGuiOpenGLBackend.render(opengl_ctx) #ImGui_ImplOpenGL3_RenderDrawData(CImGui.GetDrawData())
-
-        glfwMakeContextCurrent(window)
-        glfwSwapBuffers(window)
-
-        yield() # to allow shutdown timer to run
+        # Yield for the timer
+        yield()
     end
-catch e
-    @error "Error in renderloop!" exception=e
-    Base.show_backtrace(stderr, catch_backtrace())
-finally
-    ImGuiOpenGLBackend.shutdown(opengl_ctx) #ImGui_ImplOpenGL3_Shutdown()
-    ImGuiGLFWBackend.shutdown(glfw_ctx) #ImGui_ImplGlfw_Shutdown()
-    CImGui.DestroyContext(ctx)
-    glfwDestroyWindow(window)
+end
+
+# Run automatically if the script is launched from the command-line
+if !isempty(Base.PROGRAM_FILE)
+    official_demo()
 end

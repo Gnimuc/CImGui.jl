@@ -1,0 +1,4 @@
+[deps]
+CxxWrap = "1f15a43c-97ca-5a2a-ae31-89f07a497df4"
+GLFW_jll = "0656b61e-2033-5cc2-a64a-77c0f6c09b89"
+WrapIt = "962878d8-9763-11ee-8c14-fbf60c98afae"

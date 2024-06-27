@@ -602,7 +602,7 @@ function ShowDemoWindowWidgets()
 
             # typically we would use ImVec2(-1.0,0.0) to use all available width, or ImVec2(width,0.0) for a specified width. ImVec2(0.0,0.0) uses ItemWidth.
             CImGui.ProgressBar(progress, ImVec2(0.0,0.0))
-            CImGui.SameLine(0.0, CImGui.GetStyle().ItemInnerSpacing.x)
+            CImGui.SameLine(0.0, unsafe_load(CImGui.GetStyle().ItemInnerSpacing).x)
             CImGui.Text("Progress Bar")
 
             progress_saturated = (progress < 0.0) ? 0.0 : (progress > 1.0) ? 1.0 : progress

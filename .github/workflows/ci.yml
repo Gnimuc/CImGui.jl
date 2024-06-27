@@ -13,13 +13,13 @@ jobs:
     name: Loading only - Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         version:
-          - '1.6'
+          - '1.9'
           - '1'
           - 'nightly'
         os:
-          - ubuntu-latest
           - macOS-latest
           - windows-latest
         arch:
@@ -28,8 +28,6 @@ jobs:
         exclude:
           - os: macOS-latest
             arch: x86
-          - os: ubuntu-latest # covered in "tests" job
-            arch: x64
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
@@ -37,8 +35,6 @@ jobs:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
       - uses: julia-actions/cache@v2
-      - run: |
-          julia --project=. -e 'using Pkg; Pkg.develop(PackageSpec(path="LibCImGui.jl"))'
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-uploadcodecov@v0.1
@@ -49,15 +45,18 @@ jobs:
     name: Tests - Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         version:
-          - '1.6'
+          - '1.9'
           - '1'
           - 'nightly'
         os:
           - ubuntu-latest
         arch:
           - x64
+          # For some reason GLFW won't let us create a window on 32 bit ubuntu
+          # - x86
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
@@ -65,14 +64,10 @@ jobs:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
       - uses: julia-actions/cache@v2
-      - run: |
-          julia --project=. -e 'using Pkg; Pkg.develop(PackageSpec(path="LibCImGui.jl"))'
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
         with:
           prefix: xvfb-run -a -s '-screen 0 1024x768x24'
-        env:
-          LD_PRELOAD: /usr/lib/x86_64-linux-gnu/libstdc++.so.6
       - uses: julia-actions/julia-uploadcodecov@v0.1
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
@@ -82,11 +77,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get install xvfb && Xvfb :99 &
       - uses: julia-actions/setup-julia@v2
-      - uses: julia-actions/cache@v2
-        with:
-          version: '1'
       - run: |
           julia --project=docs -e '
             using Pkg

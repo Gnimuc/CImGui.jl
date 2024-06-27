@@ -2420,7 +2420,7 @@ end
     BeginChildFrame(id, size, flags=0) -> Bool
 Helper to create a child window / scrolling region that looks like a normal widget frame.
 """
-BeginChildFrame(id, size, flags=0) = igBeginChildFrame(id, size, flags)
+BeginChildFrame(id, size, flags=0) = igBeginChild_ID(id, size, ImGuiChildFlags_FrameStyle, flags)
 
 """
     EndChildFrame()
@@ -2428,7 +2428,7 @@ BeginChildFrame(id, size, flags=0) = igBeginChildFrame(id, size, flags)
     Always call `EndChildFrame()` regardless of [`BeginChildFrame`](@ref) return values which
     indicates a collapsed/clipped window.
 """
-EndChildFrame() = igEndChildFrame()
+EndChildFrame() = igEndChild()
 
 ###################################### Color Utilities #####################################
 """
@@ -2451,17 +2451,14 @@ ColorConvertRGBtoHSV(r, g, b, out_h, out_s, out_v) = igColorConvertRGBtoHSV(r, g
 ColorConvertHSVtoRGB(h, s, v, out_r, out_g, out_b) = igColorConvertHSVtoRGB(h, s, v, out_r, out_g, out_b)
 
 ##################################### Inputs Utilities #####################################
-"""
-    GetKeyIndex(imgui_key) -> Cint
-Map ImGuiKey_* values into user's key index. == io.KeyMap[key]
-"""
-GetKeyIndex(imgui_key) = igGetKeyIndex(imgui_key)
+
+@deprecate GetKeyIndex(imgui_key) identity(imgui_key)
 
 """
     GetKeyData(imgui_key) -> Ptr{ImGuiKeyData}
 Get the key data for a specific key.
 """
-GetKeyData(imgui_key) = igGetKeyData(imgui_key)
+GetKeyData(imgui_key) = igGetKeyData_Key(imgui_key)
 
 """
     IsKeyDown(user_key_index) -> Bool
@@ -2518,10 +2515,10 @@ IsMouseClicked(button, repeat=false) = igIsMouseClicked_Bool(button, repeat)
 
 """
     IsMouseDoubleClicked(button) -> Bool
-Did mouse button double-clicked. a double-click returns false in [`IsMouseClicked`](@ref).
+Did mouse button double-clicked.
 Uses io.MouseDoubleClickTime.
 """
-IsMouseDoubleClicked(button) = igIsMouseDoubleClicked(button)
+IsMouseDoubleClicked(button) = igIsMouseDoubleClicked_Nil(button)
 
 """
     IsMouseReleased(button) -> Bool

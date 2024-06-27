@@ -161,7 +161,7 @@ global function ShowJuliaDemoWindow(p_open::Ref{Bool})
                     CImGui.SameLine()
                     CImGui.Text("<<PRESS SPACE TO DISABLE>>")
                 end
-                if CImGui.IsKeyPressed(CImGui.GetKeyIndex(CImGui.ImGuiKey_Space))
+                if CImGui.IsKeyPressed(CImGui.ImGuiKey_Space)
                     io.ConfigFlags = unsafe_load(io.ConfigFlags) & ~Cuint(CImGui.ImGuiConfigFlags_NoMouse)
                 end
             end

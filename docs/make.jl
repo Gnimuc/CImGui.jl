@@ -1,6 +1,10 @@
-using CImGui
+import CImGui
+import Revise
 using Documenter
 import Changelog
+
+# Revise to catch any docstring changes
+Revise.revise()
 
 # Note that the changelog file is named `_changelog.md` so we can use
 # `changelog.md` as the generated name, which makes for a prettier URL.
@@ -19,13 +23,10 @@ makedocs(;
         prettyurls=get(ENV, "CI", "false") == "true",
         canonical="https://Gnimuc.github.io/CImGui.jl",
         assets=String[],
-        size_threshold=400000
+        size_threshold=500000,
+        size_threshold_warn=400000
     ),
-    pages=[
-        "Introduction" => "index.md",
-        "API Reference" => "api.md",
-        "Changelog" => "changelog.md"
-    ]
+    pages=["index.md", "api.md", "backends.md", "changelog.md"]
 )
 
 deploydocs(;

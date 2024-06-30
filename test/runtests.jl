@@ -1,14 +1,71 @@
-using CImGui
 using Test
+import CImGui as ig
+using ImGuiTestEngine
+import ImGuiTestEngine as te
+import ModernGL, GLFW
 
-@testset "CImGui.jl" begin
-    # if CI only run if linux given xvfb is available in CI
-    if !haskey(ENV, "CI") || Sys.islinux() && Sys.WORD_SIZE == 64
-        withenv("AUTO_CLOSE_DEMO" => "5") do
-            include(joinpath("..", "demo", "demo.jl"))
-            Base.invokelatest(official_demo)
-        end
-    else
-        @warn "Tests not run" haskey(ENV, "CI") Sys.islinux() Sys.WORD_SIZE
+ig.set_backend(:GlfwOpenGL3)
+
+
+include(joinpath(@__DIR__, "../demo/demo.jl"))
+
+@testset "Official demo" begin
+    @test ig.imgui_version() isa VersionNumber
+    engine = te.CreateContext()
+
+    @register_test(engine, "Official demo", "Hiding demo window") do ctx
+        @imcheck GetWindowByRef("Dear ImGui Demo") != nothing
+
+        SetRef("Hello, world!")
+        ItemClick("Demo Window") # This should hide the demo window
+
+        @imcheck GetWindowByRef("Dear ImGui Demo") == nothing
     end
+
+    official_demo(; engine)
+
+    te.DestroyContext(engine)
+end
+
+include(joinpath(@__DIR__, "../examples/demo.jl"))
+
+@testset "Julia demo" begin
+    engine = te.CreateContext()#; exit_on_completion=false, show_test_window=true)
+    # engine_io = te.GetIO(engine)
+    # engine_io.ConfigRunSpeed = te.RunSpeed_Normal
+
+    @register_test(engine, "Julia demo", "About window") do ctx
+        SetRef("ImGui Demo")
+        MenuClick("Help/About Dear ImGui")
+
+        Yield() # Let it run another frame so that the new window can be drawn
+        @imcheck GetWindowByRef("//About Dear ImGui") != nothing
+
+        SetRef("About Dear ImGui")
+        ItemCheck("Config\\/Build Information")
+    end
+
+    @register_test(engine, "Configuration", "ConfigFlags") do ctx
+        SetRef("ImGui Demo")
+        ItemClick("Configuration")
+        ItemClick("Configuration##2")
+        SetRef("ImGui Demo/Configuration##2")
+        ItemCheck("io.ConfigFlags: NoMouse")
+    end
+
+    @register_test(engine, "Widgets", "Selectables") do ctx
+        SetRef("ImGui Demo")
+        ItemClick("Widgets")
+        ItemClick("Selectables")
+        ItemClick("Selectables/Basic")
+        SetRef("ImGui Demo/Selectables/Basic")
+        ItemDoubleClick("5. I am double clickable")
+
+        SetRef("ImGui Demo")
+        ItemClick("Plots Widgets")
+    end
+
+    julia_demo(; engine)
+
+    te.DestroyContext(engine)
 end

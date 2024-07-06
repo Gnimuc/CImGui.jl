@@ -116,7 +116,7 @@ function CImGui._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
             GLFW.MakeContextCurrent(window)
             GLFW.SwapBuffers(window)
 
-            if (unsafe_load(lib.igGetIO().ConfigFlags) & lib.ImGuiConfigFlags_ViewportsEnable) == lib.ImGuiConfigFlags_ViewportsEnable
+            if (lib.igGetIO().ConfigFlags & lib.ImGuiConfigFlags_ViewportsEnable) == lib.ImGuiConfigFlags_ViewportsEnable
                 backup_current_context = GLFW.GetCurrentContext()
                 lib.igUpdatePlatformWindows()
                 lib.igRenderPlatformWindowsDefault(C_NULL, C_NULL)

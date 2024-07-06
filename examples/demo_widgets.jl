@@ -45,7 +45,7 @@ function ShowDemoWindowWidgets()
 
         # arrow buttons with Repeater
         @cstatic counter=Cint(0) begin
-            spacing = unsafe_load(CImGui.GetStyle().ItemInnerSpacing.x)
+            spacing = CImGui.GetStyle().ItemInnerSpacing.x
             CImGui.PushButtonRepeat(true)
             CImGui.ArrowButton("##left", CImGui.ImGuiDir_Left) && (counter-=1;)
             CImGui.SameLine(0.0, spacing)
@@ -182,7 +182,7 @@ function ShowDemoWindowWidgets()
                 end
                 if node_clicked != -1
                     # update selection state. Process outside of tree loop to avoid visual inconsistencies during the clicking-frame.
-                    if unsafe_load(CImGui.GetIO().KeyCtrl)
+                    if CImGui.GetIO().KeyCtrl
                         selection_mask ⊻= 1 << node_clicked           # CTRL+click to toggle
                     else #if (!(selection_mask & (1 << node_clicked))) # Depending on selection behavior you want, this commented bit preserve selection when clicking on item that is part of the selection
                         selection_mask = 1 << node_clicked            # Click to single-select
@@ -290,10 +290,9 @@ function ShowDemoWindowWidgets()
         # If you decided that ImTextureID = MyEngineTexture*, then you can pass your MyEngineTexture* pointers to CImGui.Image(), and gather width/height through your own functions, etc.
         # Using ShowMetricsWindow() as a "debugger" to inspect the draw data that are being passed to your render will help you debug issues if you are confused about this.
         # Consider using the lower-level ImDrawList::AddImage() API, via CImGui.GetWindowDrawList()->AddImage().
-        font_atlas = unsafe_load(io.Fonts)
-        my_tex_id = unsafe_load(font_atlas.TexID)
-        my_tex_w = unsafe_load(font_atlas.TexWidth)
-        my_tex_h = unsafe_load(font_atlas.TexHeight)
+        my_tex_id = io.Fonts.TexID
+        my_tex_w = io.Fonts.TexWidth
+        my_tex_h = io.Fonts.TexHeight
 
         CImGui.Text(@sprintf("%.0fx%.0f", my_tex_w, my_tex_h))
         pos = CImGui.GetCursorScreenPos()
@@ -301,13 +300,13 @@ function ShowDemoWindowWidgets()
         if CImGui.IsItemHovered()
             CImGui.BeginTooltip()
             region_sz = 32.0
-            region_x = unsafe_load(io.MousePos).x - pos.x - region_sz * 0.5
+            region_x = io.MousePos.x - pos.x - region_sz * 0.5
             if region_x < 0.0
                 region_x = 0.0
             elseif region_x > my_tex_w - region_sz
                 region_x = my_tex_w - region_sz
             end
-            region_y = unsafe_load(io.MousePos).y - pos.y - region_sz * 0.5
+            region_y = io.MousePos.y - pos.y - region_sz * 0.5
             if region_y < 0.0
                 region_y = 0.0
             elseif region_y > my_tex_h - region_sz
@@ -431,7 +430,7 @@ function ShowDemoWindowWidgets()
                     buf = @sprintf "Object %d" n
                     if CImGui.Selectable(buf, selection[n+1])
                         # clear selection when CTRL is not held
-                        !unsafe_load(CImGui.GetIO().KeyCtrl) && fill!(selection, false)
+                        !CImGui.GetIO().KeyCtrl && fill!(selection, false)
                         selection[n+1] ⊻= 1
                     end
                 end
@@ -595,14 +594,14 @@ function ShowDemoWindowWidgets()
         # animate a simple progress bar
         @cstatic progress=Cfloat(0) progress_dir=Cfloat(1) begin
             if animate
-                progress += progress_dir * 0.4 * unsafe_load(CImGui.GetIO().DeltaTime)
+                progress += progress_dir * 0.4 * CImGui.GetIO().DeltaTime
                 progress ≥ 1.1 && (progress = 1.1; progress_dir *= -1.0;)
                 progress ≤ -0.1 && (progress = -0.1; progress_dir *= -1.0;)
             end
 
             # typically we would use ImVec2(-1.0,0.0) to use all available width, or ImVec2(width,0.0) for a specified width. ImVec2(0.0,0.0) uses ItemWidth.
             CImGui.ProgressBar(progress, ImVec2(0.0,0.0))
-            CImGui.SameLine(0.0, unsafe_load(CImGui.GetStyle().ItemInnerSpacing).x)
+            CImGui.SameLine(0.0, CImGui.GetStyle().ItemInnerSpacing.x)
             CImGui.Text("Progress Bar")
 
             progress_saturated = (progress < 0.0) ? 0.0 : (progress > 1.0) ? 1.0 : progress

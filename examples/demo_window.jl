@@ -156,13 +156,13 @@ global function ShowJuliaDemoWindow(p_open::Ref{Bool})
             CImGui.SameLine()
             CImGui.HelpMarker("Instruct navigation to move the mouse cursor. See comment for ImGuiConfigFlags_NavEnableSetMousePos.")
             CImGui.CheckboxFlags("io.ConfigFlags: NoMouse", io.ConfigFlags, CImGui.ImGuiConfigFlags_NoMouse)
-            if unsafe_load(io.ConfigFlags) & CImGui.ImGuiConfigFlags_NoMouse != 0 # create a way to restore this flag otherwise we could be stuck completely!
+            if io.ConfigFlags & CImGui.ImGuiConfigFlags_NoMouse != 0 # create a way to restore this flag otherwise we could be stuck completely!
                 if mod(CImGui.GetTime(), 0.4) < 0.2
                     CImGui.SameLine()
                     CImGui.Text("<<PRESS SPACE TO DISABLE>>")
                 end
                 if CImGui.IsKeyPressed(CImGui.ImGuiKey_Space)
-                    io.ConfigFlags = unsafe_load(io.ConfigFlags) & ~Cuint(CImGui.ImGuiConfigFlags_NoMouse)
+                    io.ConfigFlags = io.ConfigFlags & ~Cuint(CImGui.ImGuiConfigFlags_NoMouse)
                 end
             end
             CImGui.CheckboxFlags("io.ConfigFlags: NoMouseCursorChange", io.ConfigFlags, CImGui.ImGuiConfigFlags_NoMouseCursorChange)
@@ -184,7 +184,7 @@ global function ShowJuliaDemoWindow(p_open::Ref{Bool})
 
         if CImGui.TreeNode("Backend Flags")
             CImGui.HelpMarker("Those flags are set by the back-ends (imgui_impl_xxx files) to specify their capabilities.")
-            backend_flags::UInt32 = unsafe_load(io.BackendFlags) # make a local copy to avoid modifying the back-end flags.
+            backend_flags::UInt32 = io.BackendFlags # make a local copy to avoid modifying the back-end flags.
             @c CImGui.CheckboxFlags("io.BackendFlags: HasGamepad", &backend_flags, CImGui.ImGuiBackendFlags_HasGamepad)
             @c CImGui.CheckboxFlags("io.BackendFlags: HasMouseCursors", &backend_flags, CImGui.ImGuiBackendFlags_HasMouseCursors)
             @c CImGui.CheckboxFlags("io.BackendFlags: HasSetMousePos", &backend_flags, CImGui.ImGuiBackendFlags_HasSetMousePos)

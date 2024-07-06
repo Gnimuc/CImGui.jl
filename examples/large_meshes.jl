@@ -4,7 +4,8 @@
 # vertices, which should result in visual artifacts unless vertex offsets are
 # enabled (or ImGui was built with 32-bit indices).
 
-using CImGui
+import CImGui as ig
+using CImGui.lib
 import GLFW
 import ModernGL
 
@@ -14,8 +15,8 @@ imgui_ctx = CImGui.CreateContext()
 
 # enable docking and multi-viewport
 io = CImGui.GetIO()
-io.ConfigFlags = unsafe_load(io.ConfigFlags) | ImGuiConfigFlags_DockingEnable
-io.ConfigFlags = unsafe_load(io.ConfigFlags) | ImGuiConfigFlags_ViewportsEnable
+io.ConfigFlags = io.ConfigFlags | ImGuiConfigFlags_DockingEnable
+io.ConfigFlags = io.ConfigFlags | ImGuiConfigFlags_ViewportsEnable
 
 # set style
 CImGui.StyleColorsDark()
@@ -40,9 +41,8 @@ end
 function gui(state)
     if CImGui.Begin("Dear ImGui Backend Checker")
         version = unsafe_string(CImGui.GetVersion())
-        io_ref = unsafe_load(io)
-        platform = unsafe_string(io_ref.BackendPlatformName)
-        renderer = unsafe_string(io_ref.BackendRendererName)
+        platform = unsafe_string(io.BackendPlatformName)
+        renderer = unsafe_string(io.BackendRendererName)
 
         CImGui.Text("Dear ImGui $(version) Backend Checker")
         CImGui.Text("Platform: $(platform)")
@@ -51,7 +51,7 @@ function gui(state)
         CImGui.Separator()
 
         if CImGui.TreeNode("0001: Renderer: Large Mesh Support")
-            drawlist_ptr = CImGui.GetWindowDrawList()
+            drawlist = CImGui.GetWindowDrawList()
 
             let vtx_count = Ref(state.vtx_count)
                 CImGui.SliderInt("VtxCount##1", vtx_count, 0, 100_000)
@@ -59,14 +59,13 @@ function gui(state)
 
                 for n = 0:(vtx_count[] ÷ 4 - 1)
                     off_x, off_y, color = generate_widget_properties(n)
-                    CImGui.AddRectFilled(drawlist_ptr,
+                    CImGui.AddRectFilled(drawlist,
                                          ImVec2(pos.x + off_x, pos.y + off_y),
                                          ImVec2(pos.x + off_x + 50, pos.y + off_y + 50),
                                          color)
                 end
 
                 CImGui.Dummy(350, 150)
-                drawlist = unsafe_load(drawlist_ptr)
                 CImGui.Text("VtxBuffer.Size = $(drawlist.VtxBuffer.Size)")
 
                 state.vtx_count = vtx_count[]
@@ -78,13 +77,12 @@ function gui(state)
 
                 for n = 0:(vtx_count2[] ÷ 40 - 1)
                     off_x, off_y, color = generate_widget_properties(n)
-                    CImGui.AddText(drawlist_ptr,
+                    CImGui.AddText(drawlist,
                                    ImVec2(pos.x + off_x, pos.y + off_y),
                                    color, "ABCDEFGHIJ")
                 end
 
                 CImGui.Dummy(350, 120)
-                drawlist = unsafe_load(drawlist_ptr)
                 CImGui.Text("VtxBuffer.Size = $(drawlist.VtxBuffer.Size)")
 
                 state.vtx_count2 = vtx_count2[]

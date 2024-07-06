@@ -15,8 +15,8 @@ function julia_demo(; engine=nothing)
 
     # enable docking and multi-viewport
     io = CImGui.GetIO()
-    io.ConfigFlags = unsafe_load(io.ConfigFlags) | CImGui.ImGuiConfigFlags_DockingEnable
-    io.ConfigFlags = unsafe_load(io.ConfigFlags) | CImGui.ImGuiConfigFlags_ViewportsEnable
+    io.ConfigFlags = io.ConfigFlags | CImGui.ImGuiConfigFlags_DockingEnable
+    io.ConfigFlags = io.ConfigFlags | CImGui.ImGuiConfigFlags_ViewportsEnable
 
     # setup Dear ImGui style
     CImGui.StyleColorsDark()
@@ -25,7 +25,7 @@ function julia_demo(; engine=nothing)
 
     # When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
     style = Ptr{ImGuiStyle}(CImGui.GetStyle())
-    if unsafe_load(io.ConfigFlags) & ImGuiConfigFlags_ViewportsEnable == ImGuiConfigFlags_ViewportsEnable
+    if io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable == ImGuiConfigFlags_ViewportsEnable
         style.WindowRounding = 5.0f0
         col = CImGui.c_get(style.Colors, CImGui.ImGuiCol_WindowBg)
         CImGui.c_set!(style.Colors, CImGui.ImGuiCol_WindowBg, ImVec4(col.x, col.y, col.z, 1.0f0))
@@ -38,7 +38,7 @@ function julia_demo(; engine=nothing)
     # - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling `CImGui.Build()`/`GetTexDataAsXXXX()``, which `ImGui_ImplXXXX_NewFrame` below will call.
     # - Read 'fonts/README.txt' for more instructions and details.
     fonts_dir = joinpath(@__DIR__, "..", "fonts")
-    fonts = unsafe_load(CImGui.GetIO().Fonts)
+    fonts = CImGui.GetIO().Fonts
     # default_font = CImGui.AddFontDefault(fonts)
     # CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "Cousine-Regular.ttf"), 15)
     # CImGui.AddFontFromFileTTF(fonts, joinpath(fonts_dir, "DroidSans.ttf"), 16)

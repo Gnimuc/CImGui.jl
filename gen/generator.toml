@@ -24,5 +24,8 @@ field_access_method_list = [
     "ImVec4",
     "ImGuiPlatformMonitor",
     "ImGuiStyle",
+    "ImGuiKeyData",
+    "ImVector_ImDrawVert"
 ]
 wrap_variadic_function = true
+auto_field_dereference = true

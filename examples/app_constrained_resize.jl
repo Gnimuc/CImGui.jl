@@ -9,14 +9,14 @@ Create a window with custom resize constraints.
 """
 global function ShowExampleAppConstrainedResize(p_open::Ref{Bool})
     function Square(data::Ptr{ImGuiSizeCallbackData})::Cvoid
-        desired_size = unsafe_load(data.DesiredSize)
+        desired_size = data.DesiredSize
         max_size = max(desired_size.x, desired_size.y)
         data.DesiredSize = ImVec2(max_size, max_size)
     end
 
     function Step(data::Ptr{ImGuiSizeCallbackData})::Cvoid
-        desired_size = data.DesiredSize |> unsafe_load
-        step::Cfloat = data.UserData |> unsafe_load |> Int
+        desired_size = data.DesiredSize
+        step::Cfloat = data.UserData |> Int
         size_x = trunc(desired_size.x / step + 0.5) * step
         size_y = trunc(desired_size.y / step + 0.5) * step
         data.DesiredSize = ImVec2(size_x, size_y)

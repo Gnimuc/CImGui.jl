@@ -13,8 +13,8 @@ function ShowExampleAppSimpleOverlay(p_open::Ref{Bool})
     io = CImGui.GetIO()
     @cstatic corner=Cint(0) begin
         if corner != -1
-            window_pos_x = corner & 1 != 0 ? unsafe_load(io.DisplaySize).x - DISTANCE : DISTANCE
-            window_pos_y = corner & 2 != 0 ? unsafe_load(io.DisplaySize).y - DISTANCE : DISTANCE
+            window_pos_x = corner & 1 != 0 ? io.DisplaySize.x - DISTANCE : DISTANCE
+            window_pos_y = corner & 2 != 0 ? io.DisplaySize.y - DISTANCE : DISTANCE
             window_pos = (window_pos_x, window_pos_y)
             window_pos_pivot = (corner & 1 != 0 ? 1.0 : 0.0, corner & 2 != 0 ? 1.0 : 0.0)
             CImGui.SetNextWindowPos(window_pos, CImGui.ImGuiCond_Always, window_pos_pivot)
@@ -28,7 +28,7 @@ function ShowExampleAppSimpleOverlay(p_open::Ref{Bool})
             CImGui.Text("Simple overlay\n in the corner of the screen.\n (right-click to change position)")
             CImGui.Separator()
             if CImGui.IsMousePosValid()
-                CImGui.Text(@sprintf("Mouse Position: (%.1f,%.1f)", unsafe_load(io.MousePos).x, unsafe_load(io.MousePos).y))
+                CImGui.Text(@sprintf("Mouse Position: (%.1f,%.1f)", io.MousePos.x, io.MousePos.y))
             else
                 CImGui.Text("Mouse Position: <invalid>")
             end

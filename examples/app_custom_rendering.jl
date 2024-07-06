@@ -81,8 +81,8 @@ function ShowExampleAppCustomRendering(p_open::Ref{Bool})
 
         adding_preview = false
         CImGui.InvisibleButton("canvas", canvas_size)
-        mouse_x = unsafe_load(CImGui.GetIO().MousePos.x)
-        mouse_y = unsafe_load(CImGui.GetIO().MousePos.y)
+        mouse_x = CImGui.GetIO().MousePos.x
+        mouse_y = CImGui.GetIO().MousePos.y
         mouse_pos_in_canvas = ImVec2(mouse_x - canvas_pos.x, mouse_y - canvas_pos.y)
         if adding_line
             adding_preview = true

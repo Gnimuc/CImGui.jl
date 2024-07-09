@@ -6,6 +6,10 @@ CurrentModule = CImGui
 This documents notable changes in CImGui.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
+## Unreleased
+
+### Added
+- The OpenGL version can now be set with [`render()`](@ref).
 
 ## [v2.0.0] - 2024-06-27
 

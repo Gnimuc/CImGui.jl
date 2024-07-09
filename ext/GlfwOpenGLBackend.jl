@@ -6,24 +6,23 @@ import CImGui.lib as lib
 import GLFW
 import ModernGL as GL
 
-const g_ImageTexture = Dict{Int, GL.GLuint}()
 
-@static if Sys.isapple()
-    # OpenGL 3.2 + GLSL 150
-    const glsl_version = 150
-    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MAJOR, 3)
-    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MINOR, 2)
-    GLFW.WindowHint(GLFW.OPENGL_PROFILE, GLFW.OPENGL_CORE_PROFILE) # 3.2+ only
-    GLFW.WindowHint(GLFW.OPENGL_FORWARD_COMPAT, GL.GL_TRUE) # required on Mac
-else
-    # OpenGL 3.0 + GLSL 130
-    const glsl_version = 130
-    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MAJOR, 3)
-    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MINOR, 0)
-    # GLFW.WindowHint(GLFW.OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE) # 3.2+ only
-    # GLFW.WindowHint(GLFW.OPENGL_FORWARD_COMPAT, GL_TRUE) # 3.0+ only
+# Helper function to get the GLSL version
+function get_glsl_version(gl_version)
+    gl2glsl = Dict(v"2.0" => 110,
+                   v"2.1" => 120,
+                   v"3.0" => 130,
+                   v"3.1" => 140,
+                   v"3.2" => 150)
+
+    if gl_version < v"3.3"
+        gl2glsl[gl_version]
+    else
+        gl_version.major * 100 + gl_version.minor * 10
+    end
 end
 
+const g_ImageTexture = Dict{Int, GL.GLuint}()
 
 function CImGui._create_image_texture(::Val{:GlfwOpenGL3}, image_width, image_height; format=GL.GL_RGBA, type=GL.GL_UNSIGNED_BYTE)
     id = GL.GLuint(0)
@@ -55,16 +54,29 @@ function CImGui._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
                         clear_color=Cfloat[0.45, 0.55, 0.60, 1.00],
                         window_size=(1280, 720),
                         window_title="CImGui",
-                        engine=nothing)
+                        engine=nothing,
+                        opengl_version=v"3.2")
+    # Validate arguments
     if clear_color isa Ref && !isassigned(clear_color)
         throw(ArgumentError("'clear_color' is a unassigned reference, it must be initialized properly."))
+    elseif Sys.isapple() && opengl_version < v"3.2"
+        throw(ArgumentError("Only OpenGL 3.2+ is supported on OSX, but $(opengl_version) was requested"))
     end
 
+    # Configure GLFW
+    glsl_version = get_glsl_version(opengl_version)
+    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MAJOR, opengl_version.major)
+    GLFW.WindowHint(GLFW.CONTEXT_VERSION_MINOR, opengl_version.minor)
+
+    if Sys.isapple()
+        GLFW.WindowHint(GLFW.OPENGL_PROFILE, GLFW.OPENGL_CORE_PROFILE)
+        GLFW.WindowHint(GLFW.OPENGL_FORWARD_COMPAT, GL.GL_TRUE)
+    end
+
+    # Start the test engine, if we have one
     if !isnothing(engine)
         CImGui._start_test_engine(engine, ctx)
     end
-
-    GLFW.Init()
 
     # Create window
     window = GLFW.CreateWindow(window_size[1], window_size[2], window_title)
@@ -138,7 +150,6 @@ function CImGui._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
         lib.ImGui_ImplGlfw_Shutdown()
         CImGui.DestroyContext(ctx)
         GLFW.DestroyWindow(window)
-        GLFW.Terminate()
     end
 end
 

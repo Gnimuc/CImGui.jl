@@ -126,6 +126,7 @@ Keyword arguments:
 - `engine=nothing`: An optional `ImGuiTestEngine.Engine` instance. If there are
   any tests registered with the test engine they will be queued and run
   automatically.
+- `opengl_version::VersionNumber=v"3.2"`: The OpenGL version to use.
 """
 function render(args...; kwargs...)
     _check_backend()

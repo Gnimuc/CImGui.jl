@@ -67,6 +67,9 @@ const IMGUI_VERSION = unsafe_string(GetVersion())
 
 ## Backends
 
+const _exit_handlers = Function[]
+atrenderexit(f::Function) = push!(_exit_handlers, f)
+
 # These are backend functions that must be implemented by package extensions
 function _render end
 function _create_image_texture end

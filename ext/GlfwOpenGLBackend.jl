@@ -138,11 +138,11 @@ function ig._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
     catch e
         @error "Error in CImGui $(ig._backend[]) renderloop!" exception=(e, catch_backtrace())
     finally
-        if !isnothing(on_exit)
+        for func in vcat(ig._exit_handlers, isnothing(on_exit) ? [] : [on_exit])
             try
-                on_exit()
-            catch exit_ex
-                @error "Error in on_exit()!" exception=exit_ex
+                func()
+            catch ex
+                @error "Error in exit handler!" exception=(ex, catch_backtrace())
             end
         end
 

@@ -48,6 +48,9 @@ function ig._destroy_image_texture(::Val{:GlfwOpenGL3}, id)
     return true
 end
 
+_window::Union{Nothing, GLFW.Window} = nothing
+ig._current_window(::Val{:GlfwOpenGL3}) = _window
+
 function ig._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
                         hotloading=true,
                         on_exit=nothing,
@@ -79,7 +82,8 @@ function ig._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
     end
 
     # Create window
-    window = GLFW.CreateWindow(window_size[1], window_size[2], window_title)
+    global _window = GLFW.CreateWindow(window_size[1], window_size[2], window_title)
+    window = _window
     @assert window != C_NULL
     GLFW.MakeContextCurrent(window)
     GLFW.SwapInterval(1)  # enable vsync

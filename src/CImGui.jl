@@ -75,6 +75,7 @@ function _render end
 function _create_image_texture end
 function _update_image_texture end
 function _destroy_image_texture end
+function _current_window end
 
 const _backend = Ref{Symbol}()
 
@@ -136,6 +137,11 @@ function render(args...; kwargs...)
     _render(args..., Val(_backend[]); kwargs...)
 end
 
+function current_window()
+    _check_backend()
+    _current_window(Val(_backend[]))
+end
+
 function create_image_texture(args...; kwargs...)
     _check_backend()
     _create_image_texture(Val(_backend[]), args...; kwargs...)
@@ -164,6 +170,10 @@ function __init__()
         if exc.f === _render
             if isempty(methods(exc.f))
                 print(io, "\nrender() cannot be called yet. You must load the packages for supported backends, e.g. `import ModernGL, GLFW` for the GLFW/OpenGL3 backend.")
+            end
+        elseif exc.f === MakieFigure
+            if isempty(methods(exc.f))
+                print(io, "\nMakieFigure() cannot be called yet, you must load GLMakie with e.g. `import GLMakie`.")
             end
         end
     end

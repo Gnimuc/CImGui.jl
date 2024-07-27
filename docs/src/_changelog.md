@@ -10,6 +10,7 @@ Changelog](https://keepachangelog.com).
 
 ### Added
 - The OpenGL version can now be set with [`render()`](@ref).
+- Experimental [Makie integration](@ref) ([#133]).
 
 ## [v2.0.0] - 2024-06-27
 

@@ -1,7 +1,7 @@
 module GlfwOpenGLBackend
 
 import CSyntax: @c
-import CImGui
+import CImGui as ig
 import CImGui.lib as lib
 import GLFW
 import ModernGL as GL
@@ -24,7 +24,7 @@ end
 
 const g_ImageTexture = Dict{Int, GL.GLuint}()
 
-function CImGui._create_image_texture(::Val{:GlfwOpenGL3}, image_width, image_height; format=GL.GL_RGBA, type=GL.GL_UNSIGNED_BYTE)
+function ig._create_image_texture(::Val{:GlfwOpenGL3}, image_width, image_height; format=GL.GL_RGBA, type=GL.GL_UNSIGNED_BYTE)
     id = GL.GLuint(0)
     @c GL.glGenTextures(1, &id)
     GL.glBindTexture(GL.GL_TEXTURE_2D, id)
@@ -36,19 +36,19 @@ function CImGui._create_image_texture(::Val{:GlfwOpenGL3}, image_width, image_he
     return Int(id)
 end
 
-function CImGui._update_image_texture(::Val{:GlfwOpenGL3}, id, image_data, image_width, image_height; format=GL.GL_RGBA, type=GL.GL_UNSIGNED_BYTE)
+function ig._update_image_texture(::Val{:GlfwOpenGL3}, id, image_data, image_width, image_height; format=GL.GL_RGBA, type=GL.GL_UNSIGNED_BYTE)
     GL.glBindTexture(GL.GL_TEXTURE_2D, g_ImageTexture[id])
     GL.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0, GL.GLsizei(image_width), GL.GLsizei(image_height), format, type, image_data)
 end
 
-function CImGui._destroy_image_texture(::Val{:GlfwOpenGL3}, id)
+function ig._destroy_image_texture(::Val{:GlfwOpenGL3}, id)
     id = g_ImageTexture[id]
     @c GL.glDeleteTextures(1, &id)
     delete!(g_ImageTexture, id)
     return true
 end
 
-function CImGui._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
+function ig._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
                         hotloading=true,
                         on_exit=nothing,
                         clear_color=Cfloat[0.45, 0.55, 0.60, 1.00],
@@ -75,7 +75,7 @@ function CImGui._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
 
     # Start the test engine, if we have one
     if !isnothing(engine)
-        CImGui._start_test_engine(engine, ctx)
+        ig._start_test_engine(engine, ctx)
     end
 
     # Create window
@@ -95,7 +95,7 @@ function CImGui._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
             # Start the Dear ImGui frame
             lib.ImGui_ImplOpenGL3_NewFrame()
             lib.ImGui_ImplGlfw_NewFrame()
-            CImGui.NewFrame()
+            ig.NewFrame()
 
             result = if hotloading
                 @invokelatest ui()
@@ -104,18 +104,18 @@ function CImGui._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
             end
 
             if !isnothing(engine) && engine.show_test_window
-                CImGui._show_test_window(engine)
+                ig._show_test_window(engine)
             end
 
             tests_completed = (!isnothing(engine)
                                && engine.exit_on_completion
-                               && !CImGui._test_engine_is_running(engine))
+                               && !ig._test_engine_is_running(engine))
             if result === :imgui_exit_loop || tests_completed
                 GLFW.SetWindowShouldClose(window, true)
             end
 
             # Rendering
-            CImGui.Render()
+            ig.Render()
             GLFW.MakeContextCurrent(window)
 
             display_w, display_h = GLFW.GetFramebufferSize(window)
@@ -123,7 +123,7 @@ function CImGui._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
             GL.glViewport(0, 0, display_w, display_h)
             GL.glClearColor((clear_color isa Ref ? clear_color[] : clear_color)...)
             GL.glClear(GL.GL_COLOR_BUFFER_BIT)
-            lib.ImGui_ImplOpenGL3_RenderDrawData(Ptr{Cint}(CImGui.GetDrawData()))
+            lib.ImGui_ImplOpenGL3_RenderDrawData(Ptr{Cint}(ig.GetDrawData()))
 
             GLFW.MakeContextCurrent(window)
             GLFW.SwapBuffers(window)
@@ -136,7 +136,7 @@ function CImGui._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
             end
         end
     catch e
-        @error "Error in CImGui $(CImGui._backend[]) renderloop!" exception=(e, catch_backtrace())
+        @error "Error in CImGui $(ig._backend[]) renderloop!" exception=(e, catch_backtrace())
     finally
         if !isnothing(on_exit)
             try
@@ -148,7 +148,7 @@ function CImGui._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
 
         lib.ImGui_ImplOpenGL3_Shutdown()
         lib.ImGui_ImplGlfw_Shutdown()
-        CImGui.DestroyContext(ctx)
+        ig.DestroyContext(ctx)
         GLFW.DestroyWindow(window)
     end
 end

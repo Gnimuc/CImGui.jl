@@ -68,6 +68,8 @@ function ig._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
 
     # Configure GLFW
     glsl_version = get_glsl_version(opengl_version)
+    GLFW.WindowHint(GLFW.VISIBLE, true)
+    GLFW.WindowHint(GLFW.DECORATED, true)
     GLFW.WindowHint(GLFW.CONTEXT_VERSION_MAJOR, opengl_version.major)
     GLFW.WindowHint(GLFW.CONTEXT_VERSION_MINOR, opengl_version.minor)
 

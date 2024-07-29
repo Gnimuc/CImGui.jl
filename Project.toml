@@ -1,7 +1,7 @@
 name = "CImGui"
 uuid = "5d785b6c-b76f-510e-a07c-3070796c7e87"
 authors = ["Yupei Qi <qiyupei@gmail.com>"]
-version = "2.0.0"
+version = "2.1.0"
 
 [deps]
 CEnum = "fa961155-64e5-5f13-b03f-caf6b980ea82"
@@ -10,15 +10,18 @@ CSyntax = "ea656a56-6ca6-5dda-bba5-7b6963a5f74c"
 
 [weakdeps]
 GLFW = "f7f18e0c-5ee9-5ccd-a5bf-e8befd85ed98"
+GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
 ModernGL = "66fc600b-dfda-50eb-8b99-91cfa97b1301"
 
 [extensions]
 GlfwOpenGLBackend = ["GLFW", "ModernGL"]
+MakieIntegration = ["GLFW", "ModernGL", "GLMakie"]
 
 [compat]
 CEnum = "0.4, 0.5"
 CImGuiPack_jll = "0.3.0"
 CSyntax = "0.4"
 GLFW = "3"
+GLMakie = "0.10.5"
 ModernGL = "1"
 julia = "1.9"

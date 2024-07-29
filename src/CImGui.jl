@@ -65,13 +65,59 @@ include("wrapper.jl")
 
 const IMGUI_VERSION = unsafe_string(GetVersion())
 
+# This is implemented by the MakieIntegration extension but we document it here
+# so that we don't have to install GLMakie to build the docs.
+"""
+    MakieFigure(id::String, f::GLMakie.Figure; auto_resize_x=true, auto_resize_y=false)
+
+Display a Makie figure in ImGui. See `examples/makie_demo.jl` for an example of
+how to use it. This supports all the interaction features in GLMakie:
+- Scrolling to zoom
+- Rectangle select to zoom
+- RMB to pan
+
+Note that scrolling to zoom will also cause the ImGui window to scroll, which
+can be annoying. This may be fixed in the future by using some other key
+combination for scrolling to zoom.
+
+These are the [interaction
+events](https://docs.makie.org/stable/explanations/events#The-Events-struct)
+that are wired up and can be used:
+- `hasfocus`
+- `entered_window`
+- `mousebutton`
+- `mouseposition`
+
+Known issues:
+- Changing tick labels don't trigger the scene to be re-layouted, causing them
+  to be clipped if the labels change width. See `examples/makie_demo.jl` for an
+  example workaround using `Makie.tight_ticklabel_spacing!()`.
+- The theming doesn't match the ImGui theme so plots look quite out of place by
+  default.
+- Mouse events aren't delivered unless the mouse is hovered over the figure, so
+  dragging the mouse from within the figure to somewhere outside the figure will
+  keep the old mouse state. e.g. if you're RMB panning and the mouse goes
+  outside the figure, when it enters the figure again panning will resume even
+  the RMB was released.
+
+!!! warning
+    This is very experimental, you will almost definitely encounter bugs (and if
+    so please submit an issue/PR). We don't consider this covered under semver
+    yet so there may be breaking changes in minor releases.
+"""
+function MakieFigure end
+
 ## Backends
+
+const _exit_handlers = Function[]
+atrenderexit(f::Function) = push!(_exit_handlers, f)
 
 # These are backend functions that must be implemented by package extensions
 function _render end
 function _create_image_texture end
 function _update_image_texture end
 function _destroy_image_texture end
+function _current_window end
 
 const _backend = Ref{Symbol}()
 
@@ -133,6 +179,11 @@ function render(args...; kwargs...)
     _render(args..., Val(_backend[]); kwargs...)
 end
 
+function current_window()
+    _check_backend()
+    _current_window(Val(_backend[]))
+end
+
 function create_image_texture(args...; kwargs...)
     _check_backend()
     _create_image_texture(Val(_backend[]), args...; kwargs...)
@@ -161,6 +212,10 @@ function __init__()
         if exc.f === _render
             if isempty(methods(exc.f))
                 print(io, "\nrender() cannot be called yet. You must load the packages for supported backends, e.g. `import ModernGL, GLFW` for the GLFW/OpenGL3 backend.")
+            end
+        elseif exc.f === MakieFigure
+            if isempty(methods(exc.f))
+                print(io, "\nMakieFigure() cannot be called yet, you must load GLMakie with e.g. `import GLMakie`.")
             end
         end
     end

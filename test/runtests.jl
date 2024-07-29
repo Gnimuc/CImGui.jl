@@ -4,8 +4,6 @@ using ImGuiTestEngine
 import ImGuiTestEngine as te
 import ModernGL, GLFW
 
-ig.set_backend(:GlfwOpenGL3)
-
 
 include(joinpath(@__DIR__, "../demo/demo.jl"))
 
@@ -67,5 +65,19 @@ include(joinpath(@__DIR__, "../examples/demo.jl"))
 
     julia_demo(; engine)
 
+    te.DestroyContext(engine)
+end
+
+include(joinpath(@__DIR__, "../examples/makie_demo.jl"))
+
+@testset "MakieFigure" begin
+    engine = te.CreateContext()
+
+    @register_test(engine, "Makie demo", "Simple plot") do ctx
+        SetRef("Makie demo")
+        ItemClick("Random data")
+    end
+
+    makie_demo(; engine)
     te.DestroyContext(engine)
 end

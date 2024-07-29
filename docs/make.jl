@@ -26,7 +26,7 @@ makedocs(;
         size_threshold=500000,
         size_threshold_warn=400000
     ),
-    pages=["index.md", "api.md", "backends.md", "changelog.md"]
+    pages=["index.md", "api.md", "backends.md", "makie.md", "changelog.md"]
 )
 
 deploydocs(;

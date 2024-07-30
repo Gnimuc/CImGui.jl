@@ -38,17 +38,10 @@ function destroy_context()
 end
 
 Base.isopen(window::ImMakieWindow) = isopen(window.glfw_window)
-
-# Specialization of Base.resize(::GLMakie.Screen, ::Int, ::Int) to not do GLFW things
-# See: https://github.com/MakieOrg/Makie.jl/blob/4c4eaa1f3a7f7b3777a4b8ab38388a48c0eee6ce/GLMakie/src/screen.jl#L664
-function Base.resize!(screen::GLMakie.Screen{ImMakieWindow}, w::Int, h::Int)
-    fbscale = screen.px_per_unit[]
-    fbw, fbh = round.(Int, fbscale .* (w, h))
-    resize!(screen.framebuffer, fbw, fbh)
-end
-
-# Not sure if this is correct, it should probably be the figure size
 GLMakie.framebuffer_size(window::ImMakieWindow) = GLMakie.framebuffer_size(window.glfw_window)
+GLMakie.scale_factor(window::ImMakieWindow) = GLMakie.scale_factor(window.glfw_window)
+GLMakie.reopen!(x::GLMakie.Screen{ImMakieWindow}) = x
+GLMakie.set_screen_visibility!(::GLMakie.Screen{ImMakieWindow}, ::Bool) = nothing
 
 # ShaderAbstractions support
 GLMakie.ShaderAbstractions.native_switch_context!(x::ImMakieWindow) = GLFW.MakeContextCurrent(x.glfw_window)
@@ -58,31 +51,6 @@ GLMakie.ShaderAbstractions.native_context_alive(x::ImMakieWindow) = GLFW.is_init
 # mouse/keyboard events etc. We disable it explicitly because we deliver the
 # events in an immediate-mode fashion within MakieFigure().
 GLMakie.connect_screen(::GLMakie.Scene, ::GLMakie.Screen{ImMakieWindow}) = nothing
-
-# Modified copy of apply_config!() with all GLFW/renderloop things removed
-# See: https://github.com/MakieOrg/Makie.jl/blob/4c4eaa1f3a7f7b3777a4b8ab38388a48c0eee6ce/GLMakie/src/screen.jl#L343
-function apply_config!(screen::GLMakie.Screen, config::GLMakie.ScreenConfig)
-    screen.scalefactor[] = !isnothing(config.scalefactor) ? config.scalefactor : 1
-    screen.px_per_unit[] = !isnothing(config.px_per_unit) ? config.px_per_unit : screen.scalefactor[]
-    function replace_processor!(postprocessor, idx)
-        fb = screen.framebuffer
-        shader_cache = screen.shader_cache
-        post = screen.postprocessors[idx]
-        if post.constructor !== postprocessor
-            GLMakie.destroy!(screen.postprocessors[idx])
-            screen.postprocessors[idx] = postprocessor(fb, shader_cache)
-        end
-
-        nothing
-    end
-
-    replace_processor!(config.ssao ? GLMakie.ssao_postprocessor : GLMakie.empty_postprocessor, 1)
-    replace_processor!(config.oit ? GLMakie.OIT_postprocessor : GLMakie.empty_postprocessor, 2)
-    replace_processor!(config.fxaa ? GLMakie.fxaa_postprocessor : GLMakie.empty_postprocessor, 3)
-
-    # Set the config
-    screen.config = config
-end
 
 function draw_figure_tooltip(cursor_pos, image_size)
     help_str = "(?)"
@@ -152,38 +120,9 @@ function ig.MakieFigure(title_id::String, f::GLMakie.Figure;
     id = ig.GetID(title_id)
 
     if !haskey(makie_context, id)
-        # The code in this block combines the screen creation code from
-        # GLMakie.empty_screen() and the screen configuration code from
-        # GLMakie.Screen().
-        # See:
-        # - https://github.com/MakieOrg/Makie.jl/blob/4c4eaa1f3a7f7b3777a4b8ab38388a48c0eee6ce/GLMakie/src/screen.jl#L223
-        # - https://github.com/MakieOrg/Makie.jl/blob/4c4eaa1f3a7f7b3777a4b8ab38388a48c0eee6ce/GLMakie/src/screen.jl#L388
         window = ig.current_window()
         makie_window = ImMakieWindow(window)
-        GLMakie.ShaderAbstractions.switch_context!(makie_window)
-        shader_cache = GLMakie.GLAbstraction.ShaderCache(makie_window)
-
-        fb = GLMakie.GLFramebuffer((10, 10))
-        gl.glBindFramebuffer(gl.GL_FRAMEBUFFER, 0) # Have to unbind after creating the framebuffer
-        postprocessors = [
-            GLMakie.empty_postprocessor(),
-            GLMakie.empty_postprocessor(),
-            GLMakie.empty_postprocessor(),
-            GLMakie.to_screen_postprocessor(fb, shader_cache)
-        ]
-
-        screen = GLMakie.Screen(makie_window, shader_cache, fb,
-                                nothing, false,
-                                nothing,
-                                Dict{WeakRef, GLMakie.ScreenID}(),
-                                GLMakie.ScreenArea[],
-                                Tuple{GLMakie.ZIndex, GLMakie.ScreenID, GLMakie.RenderObject}[],
-                                postprocessors,
-                                Dict{UInt64, GLMakie.RenderObject}(),
-                                Dict{UInt32, GLMakie.AbstractPlot}(),
-                                true)
-        config = Makie.merge_screen_config(GLMakie.ScreenConfig, Dict{Symbol, Any}())
-        apply_config!(screen, config)
+        screen = GLMakie.Screen(; window=makie_window, start_renderloop=false)
 
         makie_context[id] = ImMakieFigure(f, screen)
         scene = Makie.get_scene(f)

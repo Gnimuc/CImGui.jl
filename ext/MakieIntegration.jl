@@ -164,6 +164,7 @@ function ig.MakieFigure(title_id::String, f::GLMakie.Figure; auto_resize_x=true,
 
     io = ig.GetIO()
     if ig.IsItemHovered()
+        # Update the mouse position
         pos = ig.GetMousePos()
         cursor_pos = ig.GetCursorScreenPos()
         item_spacing = unsafe_load(ig.GetStyle().ItemSpacing.y)
@@ -172,6 +173,7 @@ function ig.MakieFigure(title_id::String, f::GLMakie.Figure; auto_resize_x=true,
             scene.events.mouseposition[] = new_pos
         end
 
+        # Update the mouse buttons
         for (igkey, makiekey) in ((ig.ImGuiKey_MouseLeft, Makie.Mouse.left),
                                   (ig.ImGuiKey_MouseRight, Makie.Mouse.right))
             if ig.IsKeyPressed(igkey)
@@ -181,12 +183,26 @@ function ig.MakieFigure(title_id::String, f::GLMakie.Figure; auto_resize_x=true,
             end
         end
 
+        # Update the scroll rate
         wheel_y = unsafe_load(io.MouseWheel)
         wheel_x = unsafe_load(io.MouseWheelH)
         if (wheel_x, wheel_y) != scene.events.scroll[]
             scene.events.scroll[] = (wheel_x, wheel_y)
         end
 
+        # Update pressed and released keys. For now we only support X/Y/left
+        # Ctrl because those are the ones that Makie uses by default and to do
+        # it properly for all keys we need to make a mapping from ImGuiKey's to
+        # GLFW keys.
+        for (igkey, glfwkey) in ((ig.lib.ImGuiKey_X, Int(GLFW.KEY_X)),
+                                 (ig.lib.ImGuiKey_Y, Int(GLFW.KEY_Y)),
+                                 (ig.lib.ImGuiKey_LeftCtrl, Int(GLFW.KEY_LEFT_CONTROL)))
+            if ig.IsKeyPressed(igkey)
+                scene.events.keyboardbutton[] = Makie.KeyEvent(Makie.Keyboard.Button(glfwkey), Makie.Keyboard.press)
+            elseif ig.IsKeyReleased(igkey)
+                scene.events.keyboardbutton[] = Makie.KeyEvent(Makie.Keyboard.Button(glfwkey), Makie.Keyboard.release)
+            end
+        end
     end
 
     ig.PopID()

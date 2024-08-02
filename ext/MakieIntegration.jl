@@ -74,7 +74,29 @@ function apply_config!(screen::GLMakie.Screen, config::GLMakie.ScreenConfig)
     screen.config = config
 end
 
-function ig.MakieFigure(title_id::String, f::GLMakie.Figure; auto_resize_x=true, auto_resize_y=false)
+function draw_figure_tooltip(cursor_pos, image_size)
+    help_str = "(?)"
+    text_size = ig.CalcTextSize(help_str)
+    text_pos = (cursor_pos.x + image_size[1] - text_size.x, cursor_pos.y)
+    ig.AddText(ig.GetWindowDrawList(), text_pos, ig.IM_COL32_BLACK, help_str)
+    hovering = ig.IsMouseHoveringRect(text_pos, (text_pos[1] + text_size.x, text_pos[2] + text_size.y))
+
+    if hovering && ig.BeginTooltip()
+        ig.PushTextWrapPos(ig.GetFontSize() * 35.0)
+        ig.TextUnformatted("""
+            Controls:
+            - Scroll to zoom
+            - Click and drag to rectangle select a region to zoom to
+            - Right click and drag to pan
+            - Shift + {x/y} and scroll to zoom along the X/Y axes
+            - Ctrl + left click to reset the limits
+            """)
+        ig.PopTextWrapPos()
+        ig.EndTooltip()
+    end
+end
+
+function ig.MakieFigure(title_id::String, f::GLMakie.Figure; auto_resize_x=true, auto_resize_y=false, tooltip=true)
     ig.PushID(title_id)
     id = ig.GetID(title_id)
 
@@ -152,6 +174,12 @@ function ig.MakieFigure(title_id::String, f::GLMakie.Figure; auto_resize_x=true,
                 cursor_pos,
                 (cursor_pos.x + image_size[1], cursor_pos.y + image_size[2]),
                 (0, 1), (1, 0))
+
+    # Draw tooltip
+    if tooltip
+        draw_figure_tooltip(cursor_pos, image_size)
+    end
+
     ig.InvisibleButton("figure_image", size(color_buffer))
 
     # Update the scene events
@@ -164,6 +192,7 @@ function ig.MakieFigure(title_id::String, f::GLMakie.Figure; auto_resize_x=true,
 
     io = ig.GetIO()
     if ig.IsItemHovered()
+        # Update the mouse position
         pos = ig.GetMousePos()
         cursor_pos = ig.GetCursorScreenPos()
         item_spacing = unsafe_load(ig.GetStyle().ItemSpacing.y)
@@ -172,6 +201,7 @@ function ig.MakieFigure(title_id::String, f::GLMakie.Figure; auto_resize_x=true,
             scene.events.mouseposition[] = new_pos
         end
 
+        # Update the mouse buttons
         for (igkey, makiekey) in ((ig.ImGuiKey_MouseLeft, Makie.Mouse.left),
                                   (ig.ImGuiKey_MouseRight, Makie.Mouse.right))
             if ig.IsKeyPressed(igkey)
@@ -181,12 +211,26 @@ function ig.MakieFigure(title_id::String, f::GLMakie.Figure; auto_resize_x=true,
             end
         end
 
+        # Update the scroll rate
         wheel_y = unsafe_load(io.MouseWheel)
         wheel_x = unsafe_load(io.MouseWheelH)
         if (wheel_x, wheel_y) != scene.events.scroll[]
             scene.events.scroll[] = (wheel_x, wheel_y)
         end
 
+        # Update pressed and released keys. For now we only support X/Y/left
+        # Ctrl because those are the ones that Makie uses by default and to do
+        # it properly for all keys we need to make a mapping from ImGuiKey's to
+        # GLFW keys.
+        for (igkey, glfwkey) in ((ig.lib.ImGuiKey_X, Int(GLFW.KEY_X)),
+                                 (ig.lib.ImGuiKey_Y, Int(GLFW.KEY_Y)),
+                                 (ig.lib.ImGuiKey_LeftCtrl, Int(GLFW.KEY_LEFT_CONTROL)))
+            if ig.IsKeyPressed(igkey)
+                scene.events.keyboardbutton[] = Makie.KeyEvent(Makie.Keyboard.Button(glfwkey), Makie.Keyboard.press)
+            elseif ig.IsKeyReleased(igkey)
+                scene.events.keyboardbutton[] = Makie.KeyEvent(Makie.Keyboard.Button(glfwkey), Makie.Keyboard.release)
+            end
+        end
     end
 
     ig.PopID()

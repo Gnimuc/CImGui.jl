@@ -6,6 +6,12 @@ CurrentModule = CImGui
 This documents notable changes in CImGui.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
+## [v2.2.0] - 2024-08-02
+
+### Added
+- Support for more GLMakie controls, and a tooltip for each figure by default
+  ([#134]).
+
 ## [v2.1.0] - 2024-07-29
 
 ### Added

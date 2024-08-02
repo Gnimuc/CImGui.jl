@@ -99,6 +99,8 @@ Known issues:
   keep the old mouse state. e.g. if you're RMB panning and the mouse goes
   outside the figure, when it enters the figure again panning will resume even
   the RMB was released.
+- Drawing can be a bit janky, occasionally the image will not be drawn for a
+  frame or two and you'll see an empty black square instead.
 
 !!! warning
     This is very experimental, you will almost definitely encounter bugs (and if

@@ -11,17 +11,19 @@ ig.set_backend(:GlfwOpenGL3)
 function generate_data(type::Symbol=:random, N=1000)
     if type === :random
         [Point2f(i, rand()) for i in 1:N]
+    elseif type === :sine
+        [Point2f(i, sin(i * 0.1) + 0.5) for i in 1:N]
     end
 end
 
 function HelpMarker(msg)
-    ig.TextDisabled("(?)");
+    ig.TextDisabled("(?)")
 
     if ig.IsItemHovered() && ig.BeginTooltip()
-        ig.PushTextWrapPos(ig.GetFontSize() * 35.0);
-        ig.TextUnformatted(msg);
-        ig.PopTextWrapPos();
-        ig.EndTooltip();
+        ig.PushTextWrapPos(ig.GetFontSize() * 35.0)
+        ig.TextUnformatted(msg)
+        ig.PopTextWrapPos()
+        ig.EndTooltip()
     end
 end
 
@@ -31,8 +33,11 @@ function makie_demo(; engine=nothing)
     scene = Makie.get_scene(f)
     ax1 = Axis(f[1, 1]; title="Random data")
     data = Observable(generate_data())
-    lines!(ax1, data)
+    lines!(ax1, data, label="Random data")
+    lines!(ax1, generate_data(:sine), label="Sin")
     data2 = Observable(generate_data())
+    axislegend(ax1)
+
     ax2 = Axis(f[2, 1])
     lines!(ax2, data2)
 
@@ -44,6 +49,7 @@ function makie_demo(; engine=nothing)
     ax1_tight_spacing = true
     auto_resize_x = true
     auto_resize_y = false
+    tooltip = true
 
     # Start the GUI
     ig.render(ctx; engine, window_size=(1280, 760), window_title="ImGui Window") do
@@ -63,8 +69,10 @@ function makie_demo(; engine=nothing)
         @c ig.Checkbox("Auto resize X", &auto_resize_x)
         ig.SameLine()
         @c ig.Checkbox("Auto resize Y", &auto_resize_y)
+        ig.SameLine()
+        @c ig.Checkbox("Draw tooltip", &tooltip)
 
-        if ig.MakieFigure("plot", f; auto_resize_x, auto_resize_y)
+        if ig.MakieFigure("plot", f; auto_resize_x, auto_resize_y, tooltip)
             if ax1_tight_spacing
                 Makie.tight_ticklabel_spacing!(ax1)
             end

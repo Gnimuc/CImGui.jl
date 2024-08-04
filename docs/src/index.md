@@ -7,6 +7,12 @@ content creation tools and visualization / debug tools. You could browse
 [Gallery](https://github.com/ocornut/imgui/issues/2265) to get an idea of its
 use cases.
 
+These docs were generated against this upstream Dear ImGui version:
+```@repl
+import CImGui as ig
+ig.imgui_version()
+```
+
 ## Installation
 ```julia-repl
 pkg> add CImGui

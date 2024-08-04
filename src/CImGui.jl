@@ -68,7 +68,9 @@ const IMGUI_VERSION = unsafe_string(GetVersion())
 # This is implemented by the MakieIntegration extension but we document it here
 # so that we don't have to install GLMakie to build the docs.
 """
-    MakieFigure(id::String, f::GLMakie.Figure; auto_resize_x=true, auto_resize_y=false, tooltip=true)
+    MakieFigure(id::String, f::GLMakie.Figure;
+                auto_resize_x=true, auto_resize_y=false,
+                tooltip=true)
 
 Display a Makie figure in ImGui. See `examples/makie_demo.jl` for an example of
 how to use it. This supports all the interaction features in GLMakie:
@@ -103,6 +105,11 @@ Known issues:
   the RMB was released.
 - Drawing can be a bit janky, occasionally the image will not be drawn for a
   frame or two and you'll see an empty black square instead.
+
+!!! note
+    GLMakie requires OpenGL 3.3, on some systems you will need to explicitly
+    pass `opengl_version=v"3.3"` (or higher) to [`render()`](@ref) to fix OpenGL
+    shader errors.
 
 !!! warning
     This is very experimental, you will almost definitely encounter bugs (and if

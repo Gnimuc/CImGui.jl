@@ -52,7 +52,7 @@ function makie_demo(; engine=nothing)
     tooltip = true
 
     # Start the GUI
-    ig.render(ctx; engine, window_size=(1280, 760), window_title="ImGui Window") do
+    ig.render(ctx; engine, window_size=(1280, 760), window_title="ImGui Window", opengl_version=v"3.3") do
         ig.Begin("Makie demo")
 
         if ig.Button("Random data")

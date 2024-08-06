@@ -46,10 +46,25 @@ function makie_demo(; engine=nothing)
     io.ConfigFlags = unsafe_load(io.ConfigFlags) | ig.lib.ImGuiConfigFlags_DockingEnable
     io.ConfigFlags = unsafe_load(io.ConfigFlags) | ig.lib.ImGuiConfigFlags_ViewportsEnable
 
-    ax1_tight_spacing = true
     auto_resize_x = true
     auto_resize_y = false
     tooltip = true
+    stats = true
+    stream_data = false
+
+    data_task = nothing
+    function live_data(obs::Observable)
+        obs_data = obs[]
+
+        while stream_data
+            push!(obs_data, Point2f(length(obs_data), rand()))
+            obs[] = obs_data
+            autolimits!(ax1)
+            sleep(0.01)
+        end
+
+        data_task = nothing
+    end
 
     # Start the GUI
     ig.render(ctx; engine, window_size=(1280, 760), window_title="ImGui Window", opengl_version=v"3.3") do
@@ -59,30 +74,31 @@ function makie_demo(; engine=nothing)
             data[] = generate_data()
         end
 
-        @c ig.Checkbox("Ax1 tight tick spacing", &ax1_tight_spacing)
-        ig.SameLine()
-        HelpMarker("""
-                   Try zooming into the top plot, if this option is disabled
-                   the axis will not resize itself to stop clipping the tick labels on the Y axis.
-                   """)
-
         @c ig.Checkbox("Auto resize X", &auto_resize_x)
         ig.SameLine()
         @c ig.Checkbox("Auto resize Y", &auto_resize_y)
         ig.SameLine()
         @c ig.Checkbox("Draw tooltip", &tooltip)
+        ig.SameLine()
+        @c ig.Checkbox("Show render times", &stats)
+        ig.SameLine()
+        @c ig.Checkbox("Stream data", &stream_data)
 
-        if ig.MakieFigure("plot", f; auto_resize_x, auto_resize_y, tooltip)
-            if ax1_tight_spacing
-                Makie.tight_ticklabel_spacing!(ax1)
-            end
-
-            Makie.tight_ticklabel_spacing!(ax2)
+        if stream_data && isnothing(data_task)
+            data_task = errormonitor(Threads.@spawn live_data(data))
         end
+
+        ig.MakieFigure("plot", f; auto_resize_x, auto_resize_y, tooltip, stats)
 
         ig.Text("Mouse position in scene: $(scene.events.mouseposition[])")
         ig.Text("Scene size: $(size(scene))")
-        ig.Text("Mouse position in ax1: $(mouseposition(ax1))")
+
+        # These extra transformations are necessary to handle non-linear axis
+        # scales. See: https://github.com/MakieOrg/Makie.jl/pull/4090.
+        x, y = mouseposition(ax1)
+        x = Makie.inverse_transform(ax1.xscale[])(x)
+        y = Makie.inverse_transform(ax1.yscale[])(y)
+        ig.Text("Mouse position in ax1: ($x, $y)")
 
         ig.End()
     end

@@ -1,12 +1,14 @@
 name = "CImGui"
 uuid = "5d785b6c-b76f-510e-a07c-3070796c7e87"
 authors = ["Yupei Qi <qiyupei@gmail.com>"]
-version = "2.2.0"
+version = "2.3.0"
 
 [deps]
 CEnum = "fa961155-64e5-5f13-b03f-caf6b980ea82"
 CImGuiPack_jll = "333409e9-af72-5310-9767-d6ad21a76a05"
 CSyntax = "ea656a56-6ca6-5dda-bba5-7b6963a5f74c"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [weakdeps]
 GLFW = "f7f18e0c-5ee9-5ccd-a5bf-e8befd85ed98"
@@ -24,4 +26,6 @@ CSyntax = "0.4"
 GLFW = "3"
 GLMakie = "0.10.5"
 ModernGL = "1"
+Printf = "1"
+Statistics = "1"
 julia = "1.9"

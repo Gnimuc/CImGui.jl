@@ -1,20 +1,30 @@
 module MakieIntegration
 
+import Printf: @sprintf
+import Statistics: mean, std
+
 import CImGui as ig
 import ModernGL as gl
 import GLFW
 import GLMakie
 import GLMakie.Makie as Makie
 
-
 # Represents a single Figure to be shown as an ImGui image texture
 struct ImMakieWindow
     glfw_window::GLFW.Window # Only needed for supporting GLMakie requirements
 end
 
-struct ImMakieFigure
+mutable struct ImMakieFigure
     figure::GLMakie.Figure
     screen::GLMakie.Screen{ImMakieWindow}
+
+    render_times::Vector{Float32}
+    times_idx::Int
+    was_dragging::Bool
+
+    function ImMakieFigure(figure, screen)
+        self = new(figure, screen, zeros(Float32, 20), 1, false)
+    end
 end
 
 const makie_context = Dict{ig.ImGuiID, ImMakieFigure}()
@@ -78,7 +88,7 @@ function draw_figure_tooltip(cursor_pos, image_size)
     help_str = "(?)"
     text_size = ig.CalcTextSize(help_str)
     text_pos = (cursor_pos.x + image_size[1] - text_size.x, cursor_pos.y)
-    ig.AddText(ig.GetWindowDrawList(), text_pos, ig.IM_COL32_BLACK, help_str)
+    ig.AddText(ig.GetWindowDrawList(), text_pos, ig.IM_COL32_WHITE, help_str)
     hovering = ig.IsMouseHoveringRect(text_pos, (text_pos[1] + text_size.x, text_pos[2] + text_size.y))
 
     if hovering && ig.BeginTooltip()
@@ -90,13 +100,54 @@ function draw_figure_tooltip(cursor_pos, image_size)
             - Right click and drag to pan
             - Shift + {x/y} and scroll to zoom along the X/Y axes
             - Ctrl + left click to reset the limits
+
+            And right-click for plot settings.
             """)
         ig.PopTextWrapPos()
         ig.EndTooltip()
     end
 end
 
-function ig.MakieFigure(title_id::String, f::GLMakie.Figure; auto_resize_x=true, auto_resize_y=false, tooltip=true)
+function draw_figure_stats(cursor_pos, imfigure)
+    n_samples = length(imfigure.render_times)
+    mean_time = mean(imfigure.render_times)
+    std_time = std(imfigure.render_times)
+    text = @sprintf("Avg. of last %i render times: %.5f ± %.5fs",
+                    n_samples, mean_time, std_time)
+    ig.AddText(ig.GetWindowDrawList(), cursor_pos, ig.IM_COL32_WHITE, text)
+end
+
+function draw_axisscale_buttons(scale, ticks, idx)
+    if ig.RadioButton("linear##$(idx)", scale[] === identity)
+        scale[] = identity
+    end
+    ig.SameLine()
+    if ig.RadioButton("pseudolog10##$(idx)", scale[] === Makie.pseudolog10)
+        scale[] = Makie.pseudolog10
+        # ticks[] = Makie.LogTicks(Makie.LinearTicks(5))
+    end
+end
+
+function draw_popup(axis)
+    if ig.BeginPopupContextItem()
+        ig.Text("Axis settings")
+        ig.Separator()
+
+        ig.Text("X scale:")
+        ig.SameLine()
+        draw_axisscale_buttons(axis.xscale, axis.xticks, 1)
+
+        ig.Text("Y scale:")
+        ig.SameLine()
+        draw_axisscale_buttons(axis.yscale, axis.yticks, 2)
+
+        ig.EndPopup()
+    end
+end
+
+function ig.MakieFigure(title_id::String, f::GLMakie.Figure;
+                        auto_resize_x=true, auto_resize_y=false,
+                        tooltip=true, stats=false)
     ig.PushID(title_id)
     id = ig.GetID(title_id)
 
@@ -150,15 +201,14 @@ function ig.MakieFigure(title_id::String, f::GLMakie.Figure; auto_resize_x=true,
                 auto_resize_y ? region_size[2] : scene_size[2])
 
     if scene_size != new_size && all(new_size .> 0)
-        @debug "resizing $(scene_size) -> $(new_size)"
         scene.events.window_area[] = GLMakie.Rect2i(0, 0, Int(new_size[1]), Int(new_size[2]))
         resize!(f, new_size[1], new_size[2])
     end
 
     do_render = GLMakie.requires_update(imfigure.screen)
     if do_render
-        @debug "rendering"
-        GLMakie.render_frame(imfigure.screen)
+        idx = mod1(imfigure.times_idx, length(imfigure.render_times))
+        imfigure.render_times[idx] = @elapsed GLMakie.render_frame(imfigure.screen; resize_buffers=false)
     end
 
     # The color texture is what we need to render as an image. We add it to the
@@ -178,6 +228,9 @@ function ig.MakieFigure(title_id::String, f::GLMakie.Figure; auto_resize_x=true,
     # Draw tooltip
     if tooltip
         draw_figure_tooltip(cursor_pos, image_size)
+    end
+    if stats
+        draw_figure_stats(cursor_pos, imfigure)
     end
 
     ig.InvisibleButton("figure_image", size(color_buffer))
@@ -211,6 +264,11 @@ function ig.MakieFigure(title_id::String, f::GLMakie.Figure; auto_resize_x=true,
             end
         end
 
+        # Record if the mouse is dragging
+        if ig.IsMouseDragging(ig.lib.ImGuiMouseButton_Right)
+            imfigure.was_dragging = true
+        end
+
         # Update the scroll rate
         wheel_y = unsafe_load(io.MouseWheel)
         wheel_x = unsafe_load(io.MouseWheelH)
@@ -233,13 +291,42 @@ function ig.MakieFigure(title_id::String, f::GLMakie.Figure; auto_resize_x=true,
         end
     end
 
+    # Always clear the dragging field when a new potential drag (right-click) is
+    # started.
+    if ig.IsMouseClicked(ig.lib.ImGuiMouseButton_Right)
+        imfigure.was_dragging = false
+    end
+
+    # Only display the popup if we're not dragging
+    if !imfigure.was_dragging
+        for x in f.content
+            if x isa Makie.Axis && GLMakie.is_mouseinside(x)
+                draw_popup(x)
+            end
+        end
+    end
+
     ig.PopID()
 
     return do_render
 end
 
+function theme_imgui()
+    theme = Makie.theme_dark()
+    theme.Legend.framevisible = true
+    theme.Legend.backgroundcolor = Makie.RGBAf(0, 0, 0, 0.75)
+    theme.Legend.padding = (5, 5, 5, 5)
+    theme.textcolor = :gray90
+
+    # For some reason FXAA causes artifacts with the dark theme
+    theme.GLMakie = Makie.Attributes(fxaa=false)
+
+    return theme
+end
+
 function __init__()
     ig.atrenderexit(destroy_context)
+    Makie.set_theme!(theme_imgui())
 end
 
 end

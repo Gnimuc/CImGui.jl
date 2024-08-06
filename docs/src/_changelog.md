@@ -6,6 +6,27 @@ CurrentModule = CImGui
 This documents notable changes in CImGui.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
+## [v2.3.0] - 2024-08-06
+
+### Added
+- The [Makie integration](@ref) now supports displaying rendering statistics,
+  and has a context menu to change simple plot settings ([#137]). This will be
+  made more customizeable in the future.
+
+### Fixed
+- Fixed a number of bugs in the Makie integration ([#137]).
+
+### Changed
+- Upon loading the Makie extension, the default Makie theme will be set to one
+  that matches ImGui's default dark theme ([#137]).
+- The GLFW/OpenGL renderloop will now `yield()` after every drawing iteration
+  ([#137]). This makes it play a little nicer with Julia's event loop.
+- **Breaking**: Previously [`MakieFigure()`](@ref) would return a `Bool` to
+  indicate if the figure was rendered or not, now it returns `nothing`
+  ([#137]).
+
+  *Reminder that the [Makie integration](@ref) is not yet covered by semver.*
+
 ## [v2.2.0] - 2024-08-02
 
 ### Added

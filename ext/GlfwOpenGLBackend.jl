@@ -140,6 +140,8 @@ function ig._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
                 lib.igRenderPlatformWindowsDefault(C_NULL, C_NULL)
                 GLFW.MakeContextCurrent(backup_current_context)
             end
+
+            yield()
         end
     catch e
         @error "Error in CImGui $(ig._backend[]) renderloop!" exception=(e, catch_backtrace())

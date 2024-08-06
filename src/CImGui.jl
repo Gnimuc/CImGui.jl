@@ -70,19 +70,11 @@ const IMGUI_VERSION = unsafe_string(GetVersion())
 """
     MakieFigure(id::String, f::GLMakie.Figure;
                 auto_resize_x=true, auto_resize_y=false,
-                tooltip=true)
+                tooltip=true, stats=false)
 
-Display a Makie figure in ImGui. See `examples/makie_demo.jl` for an example of
-how to use it. This supports all the interaction features in GLMakie:
-- Scroll to zoom
-- Click and drag to rectangle select a region to zoom to
-- Right click and drag to pan
-- Shift + {x/y} and scroll to zoom along the X/Y axes
-- Ctrl + left click to reset the limits
-
-Note that scrolling to zoom will also cause the ImGui window to scroll, which
-can be annoying. This may be fixed in the future by using some other key
-combination for scrolling to zoom.
+Display a Makie figure in ImGui. See
+[`examples/makie_demo.jl`](https://github.com/Gnimuc/CImGui.jl/blob/master/examples/makie_demo.jl)
+for an example of how to use it.
 
 These are the [interaction
 events](https://docs.makie.org/stable/explanations/events#The-Events-struct)
@@ -93,18 +85,17 @@ that are wired up and can be used:
 - `mouseposition`
 
 Known issues:
-- Changing tick labels don't trigger the scene to be re-layouted, causing them
-  to be clipped if the labels change width. See `examples/makie_demo.jl` for an
-  example workaround using `Makie.tight_ticklabel_spacing!()`.
-- The theming doesn't match the ImGui theme so plots look quite out of place by
-  default.
 - Mouse events aren't delivered unless the mouse is hovered over the figure, so
   dragging the mouse from within the figure to somewhere outside the figure will
   keep the old mouse state. e.g. if you're RMB panning and the mouse goes
   outside the figure, when it enters the figure again panning will resume even
   the RMB was released.
-- Drawing can be a bit janky, occasionally the image will not be drawn for a
-  frame or two and you'll see an empty black square instead.
+- Note that scrolling to zoom will also cause the ImGui window to scroll, which
+  can be annoying. This may be fixed in the future by using some other key
+  combination for scrolling to zoom.
+- Sometimes zooming way out or in can trigger segfaults if a CImGui window has
+  been opened multiple times in the same process (e.g. when experimenting in the
+  REPL). Some resources probably aren't getting cleaned up properly.
 
 !!! note
     GLMakie requires OpenGL 3.3, on some systems you will need to explicitly

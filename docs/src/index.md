@@ -77,19 +77,9 @@ julia> ig.render(ctx; window_size=(360, 480), window_title="ImGui Window") do
        end
 ```
 
-Note that neither ImGui nor OpenGL are thread-safe, be aware of this if you
-start Julia with multiple threads using `--threads`. If you need to use multiple
-threads in an application, one option is to use the
-[threadpools](https://docs.julialang.org/en/v1/manual/multi-threading/#man-threadpools)
-introduced in Julia 1.9:
-```bash
-# Have an arbitrary number in the default pool, and 1 thread in the :interactive pool
-$ julia --threads=auto,1
-```
-
-Then start the render loop on the `:interactive` thread with `Threads.@spawn
-:interactive` and ensure that none of the other threads call GUI functions or
-modify the program state while your GUI code is being executing.
+Note that neither ImGui nor OpenGL are thread-safe, and because of this
+[`CImGui.render()`](@ref) will pin the renderloop to thread 1 by default (see the
+docstring for more information).
 
 ## Usage
 The API provided in this package is as close as possible to the original C++

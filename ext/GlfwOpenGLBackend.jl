@@ -51,14 +51,14 @@ end
 _window::Union{Nothing, GLFW.Window} = nothing
 ig._current_window(::Val{:GlfwOpenGL3}) = _window
 
-function ig._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
-                        hotloading=true,
-                        on_exit=nothing,
-                        clear_color=Cfloat[0.45, 0.55, 0.60, 1.00],
-                        window_size=(1280, 720),
-                        window_title="CImGui",
-                        engine=nothing,
-                        opengl_version=v"3.2")
+function renderloop(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
+                    hotloading=true,
+                    on_exit=nothing,
+                    clear_color=Cfloat[0.45, 0.55, 0.60, 1.00],
+                    window_size=(1280, 720),
+                    window_title="CImGui",
+                    engine=nothing,
+                    opengl_version=v"3.2")
     # Validate arguments
     if clear_color isa Ref && !isassigned(clear_color)
         throw(ArgumentError("'clear_color' is a unassigned reference, it must be initialized properly."))
@@ -159,6 +159,39 @@ function ig._render(ui, ctx::Ptr{lib.ImGuiContext}, ::Val{:GlfwOpenGL3};
         ig.DestroyContext(ctx)
         GLFW.DestroyWindow(window)
     end
+end
+
+function ig._render(args...; spawn::Union{Bool, Integer, Symbol}=1, wait::Bool=true, kwargs...)
+    if spawn === false
+        return renderloop(args...; kwargs...)
+    end
+
+    # Note that when picking a thread from a threadpool automatically we always
+    # take the last thread ID to try to avoid picking thread 1. Thread 1 is
+    # kinda important because it runs the libuv eventloop, so spawning a
+    # mostly-non-yielding loop on that could interfere with other Julia
+    # tasks. It's also somewhat unsafe because GLFW might not play well on
+    # anything other than thread 1, but the caller should be aware of that
+    # already.
+    t = @task renderloop(args...; kwargs...)
+    if spawn === true
+        pool = Threads.threadpoolsize(:interactive) == 0 ? :default : :interactive
+        ig.pintask!(t, Threads.threadpooltids(pool)[end])
+    elseif spawn isa Integer
+        ig.pintask!(t, spawn)
+    elseif spawn isa Symbol
+        if Threads.threadpoolsize(spawn) == 0
+            error("Threadpool '$spawn' is empty, cannot schedule the ImGui renderloop onto it.")
+        end
+
+        ig.pintask!(t, Threads.threadpooltids(spawn)[end])
+    else
+        throw(ArgumentError("Unrecognized `spawn` value: '$(spawn)'"))
+    end
+
+    schedule(t)
+    monitor_task = errormonitor(t)
+    return wait ? Base.wait(monitor_task) : monitor_task
 end
 
 end

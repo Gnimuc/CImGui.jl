@@ -65,6 +65,21 @@ include("wrapper.jl")
 
 const IMGUI_VERSION = unsafe_string(GetVersion())
 
+# Helper function to pin tasks to a specific thread. We need this because
+# OpenGL/GLFW/ImGui are not threadsafe so task migration could cause segfaults.
+function pintask!(task::Task, tid::Integer)
+    if tid ∉ Threads.threadpooltids(:default) && tid ∉ Threads.threadpooltids(:interactive)
+        error("Thread ID '$tid' does not exist in the :default or :interactive threadpool, cannot schedule a task onto it.")
+    end
+
+    task.sticky = true
+    ret = ccall(:jl_set_task_tid, Cint, (Any, Cint), task, tid - 1)
+
+    if Threads.threadid(task) != tid
+        error("jl_set_task_tid() onto Julia thread ID $tid failed!")
+    end
+end
+
 # This is implemented by the MakieIntegration extension but we document it here
 # so that we don't have to install GLMakie to build the docs.
 """
@@ -175,6 +190,33 @@ Keyword arguments:
   any tests registered with the test engine they will be queued and run
   automatically.
 - `opengl_version::VersionNumber=v"3.2"`: The OpenGL version to use.
+- `spawn::Union{Bool, Integer, Symbol}=1`: How/where to spawn the
+  renderloop. It defaults to thread 1 for safety, but note that currently Julia
+  also uses thread 1 to run the libuv event loop:
+  [#50643](https://github.com/JuliaLang/julia/issues/50643). The renderloop does
+  `yield()` on each iteration but it's still likely to hog thread 1 which may
+  cause libuv things like task switching to become slower. In most cases this is
+  unlikely to be a problem, but keep it in mind if you observe IO/task heavy
+  things being slower than you'd expect.
+
+  Possible values are:
+  - `true`: a thread will automatically be chosen, preferring the `:interactive`
+    threadpool.
+  - `false`: don't spawn a task at all. The caller is reponsible for disabling
+    task migration etc.
+  - An `Integer`: the task will be pinned to this thread ID.
+  - `:default`/`:interactive`: the task will be pinned to an arbitrary thread in
+    the threadpool.
+
+  !!! warning
+      Only thread 1 is sure to be portable across platforms, do otherwise at
+      your own risk. See also:
+      - The [thread safety
+        docs](https://www.glfw.org/docs/latest/intro_guide.html#thread_safety).
+      - [This answer](https://discourse.glfw.org/t/multithreading-glfw/573/5)
+        describing platform requirements.
+
+- `wait::Bool=true`: Block until the spawned renderloop task exits.
 """
 function render(args...; kwargs...)
     _check_backend()

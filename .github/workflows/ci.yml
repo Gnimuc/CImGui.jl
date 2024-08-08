@@ -72,6 +72,9 @@ jobs:
           arch: ${{ matrix.arch }}
       - uses: julia-actions/cache@v2
       - uses: julia-actions/julia-buildpkg@v1
+      - name: Set the number of threads for the tests
+        run: |
+          echo "JULIA_NUM_THREADS=5,5" >> "$GITHUB_ENV"
       - uses: julia-actions/julia-runtest@v1
         with:
           prefix: xvfb-run -a -s '-screen 0 1024x768x24'

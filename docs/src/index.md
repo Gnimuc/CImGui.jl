@@ -1,6 +1,6 @@
 # CImGui
 This package provides a Julia language wrapper for
-[cimgui](https://github.com/cimgui/cimgui): a thin c-api wrapper
+[cimgui](https://github.com/cimgui/cimgui): a thin C wrapper
 programmatically generated for the excellent C++ immediate mode gui [Dear
 ImGui](https://github.com/ocornut/imgui). Dear ImGui is mainly for creating
 content creation tools and visualization / debug tools. You could browse
@@ -100,7 +100,7 @@ interest to you if you're looking for state management frameworks.
 ### Backend
 The default backend is based on
 [ModernGL](https://github.com/JuliaGL/ModernGL.jl) and
-[GLFW](https://github.com/JuliaGL/GLFW.jl) which are stable and under actively
+[GLFW](https://github.com/JuliaGL/GLFW.jl) which are stable and actively
 maintained. Other popular backends like
 [SFML](https://github.com/zyedidia/SFML.jl) and
 [SDL](https://github.com/ariejdl/SDL.jl) could be added in the future if someone

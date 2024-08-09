@@ -46,7 +46,7 @@ function ShowExampleAppPropertyEditor(p_open::Ref{Bool})
     CImGui.SetNextWindowSize((430,450), CImGui.ImGuiCond_FirstUseEver)
     CImGui.Begin("Example: Property editor", p_open) || (CImGui.End(); return)
 
-    # ShowHelpMarker("This example shows how you may implement a property editor using two columns.\nAll objects/fields data are dummies here.\nRemember that in many simple cases, you can use CImGui.SameLine(xxx) to position\nyour cursor horizontally instead of using the Columns() API.");
+    # CImGui.HelpMarker("This example shows how you may implement a property editor using two columns.\nAll objects/fields data are dummies here.\nRemember that in many simple cases, you can use CImGui.SameLine(xxx) to position\nyour cursor horizontally instead of using the Columns() API.");
 
     CImGui.PushStyleVar(CImGui.ImGuiStyleVar_FramePadding, (2,2))
     CImGui.Columns(2)

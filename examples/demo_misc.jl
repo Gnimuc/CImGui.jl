@@ -214,7 +214,7 @@ function ShowDemoWindowMisc()
             CImGui.Text("Current mouse cursor = $cur: $(mouse_cursors_names[cur+1])")
             CImGui.Text("Hover to see mouse cursors:")
             CImGui.SameLine()
-            ShowHelpMarker("Your application can render a different mouse cursor based on what CImGui.GetMouseCursor() returns. If software cursor rendering (io.MouseDrawCursor) is set ImGui will draw the right cursor for you, otherwise your backend needs to handle it.")
+            CImGui.HelpMarker("Your application can render a different mouse cursor based on what CImGui.GetMouseCursor() returns. If software cursor rendering (io.MouseDrawCursor) is set ImGui will draw the right cursor for you, otherwise your backend needs to handle it.")
             for i = 0:CImGui.ImGuiMouseCursor_COUNT-1
                 label = @sprintf("Mouse cursor %d: %s", i, mouse_cursors_names[i+1])
                 CImGui.Bullet()

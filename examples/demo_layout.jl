@@ -2,7 +2,7 @@ function ShowDemoWindowLayout()
     CImGui.CollapsingHeader("Layout") || return
 
     if CImGui.TreeNode("Child windows")
-        ShowHelpMarker("Use child windows to begin into a self-contained independent scrolling/clipping regions within a host window.")
+        CImGui.HelpMarker("Use child windows to begin into a self-contained independent scrolling/clipping regions within a host window.")
         @cstatic disable_mouse_wheel=false disable_menu=false line=Cint(50) begin
             @c CImGui.Checkbox("Disable Mouse Wheel", &disable_mouse_wheel)
             @c CImGui.Checkbox("Disable Menu", &disable_menu)
@@ -79,35 +79,35 @@ function ShowDemoWindowLayout()
         @cstatic f = Cfloat(0.0) begin
             CImGui.Text("PushItemWidth(100)")
             CImGui.SameLine()
-            ShowHelpMarker("Fixed width.")
+            CImGui.HelpMarker("Fixed width.")
             CImGui.PushItemWidth(100)
             @c CImGui.DragFloat("float##1", &f)
             CImGui.PopItemWidth()
 
             CImGui.Text("PushItemWidth(GetWindowWidth() * 0.5)")
             CImGui.SameLine()
-            ShowHelpMarker("Half of window width.")
+            CImGui.HelpMarker("Half of window width.")
             CImGui.PushItemWidth(CImGui.GetWindowWidth() * 0.5)
             @c CImGui.DragFloat("float##2", &f)
             CImGui.PopItemWidth()
 
             CImGui.Text("PushItemWidth(GetContentRegionAvail().x * 0.5)")
             CImGui.SameLine()
-            ShowHelpMarker("Half of available width.\n(~ right-cursor_pos)\n(works within a column set)")
+            CImGui.HelpMarker("Half of available width.\n(~ right-cursor_pos)\n(works within a column set)")
             CImGui.PushItemWidth(CImGui.GetContentRegionAvail().x * 0.5)
             @c CImGui.DragFloat("float##3", &f)
             CImGui.PopItemWidth()
 
             CImGui.Text("PushItemWidth(-100)")
             CImGui.SameLine()
-            ShowHelpMarker("Align to right edge minus 100")
+            CImGui.HelpMarker("Align to right edge minus 100")
             CImGui.PushItemWidth(-100)
             @c CImGui.DragFloat("float##4", &f)
             CImGui.PopItemWidth()
 
             CImGui.Text("PushItemWidth(-1)")
             CImGui.SameLine()
-            ShowHelpMarker("Align to right edge")
+            CImGui.HelpMarker("Align to right edge")
             CImGui.PushItemWidth(-1)
             @c CImGui.DragFloat("float##5", &f)
             CImGui.PopItemWidth()
@@ -282,7 +282,7 @@ function ShowDemoWindowLayout()
     end
 
     if CImGui.TreeNode("Groups")
-        ShowHelpMarker("Using CImGui.BeginGroup()/EndGroup() to layout items. BeginGroup() basically locks the horizontal position. EndGroup() bundles the whole group so that you can use functions such as IsItemHovered() on it.")
+        CImGui.HelpMarker("Using CImGui.BeginGroup()/EndGroup() to layout items. BeginGroup() basically locks the horizontal position. EndGroup() bundles the whole group so that you can use functions such as IsItemHovered() on it.")
         CImGui.BeginGroup()
         begin
             CImGui.BeginGroup()

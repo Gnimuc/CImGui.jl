@@ -78,16 +78,16 @@ function ShowDemoWindowWidgets()
             # see "Combo" section for examples of how to use the more complete BeginCombo()/EndCombo() api.
             @c CImGui.Combo("combo", &item_current, items, length(items))
             CImGui.SameLine()
-            ShowHelpMarker("Refer to the \"Combo\" section below for an explanation of the full BeginCombo/EndCombo API, and demonstration of various flags.\n")
+            CImGui.HelpMarker("Refer to the \"Combo\" section below for an explanation of the full BeginCombo/EndCombo API, and demonstration of various flags.\n")
         end
 
         @cstatic str0="Hello, world!"*"\0"^115 i0=Cint(123) begin
             CImGui.InputText("input text", str0, length(str0))
             CImGui.SameLine()
-            ShowHelpMarker("USER:\nHold SHIFT or use mouse to select text.\n"*"CTRL+Left/Right to word jump.\n"*"CTRL+A or double-click to select all.\n"*"CTRL+X,CTRL+C,CTRL+V clipboard.\n"*"CTRL+Z,CTRL+Y undo/redo.\n"*"ESCAPE to revert.\n\nPROGRAMMER:\nYou can use the ImGuiInputTextFlags_CallbackResize facility if you need to wire InputText() to a dynamic string type. See misc/cpp/imgui_stdlib.h for an example (this is not demonstrated in imgui_demo.cpp).")
+            CImGui.HelpMarker("USER:\nHold SHIFT or use mouse to select text.\n"*"CTRL+Left/Right to word jump.\n"*"CTRL+A or double-click to select all.\n"*"CTRL+X,CTRL+C,CTRL+V clipboard.\n"*"CTRL+Z,CTRL+Y undo/redo.\n"*"ESCAPE to revert.\n\nPROGRAMMER:\nYou can use the ImGuiInputTextFlags_CallbackResize facility if you need to wire InputText() to a dynamic string type. See misc/cpp/imgui_stdlib.h for an example (this is not demonstrated in imgui_demo.cpp).")
 
             @c CImGui.InputInt("input int", &i0)
-            CImGui.SameLine(); ShowHelpMarker("You can apply arithmetic operators +,*,/ on numerical values.\n  e.g. [ 100 ], input \'*2\', result becomes [ 200 ]\nUse +- to subtract.\n")
+            CImGui.SameLine(); CImGui.HelpMarker("You can apply arithmetic operators +,*,/ on numerical values.\n  e.g. [ 100 ], input \'*2\', result becomes [ 200 ]\nUse +- to subtract.\n")
         end
 
         @cstatic f0=Cfloat(0.001) d0=Cdouble(999999.00000001) f1=Cfloat(1.e10) begin
@@ -95,14 +95,14 @@ function ShowDemoWindowWidgets()
             @c CImGui.InputDouble("input double", &d0, 0.01, 1.0, "%.8f")
             @c CImGui.InputFloat("input scientific", &f1, 0.0, 0.0, "%e")
             CImGui.SameLine()
-            ShowHelpMarker("You can input value using the scientific notation,\n  e.g. \"1e+8\" becomes \"100000000\".\n")
+            CImGui.HelpMarker("You can input value using the scientific notation,\n  e.g. \"1e+8\" becomes \"100000000\".\n")
         end
         @cstatic vec4a=Cfloat[0.10, 0.20, 0.30, 0.44] CImGui.InputFloat3("input float3", vec4a)
 
         @cstatic i1=Cint(50) i2=Cint(42) begin
             @c CImGui.DragInt("drag int", &i1, 1)
             CImGui.SameLine()
-            ShowHelpMarker("Click and drag to edit value.\nHold SHIFT/ALT for faster/slower edit.\nDouble-click or CTRL+click to input value.")
+            CImGui.HelpMarker("Click and drag to edit value.\nHold SHIFT/ALT for faster/slower edit.\nDouble-click or CTRL+click to input value.")
 
             @c CImGui.DragInt("drag int 0..100", &i2, 1, 0, 100, "%d%%")
         end
@@ -115,7 +115,7 @@ function ShowDemoWindowWidgets()
         @cstatic i1=Cint(0) f1=Cfloat(0.123) f2=Cfloat(0.0) angle=Cfloat(0.0) begin
             @c CImGui.SliderInt("slider int", &i1, -1, 3)
             CImGui.SameLine()
-            ShowHelpMarker("CTRL+click to input value.")
+            CImGui.HelpMarker("CTRL+click to input value.")
 
             @c CImGui.SliderFloat("slider float", &f1, 0.0, 1.0, "ratio = %.3f")
             @c CImGui.SliderFloat("slider float (log)", &f2, -10.0, 10.0, "%.4f", CImGui.ImGuiSliderFlags_Logarithmic)
@@ -126,7 +126,7 @@ function ShowDemoWindowWidgets()
         @cstatic col1=Cfloat[1.0,0.0,0.2] col2=Cfloat[0.4,0.7,0.0,0.5] begin
             CImGui.ColorEdit3("color 1", col1)
             CImGui.SameLine()
-            ShowHelpMarker("Click on the colored square to open a color picker.\nClick and hold to use drag and drop.\nRight-click on the colored square to show options.\nCTRL+click on individual component to input value.\n")
+            CImGui.HelpMarker("Click on the colored square to open a color picker.\nClick and hold to use drag and drop.\nRight-click on the colored square to show options.\nCTRL+click on individual component to input value.\n")
             CImGui.ColorEdit4("color 2", col2)
         end
 
@@ -155,7 +155,7 @@ function ShowDemoWindowWidgets()
         end
 
         if CImGui.TreeNode("Advanced, with Selectable nodes")
-            ShowHelpMarker("This is a more standard looking tree with selectable nodes.\nClick to select, CTRL+Click to toggle, click on arrows or double-click to open.")
+            CImGui.HelpMarker("This is a more standard looking tree with selectable nodes.\nClick to select, CTRL+Click to toggle, click on arrows or double-click to open.")
             align_label_with_current_x_position= @cstatic align_label_with_current_x_position=false begin
                 @c CImGui.Checkbox("Align label with current X position)", &align_label_with_current_x_position)
                 CImGui.Text("Hello!")
@@ -228,7 +228,7 @@ function ShowDemoWindowWidgets()
             CImGui.TextColored(ImVec4(1.0,1.0,0.0,1.0), "Yellow")
             CImGui.TextDisabled("Disabled")
             CImGui.SameLine()
-            ShowHelpMarker("The TextDisabled color is stored in ImGuiStyle.")
+            CImGui.HelpMarker("The TextDisabled color is stored in ImGuiStyle.")
             CImGui.TreePop()
         end
 
@@ -425,7 +425,7 @@ function ShowDemoWindowWidgets()
             CImGui.TreePop()
         end
         if CImGui.TreeNode("Selection State: Multiple Selection")
-            ShowHelpMarker("Hold CTRL and click to select multiple items.")
+            CImGui.HelpMarker("Hold CTRL and click to select multiple items.")
             @cstatic selection=[false, false, false, false, false] begin
                 for n = 0:4
                     buf = @sprintf "Object %d" n
@@ -485,7 +485,7 @@ function ShowDemoWindowWidgets()
             CImGui.TreePop()
         end
         if CImGui.TreeNode("Alignment")
-            ShowHelpMarker("Alignment applies when a selectable is larger than its text content.\nBy default, Selectables uses style.SelectableTextAlign but it can be overriden on a per-item basis using PushStyleVar().");
+            CImGui.HelpMarker("Alignment applies when a selectable is larger than its text content.\nBy default, Selectables uses style.SelectableTextAlign but it can be overriden on a per-item basis using PushStyleVar().");
             @cstatic selected=[true, false, true, false, true, false, true, false, true] begin
                 for y = 0:3-1
                     for x = 0:3-1
@@ -525,7 +525,7 @@ function ShowDemoWindowWidgets()
         @cstatic bufpass="password123"*"\0"^53 begin
             CImGui.InputText("password", bufpass, 64, CImGui.ImGuiInputTextFlags_Password | CImGui.ImGuiInputTextFlags_CharsNoBlank)
             CImGui.SameLine()
-            ShowHelpMarker("Display all characters as '*'.\nDisable clipboard cut and copy.\nDisable logging.\n")
+            CImGui.HelpMarker("Display all characters as '*'.\nDisable clipboard cut and copy.\nDisable logging.\n")
             CImGui.InputText("password (clear)", bufpass, 64, CImGui.ImGuiInputTextFlags_CharsNoBlank)
         end
         CImGui.TreePop()
@@ -543,7 +543,7 @@ function ShowDemoWindowWidgets()
                                        "*/\n\n"*
                                        "label:\n"*
                                        "\tlock cmpxchg8b eax\n"*"\0"^(1024*16-249)) begin
-            ShowHelpMarker("You can use the ImGuiInputTextFlags_CallbackResize facility if you need to wire InputTextMultiline() to a dynamic string type. See misc/cpp/imgui_stdlib.h for an example. (This is not demonstrated in imgui_demo.cpp)")
+            CImGui.HelpMarker("You can use the ImGuiInputTextFlags_CallbackResize facility if you need to wire InputTextMultiline() to a dynamic string type. See misc/cpp/imgui_stdlib.h for an example. (This is not demonstrated in imgui_demo.cpp)")
             @c CImGui.Checkbox("Read-only", &read_only)
             flags = CImGui.ImGuiInputTextFlags_AllowTabInput | (read_only ? CImGui.ImGuiInputTextFlags_ReadOnly : 0)
             CImGui.InputTextMultiline("##source", text, length(text), ImVec2(-1.0, CImGui.GetTextLineHeight() * 16), flags)
@@ -619,15 +619,15 @@ function ShowDemoWindowWidgets()
             @c CImGui.Checkbox("With Drag and Drop", &drag_and_drop)
             @c CImGui.Checkbox("With Options Menu", &options_menu)
             CImGui.SameLine()
-            ShowHelpMarker("Right-click on the individual color widget to show options.")
+            CImGui.HelpMarker("Right-click on the individual color widget to show options.")
             @c CImGui.Checkbox("With HDR", &hdr)
             CImGui.SameLine()
-            ShowHelpMarker("Currently all this does is to lift the 0..1 limits on dragging widgets.")
+            CImGui.HelpMarker("Currently all this does is to lift the 0..1 limits on dragging widgets.")
             misc_flags = (hdr ? CImGui.ImGuiColorEditFlags_HDR : 0) | (drag_and_drop ? 0 : CImGui.ImGuiColorEditFlags_NoDragDrop) | (alpha_half_preview ? CImGui.ImGuiColorEditFlags_AlphaPreviewHalf : (alpha_preview ? CImGui.ImGuiColorEditFlags_AlphaPreview : 0)) | (options_menu ? 0 : CImGui.ImGuiColorEditFlags_NoOptions)
 
             CImGui.Text("Color widget:")
             CImGui.SameLine()
-            ShowHelpMarker("Click on the colored square to open a color picker.\nCTRL+click on individual component to input value.\n")
+            CImGui.HelpMarker("Click on the colored square to open a color picker.\nCTRL+click on individual component to input value.\n")
             CImGui.ColorEdit3("MyColor##1", color, misc_flags)
 
             CImGui.Text("Color widget HSV with Alpha:")
@@ -638,7 +638,7 @@ function ShowDemoWindowWidgets()
 
             CImGui.Text("Color button with Picker:")
             CImGui.SameLine()
-            ShowHelpMarker("With the ImGuiColorEditFlags_NoInputs flag you can hide all the slider/text inputs.\nWith the ImGuiColorEditFlags_NoLabel flag you can pass a non-empty label which will only be used for the tooltip and picker popup.")
+            CImGui.HelpMarker("With the ImGuiColorEditFlags_NoInputs flag you can hide all the slider/text inputs.\nWith the ImGuiColorEditFlags_NoLabel flag you can pass a non-empty label which will only be used for the tooltip and picker popup.")
             CImGui.ColorEdit4("MyColor##3", color, CImGui.ImGuiColorEditFlags_NoInputs | CImGui.ImGuiColorEditFlags_NoLabel | misc_flags)
             CImGui.Text("Color button with Custom Picker Popup:")
 
@@ -732,7 +732,7 @@ function ShowDemoWindowWidgets()
                 @c CImGui.Combo("Inputs Mode", &inputs_mode, "All Inputs\0No Inputs\0RGB Input\0HSV Input\0HEX Input\0");
                 @c CImGui.Combo("Picker Mode", &picker_mode, "Auto/Current\0Hue bar + SV rect\0Hue wheel + SV triangle\0");
                 CImGui.SameLine()
-                ShowHelpMarker("User can right-click the picker to change mode.")
+                CImGui.HelpMarker("User can right-click the picker to change mode.")
                 flags = misc_flags
                 !alpha && (flags |= CImGui.ImGuiColorEditFlags_NoAlpha;) # this is by default if you call ColorPicker3() instead of ColorPicker4()
                 alpha_bar && (flags |= CImGui.ImGuiColorEditFlags_AlphaBar;)
@@ -747,7 +747,7 @@ function ShowDemoWindowWidgets()
             end
             CImGui.Text("Programmatically set defaults:")
             CImGui.SameLine()
-            ShowHelpMarker("SetColorEditOptions() is designed to allow you to set boot-time default.\nWe don't have Push/Pop functions because you can force options on a per-widget basis if needed, and the user can change non-forced ones with the options menu.\nWe don't have a getter to avoid encouraging you to persistently save values that aren't forward-compatible.")
+            CImGui.HelpMarker("SetColorEditOptions() is designed to allow you to set boot-time default.\nWe don't have Push/Pop functions because you can force options on a per-widget basis if needed, and the user can change non-forced ones with the options menu.\nWe don't have a getter to avoid encouraging you to persistently save values that aren't forward-compatible.")
             if CImGui.Button("Default: Uint8 + HSV + Hue Bar")
                 CImGui.SetColorEditOptions(CImGui.ImGuiColorEditFlags_Uint8 | CImGui.ImGuiColorEditFlags_DisplayHSV | CImGui.ImGuiColorEditFlags_PickerHueBar)
             end
@@ -795,7 +795,7 @@ function ShowDemoWindowWidgets()
         #     CImGui.Text("Drags:")
         #     @c CImGui.Checkbox("Clamp integers to 0..50", &drag_clamp)
         #     CImGui.SameLine()
-        #     ShowHelpMarker("As with every widgets in dear imgui, we never modify values unless there is a user interaction.\nYou can override the clamping limits by using CTRL+Click to input a value.")
+        #     CImGui.HelpMarker("As with every widgets in dear imgui, we never modify values unless there is a user interaction.\nYou can override the clamping limits by using CTRL+Click to input a value.")
         #     if drag_clamp
         #         @c CImGui.DragScalar("drag s32", CImGui.ImGuiDataType_S32, &s32_v, drag_speed, &s32_zero, &s32_fifty)
         #         @c CImGui.DragScalar("drag u32", CImGui.ImGuiDataType_U32, &u32_v, drag_speed, &u32_zero, &u32_fifty, "%u ms")
@@ -810,7 +810,7 @@ function ShowDemoWindowWidgets()
         #     @c CImGui.DragScalar("drag float", CImGui.ImGuiDataType_Float, &f32_v, 0.005, &f32_zero, &f32_one, "%f", 1.0)
         #     @c CImGui.DragScalar("drag float ^2", CImGui.ImGuiDataType_Float, &f32_v, 0.005, &f32_zero, &f32_one, "%f", 2.0)
         #     CImGui.SameLine()
-        #     ShowHelpMarker("You can use the 'power' parameter to increase tweaking precision on one side of the range.")
+        #     CImGui.HelpMarker("You can use the 'power' parameter to increase tweaking precision on one side of the range.")
         #     @c CImGui.DragScalar("drag double", CImGui.ImGuiDataType_Double, &f64_v, 0.0005, &f64_zero, C_NULL, "%.10f grams", 1.0)
         #     @c CImGui.DragScalar("drag double ^2", CImGui.ImGuiDataType_Double, &f64_v, 0.0005, &f64_zero, &f64_one, "0 < %.10f < 1", 2.0)
         #

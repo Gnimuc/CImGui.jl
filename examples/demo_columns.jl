@@ -165,7 +165,7 @@ function ShowDemoWindowColumns()
 
     node_open = CImGui.TreeNode("Tree within single cell")
     CImGui.SameLine()
-    ShowHelpMarker("NB: Tree node must be poped before ending the cell. There's no storage of state per-cell.")
+    CImGui.HelpMarker("NB: Tree node must be poped before ending the cell. There's no storage of state per-cell.")
     if node_open
         CImGui.Columns(2, "tree items")
         CImGui.Separator()

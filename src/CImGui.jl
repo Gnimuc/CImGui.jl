@@ -34,6 +34,8 @@ Base.:~(x::Cenum{UInt32}) = ~UInt32(x)
 Base.:(:)(a::T, b::Cenum) where {T<:Integer} = a:T(b)
 Base.:(:)(a::Cenum, b::T) where {T<:Integer} = T(a):b
 
+include("extras.jl")
+
 """
     imgui_version()::VersionNumber
 

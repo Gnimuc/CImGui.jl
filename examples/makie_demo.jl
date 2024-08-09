@@ -16,17 +16,6 @@ function generate_data(type::Symbol=:random, N=1000)
     end
 end
 
-function HelpMarker(msg)
-    ig.TextDisabled("(?)")
-
-    if ig.IsItemHovered() && ig.BeginTooltip()
-        ig.PushTextWrapPos(ig.GetFontSize() * 35.0)
-        ig.TextUnformatted(msg)
-        ig.PopTextWrapPos()
-        ig.EndTooltip()
-    end
-end
-
 function makie_demo(; engine=nothing)
     # Create a plot
     f = Figure()

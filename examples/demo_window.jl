@@ -151,10 +151,10 @@ global function ShowJuliaDemoWindow(p_open::Ref{Bool})
             CImGui.CheckboxFlags("io.ConfigFlags: NavEnableKeyboard", io.ConfigFlags, CImGui.ImGuiConfigFlags_NavEnableKeyboard)
             CImGui.CheckboxFlags("io.ConfigFlags: NavEnableGamepad", io.ConfigFlags, CImGui.ImGuiConfigFlags_NavEnableGamepad)
             CImGui.SameLine()
-            ShowHelpMarker("Required back-end to feed in gamepad inputs in io.NavInputs[] and set io.BackendFlags |= ImGuiBackendFlags_HasGamepad.\n\nRead instructions in imgui.cpp for details.");
+            CImGui.HelpMarker("Required back-end to feed in gamepad inputs in io.NavInputs[] and set io.BackendFlags |= ImGuiBackendFlags_HasGamepad.\n\nRead instructions in imgui.cpp for details.");
             CImGui.CheckboxFlags("io.ConfigFlags: NavEnableSetMousePos", io.ConfigFlags, CImGui.ImGuiConfigFlags_NavEnableSetMousePos)
             CImGui.SameLine()
-            ShowHelpMarker("Instruct navigation to move the mouse cursor. See comment for ImGuiConfigFlags_NavEnableSetMousePos.")
+            CImGui.HelpMarker("Instruct navigation to move the mouse cursor. See comment for ImGuiConfigFlags_NavEnableSetMousePos.")
             CImGui.CheckboxFlags("io.ConfigFlags: NoMouse", io.ConfigFlags, CImGui.ImGuiConfigFlags_NoMouse)
             if unsafe_load(io.ConfigFlags) & CImGui.ImGuiConfigFlags_NoMouse != 0 # create a way to restore this flag otherwise we could be stuck completely!
                 if mod(CImGui.GetTime(), 0.4) < 0.2
@@ -167,23 +167,23 @@ global function ShowJuliaDemoWindow(p_open::Ref{Bool})
             end
             CImGui.CheckboxFlags("io.ConfigFlags: NoMouseCursorChange", io.ConfigFlags, CImGui.ImGuiConfigFlags_NoMouseCursorChange)
             CImGui.SameLine()
-            ShowHelpMarker("Instruct back-end to not alter mouse cursor shape and visibility.")
+            CImGui.HelpMarker("Instruct back-end to not alter mouse cursor shape and visibility.")
             CImGui.Checkbox("io.ConfigInputTextCursorBlink", io.ConfigInputTextCursorBlink)
             CImGui.SameLine()
-            ShowHelpMarker("Set to false to disable blinking cursor, for users who consider it distracting")
+            CImGui.HelpMarker("Set to false to disable blinking cursor, for users who consider it distracting")
             CImGui.Checkbox("io.ConfigWindowsResizeFromEdges", io.ConfigWindowsResizeFromEdges)
             CImGui.SameLine()
-            ShowHelpMarker("Enable resizing of windows from their edges and from the lower-left corner.\nThis requires (io.BackendFlags & ImGuiBackendFlags_HasMouseCursors) because it needs mouse cursor feedback.")
+            CImGui.HelpMarker("Enable resizing of windows from their edges and from the lower-left corner.\nThis requires (io.BackendFlags & ImGuiBackendFlags_HasMouseCursors) because it needs mouse cursor feedback.")
             CImGui.Checkbox("io.ConfigWindowsMoveFromTitleBarOnly", io.ConfigWindowsMoveFromTitleBarOnly)
             CImGui.Checkbox("io.MouseDrawCursor", io.MouseDrawCursor)
             CImGui.SameLine()
-            ShowHelpMarker("Instruct Dear ImGui to render a mouse cursor for you. Note that a mouse cursor rendered via your application GPU rendering path will feel more laggy than hardware cursor, but will be more in sync with your other visuals.\n\nSome desktop applications may use both kinds of cursors (e.g. enable software cursor only when resizing/dragging something).")
+            CImGui.HelpMarker("Instruct Dear ImGui to render a mouse cursor for you. Note that a mouse cursor rendered via your application GPU rendering path will feel more laggy than hardware cursor, but will be more in sync with your other visuals.\n\nSome desktop applications may use both kinds of cursors (e.g. enable software cursor only when resizing/dragging something).")
             CImGui.TreePop()
             CImGui.Separator()
         end
 
         if CImGui.TreeNode("Backend Flags")
-            ShowHelpMarker("Those flags are set by the back-ends (imgui_impl_xxx files) to specify their capabilities.")
+            CImGui.HelpMarker("Those flags are set by the back-ends (imgui_impl_xxx files) to specify their capabilities.")
             backend_flags::UInt32 = unsafe_load(io.BackendFlags) # make a local copy to avoid modifying the back-end flags.
             @c CImGui.CheckboxFlags("io.BackendFlags: HasGamepad", &backend_flags, CImGui.ImGuiBackendFlags_HasGamepad)
             @c CImGui.CheckboxFlags("io.BackendFlags: HasMouseCursors", &backend_flags, CImGui.ImGuiBackendFlags_HasMouseCursors)
@@ -200,7 +200,7 @@ global function ShowJuliaDemoWindow(p_open::Ref{Bool})
 
         if CImGui.TreeNode("Capture/Logging")
             CImGui.TextWrapped("The logging API redirects all text output so you can easily capture the content of a window or a block. Tree nodes can be automatically expanded.");
-            ShowHelpMarker("Try opening any of the contents below in this window and then click one of the \"Log To\" button.");
+            CImGui.HelpMarker("Try opening any of the contents below in this window and then click one of the \"Log To\" button.");
             CImGui.LogButtons()
             CImGui.TextWrapped("You can also call CImGui.LogText() to output directly to the log without a visual output.");
             if (CImGui.Button("Copy \"Hello, world!\" to clipboard"))

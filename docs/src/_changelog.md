@@ -8,14 +8,18 @@ Changelog](https://keepachangelog.com).
 
 ## Unreleased
 
+### Added
+- [`HelpMarker()`](@ref), a port of the same function from the Dear ImGui demo
+  ([#139]).
+
 ### Changed
-- **Breaking**: [`render()`](@ref) would previously run on whatever task and thread it was
-  called on, but with multiple threads that could cause issues if the task
-  migrated. It now defaults to being pinned to thread 1 and there's a couple new
-  keyword arguments, `spawn` and `wait`, to control the task pinning and wait
-  behaviour. This is technically breaking because any old code that set up
-  [`render()`](@ref) to run on a specific thread by task pinning won't work, to
-  get back the old behaviour pass `spawn=false`.
+- **Breaking**: [`render()`](@ref) would previously run on whatever task and
+  thread it was called on, but with multiple threads that could cause issues if
+  the task migrated. It now defaults to being pinned to thread 1 and there's a
+  couple new keyword arguments, `spawn` and `wait`, to control the task pinning
+  and wait behaviour ([#138]). This is technically breaking because any old code
+  that set up [`render()`](@ref) to run on a specific thread by task pinning
+  won't work, to get back the old behaviour pass `spawn=false`.
 
 ## [v2.3.0] - 2024-08-06
 

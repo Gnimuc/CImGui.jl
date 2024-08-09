@@ -16,7 +16,7 @@ function generate_data(type::Symbol=:random, N=1000)
     end
 end
 
-function makie_demo(; engine=nothing)
+function makie_demo(; engine=nothing, spawn=1)
     # Create a plot
     f = Figure()
     scene = Makie.get_scene(f)
@@ -56,7 +56,7 @@ function makie_demo(; engine=nothing)
     end
 
     # Start the GUI
-    ig.render(ctx; engine, window_size=(1280, 760), window_title="ImGui Window", opengl_version=v"3.3") do
+    ig.render(ctx; engine, window_size=(1280, 760), window_title="ImGui Window", opengl_version=v"3.3", spawn) do
         ig.Begin("Makie demo")
 
         if ig.Button("Random data")
@@ -88,6 +88,13 @@ function makie_demo(; engine=nothing)
         x = Makie.inverse_transform(ax1.xscale[])(x)
         y = Makie.inverse_transform(ax1.yscale[])(y)
         ig.Text("Mouse position in ax1: ($x, $y)")
+
+        ig.Text("Thread ID: $(Threads.threadid())")
+        ig.SameLine()
+        ig.HelpMarker("""
+                      On some platforms it may be possible (but not recommended!)
+                      to run on a thread that isn't thread 1. Call `makie_demo(;
+                      spawn=...)` to try running the demo on a different thread.""")
 
         ig.End()
     end

@@ -25,6 +25,18 @@ Here's a quick demo using
 (you may want to `Right click -> Open in new tab` to see it in full resolution):
 ![Makie demo](assets/makie-demo.gif)
 
+## Thread safety
+None of this is thread-safe. Here's what you can and can't do:
+- You can create a `Figure` on any thread and pass it to [`MakieFigure()`](@ref)
+  to display.
+- You cannot call [`MakieFigure()`](@ref) (or generally any ImGui functions) on
+  a different thread from the [`render()`](@ref) thread.
+- You cannot update a `Figure` from a separate thread, including with
+  observables. Updating it from the same thread (i.e. in the renderloop) is
+  fine.
+
+## API
+
 ```@docs
 MakieFigure
 ```

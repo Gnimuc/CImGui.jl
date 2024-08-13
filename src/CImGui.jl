@@ -3,6 +3,8 @@ module CImGui
 using CSyntax
 using CEnum
 using CEnum: Cenum, name_value_pairs
+import Compat: @compat
+import DocStringExtensions: TYPEDSIGNATURES
 
 
 include("lib.jl")
@@ -34,8 +36,6 @@ Base.:~(x::Cenum{UInt32}) = ~UInt32(x)
 Base.:(:)(a::T, b::Cenum) where {T<:Integer} = a:T(b)
 Base.:(:)(a::Cenum, b::T) where {T<:Integer} = T(a):b
 
-include("extras.jl")
-
 """
     imgui_version()::VersionNumber
 
@@ -55,6 +55,10 @@ function ShowFlags(::Type{T}) where {T<:Cenum}
 end
 GetFlags(::Type{T}) where {T<:Cenum} = name_value_pairs(T) |> collect
 
+# These two functions give 'unbound type parameter' warnings from Aqua.jl
+# because if a Ptr{NTuple{0}} is passed the 'T' parameter cannot be
+# deduced. Kinda annoying, but if someone's passing a pointer to zero bytes
+# there's bigger problems.
 function c_get(x::Ptr{NTuple{N,T}}, i) where {N,T}
     unsafe_load(Ptr{T}(x), Integer(i)+1)
 end
@@ -64,6 +68,7 @@ function c_set!(x::Ptr{NTuple{N,T}}, i, v) where {N,T}
 end
 
 include("wrapper.jl")
+include("extras.jl")
 
 const IMGUI_VERSION = unsafe_string(GetVersion())
 

@@ -15,6 +15,12 @@ Changelog](https://keepachangelog.com).
 ### Changed
 - Simplified the [Makie integration](@ref) by requiring the latest GLMakie
   version ([#142]).
+- **Breaking**: We upgraded to [Dear ImGui
+  1.91.0](https://github.com/ocornut/imgui/releases/tag/v1.91.0). All the
+  breaking changes listed there apply to this release.
+- **Breaking**: We now generate the high-level Julia wrappers automatically
+  ([#141]), which is far easier to maintain but any deprecations/helpers/etc
+  will have been overwritten.
 - **Breaking**: [`render()`](@ref) would previously run on whatever task and
   thread it was called on, but with multiple threads that could cause issues if
   the task migrated. It now defaults to being pinned to thread 1 and there's a

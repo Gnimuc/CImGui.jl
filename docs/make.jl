@@ -23,8 +23,8 @@ makedocs(;
         prettyurls=get(ENV, "CI", "false") == "true",
         canonical="https://Gnimuc.github.io/CImGui.jl",
         assets=String[],
-        size_threshold=500000,
-        size_threshold_warn=400000
+        size_threshold=2_000_000,
+        size_threshold_warn=1_500_000
     ),
     pages=["index.md", "api.md", "backends.md", "makie.md", "changelog.md"]
 )

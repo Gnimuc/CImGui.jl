@@ -12,6 +12,8 @@ global function ShowExampleAppConstrainedResize(p_open::Ref{Bool})
         desired_size = unsafe_load(data.DesiredSize)
         max_size = max(desired_size.x, desired_size.y)
         data.DesiredSize = ImVec2(max_size, max_size)
+
+        return nothing
     end
 
     function Step(data::Ptr{ImGuiSizeCallbackData})::Cvoid
@@ -20,6 +22,8 @@ global function ShowExampleAppConstrainedResize(p_open::Ref{Bool})
         size_x = trunc(desired_size.x / step + 0.5) * step
         size_y = trunc(desired_size.y / step + 0.5) * step
         data.DesiredSize = ImVec2(size_x, size_y)
+
+        return nothing
     end
 
     square_fptr = @cfunction($Square, Cvoid, (Ptr{ImGuiSizeCallbackData},))
@@ -51,7 +55,7 @@ global function ShowExampleAppConstrainedResize(p_open::Ref{Bool})
             CImGui.SameLine()
             CImGui.Button("800x200") && CImGui.SetWindowSize(ImVec2(800, 200))
             CImGui.PushItemWidth(200)
-            @c CImGui.Combo("Constraint", &type, desc, length(desc))
+            @c CImGui.Combo("Constraint", &type, desc)
             @c CImGui.DragInt("Lines", &display_lines, 0.2, 1, 100)
             CImGui.PopItemWidth()
             @c CImGui.Checkbox("Auto-resize", &auto_resize)

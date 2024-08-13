@@ -41,7 +41,7 @@ function ShowAboutWindow(p_open::Ref{Bool})
         style = CImGui.GetStyle()
 
         copy_to_clipboard = CImGui.Button("Copy to clipboard")
-        CImGui.BeginChildFrame(CImGui.GetID("cfginfos"), ImVec2(0, CImGui.GetTextLineHeightWithSpacing() * 18), CImGui.ImGuiWindowFlags_NoMove)
+        CImGui.BeginChild(CImGui.GetID("cfginfos"), ImVec2(0, CImGui.GetTextLineHeightWithSpacing() * 18), CImGui.ImGuiChildFlags_FrameStyle, CImGui.ImGuiWindowFlags_NoMove)
         copy_to_clipboard && CImGui.LogToClipboard()
 
         CImGui.Text("Dear ImGui $(CImGui.IMGUI_VERSION)")
@@ -88,7 +88,7 @@ function ShowAboutWindow(p_open::Ref{Bool})
         CImGui.Text(@sprintf("style.ItemInnerSpacing: %.2f,%.2f", item_inner_spacing.x, item_inner_spacing.y))
 
         copy_to_clipboard && CImGui.LogFinish()
-        CImGui.EndChildFrame()
+        CImGui.EndChild()
     end
 end
     CImGui.End()

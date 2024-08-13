@@ -16,7 +16,7 @@ function ShowDemoWindowLayout()
             # child 1: no border, enable horizontal scrollbar
             begin
                 window_flags = CImGui.ImGuiWindowFlags_HorizontalScrollbar | (disable_mouse_wheel ? CImGui.ImGuiWindowFlags_NoScrollWithMouse : 0)
-                CImGui.BeginChild("Child1", ImVec2(CImGui.GetWindowContentRegionWidth() * 0.5, 260), false, window_flags)
+                CImGui.BeginChild("Child1", ImVec2(CImGui.GetContentRegionAvail().x * 0.5, 260), false, window_flags)
                 for i = 0:100-1
                     CImGui.Text(@sprintf("%04d: scrollable region", i))
                     (goto_line && line == i) && CImGui.SetScrollHereY()
@@ -197,7 +197,7 @@ function ShowDemoWindowLayout()
         CImGui.Text("Manually wrapping:")
         # ImGuiStyle& style = CImGui.GetStyle()
         # buttons_count = 20
-        # window_visible_x2 = CImGui.GetWindowPos().x + CImGui.GetWindowContentRegionMax().x
+        # window_visible_x2 = CImGui.GetWindowPos().x + CImGui.GetContentRegionAvail().x
         # for n = 0:buttons_count-1
         #     CImGui.PushID(n)
         #     CImGui.Button("Box", button_sz)

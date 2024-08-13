@@ -2190,6 +2190,22 @@ function Base.getproperty(x::ImGuiListClipper, f::Symbol)
     return getfield(x, f)
 end
 
+function Base.getproperty(x::Ptr{ImGuiListClipper}, f::Symbol)
+    f === :Ctx && return Ptr{Ptr{ImGuiContext}}(x + 0)
+    f === :DisplayStart && return Ptr{Cint}(x + 4)
+    f === :DisplayEnd && return Ptr{Cint}(x + 8)
+    f === :ItemsCount && return Ptr{Cint}(x + 12)
+    f === :ItemsHeight && return Ptr{Cfloat}(x + 16)
+    f === :StartPosY && return Ptr{Cfloat}(x + 20)
+    f === :StartSeekOffsetY && return Ptr{Cdouble}(x + 24)
+    f === :TempData && return Ptr{Ptr{Cvoid}}(x + 32)
+    return getfield(x, f)
+end
+
+function Base.setproperty!(x::Ptr{ImGuiListClipper}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
+end
+
 struct ImGuiListClipperRange
     Min::Cint
     Max::Cint

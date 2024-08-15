@@ -13,6 +13,8 @@ Changelog](https://keepachangelog.com).
   ([#139]).
 
 ### Changed
+- Simplified the [Makie integration](@ref) by requiring the latest GLMakie
+  version ([#142]).
 - **Breaking**: [`render()`](@ref) would previously run on whatever task and
   thread it was called on, but with multiple threads that could cause issues if
   the task migrated. It now defaults to being pinned to thread 1 and there's a

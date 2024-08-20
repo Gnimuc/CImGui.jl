@@ -89,7 +89,7 @@ function igLogText(text)
 end
 
 # exports
-const PREFIXES = ["ig", "Im", "IMGUI_", "imnodes_", "ImPlot_", "ImVector_"]
+const PREFIXES = ["ig", "Im", "IMGUI_", "imnodes_", "ImPlot_", "ImVector_", "@ptr"]
 for name in names(@__MODULE__; all=true), prefix in PREFIXES
     if startswith(string(name), prefix)
         @eval export $name

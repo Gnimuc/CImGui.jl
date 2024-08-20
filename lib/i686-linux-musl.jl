@@ -35,13 +35,13 @@ function setbitfieldproperty!(bitfield_info, value)
 end
 
 macro ptr(expr)
-    if !isa(expr, Expr) || expr.head != :.
-        error("Expression is not a property access")
+    if !Meta.isexpr(expr, :.)
+        error("Expression is not a property access, cannot use @ptr on it.")
     end
-    
+
     quote
         local penultimate_obj = $(esc(expr.args[1]))
-        (@__MODULE__).getptr(penultimate_obj, $(esc(expr.args[2])))
+        getptr(penultimate_obj, $(esc(expr.args[2])))
     end
 end
 

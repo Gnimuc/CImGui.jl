@@ -32,8 +32,8 @@ function makie_demo(; engine=nothing, spawn=1)
 
     ctx = ig.CreateContext()
     io = ig.GetIO()
-    io.ConfigFlags = unsafe_load(io.ConfigFlags) | ig.lib.ImGuiConfigFlags_DockingEnable
-    io.ConfigFlags = unsafe_load(io.ConfigFlags) | ig.lib.ImGuiConfigFlags_ViewportsEnable
+    io.ConfigFlags = io.ConfigFlags | ig.lib.ImGuiConfigFlags_DockingEnable
+    io.ConfigFlags = io.ConfigFlags | ig.lib.ImGuiConfigFlags_ViewportsEnable
 
     auto_resize_x = true
     auto_resize_y = false

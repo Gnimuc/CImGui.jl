@@ -19,8 +19,17 @@ Changelog](https://keepachangelog.com).
   1.91.0](https://github.com/ocornut/imgui/releases/tag/v1.91.0). All the
   breaking changes listed there apply to this release.
 - **Breaking**: We now generate the high-level Julia wrappers automatically
-  ([#141]), which is far easier to maintain but any deprecations/helpers/etc
-  will have been overwritten.
+  ([#141]), which is far easier to maintain but it's possible that some
+  functions will have changed signatures or been renamed. Here's a
+  (non-exhaustive) list of known changes:
+  - [`Combo()`](@ref) now longer requires passing the length of `items`.
+  - The old `Value*()` functions are now just named [`Value()`](@ref) and use
+    dispatch to select the right ImGui function to call.
+  - The `Combo()` and `ListBox()` methods that allowed passing a function to
+    generate the items are not wrapped. They may be wrapped in the future.
+
+  If you encounter any other breakages please open an issue, it could be a bug
+  in the wrappers.
 - **Breaking**: [`render()`](@ref) would previously run on whatever task and
   thread it was called on, but with multiple threads that could cause issues if
   the task migrated. It now defaults to being pinned to thread 1 and there's a

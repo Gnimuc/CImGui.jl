@@ -97,11 +97,5 @@ the original C++ API, so any high-level abstraction should go into a more
 high-level package. [`Redux.jl`](https://github.com/Gnimuc/Redux.jl) might be of
 interest to you if you're looking for state management frameworks.
 
-### Backend
-The default backend is based on
-[ModernGL](https://github.com/JuliaGL/ModernGL.jl) and
-[GLFW](https://github.com/JuliaGL/GLFW.jl) which are stable and actively
-maintained. Other popular backends like
-[SFML](https://github.com/zyedidia/SFML.jl) and
-[SDL](https://github.com/ariejdl/SDL.jl) could be added in the future if someone
-should invest time to make these packages work in post Julia 1.0 era.
+For writing tests you can use
+[ImGuiTestEngine.jl](https://juliaimgui.github.io/ImGuiTestEngine.jl).

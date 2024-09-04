@@ -115,10 +115,10 @@ function ShowDemoWindowMisc()
             end
 
             CImGui.Button("Hovering me sets the\nkeyboard capture flag")
-            CImGui.IsItemHovered() && CImGui.CaptureKeyboardFromApp(true)
+            CImGui.IsItemHovered() && CImGui.SetNextFrameWantCaptureKeyboard(true)
             CImGui.SameLine()
             CImGui.Button("Holding me clears the\nthe keyboard capture flag")
-            CImGui.IsItemActive() && CImGui.CaptureKeyboardFromApp(false)
+            CImGui.IsItemActive() && CImGui.SetNextFrameWantCaptureKeyboard(false)
 
             CImGui.TreePop()
         end
@@ -129,10 +129,10 @@ function ShowDemoWindowMisc()
                 CImGui.InputText("1", buf, length(buf))
                 CImGui.InputText("2", buf, length(buf))
                 CImGui.InputText("3", buf, length(buf))
-                CImGui.PushAllowKeyboardFocus(false)
+                CImGui.PushItemFlag(CImGui.ImGuiItemFlags_NoTabStop, true)
                 CImGui.InputText("4 (tab skip)", buf, length(buf))
                 # CImGui.SameLine(); ShowHelperMarker("Use CImGui.PushAllowKeyboardFocus(bool)\nto disable tabbing through certain widgets.")
-                CImGui.PopAllowKeyboardFocus()
+                CImGui.PopItemFlag()
                 CImGui.InputText("5", buf, length(buf))
             end
             CImGui.TreePop()
@@ -153,11 +153,11 @@ function ShowDemoWindowMisc()
                 CImGui.InputText("2", buf, length(buf))
                 CImGui.IsItemActive() && (has_focus = 2;)
 
-                CImGui.PushAllowKeyboardFocus(false)
+                CImGui.PushItemFlag(CImGui.ImGuiItemFlags_NoTabStop, true)
                 focus_3 && CImGui.SetKeyboardFocusHere()
                 CImGui.InputText("3 (tab skip)", buf, length(buf))
                 CImGui.IsItemActive() && (has_focus = 3;)
-                CImGui.PopAllowKeyboardFocus()
+                CImGui.PopItemFlag()
             end
             if has_focus != 0
                 CImGui.Text("Item with focus: $has_focus")

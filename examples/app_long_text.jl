@@ -39,8 +39,8 @@ function ShowExampleAppLongText(p_open::Ref{Bool})
                 clipper = CImGui.Clipper()
                 CImGui.Begin(clipper, lines)
                 while CImGui.Step(clipper)
-                    s = CImGui.Get(clipper, :DisplayStart)
-                    e = CImGui.Get(clipper, :DisplayEnd)-1
+                    s = unsafe_load(clipper.DisplayStart)
+                    e = unsafe_load(clipper.DisplayEnd)-1
                     foreach(i->CImGui.Text("$i The quick brown fox jumps over the lazy dog"), s:e)
                 end
                 CImGui.PopStyleVar()

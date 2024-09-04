@@ -46,11 +46,11 @@ function ShowDemoWindowWidgets()
         # arrow buttons with Repeater
         @cstatic counter=Cint(0) begin
             spacing = unsafe_load(CImGui.GetStyle().ItemInnerSpacing.x)
-            CImGui.PushButtonRepeat(true)
+            CImGui.PushItemFlag(CImGui.ImGuiItemFlags_ButtonRepeat, true)
             CImGui.ArrowButton("##left", CImGui.ImGuiDir_Left) && (counter-=1;)
             CImGui.SameLine(0.0, spacing)
             CImGui.ArrowButton("##right", CImGui.ImGuiDir_Right) && (counter+=1;)
-            CImGui.PopButtonRepeat()
+            CImGui.PopItemFlag()
             CImGui.SameLine()
             CImGui.Text("$counter")
         end
@@ -71,12 +71,11 @@ function ShowDemoWindowWidgets()
 
         CImGui.LabelText("label", "Value")
 
-        @cstatic item_current=Cint(0)
-                 items = ["AAAA", "BBBB", "CCCC", "DDDD", "EEEE", "FFFF", "GGGG", "HHHH", "IIII", "JJJJ", "KKKK", "LLLLLLL", "MMMM", "OOOOOOO"]
-                begin
+        items=["AAAA", "BBBB", "CCCC", "DDDD", "EEEE", "FFFF", "GGGG", "HHHH", "IIII", "JJJJ", "KKKK", "LLLLLLL", "MMMM", "OOOOOOO"]
+        @cstatic item_current=Cint(0) begin
             # using the _simplified_ one-liner Combo() api here
             # see "Combo" section for examples of how to use the more complete BeginCombo()/EndCombo() api.
-            @c CImGui.Combo("combo", &item_current, items, length(items))
+            @c CImGui.Combo("combo", &item_current, items)
             CImGui.SameLine()
             CImGui.HelpMarker("Refer to the \"Combo\" section below for an explanation of the full BeginCombo/EndCombo API, and demonstration of various flags.\n")
         end
@@ -132,10 +131,10 @@ function ShowDemoWindowWidgets()
 
         @cstatic listbox_item_current=Cint(1) listbox_items=["Apple", "Banana", "Cherry", "Kiwi", "Mango", "Orange", "Pineapple", "Strawberry", "Watermelon"] begin
             # list box
-            @c CImGui.ListBox("listbox\n(single select)", &listbox_item_current, listbox_items, length(listbox_items), 4)
+            @c CImGui.ListBox("listbox\n(single select)", &listbox_item_current, listbox_items, 4)
         end
         # CImGui.PushItemWidth(-1)
-        # CImGui.ListBox("##listbox2", &listbox_item_current2, listbox_items, length(listbox_items), 4)
+        # CImGui.ListBox("##listbox2", &listbox_item_current2, listbox_items, 4)
         # CImGui.PopItemWidth()
 
         CImGui.TreePop()
@@ -1035,7 +1034,7 @@ function ShowDemoWindowWidgets()
             @cstatic current=Cint(1) begin
                 if item_type == 5
                     items = ["Apple", "Banana", "Cherry", "Kiwi"]
-                    ret = @c CImGui.ListBox("ITEM: ListBox", &current, items, length(items), length(items))
+                    ret = @c CImGui.ListBox("ITEM: ListBox", &current, items, length(items))
                 end
             end
             CImGui.BulletText(

@@ -63,7 +63,8 @@ function create_docstring(func_name, overload)
     end
 
     header, line = split(overload[:location], ':')
-    link = "https://github.com/ocornut/imgui/blob/v1.91.0-docking/$(header).h#L$(line)"
+    imgui_version = unsafe_string(@invokelatest bindings_module.igGetVersion())
+    link = "https://github.com/ocornut/imgui/blob/v$(imgui_version)-docking/$(header).h#L$(line)"
 
     if is_internal(overload)
         docstring *= """\n
@@ -540,8 +541,12 @@ function generate()
         @info "Generating wrapper.jl..."
         println()
 
+        # Load the bindings into a module so we can inspect them when generating
+        # the wrappers.
         global bindings_module = Module()
+        @eval bindings_module using CImGuiPack_jll
         Base.include(bindings_module, options["general"]["output_file_path"])
+
         wrappers = get_wrappers(ctx.dag)
         output_file = joinpath(@__DIR__, "../src/wrapper.jl")
         open(output_file; write=true) do io

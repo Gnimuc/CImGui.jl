@@ -24,6 +24,8 @@ field_access_method_list = [
     "ImVec4",
     "ImGuiPlatformMonitor",
     "ImGuiStyle",
-    "ImGuiListClipper"
+    "ImGuiListClipper",
+
+    "ImNodesStyle"
 ]
 wrap_variadic_function = true

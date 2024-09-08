@@ -14348,6 +14348,31 @@ struct ImNodesStyle
     Flags::ImNodesStyleFlags
     Colors::NTuple{29, Cuint}
 end
+function Base.getproperty(x::Ptr{ImNodesStyle}, f::Symbol)
+    f === :GridSpacing && return Ptr{Cfloat}(x + 0)
+    f === :NodeCornerRounding && return Ptr{Cfloat}(x + 4)
+    f === :NodePadding && return Ptr{ImVec2}(x + 8)
+    f === :NodeBorderThickness && return Ptr{Cfloat}(x + 16)
+    f === :LinkThickness && return Ptr{Cfloat}(x + 20)
+    f === :LinkLineSegmentsPerLength && return Ptr{Cfloat}(x + 24)
+    f === :LinkHoverDistance && return Ptr{Cfloat}(x + 28)
+    f === :PinCircleRadius && return Ptr{Cfloat}(x + 32)
+    f === :PinQuadSideLength && return Ptr{Cfloat}(x + 36)
+    f === :PinTriangleSideLength && return Ptr{Cfloat}(x + 40)
+    f === :PinLineThickness && return Ptr{Cfloat}(x + 44)
+    f === :PinHoverRadius && return Ptr{Cfloat}(x + 48)
+    f === :PinOffset && return Ptr{Cfloat}(x + 52)
+    f === :MiniMapPadding && return Ptr{ImVec2}(x + 56)
+    f === :MiniMapOffset && return Ptr{ImVec2}(x + 64)
+    f === :Flags && return Ptr{ImNodesStyleFlags}(x + 72)
+    f === :Colors && return Ptr{NTuple{29, Cuint}}(x + 76)
+    return getfield(x, f)
+end
+
+function Base.setproperty!(x::Ptr{ImNodesStyle}, f::Symbol, v)
+    unsafe_store!(getproperty(x, f), v)
+end
+
 
 @cenum ImNodesMiniMapLocation_::UInt32 begin
     ImNodesMiniMapLocation_BottomLeft = 0

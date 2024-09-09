@@ -16,8 +16,10 @@ Changelog](https://keepachangelog.com).
 - Simplified the [Makie integration](@ref) by requiring the latest GLMakie
   version ([#142]).
 - **Breaking**: We upgraded to [Dear ImGui
-  1.91.0](https://github.com/ocornut/imgui/releases/tag/v1.91.0). All the
-  breaking changes listed there apply to this release.
+  1.91.1](https://github.com/ocornut/imgui/releases/tag/v1.91.1). All the
+  breaking changes listed there and for [Dear ImGui
+  1.91.0](https://github.com/ocornut/imgui/releases/tag/v1.91.0) apply to this
+  release.
 - **Breaking**: We now generate the high-level Julia wrappers automatically
   ([#141]), which is far easier to maintain but it's possible that some
   functions will have changed signatures or been renamed. Here's a
@@ -30,13 +32,13 @@ Changelog](https://keepachangelog.com).
 
   If you encounter any other breakages please open an issue, it could be a bug
   in the wrappers.
-- **Breaking**: [`render()`](@ref) would previously run on whatever task and
-  thread it was called on, but with multiple threads that could cause issues if
-  the task migrated. It now defaults to being pinned to thread 1 and there's a
-  couple new keyword arguments, `spawn` and `wait`, to control the task pinning
-  and wait behaviour ([#138]). This is technically breaking because any old code
-  that set up [`render()`](@ref) to run on a specific thread by task pinning
-  won't work, to get back the old behaviour pass `spawn=false`.
+- **Possibly breaking**: [`render()`](@ref) would previously run on whatever
+  task and thread it was called on, but with multiple threads that could cause
+  issues if the task migrated. It now defaults to being pinned to thread 1 and
+  there's a couple new keyword arguments, `spawn` and `wait`, to control the
+  task pinning and wait behaviour ([#138]). This is technically breaking because
+  any old code that set up [`render()`](@ref) to run on a specific thread by
+  task pinning won't work, to get back the old behaviour pass `spawn=false`.
 
 ## [v2.3.0] - 2024-08-06
 

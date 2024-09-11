@@ -6,7 +6,7 @@ CurrentModule = CImGui
 This documents notable changes in CImGui.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
-## Unreleased
+## [v3.0.0] - 2024-09-11
 
 ### Added
 - [`HelpMarker()`](@ref), a port of the same function from the Dear ImGui demo
@@ -24,7 +24,7 @@ Changelog](https://keepachangelog.com).
   ([#141]), which is far easier to maintain but it's possible that some
   functions will have changed signatures or been renamed. Here's a
   (non-exhaustive) list of known changes:
-  - [`Combo()`](@ref) now longer requires passing the length of `items`.
+  - [`Combo()`](@ref) no longer requires passing the length of `items`.
   - The old `Value*()` functions are now just named [`Value()`](@ref) and use
     dispatch to select the right ImGui function to call.
   - The `Combo()` and `ListBox()` methods that allowed passing a function to

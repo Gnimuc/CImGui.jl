@@ -5182,34 +5182,34 @@ function igTextUnformatted(text, text_end)
 end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function igText(fmt, va_list...)
-        :(@ccall(libcimgui.igText(fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
-    end
+function igText(fmt)
+    @ccall libcimgui.igText(fmt::Ptr{Cchar})::Cvoid
+end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function igTextColored(col, fmt, va_list...)
-        :(@ccall(libcimgui.igTextColored(col::ImVec4, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
-    end
+function igTextColored(col, fmt)
+    @ccall libcimgui.igTextColored(col::ImVec4, fmt::Ptr{Cchar})::Cvoid
+end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function igTextDisabled(fmt, va_list...)
-        :(@ccall(libcimgui.igTextDisabled(fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
-    end
+function igTextDisabled(fmt)
+    @ccall libcimgui.igTextDisabled(fmt::Ptr{Cchar})::Cvoid
+end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function igTextWrapped(fmt, va_list...)
-        :(@ccall(libcimgui.igTextWrapped(fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
-    end
+function igTextWrapped(fmt)
+    @ccall libcimgui.igTextWrapped(fmt::Ptr{Cchar})::Cvoid
+end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function igLabelText(label, fmt, va_list...)
-        :(@ccall(libcimgui.igLabelText(label::Ptr{Cchar}, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
-    end
+function igLabelText(label, fmt)
+    @ccall libcimgui.igLabelText(label::Ptr{Cchar}, fmt::Ptr{Cchar})::Cvoid
+end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function igBulletText(fmt, va_list...)
-        :(@ccall(libcimgui.igBulletText(fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
-    end
+function igBulletText(fmt)
+    @ccall libcimgui.igBulletText(fmt::Ptr{Cchar})::Cvoid
+end
 
 function igSeparatorText(label)
     ccall((:igSeparatorText, libcimgui), Cvoid, (Ptr{Cchar},), label)
@@ -5484,28 +5484,28 @@ function igTreeNode_Str(label)
 end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function igTreeNode_StrStr(str_id, fmt, va_list...)
-        :(@ccall(libcimgui.igTreeNode_StrStr(str_id::Ptr{Cchar}, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Bool))
-    end
+function igTreeNode_StrStr(str_id, fmt)
+    @ccall libcimgui.igTreeNode_StrStr(str_id::Ptr{Cchar}, fmt::Ptr{Cchar})::Bool
+end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function igTreeNode_Ptr(ptr_id, fmt, va_list...)
-        :(@ccall(libcimgui.igTreeNode_Ptr(ptr_id::Ptr{Cvoid}, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Bool))
-    end
+function igTreeNode_Ptr(ptr_id, fmt)
+    @ccall libcimgui.igTreeNode_Ptr(ptr_id::Ptr{Cvoid}, fmt::Ptr{Cchar})::Bool
+end
 
 function igTreeNodeEx_Str(label, flags)
     ccall((:igTreeNodeEx_Str, libcimgui), Bool, (Ptr{Cchar}, ImGuiTreeNodeFlags), label, flags)
 end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function igTreeNodeEx_StrStr(str_id, flags, fmt, va_list...)
-        :(@ccall(libcimgui.igTreeNodeEx_StrStr(str_id::Ptr{Cchar}, flags::ImGuiTreeNodeFlags, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Bool))
-    end
+function igTreeNodeEx_StrStr(str_id, flags, fmt)
+    @ccall libcimgui.igTreeNodeEx_StrStr(str_id::Ptr{Cchar}, flags::ImGuiTreeNodeFlags, fmt::Ptr{Cchar})::Bool
+end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function igTreeNodeEx_Ptr(ptr_id, flags, fmt, va_list...)
-        :(@ccall(libcimgui.igTreeNodeEx_Ptr(ptr_id::Ptr{Cvoid}, flags::ImGuiTreeNodeFlags, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Bool))
-    end
+function igTreeNodeEx_Ptr(ptr_id, flags, fmt)
+    @ccall libcimgui.igTreeNodeEx_Ptr(ptr_id::Ptr{Cvoid}, flags::ImGuiTreeNodeFlags, fmt::Ptr{Cchar})::Bool
+end
 
 function igTreePush_Str(str_id)
     ccall((:igTreePush_Str, libcimgui), Cvoid, (Ptr{Cchar},), str_id)
@@ -5652,18 +5652,18 @@ function igEndTooltip()
 end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function igSetTooltip(fmt, va_list...)
-        :(@ccall(libcimgui.igSetTooltip(fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
-    end
+function igSetTooltip(fmt)
+    @ccall libcimgui.igSetTooltip(fmt::Ptr{Cchar})::Cvoid
+end
 
 function igBeginItemTooltip()
     ccall((:igBeginItemTooltip, libcimgui), Bool, ())
 end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function igSetItemTooltip(fmt, va_list...)
-        :(@ccall(libcimgui.igSetItemTooltip(fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
-    end
+function igSetItemTooltip(fmt)
+    @ccall libcimgui.igSetItemTooltip(fmt::Ptr{Cchar})::Cvoid
+end
 
 function igBeginPopup(str_id, flags)
     ccall((:igBeginPopup, libcimgui), Bool, (Ptr{Cchar}, ImGuiWindowFlags), str_id, flags)
@@ -6218,9 +6218,9 @@ function igDebugCheckVersionAndDataLayout(version_str, sz_io, sz_style, sz_vec2,
 end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function igDebugLog(fmt, va_list...)
-        :(@ccall(libcimgui.igDebugLog(fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
-    end
+function igDebugLog(fmt)
+    @ccall libcimgui.igDebugLog(fmt::Ptr{Cchar})::Cvoid
+end
 
 function igSetAllocatorFunctions(alloc_func, free_func, user_data)
     ccall((:igSetAllocatorFunctions, libcimgui), Cvoid, (ImGuiMemAllocFunc, ImGuiMemFreeFunc, Ptr{Cvoid}), alloc_func, free_func, user_data)
@@ -7431,14 +7431,14 @@ function igImCharIsXdigitA(c)
 end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function igImFormatString(buf, buf_size, fmt, va_list...)
-        :(@ccall(libcimgui.igImFormatString(buf::Ptr{Cchar}, buf_size::Csize_t, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cint))
-    end
+function igImFormatString(buf, buf_size, fmt)
+    @ccall libcimgui.igImFormatString(buf::Ptr{Cchar}, buf_size::Csize_t, fmt::Ptr{Cchar})::Cint
+end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function igImFormatStringToTempBuffer(out_buf, out_buf_end, fmt, va_list...)
-        :(@ccall(libcimgui.igImFormatStringToTempBuffer(out_buf::Ptr{Ptr{Cchar}}, out_buf_end::Ptr{Ptr{Cchar}}, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
-    end
+function igImFormatStringToTempBuffer(out_buf, out_buf_end, fmt)
+    @ccall libcimgui.igImFormatStringToTempBuffer(out_buf::Ptr{Ptr{Cchar}}, out_buf_end::Ptr{Ptr{Cchar}}, fmt::Ptr{Cchar})::Cvoid
+end
 
 function igImParseFormatFindStart(format)
     ccall((:igImParseFormatFindStart, libcimgui), Ptr{Cchar}, (Ptr{Cchar},), format)
@@ -10293,14 +10293,14 @@ function igImFontAtlasBuildMultiplyRectAlpha8(table, pixels, x, y, w, h, stride)
 end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function igLogText(fmt, va_list...)
-        :(@ccall(libcimgui.igLogText(fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
-    end
+function igLogText(fmt)
+    @ccall libcimgui.igLogText(fmt::Ptr{Cchar})::Cvoid
+end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function ImGuiTextBuffer_appendf(buffer, fmt, va_list...)
-        :(@ccall(libcimgui.ImGuiTextBuffer_appendf(buffer::Ptr{ImGuiTextBuffer}, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
-    end
+function ImGuiTextBuffer_appendf(buffer, fmt)
+    @ccall libcimgui.ImGuiTextBuffer_appendf(buffer::Ptr{ImGuiTextBuffer}, fmt::Ptr{Cchar})::Cvoid
+end
 
 function igGET_FLT_MAX()
     ccall((:igGET_FLT_MAX, libcimgui), Cfloat, ())
@@ -12453,27 +12453,27 @@ function ImPlot_Annotation_Bool(x, y, col, pix_offset, clamp, round)
 end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function ImPlot_Annotation_Str(x, y, col, pix_offset, clamp, fmt, va_list...)
-        :(@ccall(libcimgui.ImPlot_Annotation_Str(x::Cdouble, y::Cdouble, col::ImVec4, pix_offset::ImVec2, clamp::Bool, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
-    end
+function ImPlot_Annotation_Str(x, y, col, pix_offset, clamp, fmt)
+    @ccall libcimgui.ImPlot_Annotation_Str(x::Cdouble, y::Cdouble, col::ImVec4, pix_offset::ImVec2, clamp::Bool, fmt::Ptr{Cchar})::Cvoid
+end
 
 function ImPlot_TagX_Bool(x, col, round)
     ccall((:ImPlot_TagX_Bool, libcimgui), Cvoid, (Cdouble, ImVec4, Bool), x, col, round)
 end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function ImPlot_TagX_Str(x, col, fmt, va_list...)
-        :(@ccall(libcimgui.ImPlot_TagX_Str(x::Cdouble, col::ImVec4, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
-    end
+function ImPlot_TagX_Str(x, col, fmt)
+    @ccall libcimgui.ImPlot_TagX_Str(x::Cdouble, col::ImVec4, fmt::Ptr{Cchar})::Cvoid
+end
 
 function ImPlot_TagY_Bool(y, col, round)
     ccall((:ImPlot_TagY_Bool, libcimgui), Cvoid, (Cdouble, ImVec4, Bool), y, col, round)
 end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function ImPlot_TagY_Str(y, col, fmt, va_list...)
-        :(@ccall(libcimgui.ImPlot_TagY_Str(y::Cdouble, col::ImVec4, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
-    end
+function ImPlot_TagY_Str(y, col, fmt)
+    @ccall libcimgui.ImPlot_TagY_Str(y::Cdouble, col::ImVec4, fmt::Ptr{Cchar})::Cvoid
+end
 
 function ImPlot_SetAxis(axis)
     ccall((:ImPlot_SetAxis, libcimgui), Cvoid, (ImAxis,), axis)
@@ -13352,9 +13352,9 @@ function ImPlotAnnotationCollection_destroy(self)
 end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function ImPlotAnnotationCollection_Append(self, pos, off, bg, fg, clamp, fmt, va_list...)
-        :(@ccall(libcimgui.ImPlotAnnotationCollection_Append(self::Ptr{ImPlotAnnotationCollection}, pos::ImVec2, off::ImVec2, bg::ImU32, fg::ImU32, clamp::Bool, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
-    end
+function ImPlotAnnotationCollection_Append(self, pos, off, bg, fg, clamp, fmt)
+    @ccall libcimgui.ImPlotAnnotationCollection_Append(self::Ptr{ImPlotAnnotationCollection}, pos::ImVec2, off::ImVec2, bg::ImU32, fg::ImU32, clamp::Bool, fmt::Ptr{Cchar})::Cvoid
+end
 
 function ImPlotAnnotationCollection_GetText(self, idx)
     ccall((:ImPlotAnnotationCollection_GetText, libcimgui), Ptr{Cchar}, (Ptr{ImPlotAnnotationCollection}, Cint), self, idx)
@@ -13373,9 +13373,9 @@ function ImPlotTagCollection_destroy(self)
 end
 
 # automatic type deduction for variadic arguments may not be what you want, please use with caution
-@generated function ImPlotTagCollection_Append(self, axis, value, bg, fg, fmt, va_list...)
-        :(@ccall(libcimgui.ImPlotTagCollection_Append(self::Ptr{ImPlotTagCollection}, axis::ImAxis, value::Cdouble, bg::ImU32, fg::ImU32, fmt::Ptr{Cchar}; $(to_c_type_pairs(va_list)...))::Cvoid))
-    end
+function ImPlotTagCollection_Append(self, axis, value, bg, fg, fmt)
+    @ccall libcimgui.ImPlotTagCollection_Append(self::Ptr{ImPlotTagCollection}, axis::ImAxis, value::Cdouble, bg::ImU32, fg::ImU32, fmt::Ptr{Cchar})::Cvoid
+end
 
 function ImPlotTagCollection_GetText(self, idx)
     ccall((:ImPlotTagCollection_GetText, libcimgui), Ptr{Cchar}, (Ptr{ImPlotTagCollection}, Cint), self, idx)

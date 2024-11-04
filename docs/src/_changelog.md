@@ -6,6 +6,13 @@ CurrentModule = CImGui
 This documents notable changes in CImGui.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
+## [v3.1.1] - 2024-11-04
+
+### Changed
+- Removed support for variadic arguments from the internal generated
+  bindings. This doesn't change the public API, but it should fix segfaults on
+  ARM ([#155]).
+
 ## [v3.1.0] - 2024-10-08
 
 ### Changed

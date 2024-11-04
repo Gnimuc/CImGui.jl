@@ -504,6 +504,40 @@ function get_wrappers(dag::ExprDAG)
     return methods
 end
 
+function rewrite!(dag::ExprDAG)
+    for node in dag.nodes
+        for (i, expr) in enumerate(node.exprs)
+            # If this is a generated function it's a vararg function wrapped by
+            # Clang. Calling these functions doesn't work on ARM and imgui only
+            # uses them for formatting strings, so we just rewrite them to strip
+            # the vararg stuff. Formatting can just as easily be done in Julia
+            # anyway.
+            if Meta.isexpr(expr, :macrocall) && expr.args[1] == Symbol("@generated")
+                # Strip the @generated exprs
+                expr = expr.args[3]
+
+                if @capture(expr, function name_(args__, vararg_) body_ end)
+                    # Strip the enclosing quote node
+                    body = body.args[1].args[1]
+
+                    if !@capture(body, @ccall cname_(cargs__; kwarg_)::T_)
+                        @error "Couldn't strip varargs from function '$name'"
+                        continue
+                    end
+
+                    new_expr = quote
+                        function $name($(args...))
+                            @ccall $cname($(cargs...))::$T
+                        end
+                    end
+
+                    node.exprs[i] = prettify(new_expr)
+                end
+            end
+        end
+    end
+end
+
 function generate()
     cd(@__DIR__) do
         include_dir = joinpath(CImGuiPack_jll.artifact_dir, "include")
@@ -534,7 +568,11 @@ function generate()
                   "-includestdbool.h")
 
             ctx = create_context([cimgui_h, cimplot_h, cimnodes_h, cimgui_impl_h], args, options)
-            build!(ctx)
+            build!(ctx, BUILDSTAGE_NO_PRINTING)
+
+            rewrite!(ctx.dag)
+
+            build!(ctx, BUILDSTAGE_PRINTING_ONLY)
         end
 
         println()

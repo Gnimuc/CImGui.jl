@@ -6,6 +6,12 @@ CurrentModule = CImGui
 This documents notable changes in CImGui.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
+## [v3.1.1] - 2024-11-05
+
+### Fixed
+- Deleted some deprecated bindings that were accidentally overwriting the
+  automatically generated ones ([#153]). This should fix segfaults on ARM.
+
 ## [v3.1.0] - 2024-10-08
 
 ### Changed

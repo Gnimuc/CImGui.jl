@@ -69,7 +69,7 @@ function julia_demo(; engine=nothing)
         if CImGui.Begin("Image Demo")
             image = rand(GL.GLubyte, 4, img_width, img_height)
             CImGui.update_image_texture(image_id, image, img_width, img_height)
-            CImGui.Image(Ptr{Cvoid}(image_id), CImGui.ImVec2(img_width, img_height))
+            CImGui.Image(image_id, CImGui.ImVec2(img_width, img_height))
             CImGui.End()
         end
     end

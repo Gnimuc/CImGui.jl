@@ -159,7 +159,7 @@ function ig.MakieFigure(title_id::String, f::GLMakie.Figure;
     cursor_pos = ig.GetCursorScreenPos()
     image_size = size(color_buffer)
     ig.AddImage(drawlist,
-                Ptr{Cvoid}(Int(color_buffer.id)),
+                ig.ImTextureID(color_buffer.id),
                 cursor_pos,
                 (cursor_pos.x + image_size[1], cursor_pos.y + image_size[2]),
                 (0, 1), (1, 0))

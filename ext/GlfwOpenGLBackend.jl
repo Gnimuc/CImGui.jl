@@ -33,7 +33,7 @@ function ig._create_image_texture(::Val{:GlfwOpenGL3}, image_width, image_height
     GL.glPixelStorei(GL.GL_UNPACK_ROW_LENGTH, 0)
     GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, format, GL.GLsizei(image_width), GL.GLsizei(image_height), 0, format, type, C_NULL)
     g_ImageTexture[id] = id
-    return Int(id)
+    return ig.ImTextureID(id)
 end
 
 function ig._update_image_texture(::Val{:GlfwOpenGL3}, id, image_data, image_width, image_height; format=GL.GL_RGBA, type=GL.GL_UNSIGNED_BYTE)

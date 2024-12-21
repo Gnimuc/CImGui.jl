@@ -21,7 +21,7 @@ It supports all the interaction features in GLMakie:
 - Ctrl + left click to reset the limits
 
 Here's a quick demo using
-[`examples/makie_demo.jl`](https://github.com/Gnimuc/CImGui.jl/blob/master/examples/makie_demo.jl)
+[`examples/makie_demo.jl`](https://github.com/JuliaImGui/CImGui.jl/blob/master/examples/makie_demo.jl)
 (you may want to `Right click -> Open in new tab` to see it in full resolution):
 ![Makie demo](assets/makie-demo.gif)
 

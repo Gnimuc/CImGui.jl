@@ -44,7 +44,7 @@ julia> julia_demo()
 ```
 
 [All of these
-examples](https://github.com/Gnimuc/CImGui.jl/tree/master/examples) are
+examples](https://github.com/JuliaImGui/CImGui.jl/tree/master/examples) are
 one-to-one ported from [Dear ImGui's C++
 examples](https://github.com/ocornut/imgui/blob/master/imgui_demo.cpp) and there
 is an [interactive

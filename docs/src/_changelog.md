@@ -6,7 +6,7 @@ CurrentModule = CImGui
 This documents notable changes in CImGui.jl. The format is based on [Keep a
 Changelog](https://keepachangelog.com).
 
-## [v4.0.0] - 2024-11-19
+## [v4.0.0] - 2024-12-21
 
 ### Changed
 - **Breaking**: We updated to [Dear ImGui
@@ -22,7 +22,7 @@ Changelog](https://keepachangelog.com).
     respectively.
 
   For Linux/GLFW users, there's also a fix for a long-standing docking bug:
-  https://github.com/ocornut/imgui/issues/7733
+  <https://github.com/ocornut/imgui/issues/7733>
 
 ## [v3.1.1] - 2024-11-05
 

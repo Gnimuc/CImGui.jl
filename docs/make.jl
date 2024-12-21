@@ -12,7 +12,7 @@ Changelog.generate(
     Changelog.Documenter(),
     joinpath(@__DIR__, "src/_changelog.md"),
     joinpath(@__DIR__, "src/changelog.md"),
-    repo="Gnimuc/CImGui.jl"
+    repo="JuliaImGui/CImGui.jl"
 )
 
 makedocs(;
@@ -21,7 +21,7 @@ makedocs(;
     sitename="CImGui.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://Gnimuc.github.io/CImGui.jl",
+        canonical="https://juliaimgui.github.io/CImGui.jl",
         assets=String[],
         size_threshold=2_000_000,
         size_threshold_warn=1_500_000
@@ -30,5 +30,5 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/Gnimuc/CImGui.jl.git",
+    repo="github.com/JuliaImGui/CImGui.jl.git",
 )

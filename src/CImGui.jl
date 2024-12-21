@@ -95,7 +95,7 @@ end
                 tooltip=true, stats=false)
 
 Display a Makie figure in ImGui. See
-[`examples/makie_demo.jl`](https://github.com/Gnimuc/CImGui.jl/blob/master/examples/makie_demo.jl)
+[`examples/makie_demo.jl`](https://github.com/JuliaImGui/CImGui.jl/blob/master/examples/makie_demo.jl)
 for an example of how to use it.
 
 These are the [interaction
